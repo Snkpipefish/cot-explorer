@@ -651,6 +651,7 @@ async function openCotChart(symbol, report, navn){
     });
 
     var hasPrices = priceData.some(function(p){ return p!=null; });
+    console.log('prices loaded:', prices.length, 'priceData nulls:', priceData.filter(function(p){return p==null;}).length, 'first price:', prices[0]);
 
     // Vis/skjul priceWrap
     var priceWrap = document.getElementById('priceWrap');
