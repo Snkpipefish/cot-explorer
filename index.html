@@ -490,7 +490,7 @@ function renderCot(){
     var sp=d.spekulanter||{};
     var s2=sig(sp.net||0,d.open_interest||1);
     var si=SI[s2];
-    rows+='<tr><td><div class="tdname">'+(d.navn_no||d.market)+'</div><div class="tdsub">'+(d.forklaring||'')+'</div></td>'+
+    rows+='<tr><td style="cursor:pointer" onclick="openCotChart(\''+d.symbol+'\',\''+d.report+'\',\''+encodeURIComponent(d.navn_no||d.market)+'\')" ><div class="tdname">'+(d.navn_no||d.market)+'</div><div class="tdsub">'+(d.forklaring||'')+'</div></td>'+
       '<td><span class="sp2 '+s2+'">'+si.i+' '+si.t+'</span></td>'+
       '<td class="'+(sp.net>=0?'tdbull':'tdbear')+'">'+(sp.net>0?'+':'')+fm(sp.net||0)+'</td>'+
       '<td class="'+(d.change_spec_net>=0?'tdbull':'tdbear')+'">'+(d.change_spec_net>0?'+':'')+fm(d.change_spec_net||0)+'</td>'+
@@ -564,6 +564,7 @@ function closeCotModal(e){
 
 async function openCotChart(symbol, report, navn){
   var modal = document.getElementById('cotModal');
+  navn = decodeURIComponent(navn);
   document.getElementById('cotModalTitle').textContent = navn + ' – COT Historikk';
   document.getElementById('cotModalStats').innerHTML = '<div style="color:var(--m);font-size:13px">Laster...</div>';
   modal.classList.add('open');
