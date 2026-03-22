@@ -165,7 +165,7 @@ function renderGrid(){
       </div>
       <div id="det${i}" class="mcard-detail">
         <div class="detail-grid">${groups}</div>
-        <div class="oi-row"><span>Open Interest: <strong>${fmt(d.open_interest)}</strong></span><span>Uke Δ: <strong class="${cc(d.change_oi||0)}">${sign(d.change_oi||0)}${fmt(d.change_oi||0)}</strong></span><span>${d.report}</span></div>
+        <div class="oi-row"><span>Open Interest: <strong>${fmt(d.open_interest)}</strong></span><span>Uke Δ: <strong class="${cc(d.change_oi||0)}">${sign(d.change_oi||0)}${fmt(d.change_oi||0)}</strong></span><button onclick="event.stopPropagation();showChart('${d.symbol}','${d.report}','${d.navn_no||d.market}','${d.forklaring||''}');" style="background:var(--navy);color:#fff;border:none;border-radius:5px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif">📈 Se historikk</button></div>
       </div>
     </div>`;
   }).join('');
@@ -188,5 +188,146 @@ async function loadData(){
 }
 loadData();
 </script>
+
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:28px;width:90%;max-width:800px;max-height:90vh;overflow-y:auto;position:relative">
+    <button onclick="closeModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#6b7280">✕</button>
+    <div id="modal-title" style="font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:#0f2744;margin-bottom:4px"></div>
+    <div id="modal-sub" style="font-size:13px;color:#6b7280;margin-bottom:20px"></div>
+    <canvas id="myChart" height="120"></canvas>
+    <div id="modal-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px"></div>
+    <div id="modal-loading" style="text-align:center;padding:40px;color:#6b7280">Laster graf...</div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+let currentChart = null;
+
+async function showChart(symbol, report, navn, forklaring) {
+  const modal = document.getElementById('modal');
+  modal.style.display = 'flex';
+  document.getElementById('modal-title').textContent = navn;
+  document.getElementById('modal-sub').textContent = forklaring;
+  document.getElementById('modal-loading').style.display = 'block';
+  document.getElementById('myChart').style.display = 'none';
+  document.getElementById('modal-stats').innerHTML = '';
+
+  const key = (symbol + '_' + report).replace(/[^a-z0-9_]/gi,'_').toLowerCase();
+  try {
+    const res = await fetch('data/timeseries/' + key + '.json');
+    const ts = await res.json();
+    document.getElementById('modal-loading').style.display = 'none';
+    document.getElementById('myChart').style.display = 'block';
+
+    const labels = ts.data.map(d => d.date);
+    const nets   = ts.data.map(d => d.spec_net);
+    const longs  = ts.data.map(d => d.spec_long);
+    const shorts = ts.data.map(d => d.spec_short);
+
+    if (currentChart) currentChart.destroy();
+    currentChart = new Chart(document.getElementById('myChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Netto posisjon',
+            data: nets,
+            borderColor: '#0f2744',
+            backgroundColor: nets.map(n => n >= 0 ? 'rgba(5,150,105,.08)' : 'rgba(220,38,38,.08)'),
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+          },
+          {
+            label: 'Long',
+            data: longs,
+            borderColor: '#059669',
+            borderWidth: 1.5,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0,
+            borderDash: [4,4],
+          },
+          {
+            label: 'Short',
+            data: shorts,
+            borderColor: '#dc2626',
+            borderWidth: 1.5,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0,
+            borderDash: [4,4],
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { font: { family: 'Outfit' }, boxWidth: 12 } },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const v = ctx.raw;
+                const a = Math.abs(v);
+                const f = a>=1e6?(v/1e6).toFixed(2)+'M':a>=1e3?(v/1e3).toFixed(1)+'K':v.toString();
+                return ctx.dataset.label + ': ' + (v>0?'+':'') + f;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { maxTicksLimit: 8, font: { family: 'Outfit', size: 11 } },
+            grid: { display: false }
+          },
+          y: {
+            ticks: {
+              font: { family: 'Outfit', size: 11 },
+              callback: v => { const a=Math.abs(v); return a>=1e6?(v/1e6).toFixed(1)+'M':a>=1e3?(v/1e3).toFixed(0)+'K':v; }
+            },
+            grid: { color: 'rgba(0,0,0,.04)' }
+          }
+        }
+      }
+    });
+
+    // Statistikk
+    const last = nets[nets.length-1]||0;
+    const prev = nets[nets.length-2]||0;
+    const max  = Math.max(...nets);
+    const min  = Math.min(...nets);
+    const fmt  = v => { const a=Math.abs(v); return (v>0?'+':'')+(a>=1e6?(v/1e6).toFixed(2)+'M':a>=1e3?(v/1e3).toFixed(1)+'K':v); };
+    document.getElementById('modal-stats').innerHTML = `
+      <div style="background:#f5f3ef;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:6px">Nå</div>
+        <div style="font-size:20px;font-weight:700;color:${last>=0?'#059669':'#dc2626'}">${fmt(last)}</div>
+      </div>
+      <div style="background:#f5f3ef;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:6px">Historisk maks</div>
+        <div style="font-size:20px;font-weight:700;color:#059669">${fmt(max)}</div>
+      </div>
+      <div style="background:#f5f3ef;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:6px">Historisk bunn</div>
+        <div style="font-size:20px;font-weight:700;color:#dc2626">${fmt(min)}</div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('modal-loading').textContent = '⚠️ Ingen historiske data for dette markedet ennå.';
+  }
+}
+
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+  if (currentChart) { currentChart.destroy(); currentChart = null; }
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+</script>
+
 </body>
 </html>
