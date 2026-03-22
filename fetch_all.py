@@ -312,7 +312,7 @@ else:
 
 macro = {
     "date":    datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-    "cot_date": "2025-12-30",
+    "cot_date": max((d.get("date","") for d in cot_data.values() if d.get("date")), default="ukjent"),
     "prices":  prices,
     "vix_regime": vix_regime,
     "sentiment": {"fear_greed": fg, "conflicts": conflicts},
