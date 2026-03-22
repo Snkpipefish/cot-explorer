@@ -7,231 +7,134 @@ Repo: https://github.com/Snkpipefish/cot-explorer
 
 ## Hva er dette?
 
-En statisk nettside (GitHub Pages) som viser:
-- **Trading Setups** med entry/SL/T1/T2 og konfluens-score (7 punkter)
-- **Makro-panel** med Dollar Smile-modell og VIX-regime
-- **COT-posisjoner** for 500+ markeder fra CFTC
-- **Kalender** og **Priser** (Yahoo Finance)
+En statisk nettside (GitHub Pages) som viser daglige trading-ideer basert på:
+- **Level-til-level setups** — entry ved faktisk nivå, T1/T2 er neste reelle nivå
+- **Konfluens-score (8 punkter)** inkl. COT, EMA9, SMA200, sentiment
+- **Makro-panel** med Dollar Smile-modell, VIX-regime og konflikt-flagging
+- **COT-posisjoner** for 366 markeder fra CFTC (siste uke)
+- **Priser** med 1d/5d/20d endring fra Yahoo Finance
 
-Alt drives av JSON-filer i `data/` som genereres lokalt og pushes til GitHub.
+Alt drives av JSON-filer i data/ som genereres lokalt og pushes til GitHub.
+
+---
+
+## Viktig — datakilde for trading-ideer
+
+**Trading-ideene bruker KUN siste ukes COT-data** fra data/combined/latest.json,
+bygget fra data/{report}/latest.json.
+
+**Timeseries brukes IKKE til trading-ideer** — kun til historikk-visning.
+
+COT-dato vises øverst på Trading Setups-fanen. Typisk dato: tirsdag i rapport-uken
+(CFTC publiserer fredag, data reflekterer tirsdag samme uke).
 
 ---
 
 ## Filstruktur
-
 ```
 cot-explorer/
 ├── index.html                  # Hele frontend (én fil, vanilla JS)
-├── fetch_cot.py                # Laster ned COT-data fra CFTC → data/timeseries/
-├── build_combined.py           # Bygger data/combined/latest.json fra timeseries
-├── fetch_all.py                # Henter priser fra Yahoo + bygger data/macro/latest.json
-├── fetch_prices.py             # Enklere pris-fetcher (backup)
+├── fetch_cot.py                # Laster ned COT-data fra CFTC
+├── build_combined.py           # Bygger data/combined/latest.json fra siste uke
+├── fetch_all.py                # Henter priser + bygger data/macro/latest.json
 └── data/
-    ├── timeseries/             # ~500+ JSON-filer, én per marked
-    │   ├── index.json          # Oversikt over alle markets (symbol, navn, kategori)
-    │   └── {symbol}_{report}.json   # Historiske COT-data per marked
-    ├── combined/
-    │   └── latest.json         # COT-tab: liste med alle markeder + siste netto
-    └── macro/
-        └── latest.json         # Setups + makro + priser (hoveddatafil)
+    ├── tff/latest.json         # Siste ukes TFF-rapport (76 markeder)
+    ├── legacy/latest.json      # Siste ukes Legacy-rapport (290 markeder)
+    ├── disaggregated/latest.json
+    ├── supplemental/latest.json
+    ├── timeseries/             # Historiske COT-data (KUN historikk-fanen)
+    ├── combined/latest.json    # COT-tab: 366 markeder fra siste uke
+    └── macro/latest.json       # Hoveddatafil: setups + makro + priser
 ```
 
 ---
 
-## Datafiler – format
+## Setup-logikk — Level-til-Level
 
-### `data/timeseries/{symbol}_{report}.json`
-```json
-{
-  "symbol": "020601",
-  "market": "U.S. Treasury Bonds",
-  "navn_no": "US T-Bond 30Y",
-  "kategori": "renter",
-  "report": "tff",
-  "data": [
-    {"date": "2025-12-30", "spec_net": -339694, "spec_long": 45000, "spec_short": 384694, "oi": 529597}
-  ]
-}
-```
-- `report`: `tff` | `legacy` | `disaggregated` | `supplemental`
-- `spec_net`: netto spekulantposisjon (positivt = bull, negativt = bear)
-- `oi`: open interest
+**Kjerneprinsipp:** Entry MÅ være ved et faktisk nivå. T1/T2 er neste reelle nivå.
 
-### `data/combined/latest.json`
-Liste brukt av COT-tab i nettleseren:
-```json
-[
-  {
-    "symbol": "020601",
-    "market": "U.S. Treasury Bonds",
-    "navn_no": "US T-Bond 30Y",
-    "kategori": "renter",
-    "report": "tff",
-    "date": "2025-12-30",
-    "spekulanter": {"net": -339694, "long": 45000, "short": 384694},
-    "open_interest": 529597,
-    "change_spec_net": -12000
-  }
-]
-```
+### Nivåhierarki
+1. PWH / PWL — forrige ukes range
+2. PDH / PDL — gårsdagens range
+3. SMA200 — strukturell trend
+4. PDC — psykologisk magnet
+5. Tekniske topper/bunner fra 4H
+6. EMA9 — lokal momentum
 
-### `data/macro/latest.json`
-Hoveddatafil. Struktur:
-```json
-{
-  "date": "2026-03-22 15:41 UTC",
-  "cot_date": "2025-12-30",
-  "prices": {
-    "VIX":    {"price": 18.5, "chg1d": -2.1, "chg5d": -5.3, "chg20d": -8.0},
-    "SPX":    {"price": 6506, "chg1d":  0.3, "chg5d":  1.2, "chg20d":  3.1},
-    "EURUSD": {"price": 1.1575, "chg1d": 0.1, "chg5d": 0.8, "chg20d": 2.0},
-    "Gold":   {"price": 4574, "chg1d": 0.4, "chg5d": 1.1, "chg20d": 4.2}
-  },
-  "vix_regime": {
-    "value": 18.5,
-    "label": "Normalt – full størrelse",
-    "color": "bull",
-    "regime": "normal"
-  },
-  "dollar_smile": {
-    "position": "midten",
-    "usd_bias": "SVAKT",
-    "usd_color": "bear",
-    "desc": "Goldilocks – svak USD",
-    "inputs": {"vix": 18.5, "hy_stress": false, "brent": 106.4, "tip_trend_5d": 0.2, "dxy_trend_5d": -0.5}
-  },
-  "trading_levels": {
-    "EURUSD": {
-      "name": "EUR/USD",
-      "label": "Valuta",
-      "class": "v",
-      "current": 1.1575,
-      "atr14": 0.0099,
-      "sma200": 1.08,
-      "sma200_pos": "over",
-      "chg5d": 0.8,
-      "chg20d": 2.0,
-      "dir_color": "bull",
-      "grade": "B",
-      "grade_color": "warn",
-      "score": 5,
-      "score_pct": 71,
-      "score_details": [
-        {"kryss": "Over SMA200", "verdi": true},
-        {"kryss": "5d trend opp", "verdi": true},
-        {"kryss": "COT Long bias", "verdi": false},
-        {"kryss": "COT ikke short", "verdi": true},
-        {"kryss": "Støtte nær", "verdi": true},
-        {"kryss": "Motstand fritt", "verdi": false},
-        {"kryss": "Momentum 20d", "verdi": true}
-      ],
-      "resistances": [{"name":"R1","level":1.1620,"dist_atr":0.5}],
-      "supports":    [{"name":"S1","level":1.1490,"dist_atr":0.9}],
-      "setup_long": {
-        "entry": 1.1575, "sl": 1.1450, "t1": 1.1825, "t2": 1.1950,
-        "rr_t1": 2.0, "rr_t2": 3.0, "min_rr": 2.0,
-        "entry_dist_atr": 0.0, "entry_name": "Nåpris",
-        "note": "SL under støtte (1.149). ATR=0.0099"
-      },
-      "setup_short": {
-        "entry": 1.1575, "sl": 1.1620, "t1": 1.1485, "t2": 1.1395,
-        "rr_t1": 2.0, "rr_t2": 4.0, "min_rr": 2.0,
-        "entry_dist_atr": 0.0, "entry_name": "Nåpris",
-        "note": "SL over motstand (1.162). ATR=0.0099"
-      },
-      "session": {"active": true, "label": "24h"},
-      "binary_risk": [],
-      "dxy_conf": "medvind",
-      "pos_size": "Full",
-      "vix_spread_factor": 1.0,
-      "cot": {
-        "bias": "LONG", "color": "bull",
-        "net": 45000, "chg": 3000, "pct": 8.5,
-        "date": "2025-12-30", "report": "legacy"
-      },
-      "combined_bias": "LONG"
-    }
-  },
-  "calendar": [
-    {"date": "2026-03-25T14:30:00Z", "title": "Fed Meeting Minutes", "country": "US", "impact": "High", "forecast": "-"}
-  ]
-}
-```
+### Entry / SL / T1 / T2
+- Entry = nåpris ved nivå (MÅ være ≤1×ATR fra nivå for status "aktiv")
+- SL Long = støtte − spread-buffer
+- SL Short = motstand + spread-buffer
+- T1 = neste faktiske nivå i retningen
+- T2 = nivå etter T1
+- Dropp setup hvis R:R T1 < 1.5
 
----
+### Status
+- Aktiv — pris ≤1×ATR fra entry-nivå
+- Watchlist — pris >1×ATR unna
 
-## Workflow – oppdater data
-
-```bash
-cd ~/cot-explorer
-
-# 1. Hent nye COT-data fra CFTC (ukentlig, fredager)
-python3 fetch_cot.py
-
-# 2. Bygg COT-samlefil
-python3 build_combined.py
-
-# 3. Hent priser + bygg setups
-python3 fetch_all.py
-
-# 4. Push
-git add data/
-git commit -m "oppdater data $(date +%Y-%m-%d)"
-git push origin main
-```
-
----
-
-## Setup-kalkulator – logikk
-
-**Score (7 punkter):**
+### Konfluens-score (8 punkter)
 1. Over SMA200
 2. 5d trend opp
-3. COT Long bias (spec_net/OI > 4%)
+3. COT long bias (spec_net/OI > 4%)
 4. COT ikke short (spec_net/OI > -4%)
-5. Støtte nær (< 2x ATR unna)
-6. Motstand fritt (> 1.5x ATR til neste)
+5. Støtte nær (≤1×ATR)
+6. Motstand fritt (>1.5×ATR)
 7. Momentum 20d positivt
+8. Sentiment bekrefter (Fear&Greed < 35)
 
-**Grade:** A+ = 6-7p | B = 4-5p | C = 0-3p
+Grade: A+ = 7-8p | B = 5-6p | C = 0-4p
 
-**Entry/SL/Target:**
-- Entry = nåpris
-- SL Long = nærmeste støtte − 0.2×ATR
-- SL Short = nærmeste motstand + 0.2×ATR
-- T1 = entry ± risk×2.0
-- T2 = entry ± risk×3.0
-
-**VIX-regime posisjonsstørrelse:**
+### VIX-regime
 - VIX < 20 → Full størrelse
 - VIX 20-30 → Halv størrelse
 - VIX > 30 → Kvart størrelse
 
 ---
 
-## Instruments i fetch_all.py
+## Instruments
 
-| Key | Navn | Yahoo-symbol |
-|-----|------|-------------|
-| EURUSD | EUR/USD | EURUSD=X |
-| USDJPY | USD/JPY | JPY=X |
-| GBPUSD | GBP/USD | GBPUSD=X |
-| USDCHF | USD/CHF | CHFUSD=X |
-| AUDUSD | AUD/USD | AUDUSD=X |
-| Gold | Gull | GC=F |
-| Silver | Sølv | SI=F |
-| Brent | Brent | BZ=F |
-| WTI | WTI | CL=F |
-| SPX | S&P 500 | ^GSPC |
-| NAS100 | Nasdaq | ^NDX |
-| VIX | VIX | ^VIX |
-| DXY | DXY | DX-Y.NYB |
+| Key    | Navn    | Yahoo     | Klasse | Sesjon |
+|--------|---------|-----------|--------|--------|
+| EURUSD | EUR/USD | EURUSD=X  | A | London 08:00-12:00 CET |
+| USDJPY | USD/JPY | JPY=X     | A | London 08:00-12:00 CET |
+| GBPUSD | GBP/USD | GBPUSD=X  | A | London 08:00-12:00 CET |
+| AUDUSD | AUD/USD | AUDUSD=X  | A | London 08:00-12:00 CET |
+| Gold   | Gull    | GC=F      | B | London Fix 10:30 / NY Fix 15:00 CET |
+| Silver | Sølv    | SI=F      | B | London Fix 10:30 / NY Fix 15:00 CET |
+| Brent  | Brent   | BZ=F      | B | London Fix 10:30 / NY Fix 15:00 CET |
+| WTI    | WTI     | CL=F      | B | London Fix 10:30 / NY Fix 15:00 CET |
+| SPX    | S&P 500 | ^GSPC     | C | NY Open 14:30-17:00 CET |
+| NAS100 | Nasdaq  | ^NDX      | C | NY Open 14:30-17:00 CET |
+| DXY    | DXY     | DX-Y.NYB  | A | London 08:00-12:00 CET |
+
+---
+
+## Workflow — ukentlig oppdatering
+```bash
+cd ~/cot-explorer
+python3 fetch_cot.py        # fredag etter 21:30 CET
+python3 build_combined.py   # bygg COT-samlefil
+python3 fetch_all.py        # hent priser + setups
+git add data/
+git commit -m "ukesoppdatering $(date +%Y-%m-%d)"
+git push origin main
+```
+
+---
+
+## Datakilder
+
+| Data | Kilde | Frekvens |
+|------|-------|----------|
+| COT-posisjoner | CFTC.gov | Ukentlig (fredag 21:30 CET) |
+| Priser, ATR, SMA200, EMA9, PDH/PDL/PWH/PWL | Yahoo Finance | Ved kjøring |
+| Fear & Greed | CNN dataviz API | Ved kjøring |
 
 ---
 
 ## Tech stack
 
-- **Frontend:** Vanilla HTML/CSS/JS, én fil (`index.html`), ingen bundler
-- **Backend:** Python 3, ingen dependencies utover stdlib
-- **Hosting:** GitHub Pages (statisk)
-- **Data:** CFTC (COT) + Yahoo Finance (priser)
+- Frontend: Vanilla HTML/CSS/JS, én fil (index.html), ingen bundler
+- Backend: Python 3, ingen dependencies utover stdlib
+- Hosting: GitHub Pages (statisk)
