@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 import urllib.request, urllib.parse, json, os
 from datetime import datetime, timezone
+import sys
+sys.path.insert(0, os.path.expanduser('~/cot-explorer'))
+try:
+    from smc import run_smc
+    SMC_OK = True
+except:
+    SMC_OK = False
+    print('  SMC ikke tilgjengelig')
 
 BASE = os.path.expanduser("~/cot-explorer/data")
 OUT  = os.path.join(BASE, "macro", "latest.json")
@@ -267,6 +275,14 @@ for inst in INSTRUMENTS:
 
     if inst["key"] == "VIX": continue
 
+    # ── SMC analyse ──────────────────────────────────────
+    smc = None
+    if SMC_OK and rows_15m and len(rows_15m) > 50:
+        try:
+            smc = run_smc(rows_15m, swing_length=5)
+        except Exception as e:
+            print(f"  SMC FEIL: {e}")
+
     # ── Nivåer ───────────────────────────────────────────
     pdh, pdl, pdc = get_pdh_pdl_pdc(daily)
     pwh, pwl      = get_pwh_pwl(daily)
@@ -281,12 +297,20 @@ for inst in INSTRUMENTS:
     extra_res = [r for r in [pdh, pwh] if r and r > curr]
     extra_sup = [s for s in [pdl, pwl] if s and s < curr]
 
+    # Hent SMC supply/demand POI-er som ekstra nivåer
+    smc_res = []
+    smc_sup = []
+    if smc:
+        smc_res = [z["poi"] for z in smc.get("supply_zones",[]) if z["poi"] > curr]
+        smc_sup = [z["poi"] for z in smc.get("demand_zones",[]) if z["poi"] < curr]
+        # Merk SMC-nivåer i sources
+
     all_res = sorted(list(dict.fromkeys(
-        [round(x,5) for x in res_15m + extra_res + res_d if x > curr]
+        [round(x,5) for x in res_15m + smc_res + extra_res + res_d if x > curr]
     )), key=lambda x: abs(x-curr))[:5]
 
     all_sup = sorted(list(dict.fromkeys(
-        [round(x,5) for x in sup_15m + extra_sup + sup_d if x < curr]
+        [round(x,5) for x in sup_15m + smc_sup + extra_sup + sup_d if x < curr]
     )), key=lambda x: abs(x-curr))[:5]
 
     # Kildemerking
@@ -425,6 +449,14 @@ for inst in INSTRUMENTS:
         "setup_long":    setup_long,
         "setup_short":   setup_short,
         "binary_risk":   [],
+        "smc": {
+            "structure":    smc["structure"]    if smc else None,
+            "supply_zones": smc["supply_zones"] if smc else [],
+            "demand_zones": smc["demand_zones"] if smc else [],
+            "bos_levels":   smc["bos_levels"]   if smc else [],
+            "last_swing_high": smc["last_swing_high"] if smc else None,
+            "last_swing_low":  smc["last_swing_low"]  if smc else None,
+        },
         "dxy_conf":      "medvind" if (inst["kat"]=="valuta" and (prices.get("DXY") or {}).get("chg5d",0)<0) else "motvind",
         "pos_size":      pos_size,
         "vix_spread_factor": 1.0 if vix_price<20 else 1.5 if vix_price<30 else 2.0,
