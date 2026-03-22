@@ -593,8 +593,7 @@ async function fetchYahooPrices(priceKey, startDate, endDate) {
     var r = await fetch("data/prices/" + priceKey + ".json");
     if(!r.ok) return [];
     var d = await r.json();
-    var s = new Date(startDate), e = new Date(endDate);
-    return (d.data||[]).filter(function(p){ var dt=new Date(p.date); return dt>=s && dt<=e; });
+    return d.data||[];
   } catch(e) { return []; }
 }
 
