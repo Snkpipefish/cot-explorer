@@ -48,6 +48,57 @@ def calc_atr(rows, n=14):
            for i in range(1, len(rows))]
     return sum(trs[-n:]) / n
 
+def calc_ema(closes, n=9):
+    if len(closes) < n+1: return None
+    k = 2/(n+1)
+    ema = sum(closes[:n])/n
+    for c in closes[n:]:
+        ema = c*k + ema*(1-k)
+    return ema
+
+def get_pdh_pdl_pdc(daily):
+    """Gårsdagens high/low/close"""
+    if len(daily) < 2: return None,None,None
+    return daily[-2][0], daily[-2][1], daily[-2][2]
+
+def get_pwh_pwl(daily):
+    """Forrige ukes high/low (siste 6-10 dager, ekskl denne uken)"""
+    if len(daily) < 10: return None,None
+    week = daily[-8:-1]  # ca forrige uke
+    return max(r[0] for r in week), min(r[1] for r in week)
+
+def get_session_status():
+    """Returner aktiv sesjon basert på UTC-tid"""
+    from datetime import datetime, timezone
+    h = datetime.now(timezone.utc).hour
+    m = datetime.now(timezone.utc).minute
+    t = h*60 + m
+    # CET = UTC+1 (vinter) / UTC+2 (sommer) — bruker UTC+1
+    cet = (t + 60) % (24*60)
+    ch  = cet // 60
+    sessions = []
+    if 7*60 <= cet < 12*60:   sessions.append("London")
+    if 13*60 <= cet < 17*60:  sessions.append("NY Overlap")
+    if 8*60 <= cet < 12*60:   sessions.append("London Fix")
+    if not sessions:           sessions.append("Off-session")
+    return {"active": bool([s for s in sessions if s != "Off-session"]),
+            "label": " / ".join(sessions), "cet_hour": ch}
+
+def regime_alignment(closes_d1, closes_4h, curr):
+    """Enkel regime: pris vs EMA9 på D1 og 4H"""
+    ema_d1 = calc_ema(closes_d1, 9)
+    ema_4h = calc_ema(closes_4h, 9) if closes_4h else None
+    d1_bull = curr > ema_d1 if ema_d1 else None
+    h4_bull = curr > ema_4h if ema_4h else None
+    if d1_bull is None: return "NØYTRAL","NØYTRAL","—"
+    d1_r = "BULLISH" if d1_bull else "BEARISH"
+    h4_r = ("BULLISH" if h4_bull else "BEARISH") if h4_bull is not None else "NØYTRAL"
+    # Alignment
+    if d1_bull and (h4_bull or h4_bull is None): align = "bull"
+    elif not d1_bull and not h4_bull:             align = "bear"
+    else:                                          align = "mixed"
+    return d1_r, h4_r, align
+
 def to_4h(rows_1h):
     out = []
     for i in range(0, len(rows_1h)-3, 4):
@@ -233,7 +284,32 @@ for inst in INSTRUMENTS:
     lvl_rows = h4 if len(h4) > 20 else daily
     res_lvl, sup_lvl = find_levels(lvl_rows)
 
-    # COT
+    # ── PDH / PDL / PDC / PWH / PWL / EMA9 ─────────────────
+    pdh, pdl, pdc = get_pdh_pdl_pdc(daily)
+    pwh, pwl      = get_pwh_pwl(daily)
+    closes_d1     = [r[2] for r in daily]
+    closes_4h     = [r[2] for r in h4]
+    ema9_d1       = calc_ema(closes_d1, 9)
+    ema9_4h       = calc_ema(closes_4h, 9) if closes_4h else None
+    d1_regime, h4_regime, align = regime_alignment(closes_d1, closes_4h, curr)
+    session_now   = get_session_status()
+
+    # Legg PDH/PDL/PWH/PWL til nivålister
+    extra_res, extra_sup = [], []
+    for lvl, name in [(pdh,"PDH"),(pwh,"PWH"),(pdc,"PDC")]:
+        if lvl and lvl > curr: extra_res.append((lvl, name))
+    for lvl, name in [(pdl,"PDL"),(pwl,"PWL"),(pdc,"PDC")]:
+        if lvl and lvl < curr: extra_sup.append((lvl, name))
+
+    # Slå sammen med tekniske nivåer og sorter
+    all_res = sorted(list(set(res_lvl)) + [x[0] for x in extra_res if x[0] > curr], key=lambda x: abs(x-curr))[:5]
+    all_sup = sorted(list(set(sup_lvl)) + [x[0] for x in extra_sup if x[0] < curr], key=lambda x: abs(x-curr))[:5]
+
+    # Merk kilde per nivå
+    lvl_sources = {round(pdh,5):"PDH", round(pdl,5):"PDL", round(pdc,5):"PDC",
+                   round(pwh,5):"PWH" if pwh else None, round(pwl,5):"PWL" if pwl else None}
+
+    # ── COT
     cot_key   = COT_MAP.get(inst["key"],"")
     cot_entry = cot_data.get(cot_key, {})
     spec_net  = (cot_entry.get("spekulanter") or {}).get("net", 0) or 0
@@ -269,8 +345,8 @@ for inst in INSTRUMENTS:
 
     # L2L setups — T1/T2 er faktiske nivåer
     klasse       = inst.get("klasse","B")
-    setup_long   = make_setup_level2level(curr, atr_use, sup_lvl, res_lvl, "long",  klasse)
-    setup_short  = make_setup_level2level(curr, atr_use, sup_lvl, res_lvl, "short", klasse)
+    setup_long   = make_setup_level2level(curr, atr_use, all_sup, all_res, "long",  klasse)
+    setup_short  = make_setup_level2level(curr, atr_use, all_sup, all_res, "short", klasse)
 
     # Sett sesjon på setupene
     for s in [setup_long, setup_short]:
@@ -283,8 +359,13 @@ for inst in INSTRUMENTS:
     status_label = "aktiv" if is_active else "watchlist"
 
     def fmt_level(lvl, typ, atr):
-        return [{"name":f"{typ}{i+1}","level":round(l,5 if l<100 else 2),
-                 "dist_atr":round(abs(l-curr)/(atr or 1),1)} for i,l in enumerate(lvl[:4])]
+        out = []
+        for i,l in enumerate(lvl[:5]):
+            lr = round(l, 5 if l<100 else 2)
+            src = lvl_sources.get(round(l,5), f"{typ}{i+1}")
+            out.append({"name": src, "level": lr,
+                        "dist_atr": round(abs(l-curr)/(atr or 1), 1)})
+        return out
 
     levels[inst["key"]] = {
         "name":          inst["navn"],
@@ -308,11 +389,23 @@ for inst in INSTRUMENTS:
         "score_pct":     round(score/8*100),
         "score_details": score_details,
         "open_interest": oi,
-        "resistances":   fmt_level(res_lvl,"R",atr_use),
-        "supports":      fmt_level(sup_lvl,"S",atr_use),
+        "resistances":   fmt_level(all_res,"R",atr_use),
+        "supports":      fmt_level(all_sup,"S",atr_use),
         "setup_long":    setup_long,
         "setup_short":   setup_short,
         "binary_risk":   [],
+        "pdh": round(pdh,5) if pdh else None,
+        "pdl": round(pdl,5) if pdl else None,
+        "pdc": round(pdc,5) if pdc else None,
+        "pwh": round(pwh,5) if pwh else None,
+        "pwl": round(pwl,5) if pwl else None,
+        "ema9_d1": round(ema9_d1,5) if ema9_d1 else None,
+        "ema9_4h": round(ema9_4h,5) if ema9_4h else None,
+        "ema9_above": curr > ema9_d1 if ema9_d1 else None,
+        "d1_regime": d1_regime,
+        "h4_regime": h4_regime,
+        "regime_align": align,
+        "session_now": session_now,
         "dxy_conf":      "medvind" if (inst["kat"]=="valuta" and (prices.get("DXY") or {}).get("chg5d",0)<0) else "motvind",
         "pos_size":      pos_size,
         "vix_spread_factor": 1.0 if vix_price<20 else 1.5 if vix_price<30 else 2.0,
