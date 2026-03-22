@@ -1,5 +1,5 @@
 {
-  "date": "2026-03-22 16:30 UTC",
+  "date": "2026-03-22 16:39 UTC",
   "cot_date": "2026-03-17",
   "prices": {
     "EURUSD": {
@@ -19,12 +19,6 @@
       "chg1d": -0.63,
       "chg5d": 0.71,
       "chg20d": -1.42
-    },
-    "USDCHF": {
-      "price": 1.2694,
-      "chg1d": 0.11,
-      "chg5d": 0.27,
-      "chg20d": -2.04
     },
     "AUDUSD": {
       "price": 0.7024,
@@ -118,12 +112,14 @@
     "EURUSD": {
       "name": "EUR/USD",
       "label": "Valuta",
+      "klasse": "A",
+      "session": "London 08:00–12:00 CET",
       "class": "V",
       "current": 1.1575,
       "atr14": 0.00396,
       "atr_daily": 0.00986,
       "atr_4h": 0.00396,
-      "timeframe": "intradag",
+      "status": "watchlist",
       "sma200": 1.1677,
       "sma200_pos": "under",
       "chg5d": 1.23,
@@ -131,8 +127,8 @@
       "dir_color": "bear",
       "grade": "C",
       "grade_color": "bear",
-      "score": 4,
-      "score_pct": 50,
+      "score": 3,
+      "score_pct": 38,
       "score_details": [
         {
           "kryss": "Over SMA200",
@@ -151,8 +147,8 @@
           "verdi": true
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
-          "verdi": true
+          "kryss": "Støtte nær (≤1×ATR)",
+          "verdi": false
         },
         {
           "kryss": "Motstand fritt (>1.5×)",
@@ -212,36 +208,8 @@
           "dist_atr": 4.1
         }
       ],
-      "setup_long": {
-        "entry": 1.15754,
-        "sl": 1.15259,
-        "t1": 1.16745,
-        "t2": 1.17241,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL under S1 (1.1535) − 0.2×ATR. ATR=0.004. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "setup_short": {
-        "entry": 1.15754,
-        "sl": 1.16279,
-        "t1": 1.14703,
-        "t2": 1.14178,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (1.1618) + 0.2×ATR. ATR=0.004. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
-      },
+      "setup_long": null,
+      "setup_short": null,
       "binary_risk": [],
       "dxy_conf": "motvind",
       "pos_size": "Halv",
@@ -260,19 +228,20 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
+        }
       }
     },
     "USDJPY": {
       "name": "USD/JPY",
       "label": "Valuta",
+      "klasse": "A",
+      "session": "London 08:00–12:00 CET",
       "class": "V",
       "current": 159.22,
       "atr14": 0.54164,
       "atr_daily": 1.16821,
       "atr_4h": 0.54164,
-      "timeframe": "intradag",
+      "status": "aktiv",
       "sma200": 152.02,
       "sma200_pos": "over",
       "chg5d": -0.22,
@@ -300,7 +269,7 @@
           "verdi": false
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
+          "kryss": "Støtte nær (≤1×ATR)",
           "verdi": true
         },
         {
@@ -361,36 +330,8 @@
           "dist_atr": 2.7
         }
       ],
-      "setup_long": {
-        "entry": 159.22,
-        "sl": 158.71301,
-        "t1": 160.23399,
-        "t2": 160.74098,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL under S1 (158.843) − 0.2×ATR. ATR=0.5416. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "setup_short": {
-        "entry": 159.22,
-        "sl": 159.585,
-        "t1": 158.49001,
-        "t2": 158.12502,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (159.455) + 0.2×ATR. ATR=0.5416. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
-      },
+      "setup_long": null,
+      "setup_short": null,
       "binary_risk": [],
       "dxy_conf": "motvind",
       "pos_size": "Halv",
@@ -409,19 +350,20 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
+        }
       }
     },
     "GBPUSD": {
       "name": "GBP/USD",
       "label": "Valuta",
+      "klasse": "A",
+      "session": "London 08:00–12:00 CET",
       "class": "V",
       "current": 1.3341,
       "atr14": 0.00567,
       "atr_daily": 0.01116,
       "atr_4h": 0.00567,
-      "timeframe": "intradag",
+      "status": "aktiv",
       "sma200": 1.3435,
       "sma200_pos": "under",
       "chg5d": 0.71,
@@ -449,7 +391,7 @@
           "verdi": true
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
+          "kryss": "Støtte nær (≤1×ATR)",
           "verdi": true
         },
         {
@@ -510,36 +452,8 @@
           "dist_atr": 1.5
         }
       ],
-      "setup_long": {
-        "entry": 1.33414,
-        "sl": 1.33043,
-        "t1": 1.34158,
-        "t2": 1.3453,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL under S1 (1.3318) − 0.2×ATR. ATR=0.0057. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "setup_short": {
-        "entry": 1.33414,
-        "sl": 1.33881,
-        "t1": 1.3248,
-        "t2": 1.32013,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (1.3375) + 0.2×ATR. ATR=0.0057. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
-      },
+      "setup_long": null,
+      "setup_short": null,
       "binary_risk": [],
       "dxy_conf": "motvind",
       "pos_size": "Halv",
@@ -558,168 +472,20 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
-      }
-    },
-    "USDCHF": {
-      "name": "USD/CHF",
-      "label": "Valuta",
-      "class": "V",
-      "current": 1.2694,
-      "atr14": 0.00514,
-      "atr_daily": 0.00934,
-      "atr_4h": 0.00514,
-      "timeframe": "intradag",
-      "sma200": 1.2577,
-      "sma200_pos": "over",
-      "chg5d": 0.27,
-      "chg20d": -2.04,
-      "dir_color": "bull",
-      "grade": "B",
-      "grade_color": "warn",
-      "score": 5,
-      "score_pct": 62,
-      "score_details": [
-        {
-          "kryss": "Over SMA200",
-          "verdi": true
-        },
-        {
-          "kryss": "5d trend opp",
-          "verdi": true
-        },
-        {
-          "kryss": "COT long bias",
-          "verdi": false
-        },
-        {
-          "kryss": "COT ikke short",
-          "verdi": true
-        },
-        {
-          "kryss": "Støtte nær (<2×ATR)",
-          "verdi": true
-        },
-        {
-          "kryss": "Motstand fritt (>1.5×)",
-          "verdi": false
-        },
-        {
-          "kryss": "Momentum 20d",
-          "verdi": false
-        },
-        {
-          "kryss": "Sentiment bekrefter",
-          "verdi": true
         }
-      ],
-      "open_interest": 1,
-      "resistances": [
-        {
-          "name": "R1",
-          "level": 1.26942,
-          "dist_atr": 0.0
-        },
-        {
-          "name": "R2",
-          "level": 1.26973,
-          "dist_atr": 0.1
-        },
-        {
-          "name": "R3",
-          "level": 1.27564,
-          "dist_atr": 1.2
-        },
-        {
-          "name": "R4",
-          "level": 1.28525,
-          "dist_atr": 3.1
-        }
-      ],
-      "supports": [
-        {
-          "name": "S1",
-          "level": 1.26218,
-          "dist_atr": 1.4
-        },
-        {
-          "name": "S2",
-          "level": 1.2591,
-          "dist_atr": 2.0
-        },
-        {
-          "name": "S3",
-          "level": 1.2566,
-          "dist_atr": 2.5
-        },
-        {
-          "name": "S4",
-          "level": 1.2551,
-          "dist_atr": 2.8
-        }
-      ],
-      "setup_long": {
-        "entry": 1.26936,
-        "sl": 1.26095,
-        "t1": 1.28618,
-        "t2": 1.29459,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL under S1 (1.2622) − 0.2×ATR. ATR=0.0051. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "setup_short": {
-        "entry": 1.26936,
-        "sl": 1.27066,
-        "t1": 1.26676,
-        "t2": 1.26546,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (1.2694) + 0.2×ATR. ATR=0.0051. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
-      },
-      "binary_risk": [],
-      "dxy_conf": "motvind",
-      "pos_size": "Halv",
-      "vix_spread_factor": 1.5,
-      "cot": {
-        "bias": "NØYTRAL",
-        "color": "neutral",
-        "net": 0,
-        "chg": 0,
-        "pct": 0.0,
-        "date": "",
-        "report": ""
-      },
-      "combined_bias": "LONG",
-      "sentiment": {
-        "fear_greed": {
-          "score": 14.6,
-          "rating": "extreme fear"
-        },
-        "sent_bull": true
       }
     },
     "AUDUSD": {
       "name": "AUD/USD",
       "label": "Valuta",
+      "klasse": "A",
+      "session": "London 08:00–12:00 CET",
       "class": "V",
       "current": 0.7024,
       "atr14": 0.00357,
       "atr_daily": 0.0102,
       "atr_4h": 0.00357,
-      "timeframe": "intradag",
+      "status": "aktiv",
       "sma200": 0.6665,
       "sma200_pos": "over",
       "chg5d": 0.26,
@@ -747,7 +513,7 @@
           "verdi": true
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
+          "kryss": "Støtte nær (≤1×ATR)",
           "verdi": true
         },
         {
@@ -810,34 +576,21 @@
       ],
       "setup_long": {
         "entry": 0.70238,
-        "sl": 0.70104,
-        "t1": 0.70504,
-        "t2": 0.70637,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL under S1 (0.7019) − 0.2×ATR. ATR=0.0036. Holdtid: intradag",
-        "timeframe": "intradag"
+        "sl": 0.70147,
+        "t1": 0.70442,
+        "t2": 0.70507,
+        "rr_t1": 2.27,
+        "rr_t2": 2.99,
+        "min_rr": 1.5,
+        "entry_dist_atr": 0.13,
+        "entry_name": "Støtte 0.7019",
+        "entry_level": 0.7019,
+        "status": "aktiv",
+        "note": "L2L: 0.7019 → T1 0.7044 | SL bak støtte. ATR=0.0036",
+        "timeframe": "4h-intradag",
+        "session": "London 08:00–12:00 CET"
       },
-      "setup_short": {
-        "entry": 0.70238,
-        "sl": 0.70528,
-        "t1": 0.69656,
-        "t2": 0.69366,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (0.7044) + 0.2×ATR. ATR=0.0036. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
-      },
+      "setup_short": null,
       "binary_risk": [],
       "dxy_conf": "motvind",
       "pos_size": "Halv",
@@ -856,28 +609,29 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
+        }
       }
     },
     "Gold": {
       "name": "Gull",
       "label": "Råvare",
+      "klasse": "B",
+      "session": "London Fix 10:30 / NY Fix 15:00 CET",
       "class": "R",
       "current": 4574.9,
       "atr14": 92.09999,
       "atr_daily": 120.3215,
       "atr_4h": 92.09999,
-      "timeframe": "intradag",
+      "status": "aktiv",
       "sma200": 4069.32,
       "sma200_pos": "over",
       "chg5d": -8.39,
       "chg20d": -12.1,
       "dir_color": "bull",
-      "grade": "B",
-      "grade_color": "warn",
-      "score": 5,
-      "score_pct": 62,
+      "grade": "C",
+      "grade_color": "bear",
+      "score": 4,
+      "score_pct": 50,
       "score_details": [
         {
           "kryss": "Over SMA200",
@@ -896,8 +650,8 @@
           "verdi": true
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
-          "verdi": true
+          "kryss": "Støtte nær (≤1×ATR)",
+          "verdi": false
         },
         {
           "kryss": "Motstand fritt (>1.5×)",
@@ -942,35 +696,22 @@
           "dist_atr": 1.6
         }
       ],
-      "setup_long": {
-        "entry": 4574.8999,
-        "sl": 4401.0962,
-        "t1": 4922.50731,
-        "t2": 5096.31102,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL under S1 (4423.2002) − 0.2×ATR. ATR=92.1. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
+      "setup_long": null,
       "setup_short": {
         "entry": 4574.8999,
-        "sl": 4672.604,
-        "t1": 4379.49171,
-        "t2": 4281.78761,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (4650.5) + 0.2×ATR. ATR=92.1. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
+        "sl": 4661.552,
+        "t1": 4423.2002,
+        "t2": 4336.5481,
+        "rr_t1": 1.75,
+        "rr_t2": 2.75,
+        "min_rr": 1.5,
+        "entry_dist_atr": 0.82,
+        "entry_name": "Motstand 4650.5",
+        "entry_level": 4650.5,
+        "status": "aktiv",
+        "note": "L2L: 4650.5 → T1 4423.2002 | SL bak motstand. ATR=92.1",
+        "timeframe": "4h-intradag",
+        "session": "London Fix 10:30 / NY Fix 15:00 CET"
       },
       "binary_risk": [],
       "dxy_conf": "motvind",
@@ -990,19 +731,20 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
+        }
       }
     },
     "Silver": {
       "name": "Sølv",
       "label": "Råvare",
+      "klasse": "B",
+      "session": "London Fix 10:30 / NY Fix 15:00 CET",
       "class": "R",
       "current": 69.664,
       "atr14": 2.765,
       "atr_daily": 4.52214,
       "atr_4h": 2.765,
-      "timeframe": "intradag",
+      "status": "watchlist",
       "sma200": 56.4532,
       "sma200_pos": "over",
       "chg5d": -13.21,
@@ -1010,8 +752,8 @@
       "dir_color": "bull",
       "grade": "B",
       "grade_color": "warn",
-      "score": 6,
-      "score_pct": 75,
+      "score": 5,
+      "score_pct": 62,
       "score_details": [
         {
           "kryss": "Over SMA200",
@@ -1030,8 +772,8 @@
           "verdi": true
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
-          "verdi": true
+          "kryss": "Støtte nær (≤1×ATR)",
+          "verdi": false
         },
         {
           "kryss": "Motstand fritt (>1.5×)",
@@ -1083,34 +825,21 @@
       ],
       "setup_long": {
         "entry": 69.664,
-        "sl": 64.8864,
-        "t1": 79.2192,
-        "t2": 83.9968,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL under S1 (65.55) − 0.2×ATR. ATR=2.765. Holdtid: intradag",
-        "timeframe": "intradag"
+        "sl": 65.2182,
+        "t1": 79.405,
+        "t2": 82.76,
+        "rr_t1": 2.19,
+        "rr_t2": 2.95,
+        "min_rr": 1.5,
+        "entry_dist_atr": 1.49,
+        "entry_name": "Støtte 65.55",
+        "entry_level": 65.55,
+        "status": "watchlist",
+        "note": "L2L: 65.55 → T1 79.405 | SL bak støtte. ATR=2.765",
+        "timeframe": "4h-intradag",
+        "session": "London Fix 10:30 / NY Fix 15:00 CET"
       },
-      "setup_short": {
-        "entry": 69.664,
-        "sl": 80.0686,
-        "t1": 48.85481,
-        "t2": 38.45021,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (79.405) + 0.2×ATR. ATR=2.765. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
-      },
+      "setup_short": null,
       "binary_risk": [],
       "dxy_conf": "motvind",
       "pos_size": "Halv",
@@ -1129,19 +858,20 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
+        }
       }
     },
     "Brent": {
       "name": "Brent",
       "label": "Råvare",
+      "klasse": "B",
+      "session": "London Fix 10:30 / NY Fix 15:00 CET",
       "class": "R",
       "current": 106.41,
       "atr14": 3.91428,
       "atr_daily": 11.08286,
       "atr_4h": 3.91428,
-      "timeframe": "intradag",
+      "status": "watchlist",
       "sma200": 68.7361,
       "sma200_pos": "over",
       "chg5d": 6.19,
@@ -1149,8 +879,8 @@
       "dir_color": "bull",
       "grade": "B",
       "grade_color": "warn",
-      "score": 6,
-      "score_pct": 75,
+      "score": 5,
+      "score_pct": 62,
       "score_details": [
         {
           "kryss": "Over SMA200",
@@ -1169,8 +899,8 @@
           "verdi": true
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
-          "verdi": true
+          "kryss": "Støtte nær (≤1×ATR)",
+          "verdi": false
         },
         {
           "kryss": "Motstand fritt (>1.5×)",
@@ -1220,36 +950,8 @@
           "dist_atr": 7.0
         }
       ],
-      "setup_long": {
-        "entry": 106.41,
-        "sl": 99.40057,
-        "t1": 120.42888,
-        "t2": 127.43831,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL under S1 (100.34) − 0.2×ATR. ATR=3.9143. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "setup_short": {
-        "entry": 106.41,
-        "sl": 112.99943,
-        "t1": 93.23116,
-        "t2": 86.64174,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (112.06) + 0.2×ATR. ATR=3.9143. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
-      },
+      "setup_long": null,
+      "setup_short": null,
       "binary_risk": [],
       "dxy_conf": "motvind",
       "pos_size": "Halv",
@@ -1268,19 +970,20 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
+        }
       }
     },
     "WTI": {
       "name": "WTI",
       "label": "Råvare",
+      "klasse": "B",
+      "session": "London Fix 10:30 / NY Fix 15:00 CET",
       "class": "R",
       "current": 98.23,
       "atr14": 3.38714,
       "atr_daily": 10.77143,
       "atr_4h": 3.38714,
-      "timeframe": "intradag",
+      "status": "aktiv",
       "sma200": 64.8286,
       "sma200_pos": "over",
       "chg5d": 5.06,
@@ -1288,8 +991,8 @@
       "dir_color": "bull",
       "grade": "B",
       "grade_color": "warn",
-      "score": 6,
-      "score_pct": 75,
+      "score": 5,
+      "score_pct": 62,
       "score_details": [
         {
           "kryss": "Over SMA200",
@@ -1308,8 +1011,8 @@
           "verdi": true
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
-          "verdi": true
+          "kryss": "Støtte nær (≤1×ATR)",
+          "verdi": false
         },
         {
           "kryss": "Motstand fritt (>1.5×)",
@@ -1364,35 +1067,22 @@
           "dist_atr": 2.0
         }
       ],
-      "setup_long": {
-        "entry": 98.23,
-        "sl": 92.11709,
-        "t1": 110.45584,
-        "t2": 116.56875,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL under S1 (92.93) − 0.2×ATR. ATR=3.3871. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
+      "setup_long": null,
       "setup_short": {
         "entry": 98.23,
-        "sl": 101.29292,
-        "t1": 92.10418,
-        "t2": 89.04126,
+        "sl": 100.88646,
+        "t1": 92.93,
+        "t2": 92.1,
         "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (100.48) + 0.2×ATR. ATR=3.3871. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
+        "rr_t2": 2.31,
+        "min_rr": 1.5,
+        "entry_dist_atr": 0.66,
+        "entry_name": "Motstand 100.48",
+        "entry_level": 100.48,
+        "status": "aktiv",
+        "note": "L2L: 100.48 → T1 92.93 | SL bak motstand. ATR=3.3871",
+        "timeframe": "4h-intradag",
+        "session": "London Fix 10:30 / NY Fix 15:00 CET"
       },
       "binary_risk": [],
       "dxy_conf": "motvind",
@@ -1412,19 +1102,20 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
+        }
       }
     },
     "SPX": {
       "name": "S&P 500",
       "label": "Aksjer",
+      "klasse": "C",
+      "session": "NY Open 14:30–17:00 CET",
       "class": "A",
       "current": 6506.48,
       "atr14": 67.81717,
       "atr_daily": 100.94001,
       "atr_4h": 67.81717,
-      "timeframe": "intradag",
+      "status": "watchlist",
       "sma200": 6624.41,
       "sma200_pos": "under",
       "chg5d": -2.88,
@@ -1452,7 +1143,7 @@
           "verdi": false
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
+          "kryss": "Støtte nær (≤1×ATR)",
           "verdi": false
         },
         {
@@ -1493,23 +1184,7 @@
       ],
       "supports": [],
       "setup_long": null,
-      "setup_short": {
-        "entry": 6506.47998,
-        "sl": 6770.57593,
-        "t1": 5978.28809,
-        "t2": 5714.19214,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (6754.2998) + 0.2×ATR. ATR=67.8172. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
-      },
+      "setup_short": null,
       "binary_risk": [],
       "dxy_conf": "motvind",
       "pos_size": "Halv",
@@ -1528,19 +1203,20 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
+        }
       }
     },
     "NAS100": {
       "name": "Nasdaq",
       "label": "Aksjer",
+      "klasse": "C",
+      "session": "NY Open 14:30–17:00 CET",
       "class": "A",
       "current": 23898.15,
       "atr14": 294.27609,
       "atr_daily": 431.11021,
       "atr_4h": 294.27609,
-      "timeframe": "intradag",
+      "status": "watchlist",
       "sma200": 24370.04,
       "sma200_pos": "under",
       "chg5d": -3.07,
@@ -1568,7 +1244,7 @@
           "verdi": false
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
+          "kryss": "Støtte nær (≤1×ATR)",
           "verdi": false
         },
         {
@@ -1609,23 +1285,7 @@
       ],
       "supports": [],
       "setup_long": null,
-      "setup_short": {
-        "entry": 23898.1543,
-        "sl": 24954.66923,
-        "t1": 21785.12443,
-        "t2": 20728.6095,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (24884.043) + 0.2×ATR. ATR=294.2761. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
-      },
+      "setup_short": null,
       "binary_risk": [],
       "dxy_conf": "motvind",
       "pos_size": "Halv",
@@ -1644,19 +1304,20 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
+        }
       }
     },
     "DXY": {
       "name": "DXY",
       "label": "Valuta",
+      "klasse": "A",
+      "session": "London 08:00–12:00 CET",
       "class": "V",
       "current": 99.65,
       "atr14": 0.341,
       "atr_daily": 0.79929,
       "atr_4h": 0.341,
-      "timeframe": "intradag",
+      "status": "aktiv",
       "sma200": 98.4023,
       "sma200_pos": "over",
       "chg5d": -0.71,
@@ -1684,7 +1345,7 @@
           "verdi": false
         },
         {
-          "kryss": "Støtte nær (<2×ATR)",
+          "kryss": "Støtte nær (≤1×ATR)",
           "verdi": true
         },
         {
@@ -1745,35 +1406,22 @@
           "dist_atr": 2.4
         }
       ],
-      "setup_long": {
-        "entry": 99.65,
-        "sl": 99.38316,
-        "t1": 100.18369,
-        "t2": 100.45054,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL under S1 (99.465) − 0.2×ATR. ATR=0.341. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
+      "setup_long": null,
       "setup_short": {
         "entry": 99.65,
-        "sl": 99.76484,
-        "t1": 99.42033,
-        "t2": 99.30549,
-        "rr_t1": 2.0,
-        "rr_t2": 3.0,
-        "min_rr": 2.0,
-        "entry_dist_atr": 0.0,
-        "entry_name": "Nåpris",
-        "note": "SL over R1 (99.683) + 0.2×ATR. ATR=0.341. Holdtid: intradag",
-        "timeframe": "intradag"
-      },
-      "session": {
-        "active": true,
-        "label": "24h"
+        "sl": 99.72392,
+        "t1": 99.465,
+        "t2": 98.975,
+        "rr_t1": 2.5,
+        "rr_t2": 9.13,
+        "min_rr": 1.5,
+        "entry_dist_atr": 0.1,
+        "entry_name": "Motstand 99.683",
+        "entry_level": 99.683,
+        "status": "aktiv",
+        "note": "L2L: 99.683 → T1 99.465 | SL bak motstand. ATR=0.341",
+        "timeframe": "4h-intradag",
+        "session": "London 08:00–12:00 CET"
       },
       "binary_risk": [],
       "dxy_conf": "medvind",
@@ -1793,8 +1441,7 @@
         "fear_greed": {
           "score": 14.6,
           "rating": "extreme fear"
-        },
-        "sent_bull": true
+        }
       }
     }
   },
