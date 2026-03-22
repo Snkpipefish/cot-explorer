@@ -484,7 +484,7 @@
 
 <script>
 // ── DATASTRUKTUR (dette er JSON-formatet som lagres ukentlig) ──
-const COT_DATA = [
+let COT_DATA = []; async function loadData(){try{const res=await fetch("data/latest.json");COT_DATA=await res.json();const d=new Date(COT_DATA[0].date);document.getElementById("lastUpdated").textContent=d.toLocaleDateString("nb-NO",{day:"numeric",month:"long",year:"numeric"}); render();}catch(e){console.error(e)}} const _OLD = [
   {
     "date": "2026-03-18",
     "market": "EUR/USD",
@@ -737,6 +737,7 @@ document.querySelectorAll('.chip').forEach(btn => {
     btn.classList.add('active');
     activeFilter = btn.dataset.filter;
     render();
+loadData();
   });
 });
 
