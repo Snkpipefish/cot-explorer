@@ -302,8 +302,8 @@ for inst in INSTRUMENTS:
         if lvl and lvl < curr: extra_sup.append((lvl, name))
 
     # Slå sammen med tekniske nivåer og sorter
-    all_res = sorted(list(set(res_lvl)) + [x[0] for x in extra_res if x[0] > curr], key=lambda x: abs(x-curr))[:5]
-    all_sup = sorted(list(set(sup_lvl)) + [x[0] for x in extra_sup if x[0] < curr], key=lambda x: abs(x-curr))[:5]
+    all_res = sorted(list(dict.fromkeys([round(x,5) for x in list(set(res_lvl)) + [x[0] for x in extra_res if x[0] > curr]])), key=lambda x: abs(x-curr))[:5]
+    all_sup = sorted(list(dict.fromkeys([round(x,5) for x in list(set(sup_lvl)) + [x[0] for x in extra_sup if x[0] < curr]])), key=lambda x: abs(x-curr))[:5]
 
     # Merk kilde per nivå
     lvl_sources = {round(pdh,5):"PDH", round(pdl,5):"PDL", round(pdc,5):"PDC",
