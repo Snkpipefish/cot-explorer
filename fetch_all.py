@@ -226,6 +226,29 @@ def detect_conflict(vix, dxy_5d, fg, cot_usd):
         conflicts.append("COT long USD men pris faller – divergens")
     return conflicts
 
+# ── Last kalender ────────────────────────────────────────────
+calendar_events = []
+cal_file = os.path.join(BASE, 'calendar', 'latest.json')
+if os.path.exists(cal_file):
+    try:
+        with open(cal_file) as f:
+            cal_data = json.load(f)
+        calendar_events = cal_data.get('events', [])
+        print(f'Kalender: {len(calendar_events)} events lastet')
+    except:
+        pass
+
+def get_binary_risk(instrument_key, hours=4):
+    risks = []
+    for ev in calendar_events:
+        if ev.get('impact') != 'High': continue
+        ha = ev.get('hours_away', 99)
+        if ha < 0 or ha > hours: continue
+        berorte = ev.get('berorte', [])
+        if instrument_key in berorte or not berorte:
+            risks.append({'title': ev['title'], 'cet': ev['cet'], 'country': ev['country']})
+    return risks
+
 # ── Last COT ──────────────────────────────────────────────
 cot_data = {}
 cot_file = os.path.join(BASE, "combined", "latest.json")
@@ -367,19 +390,20 @@ for inst in INSTRUMENTS:
         (klasse == "C" and "NY" in session_now["label"])
     )
 
+    cot_confirms = (cot_bias == "LONG" and dir_color == "bull") or \
+                   (cot_bias == "SHORT" and dir_color == "bear")
     score_details = [
-        {"kryss": "Over SMA200",             "verdi": above_sma},
-        {"kryss": "D1 + 15m regime likt",    "verdi": align == "bull" or align == "bear"},
-        {"kryss": "COT long bias",            "verdi": cot_pct > 4},
-        {"kryss": "COT ikke short",           "verdi": cot_pct > -4},
-        {"kryss": "Pris VED nivå nå",         "verdi": at_level_now},
-        {"kryss": "Riktig sesjon aktiv",      "verdi": sesjon_riktig},
-        {"kryss": "Momentum 20d",             "verdi": chg20 > 0},
-        {"kryss": "Sentiment bekrefter",      "verdi": fg_score < 35},
+        {"kryss": "Over SMA200",          "verdi": above_sma},
+        {"kryss": "D1 + 15m regime likt", "verdi": align in ("bull","bear")},
+        {"kryss": "COT bekrefter",        "verdi": cot_confirms},
+        {"kryss": "Pris VED nivå nå",     "verdi": at_level_now},
+        {"kryss": "Riktig sesjon aktiv",  "verdi": sesjon_riktig},
+        {"kryss": "Momentum 20d",         "verdi": chg20 > 0},
+        {"kryss": "Sentiment",            "verdi": fg_score < 35},
     ]
     score       = sum(1 for s in score_details if s["verdi"])
-    grade       = "A+" if score>=7 else "B" if score>=5 else "C"
-    grade_color = "bull" if score>=7 else "warn" if score>=5 else "bear"
+    grade       = "A+" if score>=6 else "B" if score>=4 else "C"
+    grade_color = "bull" if score>=6 else "warn" if score>=4 else "bear"
     dir_color   = "bull" if (above_sma and chg5>0) else "bear" if (not above_sma and chg5<0) else ("bull" if above_sma else "bear")
 
     vix_price = (prices.get("VIX") or {}).get("price", 20)
@@ -441,14 +465,14 @@ for inst in INSTRUMENTS:
         "grade":         grade,
         "grade_color":   grade_color,
         "score":         score,
-        "score_pct":     round(score/8*100),
+        "score_pct":     round(score/7*100),
         "score_details": score_details,
         "open_interest": oi,
         "resistances":   fmt_level(all_res, "R", atr_15m or atr_d),
         "supports":      fmt_level(all_sup, "S", atr_15m or atr_d),
         "setup_long":    setup_long,
         "setup_short":   setup_short,
-        "binary_risk":   [],
+        "binary_risk":   get_binary_risk(inst["key"]),
         "smc": {
             "structure":    smc["structure"]    if smc else None,
             "supply_zones": smc["supply_zones"] if smc else [],
@@ -504,7 +528,7 @@ macro = {
         "inputs":{"vix":vix_price,"hy_stress":False,"brent":brent_p,"tip_trend_5d":0,"dxy_trend_5d":dxy_5d}
     },
     "trading_levels": levels,
-    "calendar": [],
+    "calendar": calendar_events,
 }
 
 with open(OUT,"w") as f:
