@@ -106,7 +106,13 @@ def make_setup(curr, atr, sup, res, direction, min_rr=2.0, timeframe="swing"):
 def fetch_fear_greed():
     try:
         url = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata"
-        req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0","Referer":"https://edition.cnn.com"})
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://edition.cnn.com/markets/fear-and-greed",
+            "Origin": "https://edition.cnn.com",
+        })
         with urllib.request.urlopen(req, timeout=8) as r:
             d = json.loads(r.read())
         score = d["fear_and_greed"]["score"]
