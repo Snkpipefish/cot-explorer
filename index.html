@@ -385,7 +385,7 @@ function renderIdeer(m){
 
     html+=
       '<div class="tic">'+
-        '<div class="tic-head" onclick="togIde('id'+i+'')">'+
+        '<div class="tic-head" data-idx="'+i+'" onclick="togIde(this.getAttribute('data-idx'))">'+
           '<span class="tic-class">'+clsLv+'</span>'+
           '<div><div class="tic-name">'+lv.name+'</div><div class="tic-sub">'+(lv.label||'')+'</div></div>'+
           '<span class="bias-pill '+bc+'">'+biasText+'</span>'+
