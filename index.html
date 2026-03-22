@@ -3,244 +3,189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COT Data Explorer</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Markedspuls – COT Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,900;1,300&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0c0f;--surface:#111418;--border:#1e2530;--text:#c8d4e0;--muted:#4a5a6a;--accent:#00e5a0;--accent2:#f0a500;--red:#ff4560;--green:#00e5a0}
+:root{--bg:#f5f3ef;--card:#ffffff;--navy:#0f2744;--navy2:#1a3a5c;--text:#1a1a1a;--muted:#6b7280;--bull:#059669;--bull-bg:#ecfdf5;--bear:#dc2626;--bear-bg:#fef2f2;--border:#e5e1da;--shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.04)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;min-height:100vh}
-header{height:64px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:20px;position:sticky;top:0;z-index:100}
-.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--accent)}
-.logo span{color:var(--muted)}
-.meta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);border-left:1px solid var(--border);padding-left:20px;line-height:1.7}
-.meta strong{color:var(--accent2)}
-.sw{margin-left:auto;position:relative}
-#search{background:var(--bg);border:1px solid #2a3545;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px 14px 8px 36px;border-radius:4px;width:260px;outline:none}
-#search:focus{border-color:var(--accent)}
-#search::placeholder{color:var(--muted)}
-.si{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)}
-.filters{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.fl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-right:4px}
-.chip{background:transparent;border:1px solid #2a3545;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 12px;border-radius:2px;cursor:pointer;transition:all .15s}
-.chip:hover,.chip.active{border-color:var(--accent);color:var(--accent);background:rgba(0,229,160,.05)}
-.main{padding:24px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.sc{background:var(--surface);border:1px solid var(--border);padding:16px 18px;border-radius:3px;position:relative;overflow:hidden}
-.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);opacity:.4}
-.sc.warn::before{background:var(--accent2)}
-.sc.danger::before{background:var(--red)}
-.sl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
-.sv{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600}
-.ss{font-size:11px;color:var(--muted);margin-top:4px}
-.tw{background:var(--surface);border:1px solid var(--border);border-radius:3px;overflow:hidden}
-.th{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
-.tt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:2px}
-.badge{background:rgba(0,229,160,.1);color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px}
-table{width:100%;border-collapse:collapse}
-thead th{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
-tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
-tbody tr:hover{background:rgba(255,255,255,.02)}
-td{padding:11px 16px;font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:nowrap}
-.tn{text-align:right}
-.pos{color:var(--green)}
-.neg{color:var(--red)}
-.dp{display:none;background:var(--bg);border-top:1px solid var(--border);padding:20px}
-.dp.open{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.dp h4{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
-.dr{display:flex;justify-content:space-between;padding:4px 0;font-family:'IBM Plex Mono',monospace;font-size:11px}
-.dk{color:var(--muted)}
-.loading{padding:60px;text-align:center;font-family:'IBM Plex Mono',monospace;color:var(--muted)}
-footer{border-top:1px solid var(--border);padding:16px 24px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);display:flex;gap:24px}
-footer a{color:var(--accent);text-decoration:none}
-@media(max-width:768px){.stats{grid-template-columns:1fr 1fr}.dp.open{grid-template-columns:1fr}#search{width:160px}}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;line-height:1.5}
+.site-header{background:var(--navy);padding:0 32px;display:flex;align-items:center;height:68px;gap:24px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:#fff;flex-shrink:0}
+.logo em{font-style:italic;font-weight:300;color:#7dd3b8}
+.header-tag{font-size:11px;color:#7d9ab5;border-left:1px solid #2a4a6a;padding-left:20px;line-height:1.6}
+.header-tag strong{color:#a8d5c4}
+.search-wrap{margin-left:auto;position:relative}
+#search{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;padding:8px 16px 8px 38px;border-radius:6px;width:240px;outline:none}
+#search::placeholder{color:rgba(255,255,255,.4)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:16px}
+.intro{background:var(--navy2);padding:16px 32px;display:flex;align-items:center;gap:32px;flex-wrap:wrap}
+.intro-text{font-size:13px;color:#8aa8c4;max-width:640px;line-height:1.6}
+.intro-text strong{color:#c8dce9}
+.legend{display:flex;gap:16px;flex-shrink:0}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#8aa8c4}
+.legend-dot{width:10px;height:10px;border-radius:50%}
+.cat-nav{background:var(--card);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
+.cat-btn{background:none;border:none;border-bottom:3px solid transparent;padding:14px 18px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:6px}
+.cat-btn:hover{color:var(--navy)}
+.cat-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
+.cat-count{background:#e8ecf0;color:var(--muted);font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600}
+.cat-btn.active .cat-count{background:var(--navy);color:#fff}
+.main{padding:28px 32px}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.sum-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;box-shadow:var(--shadow)}
+.sum-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.sum-value{font-family:'Fraunces',serif;font-size:32px;font-weight:600;line-height:1}
+.sum-value.bull{color:var(--bull)}
+.sum-value.bear{color:var(--bear)}
+.sum-sub{font-size:12px;color:var(--muted);margin-top:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.mcard{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s;animation:fadeIn .3s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.mcard-top{padding:16px 18px 14px;display:flex;align-items:flex-start;gap:12px}
+.signal-badge{flex-shrink:0;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.signal-badge.bull-strong{background:#ecfdf5}
+.signal-badge.bull-mild{background:#d1fae5}
+.signal-badge.neutral{background:#f3f4f6}
+.signal-badge.bear-mild{background:#fee2e2}
+.signal-badge.bear-strong{background:#fef2f2}
+.mcard-name{flex:1;min-width:0}
+.mcard-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--navy);line-height:1.2;margin-bottom:3px}
+.mcard-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.mcard-signal{margin-left:auto;flex-shrink:0;text-align:right}
+.signal-text{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.signal-text.bull-strong,.signal-text.bull-mild{color:var(--bull)}
+.signal-text.neutral{color:var(--muted)}
+.signal-text.bear-mild,.signal-text.bear-strong{color:var(--bear)}
+.signal-num{font-size:13px;font-weight:600;margin-top:2px}
+.mcard-bar{padding:0 18px 14px}
+.bar-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}
+.bar-track{height:6px;background:#f0ede8;border-radius:3px;position:relative}
+.bar-fill-bull{position:absolute;top:0;height:6px;border-radius:3px;background:var(--bull)}
+.bar-fill-bear{position:absolute;top:0;right:0;height:6px;border-radius:3px;background:var(--bear)}
+.mcard-detail{display:none;border-top:1px solid var(--border);padding:16px 18px;background:#fafaf8}
+.mcard-detail.open{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.dg-item{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:10px 12px}
+.dg-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px}
+.dg-net{font-size:15px;font-weight:600}
+.dg-net.pos{color:var(--bull)}
+.dg-net.neg{color:var(--bear)}
+.dg-row{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:2px}
+.oi-row{display:flex;justify-content:space-between;font-size:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--muted)}
+.loading{grid-column:1/-1;padding:80px;text-align:center;color:var(--muted);font-size:15px}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{background:var(--navy);color:#5a7a96;font-size:12px;padding:20px 32px;display:flex;gap:32px;flex-wrap:wrap;margin-top:40px}
+footer a{color:#7dd3b8;text-decoration:none}
+@media(max-width:768px){.site-header{padding:0 16px}.intro,.main{padding:16px}.cat-nav{padding:0 16px}.summary{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}#search{width:160px}.detail-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">COT<span>/</span>EXPLORER</div>
-  <div class="meta">CFTC · Commitments of Traders<br>Sist oppdatert: <strong id="dato">laster...</strong></div>
-  <div class="sw"><span class="si">⌕</span><input type="text" id="search" placeholder="Søk marked, symbol..."></div>
+<header class="site-header">
+  <div class="logo">Markeds<em>puls</em></div>
+  <div class="header-tag">CFTC · Commitments of Traders<br>Sist oppdatert: <strong id="dato">laster...</strong></div>
+  <div class="search-wrap"><span class="search-icon">⌕</span><input type="text" id="search" placeholder="Søk marked..."></div>
 </header>
-<div class="filters">
-  <span class="fl">Filter</span>
-  <button class="chip active" data-f="all">Alle</button>
-  <button class="chip" data-f="lev_bull">Lev. Long</button>
-  <button class="chip" data-f="lev_bear">Lev. Short</button>
-  <button class="chip" data-f="am_bull">Asset Mgr Long</button>
-  <button class="chip" data-f="am_bear">Asset Mgr Short</button>
-</div>
-<div class="main">
-  <div class="stats" id="stats"></div>
-  <div class="tw">
-    <div class="th">
-      <span class="tt">Markedsposisjoner</span>
-      <span class="badge" id="badge">–</span>
-    </div>
-    <div id="msg" class="loading">⏳ Laster COT-data...</div>
-    <table id="tbl" style="display:none">
-      <thead><tr>
-        <th>Marked</th><th>Symbol</th>
-        <th class="tn">Lev. Funds Netto</th>
-        <th class="tn">Asset Mgr Netto</th>
-        <th class="tn">Open Interest</th>
-        <th class="tn">Uke Δ OI</th>
-      </tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
+<div class="intro">
+  <p class="intro-text">Hver fredag publiserer amerikanske myndigheter (CFTC) en rapport som viser hva <strong>hedge funds, pensjonsfond og banker</strong> gjør i finansmarkedene. <strong>Grønt = kjøper mer enn selger. Rødt = selger mer enn kjøper.</strong></p>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#059669"></div>Kjøper (Bullish)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>Selger (Bearish)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#6b7280"></div>Nøytral</div>
   </div>
+</div>
+<nav class="cat-nav" id="catNav"></nav>
+<div class="main">
+  <div class="summary" id="summary"></div>
+  <div class="grid" id="grid"><div class="loading"><div class="spinner"></div>Laster markedsdata...</div></div>
 </div>
 <footer>
   <span>Kilde: <a href="https://cftc.gov" target="_blank">CFTC.gov</a></span>
   <span>Oppdateres hver fredag</span>
-  <span>AI-data: <a href="data/latest.json">data/latest.json</a></span>
+  <span>AI-data: <a href="data/combined/latest.json">data/combined/latest.json</a></span>
 </footer>
 <script>
-let DATA=[], filter='all', q='';
-
-const MARKETS = {
-  "S&P 500 Consolidated":{"no":"S&P 500 (USA aksjer)","info":"De 500 største børsnoterte selskapene i USA."},
-  "Nasdaq":{"no":"Nasdaq (Teknologi)","info":"Teknologitung indeks. Apple, Microsoft, Nvidia m.fl."},
-  "Nasdaq Mini":{"no":"Nasdaq Mini","info":"Mindre versjon av Nasdaq-futures."},
-  "Russell E":{"no":"Russell 2000 (Småselskaper)","info":"2000 mindre amerikanske selskaper."},
-  "Msci Eafe":{"no":"MSCI EAFE (Int. aksjer)","info":"Aksjer i Europa, Australia og Asia."},
-  "Msci Em Index":{"no":"MSCI EM (Fremvoksende)","info":"Aksjer i Kina, India, Brasil m.fl."},
-  "Nikkei Stock Average":{"no":"Nikkei (Japan)","info":"De 225 største selskapene på Tokyo-børsen."},
-  "Nikkei Stock Average Yen Denom":{"no":"Nikkei Yen","info":"Japansk aksjeindeks i yen."},
-  "Vix Futures":{"no":"VIX (Fryktindeks)","info":"Høy VIX = mye usikkerhet i markedet."},
-  "Ust 10Y Note":{"no":"US 10-års statsobl.","info":"Styringsrenten for boliglån og globale markeder."},
-  "Ust 2Y Note":{"no":"US 2-års statsobl.","info":"Sensitiv for renteforventninger."},
-  "Ust 5Y Note":{"no":"US 5-års statsobl.","info":"Mellomlang amerikansk statsrente."},
-  "Ust Bond":{"no":"US 30-års statsobl.","info":"Langsiktig amerikansk rente."},
-  "Ultra Ust 10Y":{"no":"Ultra 10-årig statsobl.","info":"Utvidet 10-årig statsobligasjon."},
-  "Ultra Ust Bond":{"no":"Ultra 30-årig statsobl.","info":"Utvidet 30-årig statsobligasjon."},
-  "Sofr":{"no":"SOFR (Kortsiktig rente USA)","info":"Erstatter LIBOR. Kortsiktige dollar-lån mellom banker."},
-  "10 Year Eris Sofr Swap":{"no":"10-år SOFR Swap","info":"Rentebytteavtale basert på SOFR over 10 år."},
-  "Euro Fx":{"no":"Euro (EUR/USD)","info":"Verdens mest handlede valutapar."},
-  "Japanese Yen":{"no":"Japansk Yen (JPY/USD)","info":"Trygg havn-valuta i urolige tider."},
-  "Swiss Franc":{"no":"Sveitsisk Franc (CHF/USD)","info":"Ansett som trygg havn i usikre markeder."},
-  "British Pound":{"no":"Britisk Pund (GBP/USD)","info":"Påvirkes av Bank of England og britisk økonomi."},
-  "Nz Dollar":{"no":"New Zealand Dollar","info":"Barometer for global risikoappetitt."},
-  "So African Rand":{"no":"Sørafrikansk Rand","info":"Volatil valuta fra fremvoksende marked."},
-  "Usd Index":{"no":"Dollarindeks (DXY)","info":"Styrken til USD mot 6 valutaer."},
-  "Bitcoin":{"no":"Bitcoin (BTC)","info":"Verdens største kryptovaluta."},
-  "Nano Bitcoin":{"no":"Bitcoin Mini","info":"Mindre Bitcoin-futures (1/100 BTC)."},
-  "Nano Bitcoin Perp Style":{"no":"Bitcoin Mini Perp","info":"Evigvarende Bitcoin mini-futures."},
-  "Nano Ether":{"no":"Ethereum Mini","info":"Mindre Ethereum-futures kontrakt."},
-  "Nano Ether Perp Style":{"no":"Ethereum Mini Perp","info":"Evigvarende Ethereum mini-futures."},
-  "Nano Solana":{"no":"Solana Mini","info":"Mindre Solana-futures kontrakt."},
-  "Nano Solana Perp Style":{"no":"Solana Mini Perp","info":"Evigvarende Solana mini-futures."},
-  "Nano Xrp":{"no":"XRP Mini","info":"Mindre XRP-futures kontrakt."},
-  "Nano Xrp Perp Style":{"no":"XRP Mini Perp","info":"Evigvarende XRP mini-futures."},
-  "Sol":{"no":"Solana (SOL)","info":"Solana kryptovaluta futures."},
-  "Xrp":{"no":"XRP","info":"XRP kryptovaluta futures."},
-};
-function mname(m){return (MARKETS[m]||{}).no||m;}
-function minfo(m){return (MARKETS[m]||{}).info||'';}
-
-
-function fmt(n){
-  if(n==null||n===undefined)return'–';
-  const a=Math.abs(n);
-  if(a>=1e6)return(n/1e6).toFixed(2)+'M';
-  if(a>=1e3)return(n/1e3).toFixed(1)+'K';
-  return n.toString();
+let DATA=[],activecat='alle',q='';
+const CATS={alle:{label:'Alle',icon:'🌐'},aksjer:{label:'Aksjer',icon:'📈'},valuta:{label:'Valuta',icon:'💱'},renter:{label:'Renter',icon:'🏛️'},råvarer:{label:'Råvarer',icon:'🛢️'},krypto:{label:'Krypto',icon:'₿'},landbruk:{label:'Landbruk',icon:'🌾'},volatilitet:{label:'Volatilitet',icon:'⚡'},annet:{label:'Annet',icon:'📋'}};
+function fmt(n){if(n==null)return'–';const a=Math.abs(n);if(a>=1e6)return(n/1e6).toFixed(2)+'M';if(a>=1e3)return(n/1e3).toFixed(1)+'K';return n.toString();}
+function sign(n){return n>0?'+':'';}
+function cc(n){return n>0?'pos':n<0?'neg':'';}
+function getSignal(net,oi){if(!oi)return'neutral';const p=net/oi;if(p>.15)return'bull-strong';if(p>.04)return'bull-mild';if(p<-.15)return'bear-strong';if(p<-.04)return'bear-mild';return'neutral';}
+const SI={'bull-strong':{icon:'🟢',text:'Kjøper sterkt'},'bull-mild':{icon:'🟡',text:'Svakt bullish'},'neutral':{icon:'⚪',text:'Nøytral'},'bear-mild':{icon:'🟠',text:'Svakt bearish'},'bear-strong':{icon:'🔴',text:'Selger sterkt'}};
+function visible(){return DATA.filter(d=>{if(activecat!=='alle'&&d.kategori!==activecat)return false;if(!q)return true;return(d.navn_no+d.market+d.symbol+d.kategori).toLowerCase().includes(q);});}
+function buildNav(){
+  const counts={};DATA.forEach(d=>{counts[d.kategori]=(counts[d.kategori]||0)+1;});
+  document.getElementById('catNav').innerHTML=Object.entries(CATS).map(([k,v])=>{
+    const n=k==='alle'?DATA.length:(counts[k]||0);
+    if(k!=='alle'&&!n)return'';
+    return`<button class="cat-btn${k===activecat?' active':''}" data-cat="${k}">${v.icon} ${v.label} <span class="cat-count">${n}</span></button>`;
+  }).join('');
+  document.querySelectorAll('.cat-btn').forEach(b=>b.addEventListener('click',()=>{
+    activecat=b.dataset.cat;
+    document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    renderGrid();renderSummary();
+  }));
 }
-function cc(n){return n>=0?'pos':'neg';}
-function s(n){return n>=0?'+':'';}
-
-function vis(){
-  return DATA.filter(d=>{
-    const lev=d.leveraged_funds||{};
-    const am=d.asset_managers||{};
-    if(filter==='lev_bull'&&(lev.net||0)<=0)return false;
-    if(filter==='lev_bear'&&(lev.net||0)>=0)return false;
-    if(filter==='am_bull'&&(am.net||0)<=0)return false;
-    if(filter==='am_bear'&&(am.net||0)>=0)return false;
-    return !q||d.market.toLowerCase().includes(q)||(d.symbol||'').toLowerCase().includes(q);
-  });
-}
-
-function render(){
-  const data=vis();
-  document.getElementById('badge').textContent=data.length+' markeder';
-
+function renderSummary(){
+  const data=visible();
+  const bull=data.filter(d=>(d.spekulanter||{}).net>0).length;
+  const bear=data.filter(d=>(d.spekulanter||{}).net<0).length;
+  const bm=data.length?data.reduce((a,d)=>Math.abs(d.change_spec_net||0)>Math.abs(a.change_spec_net||0)?d:a,data[0]):null;
   const oi=data.reduce((a,d)=>a+(d.open_interest||0),0);
-  const lb=data.filter(d=>(d.leveraged_funds||{}).net>0).length;
-  const ab=data.filter(d=>(d.asset_managers||{}).net>0).length;
-  const bm=data.length?data.reduce((a,d)=>Math.abs(d.change_lev_net||0)>Math.abs(a.change_lev_net||0)?d:a,data[0]):null;
-
-  document.getElementById('stats').innerHTML=`
-    <div class="sc"><div class="sl">Total Open Interest</div><div class="sv">${fmt(oi)}</div><div class="ss">${data.length} markeder</div></div>
-    <div class="sc"><div class="sl">Lev. Funds Bullish</div><div class="sv pos">${lb}/${data.length}</div><div class="ss">Netto long</div></div>
-    <div class="sc warn"><div class="sl">Asset Mgr Bullish</div><div class="sv">${ab}/${data.length}</div><div class="ss">Netto long</div></div>
-    <div class="sc ${bm&&(bm.change_lev_net||0)<0?'danger':''}"><div class="sl">Største Δ</div><div class="sv ${bm?cc(bm.change_lev_net||0):''}">${bm?s(bm.change_lev_net||0)+fmt(bm.change_lev_net||0):'–'}</div><div class="ss">${bm?bm.market:''}</div></div>`;
-
-  document.getElementById('tbody').innerHTML=data.map((d,i)=>{
-    const lev=d.leveraged_funds||{};
-    const am=d.asset_managers||{};
-    const dl=d.dealers||{};
-    const nr=d.non_reportable||{};
-    return`<tr onclick="tog(${i})">
-      <td style="color:var(--text);font-weight:500">${mname(d.market)}<div style="font-size:10px;color:var(--muted);font-weight:400;white-space:normal;max-width:260px">${minfo(d.market)}</div></td>
-      <td><span style="font-size:10px;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:2px">${d.symbol||'–'}</span></td>
-      <td class="tn ${cc(lev.net||0)}">${s(lev.net||0)}${fmt(lev.net||0)}</td>
-      <td class="tn ${cc(am.net||0)}">${s(am.net||0)}${fmt(am.net||0)}</td>
-      <td class="tn">${fmt(d.open_interest||0)}</td>
-      <td class="tn ${cc(d.change_oi||0)}">${s(d.change_oi||0)}${fmt(d.change_oi||0)}</td>
-    </tr>
-    <tr id="d${i}" style="display:none"><td colspan="6" style="padding:0">
-      <div class="dp open">
-        <div><h4>Leveraged Funds</h4>
-          <div class="dr"><span class="dk">Long</span><span>${fmt(lev.long)}</span></div>
-          <div class="dr"><span class="dk">Short</span><span>${fmt(lev.short)}</span></div>
-          <div class="dr"><span class="dk">Netto</span><span class="${cc(lev.net||0)}">${s(lev.net||0)}${fmt(lev.net)}</span></div>
-        </div>
-        <div><h4>Asset Managers</h4>
-          <div class="dr"><span class="dk">Long</span><span>${fmt(am.long)}</span></div>
-          <div class="dr"><span class="dk">Short</span><span>${fmt(am.short)}</span></div>
-          <div class="dr"><span class="dk">Netto</span><span class="${cc(am.net||0)}">${s(am.net||0)}${fmt(am.net)}</span></div>
-        </div>
-        <div><h4>Dealers / Non-Rept</h4>
-          <div class="dr"><span class="dk">Dealer Netto</span><span class="${cc(dl.net||0)}">${s(dl.net||0)}${fmt(dl.net)}</span></div>
-          <div class="dr"><span class="dk">NonRept Netto</span><span class="${cc(nr.net||0)}">${s(nr.net||0)}${fmt(nr.net)}</span></div>
-        </div>
+  document.getElementById('summary').innerHTML=`
+    <div class="sum-card"><div class="sum-label">Markeder vist</div><div class="sum-value">${data.length}</div><div class="sum-sub">av ${DATA.length} totalt</div></div>
+    <div class="sum-card"><div class="sum-label">Kjøper (Bullish)</div><div class="sum-value bull">${bull}</div><div class="sum-sub">spekulanter netto long</div></div>
+    <div class="sum-card"><div class="sum-label">Selger (Bearish)</div><div class="sum-value bear">${bear}</div><div class="sum-sub">spekulanter netto short</div></div>
+    <div class="sum-card"><div class="sum-label">Største ukesendring</div><div class="sum-value" style="font-size:22px;color:${bm&&(bm.change_spec_net||0)>0?'var(--bull)':'var(--bear)'}">${bm?sign(bm.change_spec_net||0)+fmt(bm.change_spec_net||0):'–'}</div><div class="sum-sub">${bm?bm.navn_no:''}</div></div>`;
+}
+function renderGrid(){
+  const data=visible();
+  const grid=document.getElementById('grid');
+  if(!data.length){grid.innerHTML='<div class="loading">Ingen markeder funnet</div>';return;}
+  grid.innerHTML=data.map((d,i)=>{
+    const spec=d.spekulanter||{};
+    const sig=getSignal(spec.net||0,d.open_interest||1);
+    const si=SI[sig];
+    const oi=d.open_interest||1;
+    const bp=Math.max(0,Math.min(100,((spec.long||0)/oi)*100));
+    const rp=Math.max(0,Math.min(100,((spec.short||0)/oi)*100));
+    const groups=Object.entries(d).filter(([k])=>['spekulanter','institusjoner','kommersielle','produsenter','swapmeglere','indeksfond','meglere','smahandlere'].includes(k))
+      .map(([k,v])=>`<div class="dg-item"><div class="dg-label">${v.label||k}</div><div class="dg-net ${cc(v.net||0)}">${sign(v.net||0)}${fmt(v.net||0)}</div><div class="dg-row"><span>↑ ${fmt(v.long)}</span><span>↓ ${fmt(v.short)}</span></div></div>`).join('');
+    return`<div class="mcard" onclick="tog(${i})" style="animation-delay:${Math.min(i*.02,.3)}s">
+      <div class="mcard-top">
+        <div class="signal-badge ${sig}">${si.icon}</div>
+        <div class="mcard-name"><div class="mcard-title">${d.navn_no||d.market}</div><div class="mcard-sub">${d.forklaring||''}</div></div>
+        <div class="mcard-signal"><div class="signal-text ${sig}">${si.text}</div><div class="signal-num ${cc(spec.net||0)}">${sign(spec.net||0)}${fmt(spec.net||0)}</div></div>
       </div>
-    </td></tr>`;
+      <div class="mcard-bar">
+        <div class="bar-labels"><span>↑ Kjøper</span><span>Selger ↓</span></div>
+        <div class="bar-track"><div class="bar-fill-bull" style="width:${bp.toFixed(1)}%"></div><div class="bar-fill-bear" style="width:${rp.toFixed(1)}%"></div></div>
+      </div>
+      <div id="det${i}" class="mcard-detail">
+        <div class="detail-grid">${groups}</div>
+        <div class="oi-row"><span>Open Interest: <strong>${fmt(d.open_interest)}</strong></span><span>Uke Δ: <strong class="${cc(d.change_oi||0)}">${sign(d.change_oi||0)}${fmt(d.change_oi||0)}</strong></span><span>${d.report}</span></div>
+      </div>
+    </div>`;
   }).join('');
 }
-
-function tog(i){
-  const r=document.getElementById('d'+i);
-  const open=r.style.display!=='none';
-  document.querySelectorAll('[id^="d"]').forEach(x=>x.style.display='none');
-  if(!open)r.style.display='table-row';
-}
-
-document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');
-  filter=b.dataset.f;
-  render();
-}));
-
-document.getElementById('search').addEventListener('input',e=>{q=e.target.value.toLowerCase();render();});
-
+function tog(i){const el=document.getElementById('det'+i);const open=el.classList.contains('open');document.querySelectorAll('.mcard-detail').forEach(x=>x.classList.remove('open'));if(!open)el.classList.add('open');}
+document.getElementById('search').addEventListener('input',e=>{q=e.target.value.toLowerCase();renderGrid();renderSummary();});
 async function loadData(){
-  try{
-    const res=await fetch('data/latest.json');
-    DATA=await res.json();
-    document.getElementById('msg').style.display='none';
-    document.getElementById('tbl').style.display='table';
-    if(DATA.length>0){
-      const d=new Date(DATA[0].date);
-      document.getElementById('dato').textContent=d.toLocaleDateString('nb-NO',{day:'numeric',month:'long',year:'numeric'});
-    }
-    render();
-  }catch(e){
-    document.getElementById('msg').textContent='⚠️ Kunne ikke laste data/latest.json – sjekk at filen er pushet til GitHub.';
+  for(const url of['data/combined/latest.json','data/latest.json']){
+    try{
+      const res=await fetch(url);if(!res.ok)continue;
+      DATA=await res.json();
+      if(DATA.length>0){
+        const d=new Date(DATA[0].date);
+        document.getElementById('dato').textContent=d.toLocaleDateString('nb-NO',{day:'numeric',month:'long',year:'numeric'});
+        buildNav();renderSummary();renderGrid();return;
+      }
+    }catch(e){}
   }
+  document.getElementById('grid').innerHTML='<div class="loading">⚠️ Kunne ikke laste data. Kjør fetch_cot.py og push til GitHub.</div>';
 }
-
 loadData();
 </script>
 </body>
