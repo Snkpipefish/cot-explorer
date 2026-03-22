@@ -664,9 +664,9 @@ function renderTable(data) {
     const specPct = d.change_lev_net;
     const barColor = specPct > 70 ? 'var(--green)' : specPct < 30 ? 'var(--red)' : 'var(--accent2)';
     return `
-      <tr data-idx="${i}" onclick="toggleDetail(this, ${i})">
+      <tr data-idx="${i}" onclick="toggleDetail(${i})">
         <td class="td-market">${d.market} <span style="font-size:10px;color:var(--muted)">${d.symbol}</span></td>
-        <td><span class="td-cat">${d.category}</span></td>
+        <td><span class="td-cat">${d.symbol||"–"}</span></td>
         <td class="td-num ${colorClass(d.dealers.net)}">${sign(d.dealers.net)}${fmt(d.dealers.net)}</td>
         <td class="td-num ${colorClass(d.leveraged_funds.net)}">${sign(d.leveraged_funds.net)}${fmt(d.leveraged_funds.net)}</td>
         <td class="td-num">${fmt(d.open_interest)}</td>
