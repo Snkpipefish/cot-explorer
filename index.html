@@ -332,107 +332,111 @@ function renderIdeer(m){
   const lvs=m.trading_levels||{};
   const arr=Object.values(lvs);
   document.getElementById('ideDate').textContent='COT per '+(m.cot_date||'–');
-  document.getElementById('vixSize').textContent=m.vix_regime?.label||'–';
-  document.getElementById('vixSize').style.color=`var(--${m.vix_regime?.color||'m'})`;
-
+  const vr=m.vix_regime||{};
+  const vsEl=document.getElementById('vixSize');
+  vsEl.textContent=vr.label||'–';
+  vsEl.style.color='var(--'+(vr.color||'m')+')';
   const bull=arr.filter(l=>l.combined_bias==='LONG').length;
   const bear=arr.filter(l=>l.combined_bias==='SHORT').length;
   const neut=arr.filter(l=>l.combined_bias==='NØYTRAL').length;
-  document.getElementById('ideStats').innerHTML=[
-    ['Instrumenter','aksjer',arr.length,'snum'],
-    ['Long bias','bull',bull,'snum bull'],
-    ['Short bias','bear',bear,'snum bear'],
-    ['Nøytral','m',neut,'snum'],
-  ].map(([l,,v,cls])=>`<div class="card"><div class="ct">${l}</div><div class="${cls}">${v}</div></div>`).join('');
-
+  document.getElementById('ideStats').innerHTML=
+    '<div class="card"><div class="ct">Instrumenter</div><div class="snum">'+arr.length+'</div></div>'+
+    '<div class="card"><div class="ct">Long bias</div><div class="snum bull">'+bull+'</div></div>'+
+    '<div class="card"><div class="ct">Short bias</div><div class="snum bear">'+bear+'</div></div>'+
+    '<div class="card"><div class="ct">Nøytral</div><div class="snum">'+neut+'</div></div>';
   if(!arr.length){
     document.getElementById('ideGrid').innerHTML='<div class="loading">Ingen trading-data. Kjør fetch_all.py</div>';
     return;
   }
-
-  // Sorter: LONG/SHORT først, deretter NØYTRAL
   const sorted=[...arr].sort((a,b)=>{
-    const o={LONG:0,SHORT:1,NØYTRAL:2};
-    return (o[a.combined_bias]||2)-(o[b.combined_bias]||2);
+    const o={LONG:0,SHORT:1,'NØYTRAL':2};
+    return(o[a.combined_bias]||2)-(o[b.combined_bias]||2);
   });
-
-  document.getElementById('ideGrid').innerHTML=sorted.map((lv,i)=>{
+  let html='';
+  sorted.forEach(function(lv,i){
     const cot=lv.cot||{};
-    const currFmt=lv.current?(lv.current>100?lv.current.toFixed(2):lv.current.toFixed(5)):'–';
-    const currFmt=lv.current?(lv.current>100?lv.current.toFixed(2):lv.current.toFixed(5)):'–';
     const bc=lv.bias_color||'neutral';
-    const cls_lv=lv.class||'A';
+    const clsLv=lv.class||'A';
     const atr=lv.atr14||0;
-
     const res=lv.resistances||[];
     const sup=lv.supports||[];
-    const spec_net=cot.net||0;
-    const spec_oi=lv.open_interest||1;
-    const pct=Math.min(100,Math.max(0,(spec_net+spec_oi)/(spec_oi*2)*100));
+    const specNet=cot.net||0;
+    const pct=Math.min(100,Math.max(0,50+(specNet/(lv.open_interest||1))*50));
+    const curr=lv.current||0;
+    const currFmt=curr>100?curr.toFixed(2):curr.toFixed(5);
+    const sma200Fmt=lv.sma200?(lv.sma200>100?lv.sma200.toFixed(1):lv.sma200.toFixed(5)):'–';
+    const atrFmt=atr>10?atr.toFixed(1):atr.toFixed(5);
+    const biasText=bc==='bull'?'↑ LONG':bc==='bear'?'↓ SHORT':'— NØYTRAL';
 
-    const levRows=(lvArr,type)=>lvArr.slice(0,3).map(l=>{
+    function levRow(l,type){
       const act=l.dist_atr<=1.0;
       const cls=act?(type==='res'?'active-res':'active-sup'):'';
-      const lvl=l.level>100?l.level.toFixed(1):l.level.toFixed(5);
-      const atrStr=l.dist_atr.toFixed(1)+'\u00d7ATR';
-      const nm=l.name+(act?' \uD83C\uDFAF':'');
-      return '<div class="level-row '+cls+'"><span class="level-name">'+nm+'</span><span><span class="level-val">'+lvl+'</span><span class="level-dist">'+atrStr+'</span></span></div>';
-    }).join('');
+      const lvlFmt=l.level>100?l.level.toFixed(1):l.level.toFixed(5);
+      const atrStr=l.dist_atr.toFixed(1)+'xATR';
+      const nm=l.name+(act?' 🎯':'');
+      return '<div class="level-row '+cls+'">'+
+        '<span class="level-name">'+nm+'</span>'+
+        '<span><span class="level-val">'+lvlFmt+'</span>'+
+        '<span class="level-dist"> '+atrStr+'</span></span></div>';
+    }
 
-    return `<div class="tic">
-      <div class="tic-head" onclick="togIde('id${i}')">
-        <span class="tic-class">${cls_lv}</span>
-        <div><div class="tic-name">${lv.name}</div><div class="tic-sub">${lv.label||''}</div></div>
-        <span class="bias-pill ${bc}">${lv.combined_bias==='LONG'?'↑ LONG':lv.combined_bias==='SHORT'?'↓ SHORT':'— NØYTRAL'}</span>
-        <span class="price-now">${currFmt}</span>
-        <span class="pos-pill ${cot.color||'neutral'}">${cot.bias||'–'}</span>
-      </div>
-      <div id="id${i}" class="tic-detail">
-        <div class="tic-levels">
-          <div class="level-group">
-            <div class="level-group-title">Motstand</div>
-            ${levRows(res,'res')}
-          </div>
-          <div>
-            <div class="price-line">
-              <span class="price-arrow">→</span>
-              <span class="price-curr">${currFmt}</span>
-              <span class="price-label">Nåpris</span>
-              <span class="price-sma ${lv.sma200_pos==='over'?'above':'below'}">SMA200: ${lv.sma200_pos==='over'?'↑ Over':'↓ Under'}</span>
-            </div>
-            <div class="level-group" style="margin-top:8px">
-              <div class="level-group-title">Støtte</div>
-              ${levRows(sup,'sup')}
-            </div>
-          </div>
-          <div class="level-group">
-            <div class="level-group-title">Nøkkelnivåer</div>
-            <div class="level-row"><span class="level-name">SMA200</span><span class="level-val">${lv.sma200?.toFixed?.(lv.sma200>100?1:5):lv.sma200}</span></div>
-            <div class="level-row"><span class="level-name">ATR14</span><span class="level-val">${atr.toFixed?.(atr>10?1:5):atr}</span></div>
-            <div class="level-row"><span class="level-name">5d</span><span class="level-val ${cc(lv.chg5d||0)}">${fp(lv.chg5d||0)}</span></div>
-            <div class="level-row"><span class="level-name">20d</span><span class="level-val ${cc(lv.chg20d||0)}">${fp(lv.chg20d||0)}</span></div>
-          </div>
-        </div>
-        <div class="tic-meta">
-          <div class="meta-item"><div class="meta-label">COT Bias</div><div class="meta-val ${cot.color||'neutral'}">${cot.bias||'–'}</div></div>
-          <div class="meta-item"><div class="meta-label">DXY Konfluens</div><div class="meta-val ${lv.dxy_conf==='medvind'?'bull':'bear'}">${lv.dxy_conf||'–'}</div></div>
-          <div class="meta-item"><div class="meta-label">Posisjonsstørrelse</div><div class="meta-val warn">${lv.pos_size||'–'}</div></div>
-          <div class="meta-item"><div class="meta-label">Klasse</div><div class="meta-val">${cls_lv}${cls_lv==='A'?' – Valuta':cls_lv==='B'?' – Råvare':' – Indeks'}</div></div>
-        </div>
-        <div class="tic-cot">
-          <div class="ct">COT – Spekulanter (${cot.report||'–'} · per ${cot.date||'–'})</div>
-          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
-            <span>Netto: <strong class="${cot.color||'neutral'}" style="font-family:'DM Mono',monospace">${s(cot.net||0)}${fm(cot.net||0)}</strong></span>
-            <span>Uke Δ: <strong class="${cc(cot.chg||0)}" style="font-family:'DM Mono',monospace">${s(cot.chg||0)}${fm(cot.chg||0)}</strong></span>
-            <span>Andel OI: <strong style="font-family:'DM Mono',monospace">${cot.pct?.toFixed(1)||0}%</strong></span>
-          </div>
-          <div class="cot-bar-track">
-            <div class="cot-bar-fill" style="width:${Math.min(100,Math.max(0,pct))}%;background:${(cot.net||0)>0?'var(--bull)':'var(--bear)'};left:0"></div>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+    const resRows=res.slice(0,3).map(function(l){return levRow(l,'res');}).join('');
+    const supRows=sup.slice(0,3).map(function(l){return levRow(l,'sup');}).join('');
+
+    html+=
+      '<div class="tic">'+
+        '<div class="tic-head" onclick="togIde('id'+i+'')">'+
+          '<span class="tic-class">'+clsLv+'</span>'+
+          '<div><div class="tic-name">'+lv.name+'</div><div class="tic-sub">'+(lv.label||'')+'</div></div>'+
+          '<span class="bias-pill '+bc+'">'+biasText+'</span>'+
+          '<span class="price-now">'+currFmt+'</span>'+
+          '<span class="pos-pill '+(cot.color||'neutral')+'">'+(cot.bias||'–')+'</span>'+
+        '</div>'+
+        '<div id="id'+i+'" class="tic-detail">'+
+          '<div class="tic-levels">'+
+            '<div class="level-group">'+
+              '<div class="level-group-title">Motstand</div>'+resRows+
+            '</div>'+
+            '<div>'+
+              '<div class="price-line">'+
+                '<span class="price-arrow">→</span>'+
+                '<span class="price-curr">'+currFmt+'</span>'+
+                '<span class="price-label"> Nåpris</span>'+
+                '<span class="price-sma '+(lv.sma200_pos==='over'?'above':'below')+'"> SMA200: '+(lv.sma200_pos==='over'?'↑ Over':'↓ Under')+'</span>'+
+              '</div>'+
+              '<div class="level-group" style="margin-top:8px">'+
+                '<div class="level-group-title">Støtte</div>'+supRows+
+              '</div>'+
+            '</div>'+
+            '<div class="level-group">'+
+              '<div class="level-group-title">Nøkkeltall</div>'+
+              '<div class="level-row"><span class="level-name">SMA200</span><span class="level-val">'+sma200Fmt+'</span></div>'+
+              '<div class="level-row"><span class="level-name">ATR14</span><span class="level-val">'+atrFmt+'</span></div>'+
+              '<div class="level-row"><span class="level-name">5d</span><span class="level-val '+cc(lv.chg5d||0)+'">'+fp(lv.chg5d||0)+'</span></div>'+
+              '<div class="level-row"><span class="level-name">20d</span><span class="level-val '+cc(lv.chg20d||0)+'">'+fp(lv.chg20d||0)+'</span></div>'+
+            '</div>'+
+          '</div>'+
+          '<div class="tic-meta">'+
+            '<div class="meta-item"><div class="meta-label">COT Bias</div><div class="meta-val '+(cot.color||'neutral')+'">'+(cot.bias||'–')+'</div></div>'+
+            '<div class="meta-item"><div class="meta-label">DXY Konfluens</div><div class="meta-val '+(lv.dxy_conf==='medvind'?'bull':'bear')+'">'+(lv.dxy_conf||'–')+'</div></div>'+
+            '<div class="meta-item"><div class="meta-label">Posisjonsstørrelse</div><div class="meta-val warn">'+(lv.pos_size||'–')+'</div></div>'+
+            '<div class="meta-item"><div class="meta-label">Klasse</div><div class="meta-val">'+clsLv+(clsLv==='A'?' – Valuta':clsLv==='B'?' – Råvare':' – Indeks')+'</div></div>'+
+          '</div>'+
+          '<div class="tic-cot">'+
+            '<div class="ct">COT – Spekulanter ('+( cot.report||'–')+' · per '+(cot.date||'–')+')</div>'+
+            '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">'+
+              '<span>Netto: <strong class="'+(cot.color||'neutral')+'" style="font-family:DM Mono,monospace">'+(specNet>0?'+':'')+fm(specNet)+'</strong></span>'+
+              '<span>Uke Δ: <strong class="'+cc(cot.chg||0)+'" style="font-family:DM Mono,monospace">'+(cot.chg>0?'+':'')+fm(cot.chg||0)+'</strong></span>'+
+              '<span>Andel OI: <strong style="font-family:DM Mono,monospace">'+( cot.pct?.toFixed(1)||0)+'%</strong></span>'+
+            '</div>'+
+            '<div class="cot-bar-track">'+
+              '<div class="cot-bar-fill" style="width:'+pct+'%;background:'+(specNet>0?'var(--bull)':'var(--bear)')+';left:0"></div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  });
+  document.getElementById('ideGrid').innerHTML=html;
 }
 
 function togIde(id){
