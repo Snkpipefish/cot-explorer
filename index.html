@@ -495,8 +495,8 @@ let COT_DATA = []; async function loadData(){try{const res=await fetch("data/lat
     "non_commercials": { "long": 289540, "short": 175230, "net": 114310 },
     "non_reportable": { "long": 184870, "short": 184740, "net": 130 },
     "change_oi": 12430,
-    "change_nc_net": 8920,
-    "spec_index": 68
+    "change_lev_net": 8920,
+    "change_lev_net": 68
   },
   {
     "date": "2026-03-18",
@@ -508,8 +508,8 @@ let COT_DATA = []; async function loadData(){try{const res=await fetch("data/lat
     "non_commercials": { "long": 312890, "short": 89340, "net": 223550 },
     "non_reportable": { "long": 117980, "short": 144420, "net": -26440 },
     "change_oi": -8920,
-    "change_nc_net": 14230,
-    "spec_index": 82
+    "change_lev_net": 14230,
+    "change_lev_net": 82
   },
   {
     "date": "2026-03-18",
@@ -521,8 +521,8 @@ let COT_DATA = []; async function loadData(){try{const res=await fetch("data/lat
     "non_commercials": { "long": 734560, "short": 312890, "net": 421670 },
     "non_reportable": { "long": 565530, "short": 618310, "net": -52780 },
     "change_oi": 23450,
-    "change_nc_net": -18340,
-    "spec_index": 55
+    "change_lev_net": -18340,
+    "change_lev_net": 55
   },
   {
     "date": "2026-03-18",
@@ -534,8 +534,8 @@ let COT_DATA = []; async function loadData(){try{const res=await fetch("data/lat
     "non_commercials": { "long": 1023450, "short": 712340, "net": 311110 },
     "non_reportable": { "long": 529210, "short": 394990, "net": 134220 },
     "change_oi": -34560,
-    "change_nc_net": -22100,
-    "spec_index": 42
+    "change_lev_net": -22100,
+    "change_lev_net": 42
   },
   {
     "date": "2026-03-18",
@@ -547,8 +547,8 @@ let COT_DATA = []; async function loadData(){try{const res=await fetch("data/lat
     "non_commercials": { "long": 98450, "short": 67890, "net": 30560 },
     "non_reportable": { "long": 46680, "short": 32110, "net": 14570 },
     "change_oi": 5670,
-    "change_nc_net": 3450,
-    "spec_index": 58
+    "change_lev_net": 3450,
+    "change_lev_net": 58
   },
   {
     "date": "2026-03-18",
@@ -560,8 +560,8 @@ let COT_DATA = []; async function loadData(){try{const res=await fetch("data/lat
     "non_commercials": { "long": 89230, "short": 34560, "net": 54670 },
     "non_reportable": { "long": 41420, "short": 40530, "net": 890 },
     "change_oi": -3450,
-    "change_nc_net": 6780,
-    "spec_index": 71
+    "change_lev_net": 6780,
+    "change_lev_net": 71
   },
   {
     "date": "2026-03-18",
@@ -573,8 +573,8 @@ let COT_DATA = []; async function loadData(){try{const res=await fetch("data/lat
     "non_commercials": { "long": 489230, "short": 289450, "net": 199780 },
     "non_reportable": { "long": 201660, "short": 221660, "net": -20000 },
     "change_oi": 45670,
-    "change_nc_net": 23450,
-    "spec_index": 61
+    "change_lev_net": 23450,
+    "change_lev_net": 61
   },
   {
     "date": "2026-03-18",
@@ -586,8 +586,8 @@ let COT_DATA = []; async function loadData(){try{const res=await fetch("data/lat
     "non_commercials": { "long": 612340, "short": 456780, "net": 155560 },
     "non_reportable": { "long": 276550, "short": 210570, "net": 65980 },
     "change_oi": 12340,
-    "change_nc_net": -8900,
-    "spec_index": 38
+    "change_lev_net": -8900,
+    "change_lev_net": 38
   }
 ];
 
@@ -620,9 +620,9 @@ function filtered() {
 
 function renderStats(data) {
   const totalOI = data.reduce((a,d) => a + d.open_interest, 0);
-  const bullish = data.filter(d => d.non_commercials.net > 0).length;
-  const avgSpec = Math.round(data.reduce((a,d) => a + d.spec_index, 0) / (data.length||1));
-  const bigMove = data.reduce((a,d) => Math.abs(d.change_nc_net) > Math.abs(a.change_nc_net) ? d : a, data[0]);
+  const bullish = data.filter(d => d.leveraged_funds.net > 0).length;
+  const avgSpec = Math.round(data.reduce((a,d) => a + d.change_lev_net, 0) / (data.length||1));
+  const bigMove = data.reduce((a,d) => Math.abs(d.change_lev_net) > Math.abs(a.change_lev_net) ? d : a, data[0]);
 
   document.getElementById('statsRow').innerHTML = `
     <div class="stat-card">
@@ -640,9 +640,9 @@ function renderStats(data) {
       <div class="stat-value">${avgSpec}%</div>
       <div class="stat-sub">0=max short · 100=max long</div>
     </div>
-    <div class="stat-card ${bigMove && bigMove.change_nc_net > 0 ? '' : 'danger'}">
+    <div class="stat-card ${bigMove && bigMove.change_lev_net > 0 ? '' : 'danger'}">
       <div class="stat-label">Største ukentlige endring</div>
-      <div class="stat-value ${bigMove ? colorClass(bigMove.change_nc_net) : ''}">${bigMove ? sign(bigMove.change_nc_net) + fmt(bigMove.change_nc_net) : '–'}</div>
+      <div class="stat-value ${bigMove ? colorClass(bigMove.change_lev_net) : ''}">${bigMove ? sign(bigMove.change_lev_net) + fmt(bigMove.change_lev_net) : '–'}</div>
       <div class="stat-sub">${bigMove ? bigMove.market : ''}</div>
     </div>
   `;
@@ -661,16 +661,16 @@ function renderTable(data) {
   noRes.style.display = 'none';
 
   tbody.innerHTML = data.map((d, i) => {
-    const specPct = d.spec_index;
+    const specPct = d.change_lev_net;
     const barColor = specPct > 70 ? 'var(--green)' : specPct < 30 ? 'var(--red)' : 'var(--accent2)';
     return `
       <tr data-idx="${i}" onclick="toggleDetail(this, ${i})">
         <td class="td-market">${d.market} <span style="font-size:10px;color:var(--muted)">${d.symbol}</span></td>
         <td><span class="td-cat">${d.category}</span></td>
-        <td class="td-num ${colorClass(d.commercials.net)}">${sign(d.commercials.net)}${fmt(d.commercials.net)}</td>
-        <td class="td-num ${colorClass(d.non_commercials.net)}">${sign(d.non_commercials.net)}${fmt(d.non_commercials.net)}</td>
+        <td class="td-num ${colorClass(d.dealers.net)}">${sign(d.dealers.net)}${fmt(d.dealers.net)}</td>
+        <td class="td-num ${colorClass(d.leveraged_funds.net)}">${sign(d.leveraged_funds.net)}${fmt(d.leveraged_funds.net)}</td>
         <td class="td-num">${fmt(d.open_interest)}</td>
-        <td class="td-num ${colorClass(d.change_nc_net)}">${sign(d.change_nc_net)}${fmt(d.change_nc_net)}</td>
+        <td class="td-num ${colorClass(d.change_lev_net)}">${sign(d.change_lev_net)}${fmt(d.change_lev_net)}</td>
         <td class="bar-cell">
           <div class="bar-wrap">
             <div class="bar-bg"><div class="bar-fill" style="width:${specPct}%;background:${barColor}"></div></div>
@@ -683,15 +683,15 @@ function renderTable(data) {
           <div class="detail-panel open">
             <div class="detail-group">
               <h4>Commercials (Hedgers)</h4>
-              <div class="detail-row"><span class="detail-key">Long</span><span class="detail-val">${fmt(d.commercials.long)}</span></div>
-              <div class="detail-row"><span class="detail-key">Short</span><span class="detail-val">${fmt(d.commercials.short)}</span></div>
-              <div class="detail-row"><span class="detail-key">Netto</span><span class="detail-val ${colorClass(d.commercials.net)}">${sign(d.commercials.net)}${fmt(d.commercials.net)}</span></div>
+              <div class="detail-row"><span class="detail-key">Long</span><span class="detail-val">${fmt(d.dealers.long)}</span></div>
+              <div class="detail-row"><span class="detail-key">Short</span><span class="detail-val">${fmt(d.dealers.short)}</span></div>
+              <div class="detail-row"><span class="detail-key">Netto</span><span class="detail-val ${colorClass(d.dealers.net)}">${sign(d.dealers.net)}${fmt(d.dealers.net)}</span></div>
             </div>
             <div class="detail-group">
               <h4>Non-Commercials (Spekulanter)</h4>
-              <div class="detail-row"><span class="detail-key">Long</span><span class="detail-val">${fmt(d.non_commercials.long)}</span></div>
-              <div class="detail-row"><span class="detail-key">Short</span><span class="detail-val">${fmt(d.non_commercials.short)}</span></div>
-              <div class="detail-row"><span class="detail-key">Netto</span><span class="detail-val ${colorClass(d.non_commercials.net)}">${sign(d.non_commercials.net)}${fmt(d.non_commercials.net)}</span></div>
+              <div class="detail-row"><span class="detail-key">Long</span><span class="detail-val">${fmt(d.leveraged_funds.long)}</span></div>
+              <div class="detail-row"><span class="detail-key">Short</span><span class="detail-val">${fmt(d.leveraged_funds.short)}</span></div>
+              <div class="detail-row"><span class="detail-key">Netto</span><span class="detail-val ${colorClass(d.leveraged_funds.net)}">${sign(d.leveraged_funds.net)}${fmt(d.leveraged_funds.net)}</span></div>
             </div>
             <div class="detail-group">
               <h4>Non-Reportable (Småhandlere)</h4>
