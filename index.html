@@ -587,27 +587,14 @@ var YAHOO_MAP = {
   '080732': 'CC=F',
 };
 
-async function fetchYahooPrices(yahooSym, startDate, endDate) {
-  // Beregn Unix timestamps
-  var s = Math.floor(new Date(startDate).getTime()/1000);
-  var e = Math.floor(new Date(endDate).getTime()/1000);
-  var url = 'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(yahooSym)+'?interval=1wk&period1='+s+'&period2='+e;
+async function fetchYahooPrices(priceKey, startDate, endDate) {
   try {
-    var r = await fetch(url, {headers:{'Accept':'application/json'}});
+    var r = await fetch("data/prices/" + priceKey + ".json");
+    if(!r.ok) return [];
     var d = await r.json();
-    var res = d.chart.result[0];
-    var ts  = res.timestamp;
-    var cl  = res.indicators.quote[0].close;
-    var out = [];
-    for(var i=0;i<ts.length;i++){
-      if(cl[i]==null) continue;
-      var dt = new Date(ts[i]*1000).toISOString().slice(0,10);
-      out.push({date:dt, price:cl[i]});
-    }
-    return out;
-  } catch(e) {
-    return [];
-  }
+    var s = new Date(startDate), e = new Date(endDate);
+    return (d.data||[]).filter(function(p){ var dt=new Date(p.date); return dt>=s && dt<=e; });
+  } catch(e) { return []; }
 }
 
 async function openCotChart(symbol, report, navn){
