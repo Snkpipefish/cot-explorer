@@ -99,7 +99,7 @@ def download_and_extract(url, tmp_dir):
         print(f"  Feil: {e}")
     return None
 
-def parse_file(csv_file, report_id):
+def parse_file(csv_file, report_id, keep_all=False):
     results = {}
     try:
         with open(csv_file, newline="", encoding="utf-8") as f:
@@ -173,10 +173,20 @@ def parse_file(csv_file, report_id):
                 info = MARKET_NO.get(mkt, {})
                 entry["navn_no"] = info.get("no", mkt)
                 entry["forklaring"] = info.get("info", "")
-                if mkt not in results or date > results[mkt]["date"]:
-                    results[mkt] = entry
+                if keep_all:
+                    if sym not in results:
+                        results[sym] = []
+                    results[sym].append(entry)
+                else:
+                    if mkt not in results or date > results[mkt]["date"]:
+                        results[mkt] = entry
     except Exception as e:
         print(f"  Parse-feil: {e}")
+    if keep_all:
+        out = []
+        for entries in results.values():
+            out.extend(entries)
+        return out
     return list(results.values())
 
 def save(path, data):
@@ -184,7 +194,7 @@ def save(path, data):
     with open(path, "w") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-def process_report(report, year=None):
+def process_report(report, year=None, keep_all=False):
     url = report["url"] if year is None else report["hist_pat"].replace("YYYY", str(year))
     rid = report["id"]
     yr  = year or YEAR
@@ -194,7 +204,7 @@ def process_report(report, year=None):
     csv_file = download_and_extract(url, tmp)
     if not csv_file:
         return []
-    data = parse_file(csv_file, rid)
+    data = parse_file(csv_file, rid, keep_all=keep_all)
     shutil.rmtree(tmp, ignore_errors=True)
     print(f"  {len(data)} markeder")
     return data
@@ -229,7 +239,7 @@ if do_history:
     print("\n[HISTORISKE DATA]")
     for report in REPORTS:
         for yr in range(report["hist_from"], YEAR):
-            data = process_report(report, yr)
+            data = process_report(report, yr, keep_all=True)
             if data:
                 save(f"data/history/{report['id']}/{yr}.json", data)
     print("Historiske data lagret i data/history/")
