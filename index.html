@@ -111,6 +111,20 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .mv.bull{color:var(--bull)}.mv.bear{color:var(--bear)}.mv.warn{color:var(--warn)}.mv.neutral{color:var(--m)}
 /* BINARY RISK */
 .binrisk{padding:8px 16px;background:rgba(248,81,73,.07);border-top:1px solid rgba(248,81,73,.2);display:flex;align-items:center;gap:8px;font-size:12px;color:var(--bear)}
+/* COT GRAF MODAL */
+.cot-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center}
+.cot-modal.open{display:flex}
+.cot-modal-inner{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:20px;width:90%;max-width:800px;max-height:90vh;overflow-y:auto}
+.cot-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.cot-modal-title{font-size:16px;font-weight:700}
+.cot-modal-close{cursor:pointer;font-size:20px;color:var(--m);padding:4px 8px;border-radius:4px;border:1px solid var(--b)}
+.cot-modal-close:hover{background:var(--s2)}
+.cot-chart-wrap{width:100%;height:300px;position:relative}
+canvas#cotChart{width:100%!important;height:300px!important}
+.cot-stat-row{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.cot-stat{background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px 14px;flex:1;min-width:100px}
+.cot-stat-label{font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:1px}
+.cot-stat-val{font-size:18px;font-weight:700;font-family:'DM Mono',monospace;margin-top:4px}
 /* COT BAR */
 .tcotbar{padding:10px 16px;border-top:1px solid var(--b);background:var(--s2)}
 .cbt{height:6px;background:var(--b);border-radius:3px;position:relative;overflow:hidden;margin-top:6px}
@@ -159,6 +173,7 @@ footer a{color:var(--blue);text-decoration:none}
 @media(max-width:900px){.g4,.g3{grid-template-columns:1fr 1fr}.g21{grid-template-columns:1fr}.setup-grid{grid-template-columns:1fr}.levels-section{grid-template-columns:1fr 1fr}.tmeta{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.g4,.g3,.g2{grid-template-columns:1fr}.tbar{display:none}.levels-section{grid-template-columns:1fr}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
 <header class="topbar">
@@ -211,6 +226,17 @@ footer a{color:var(--blue);text-decoration:none}
       </div>
     </div>
     <div class="g4" id="macroStats"></div>
+  </div>
+  <!-- COT GRAF MODAL -->
+  <div class="cot-modal" id="cotModal" onclick="closeCotModal(event)">
+    <div class="cot-modal-inner">
+      <div class="cot-modal-header">
+        <div class="cot-modal-title" id="cotModalTitle">-</div>
+        <button class="cot-modal-close" onclick="document.getElementById('cotModal').classList.remove('open')">✕</button>
+      </div>
+      <div class="cot-chart-wrap"><canvas id="cotChart"></canvas></div>
+      <div class="cot-stat-row" id="cotModalStats"></div>
+    </div>
   </div>
   <div class="panel" id="panel-cot">
     <div class="sh"><div class="sh-t">COT-posisjoner</div><div class="sh-b" id="cotCnt">-</div></div>
@@ -528,6 +554,116 @@ async function loadAll(){
   }catch(e){console.error(e);}
 }
 loadAll();
+
+var cotChartInst = null;
+
+function closeCotModal(e){
+  if(e.target===document.getElementById('cotModal'))
+    document.getElementById('cotModal').classList.remove('open');
+}
+
+async function openCotChart(symbol, report, navn){
+  var modal = document.getElementById('cotModal');
+  document.getElementById('cotModalTitle').textContent = navn + ' – COT Historikk';
+  document.getElementById('cotModalStats').innerHTML = '<div style="color:var(--m);font-size:13px">Laster...</div>';
+  modal.classList.add('open');
+
+  var fname = symbol.toLowerCase() + '_' + report + '.json';
+  var url   = 'data/timeseries/' + fname;
+
+  try {
+    var r  = await fetch(url);
+    if(!r.ok) throw new Error('Ikke funnet');
+    var ts = await r.json();
+    var data = (ts.data||[]).filter(function(d){return d.date && d.spec_net!=null;});
+    if(!data.length) throw new Error('Ingen data');
+
+    var labels = data.map(function(d){return d.date;});
+    var nets   = data.map(function(d){return d.spec_net;});
+    var ois    = data.map(function(d){return d.oi||0;});
+
+    // Farger: grønn over 0, rød under
+    var barColors = nets.map(function(n){
+      return n >= 0 ? 'rgba(0,200,100,0.7)' : 'rgba(255,80,80,0.7)';
+    });
+
+    if(cotChartInst) cotChartInst.destroy();
+
+    var ctx = document.getElementById('cotChart').getContext('2d');
+    cotChartInst = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Spec. Netto',
+          data: nets,
+          backgroundColor: barColors,
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {display: false},
+          tooltip: {
+            callbacks: {
+              label: function(ctx){
+                var v = ctx.raw;
+                return (v>0?'+':'')+Math.round(v).toLocaleString();
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              maxTicksLimit: 12,
+              color: 'var(--m)',
+              font: {size: 10},
+              maxRotation: 0,
+            },
+            grid: {color: 'var(--b)'}
+          },
+          y: {
+            ticks: {
+              color: 'var(--m)',
+              font: {size: 10},
+              callback: function(v){
+                if(Math.abs(v)>=1e6) return (v/1e6).toFixed(1)+'M';
+                if(Math.abs(v)>=1e3) return (v/1e3).toFixed(0)+'K';
+                return v;
+              }
+            },
+            grid: {color: 'var(--b)'},
+          }
+        }
+      }
+    });
+
+    // Stats
+    var last  = nets[nets.length-1];
+    var prev  = nets[nets.length-2]||0;
+    var chg   = last - prev;
+    var max   = Math.max.apply(null, nets);
+    var min   = Math.min.apply(null, nets);
+    var pct   = ois[ois.length-1] ? (last/ois[ois.length-1]*100).toFixed(1) : '-';
+    function fm(n){if(n==null)return'-';var a=Math.abs(n);if(a>=1e6)return(n>0?'':'-')+(a/1e6).toFixed(2)+'M';if(a>=1e3)return(n>0?'':'-')+(a/1e3).toFixed(1)+'K';return(n>0?'':'')+Math.round(n);}
+    function cc(n){return n>0?'bull':n<0?'bear':'neutral';}
+
+    document.getElementById('cotModalStats').innerHTML =
+      '<div class="cot-stat"><div class="cot-stat-label">Netto nå</div><div class="cot-stat-val '+cc(last)+'">'+fm(last)+'</div></div>'+
+      '<div class="cot-stat"><div class="cot-stat-label">Uke endring</div><div class="cot-stat-val '+cc(chg)+'">'+fm(chg)+'</div></div>'+
+      '<div class="cot-stat"><div class="cot-stat-label">% av OI</div><div class="cot-stat-val">'+pct+'%</div></div>'+
+      '<div class="cot-stat"><div class="cot-stat-label">Historisk maks</div><div class="cot-stat-val bull">'+fm(max)+'</div></div>'+
+      '<div class="cot-stat"><div class="cot-stat-label">Historisk min</div><div class="cot-stat-val bear">'+fm(min)+'</div></div>'+
+      '<div class="cot-stat"><div class="cot-stat-label">Datapunkter</div><div class="cot-stat-val">'+data.length+'</div></div>';
+
+  } catch(e) {
+    document.getElementById('cotModalStats').innerHTML = '<div style="color:var(--bear)">Ingen historikk tilgjengelig for dette markedet</div>';
+    console.error(e);
+  }
+}
 </script>
 </body>
 </html>
