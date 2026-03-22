@@ -628,6 +628,7 @@ async function openCotChart(symbol, report, navn){
     // Hent prisdata hvis Yahoo-mapping finnes
     var yahooSym = YAHOO_MAP[symbol] || null;
   var priceKey  = COT_PRICE_MAP[symbol] || null;
+  console.log('symbol:', symbol, 'priceKey:', priceKey, 'COT_PRICE_MAP:', JSON.stringify(COT_PRICE_MAP));
     var prices   = [];
     if(priceKey && data.length > 1) {
       prices = await fetchYahooPrices(priceKey, data[0].date, data[data.length-1].date);
