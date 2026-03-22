@@ -562,6 +562,8 @@ function closeCotModal(e){
     document.getElementById('cotModal').classList.remove('open');
 }
 
+var COT_PRICE_MAP = {};
+fetch('data/prices/cot_map.json').then(function(r){return r.json();}).then(function(d){COT_PRICE_MAP=d;}).catch(function(){});
 var YAHOO_MAP = {
   '099741': 'EURUSD=X',
   '096742': 'JPY=X',
@@ -638,9 +640,10 @@ async function openCotChart(symbol, report, navn){
 
     // Hent prisdata hvis Yahoo-mapping finnes
     var yahooSym = YAHOO_MAP[symbol] || null;
+  var priceKey  = COT_PRICE_MAP[symbol] || null;
     var prices   = [];
-    if(yahooSym && data.length > 1) {
-      prices = await fetchYahooPrices(yahooSym, data[0].date, data[data.length-1].date);
+    if(priceKey && data.length > 1) {
+      prices = await fetchYahooPrices(priceKey, data[0].date, data[data.length-1].date);
     }
 
     // Match COT-datoer med nærmeste pris
