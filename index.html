@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COT Data Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --border: #1e2530;
+    --border-bright: #2a3545;
+    --text: #c8d4e0;
+    --muted: #4a5a6a;
+    --accent: #00e5a0;
+    --accent2: #f0a500;
+    --red: #ff4560;
+    --green: #00e5a0;
+    --header-h: 64px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    height: var(--header-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .logo span { color: var(--muted); }
+
+  .header-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border-left: 1px solid var(--border);
+    padding-left: 20px;
+    line-height: 1.7;
+  }
+
+  .header-meta strong { color: var(--accent2); }
+
+  .search-wrap {
+    margin-left: auto;
+    position: relative;
+  }
+
+  #search {
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 8px 14px 8px 36px;
+    border-radius: 4px;
+    width: 260px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  #search:focus { border-color: var(--accent); }
+  #search::placeholder { color: var(--muted); }
+
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* ── FILTERS ── */
+  .filters {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-right: 4px;
+  }
+
+  .chip {
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .chip:hover, .chip.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,160,0.05);
+  }
+
+  .date-select {
+    margin-left: auto;
+    background: var(--bg);
+    border: 1px solid var(--border-bright);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* ── MAIN GRID ── */
+  .main { padding: 24px; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0.4;
+  }
+
+  .stat-card.warn::before { background: var(--accent2); }
+  .stat-card.danger::before { background: var(--red); }
+
+  .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .stat-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .table-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .count-badge {
+    background: rgba(0,229,160,0.1);
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  .json-hint {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .json-hint:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  thead th:hover { color: var(--text); }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody tr:last-child { border-bottom: none; }
+
+  td {
+    padding: 11px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .td-market { color: var(--text); font-weight: 500; }
+  .td-cat {
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--bg);
+    padding: 2px 8px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  .td-num { text-align: right; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+
+  .bar-cell { width: 120px; }
+
+  .bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .bar-bg {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .bar-pct {
+    font-size: 10px;
+    color: var(--muted);
+    width: 32px;
+    text-align: right;
+  }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel {
+    display: none;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 20px;
+    animation: slideDown 0.2s ease;
+  }
+
+  .detail-panel.open { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .detail-group h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+
+  .detail-key { color: var(--muted); }
+  .detail-val { color: var(--text); }
+
+  /* ── JSON VIEW ── */
+  .json-view {
+    display: none;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 20px;
+  }
+
+  .json-view.open { display: block; }
+
+  pre {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  pre .key   { color: var(--accent2); }
+  pre .str   { color: var(--accent); }
+  pre .num   { color: #7eb8ff; }
+  pre .null  { color: var(--red); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    gap: 24px;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+
+  .no-results {
+    padding: 60px;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .detail-panel.open { grid-template-columns: 1fr; }
+    #search { width: 180px; }
+    td.bar-cell { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">COT<span>/</span>EXPLORER</div>
+  <div class="header-meta">
+    CFTC · Commitments of Traders<br>
+    Sist oppdatert: <strong>20. mars 2026</strong> · Neste: 27. mars 2026
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="search" placeholder="Søk marked, kategori..." autocomplete="off">
+  </div>
+</header>
+
+<div class="filters">
+  <span class="filter-label">Kategori</span>
+  <button class="chip active" data-filter="all">Alle</button>
+  <button class="chip" data-filter="Forex">Forex</button>
+  <button class="chip" data-filter="Råvarer">Råvarer</button>
+  <button class="chip" data-filter="Indekser">Indekser</button>
+  <button class="chip" data-filter="Metaller">Metaller</button>
+  <button class="chip" data-filter="Energi">Energi</button>
+  <select class="date-select" id="dateSelect">
+    <option value="2026-03-18">Uke 18. mars 2026</option>
+    <option value="2026-03-11">Uke 11. mars 2026</option>
+    <option value="2026-03-04">Uke 4. mars 2026</option>
+  </select>
+</div>
+
+<div class="main">
+  <div class="stats-row" id="statsRow"></div>
+  <div class="table-wrap">
+    <div class="table-header">
+      <span class="table-title">Markedsposisjoner</span>
+      <span class="count-badge" id="countBadge">0 markeder</span>
+      <button class="json-hint" id="jsonToggle">{ JSON }</button>
+    </div>
+    <div id="jsonView" class="json-view"></div>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Marked</th>
+          <th>Kategori</th>
+          <th class="td-num">Comm. Netto</th>
+          <th class="td-num">Spec. Netto</th>
+          <th class="td-num">Open Interest</th>
+          <th class="td-num">Uke Δ</th>
+          <th class="bar-cell">Spec. posisjon</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="noResults" class="no-results" style="display:none">Ingen resultater funnet</div>
+  </div>
+</div>
+
+<footer>
+  <span>Kilde: <a href="https://cftc.gov">CFTC.gov</a></span>
+  <span>Format: JSON · Oppdateres automatisk hver fredag</span>
+  <span>AI-søk: Claude kan hente <a href="#">/data/latest.json</a></span>
+</footer>
+
+<script>
+// ── DATASTRUKTUR (dette er JSON-formatet som lagres ukentlig) ──
+const COT_DATA = [
+  {
+    "date": "2026-03-18",
+    "market": "EUR/USD",
+    "category": "Forex",
+    "symbol": "EC",
+    "open_interest": 672840,
+    "commercials": { "long": 198430, "short": 312870, "net": -114440 },
+    "non_commercials": { "long": 289540, "short": 175230, "net": 114310 },
+    "non_reportable": { "long": 184870, "short": 184740, "net": 130 },
+    "change_oi": 12430,
+    "change_nc_net": 8920,
+    "spec_index": 68
+  },
+  {
+    "date": "2026-03-18",
+    "market": "Gold",
+    "category": "Metaller",
+    "symbol": "GC",
+    "open_interest": 543210,
+    "commercials": { "long": 112340, "short": 289450, "net": -177110 },
+    "non_commercials": { "long": 312890, "short": 89340, "net": 223550 },
+    "non_reportable": { "long": 117980, "short": 144420, "net": -26440 },
+    "change_oi": -8920,
+    "change_nc_net": 14230,
+    "spec_index": 82
+  },
+  {
+    "date": "2026-03-18",
+    "market": "Crude Oil (WTI)",
+    "category": "Energi",
+    "symbol": "CL",
+    "open_interest": 1823540,
+    "commercials": { "long": 523450, "short": 892340, "net": -368890 },
+    "non_commercials": { "long": 734560, "short": 312890, "net": 421670 },
+    "non_reportable": { "long": 565530, "short": 618310, "net": -52780 },
+    "change_oi": 23450,
+    "change_nc_net": -18340,
+    "spec_index": 55
+  },
+  {
+    "date": "2026-03-18",
+    "market": "S&P 500 E-mini",
+    "category": "Indekser",
+    "symbol": "ES",
+    "open_interest": 2341890,
+    "commercials": { "long": 789230, "short": 1234560, "net": -445330 },
+    "non_commercials": { "long": 1023450, "short": 712340, "net": 311110 },
+    "non_reportable": { "long": 529210, "short": 394990, "net": 134220 },
+    "change_oi": -34560,
+    "change_nc_net": -22100,
+    "spec_index": 42
+  },
+  {
+    "date": "2026-03-18",
+    "market": "GBP/USD",
+    "category": "Forex",
+    "symbol": "BP",
+    "open_interest": 234560,
+    "commercials": { "long": 89430, "short": 134560, "net": -45130 },
+    "non_commercials": { "long": 98450, "short": 67890, "net": 30560 },
+    "non_reportable": { "long": 46680, "short": 32110, "net": 14570 },
+    "change_oi": 5670,
+    "change_nc_net": 3450,
+    "spec_index": 58
+  },
+  {
+    "date": "2026-03-18",
+    "market": "Silver",
+    "category": "Metaller",
+    "symbol": "SI",
+    "open_interest": 187430,
+    "commercials": { "long": 56780, "short": 112340, "net": -55560 },
+    "non_commercials": { "long": 89230, "short": 34560, "net": 54670 },
+    "non_reportable": { "long": 41420, "short": 40530, "net": 890 },
+    "change_oi": -3450,
+    "change_nc_net": 6780,
+    "spec_index": 71
+  },
+  {
+    "date": "2026-03-18",
+    "market": "Natural Gas",
+    "category": "Energi",
+    "symbol": "NG",
+    "open_interest": 1123450,
+    "commercials": { "long": 432560, "short": 612340, "net": -179780 },
+    "non_commercials": { "long": 489230, "short": 289450, "net": 199780 },
+    "non_reportable": { "long": 201660, "short": 221660, "net": -20000 },
+    "change_oi": 45670,
+    "change_nc_net": 23450,
+    "spec_index": 61
+  },
+  {
+    "date": "2026-03-18",
+    "market": "Corn",
+    "category": "Råvarer",
+    "symbol": "C",
+    "open_interest": 1456780,
+    "commercials": { "long": 567890, "short": 789230, "net": -221340 },
+    "non_commercials": { "long": 612340, "short": 456780, "net": 155560 },
+    "non_reportable": { "long": 276550, "short": 210570, "net": 65980 },
+    "change_oi": 12340,
+    "change_nc_net": -8900,
+    "spec_index": 38
+  }
+];
+
+// ── STATE ──
+let activeFilter = 'all';
+let searchQuery = '';
+let openRow = null;
+let showJson = false;
+
+function fmt(n) {
+  const abs = Math.abs(n);
+  if (abs >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n.toString();
+}
+
+function colorClass(n) { return n >= 0 ? 'pos' : 'neg'; }
+function sign(n) { return n >= 0 ? '+' : ''; }
+
+function filtered() {
+  return COT_DATA.filter(d => {
+    const matchCat = activeFilter === 'all' || d.category === activeFilter;
+    const q = searchQuery.toLowerCase();
+    const matchQ = !q || d.market.toLowerCase().includes(q) ||
+                        d.category.toLowerCase().includes(q) ||
+                        d.symbol.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+}
+
+function renderStats(data) {
+  const totalOI = data.reduce((a,d) => a + d.open_interest, 0);
+  const bullish = data.filter(d => d.non_commercials.net > 0).length;
+  const avgSpec = Math.round(data.reduce((a,d) => a + d.spec_index, 0) / (data.length||1));
+  const bigMove = data.reduce((a,d) => Math.abs(d.change_nc_net) > Math.abs(a.change_nc_net) ? d : a, data[0]);
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total Open Interest</div>
+      <div class="stat-value">${fmt(totalOI)}</div>
+      <div class="stat-sub">${data.length} markeder vist</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Bullish markeder</div>
+      <div class="stat-value pos">${bullish} / ${data.length}</div>
+      <div class="stat-sub">Spekulanter netto long</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="stat-label">Gjennomsnitt Spec. Index</div>
+      <div class="stat-value">${avgSpec}%</div>
+      <div class="stat-sub">0=max short · 100=max long</div>
+    </div>
+    <div class="stat-card ${bigMove && bigMove.change_nc_net > 0 ? '' : 'danger'}">
+      <div class="stat-label">Største ukentlige endring</div>
+      <div class="stat-value ${bigMove ? colorClass(bigMove.change_nc_net) : ''}">${bigMove ? sign(bigMove.change_nc_net) + fmt(bigMove.change_nc_net) : '–'}</div>
+      <div class="stat-sub">${bigMove ? bigMove.market : ''}</div>
+    </div>
+  `;
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('tbody');
+  const noRes = document.getElementById('noResults');
+  document.getElementById('countBadge').textContent = data.length + ' markeder';
+
+  if (!data.length) {
+    tbody.innerHTML = '';
+    noRes.style.display = 'block';
+    return;
+  }
+  noRes.style.display = 'none';
+
+  tbody.innerHTML = data.map((d, i) => {
+    const specPct = d.spec_index;
+    const barColor = specPct > 70 ? 'var(--green)' : specPct < 30 ? 'var(--red)' : 'var(--accent2)';
+    return `
+      <tr data-idx="${i}" onclick="toggleDetail(this, ${i})">
+        <td class="td-market">${d.market} <span style="font-size:10px;color:var(--muted)">${d.symbol}</span></td>
+        <td><span class="td-cat">${d.category}</span></td>
+        <td class="td-num ${colorClass(d.commercials.net)}">${sign(d.commercials.net)}${fmt(d.commercials.net)}</td>
+        <td class="td-num ${colorClass(d.non_commercials.net)}">${sign(d.non_commercials.net)}${fmt(d.non_commercials.net)}</td>
+        <td class="td-num">${fmt(d.open_interest)}</td>
+        <td class="td-num ${colorClass(d.change_nc_net)}">${sign(d.change_nc_net)}${fmt(d.change_nc_net)}</td>
+        <td class="bar-cell">
+          <div class="bar-wrap">
+            <div class="bar-bg"><div class="bar-fill" style="width:${specPct}%;background:${barColor}"></div></div>
+            <span class="bar-pct">${specPct}%</span>
+          </div>
+        </td>
+      </tr>
+      <tr id="detail-${i}" style="display:none">
+        <td colspan="7" style="padding:0">
+          <div class="detail-panel open">
+            <div class="detail-group">
+              <h4>Commercials (Hedgers)</h4>
+              <div class="detail-row"><span class="detail-key">Long</span><span class="detail-val">${fmt(d.commercials.long)}</span></div>
+              <div class="detail-row"><span class="detail-key">Short</span><span class="detail-val">${fmt(d.commercials.short)}</span></div>
+              <div class="detail-row"><span class="detail-key">Netto</span><span class="detail-val ${colorClass(d.commercials.net)}">${sign(d.commercials.net)}${fmt(d.commercials.net)}</span></div>
+            </div>
+            <div class="detail-group">
+              <h4>Non-Commercials (Spekulanter)</h4>
+              <div class="detail-row"><span class="detail-key">Long</span><span class="detail-val">${fmt(d.non_commercials.long)}</span></div>
+              <div class="detail-row"><span class="detail-key">Short</span><span class="detail-val">${fmt(d.non_commercials.short)}</span></div>
+              <div class="detail-row"><span class="detail-key">Netto</span><span class="detail-val ${colorClass(d.non_commercials.net)}">${sign(d.non_commercials.net)}${fmt(d.non_commercials.net)}</span></div>
+            </div>
+            <div class="detail-group">
+              <h4>Non-Reportable (Småhandlere)</h4>
+              <div class="detail-row"><span class="detail-key">Long</span><span class="detail-val">${fmt(d.non_reportable.long)}</span></div>
+              <div class="detail-row"><span class="detail-key">Short</span><span class="detail-val">${fmt(d.non_reportable.short)}</span></div>
+              <div class="detail-row"><span class="detail-key">Netto</span><span class="detail-val ${colorClass(d.non_reportable.net)}">${sign(d.non_reportable.net)}${fmt(d.non_reportable.net)}</span></div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function toggleDetail(row, i) {
+  const detailRow = document.getElementById('detail-' + i);
+  const isOpen = detailRow.style.display !== 'none';
+  // close all
+  document.querySelectorAll('[id^="detail-"]').forEach(r => r.style.display = 'none');
+  if (!isOpen) detailRow.style.display = 'table-row';
+}
+
+function renderJson(data) {
+  const json = JSON.stringify(data.slice(0,2), null, 2);
+  const highlighted = json
+    .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+    .replace(/: "([^"]+)"/g, ': <span class="str">"$1"</span>')
+    .replace(/: (-?\d+\.?\d*)/g, ': <span class="num">$1</span>');
+  document.getElementById('jsonView').innerHTML = `<pre>${highlighted}\n  // … ${data.length - 2} flere markeder</pre>`;
+}
+
+function render() {
+  const data = filtered();
+  renderStats(data);
+  renderTable(data);
+  if (showJson) renderJson(data);
+}
+
+// ── EVENTS ──
+document.querySelectorAll('.chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  render();
+});
+
+document.getElementById('jsonToggle').addEventListener('click', () => {
+  showJson = !showJson;
+  const jv = document.getElementById('jsonView');
+  if (showJson) { jv.classList.add('open'); renderJson(filtered()); }
+  else jv.classList.remove('open');
+});
+
+render();
+</script>
+</body>
+</html>
