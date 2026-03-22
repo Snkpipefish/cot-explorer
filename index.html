@@ -358,6 +358,7 @@ function renderIdeer(m){
 
   document.getElementById('ideGrid').innerHTML=sorted.map((lv,i)=>{
     const cot=lv.cot||{};
+    const currFmt=lv.current?(lv.current>100?lv.current.toFixed(2):lv.current.toFixed(5)):'–';
     const bc=lv.bias_color||'neutral';
     const cls_lv=lv.class||'A';
     const atr=lv.atr14||0;
@@ -382,7 +383,7 @@ function renderIdeer(m){
         <span class="tic-class">${cls_lv}</span>
         <div><div class="tic-name">${lv.name}</div><div class="tic-sub">${lv.label||''}</div></div>
         <span class="bias-pill ${bc}">${lv.combined_bias==='LONG'?'↑ LONG':lv.combined_bias==='SHORT'?'↓ SHORT':'— NØYTRAL'}</span>
-        <span class="price-now">${lv.current?.toFixed?.(lv.current>100?2:5):lv.current||'–'}</span>
+        <span class="price-now">${currFmt}</span>
         <span class="pos-pill ${cot.color||'neutral'}">${cot.bias||'–'}</span>
       </div>
       <div id="id${i}" class="tic-detail">
@@ -394,7 +395,7 @@ function renderIdeer(m){
           <div>
             <div class="price-line">
               <span class="price-arrow">→</span>
-              <span class="price-curr">${lv.current?.toFixed?.(lv.current>100?2:5):lv.current}</span>
+              <span class="price-curr">${currFmt}</span>
               <span class="price-label">Nåpris</span>
               <span class="price-sma ${lv.sma200_pos==='over'?'above':'below'}">SMA200: ${lv.sma200_pos==='over'?'↑ Over':'↓ Under'}</span>
             </div>
