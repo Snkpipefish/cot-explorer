@@ -369,13 +369,12 @@ function renderIdeer(m){
     const pct=Math.min(100,Math.max(0,(spec_net+spec_oi)/(spec_oi*2)*100));
 
     const levRows=(lvArr,type)=>lvArr.slice(0,3).map(l=>{
-      const dist_pips=Math.round(l.dist/(lv.pip||0.0001));
       const act=l.dist_atr<=1.0;
       const cls=act?(type==='res'?'active-res':'active-sup'):'';
-      return `<div class="level-row ${cls}">
-        <span class="level-name">${l.name}${act?' 🎯':''}</span>
-        <span><span class="level-val">${l.level?.toFixed?.(l.level>100?1:5):l.level}</span><span class="level-dist">${l.dist_atr?.toFixed(1)}×ATR</span></span>
-      </div>`;
+      const lvl=l.level>100?l.level.toFixed(1):l.level.toFixed(5);
+      const atrStr=l.dist_atr.toFixed(1)+'\u00d7ATR';
+      const nm=l.name+(act?' \uD83C\uDFAF':'');
+      return '<div class="level-row '+cls+'"><span class="level-name">'+nm+'</span><span><span class="level-val">'+lvl+'</span><span class="level-dist">'+atrStr+'</span></span></div>';
     }).join('');
 
     return `<div class="tic">
