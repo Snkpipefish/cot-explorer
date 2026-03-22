@@ -562,6 +562,52 @@ function closeCotModal(e){
     document.getElementById('cotModal').classList.remove('open');
 }
 
+var YAHOO_MAP = {
+  '099741': 'EURUSD=X',
+  '096742': 'JPY=X',
+  '096742': 'JPY=X',
+  '092741': 'GBPUSD=X',
+  '232741': 'AUDUSD=X',
+  '090741': 'USDCHF=X',
+  '088691': 'GC=F',
+  '084691': 'SI=F',
+  '067651': 'CL=F',
+  '023651': 'BZ=F',
+  '133741': '^GSPC',
+  '209742': '^NDX',
+  '095741': '^VIX',
+  '098662': 'DX-Y.NYB',
+  '002602': 'ZC=F',
+  '001602': 'ZW=F',
+  '005602': 'ZS=F',
+  '083731': 'SB=F',
+  '073732': 'KC=F',
+  '080732': 'CC=F',
+};
+
+async function fetchYahooPrices(yahooSym, startDate, endDate) {
+  // Beregn Unix timestamps
+  var s = Math.floor(new Date(startDate).getTime()/1000);
+  var e = Math.floor(new Date(endDate).getTime()/1000);
+  var url = 'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(yahooSym)+'?interval=1wk&period1='+s+'&period2='+e;
+  try {
+    var r = await fetch(url, {headers:{'Accept':'application/json'}});
+    var d = await r.json();
+    var res = d.chart.result[0];
+    var ts  = res.timestamp;
+    var cl  = res.indicators.quote[0].close;
+    var out = [];
+    for(var i=0;i<ts.length;i++){
+      if(cl[i]==null) continue;
+      var dt = new Date(ts[i]*1000).toISOString().slice(0,10);
+      out.push({date:dt, price:cl[i]});
+    }
+    return out;
+  } catch(e) {
+    return [];
+  }
+}
+
 async function openCotChart(symbol, report, navn){
   var modal = document.getElementById('cotModal');
   navn = decodeURIComponent(navn);
@@ -590,6 +636,39 @@ async function openCotChart(symbol, report, navn){
 
     if(cotChartInst) cotChartInst.destroy();
 
+    // Hent prisdata hvis Yahoo-mapping finnes
+    var yahooSym = YAHOO_MAP[symbol] || null;
+    var prices   = [];
+    if(yahooSym && data.length > 1) {
+      prices = await fetchYahooPrices(yahooSym, data[0].date, data[data.length-1].date);
+    }
+
+    // Match COT-datoer med nærmeste pris
+    var priceMap = {};
+    prices.forEach(function(p){ priceMap[p.date] = p.price; });
+
+    // Interpolar pris for COT-datoer
+    var priceData = labels.map(function(dt){
+      if(priceMap[dt]) return priceMap[dt];
+      // Finn nærmeste dato
+      var best = null, bestDiff = 999999;
+      prices.forEach(function(p){
+        var diff = Math.abs(new Date(p.date) - new Date(dt));
+        if(diff < bestDiff){ bestDiff=diff; best=p.price; }
+      });
+      return best;
+    });
+
+    var hasPrices = priceData.some(function(p){ return p!=null; });
+
+    // Wrapper for dual chart
+    var wrap = document.querySelector('.cot-chart-wrap');
+    if(hasPrices){
+      wrap.innerHTML = '<canvas id="cotChart" style="height:200px"></canvas><canvas id="priceChart" style="height:150px;margin-top:8px"></canvas>';
+    } else {
+      wrap.innerHTML = '<canvas id="cotChart" style="height:300px"></canvas>';
+    }
+
     var ctx = document.getElementById('cotChart').getContext('2d');
     cotChartInst = new Chart(ctx, {
       type: 'bar',
@@ -606,41 +685,91 @@ async function openCotChart(symbol, report, navn){
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {display: false},
+          legend: {display:false},
           tooltip: {
             callbacks: {
               label: function(ctx){
-                var v = ctx.raw;
+                var v=ctx.raw;
                 return (v>0?'+':'')+Math.round(v).toLocaleString();
               }
             }
           }
         },
         scales: {
-          x: {
-            ticks: {
-              maxTicksLimit: 12,
-              color: 'var(--m)',
-              font: {size: 10},
-              maxRotation: 0,
-            },
-            grid: {color: 'var(--b)'}
-          },
+          x: {ticks:{maxTicksLimit:10,color:'var(--m)',font:{size:10},maxRotation:0},grid:{color:'var(--b)'}},
           y: {
-            ticks: {
-              color: 'var(--m)',
-              font: {size: 10},
-              callback: function(v){
-                if(Math.abs(v)>=1e6) return (v/1e6).toFixed(1)+'M';
-                if(Math.abs(v)>=1e3) return (v/1e3).toFixed(0)+'K';
-                return v;
-              }
-            },
-            grid: {color: 'var(--b)'},
+            ticks:{color:'var(--m)',font:{size:10},callback:function(v){
+              if(Math.abs(v)>=1e6)return(v/1e6).toFixed(1)+'M';
+              if(Math.abs(v)>=1e3)return(v/1e3).toFixed(0)+'K';
+              return v;
+            }},
+            grid:{color:'var(--b)'}
           }
         }
       }
     });
+
+    // Prisgraf
+    if(hasPrices){
+      var ctx2 = document.getElementById('priceChart').getContext('2d');
+      new Chart(ctx2, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets:[{
+            label: yahooSym,
+            data: priceData,
+            borderColor: 'rgba(255,255,255,0.8)',
+            backgroundColor: 'rgba(255,255,255,0.05)',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: true,
+            tension: 0.3,
+          }]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              callbacks:{
+                label:function(ctx){
+                  var v=ctx.raw;
+                  return v!=null?v.toFixed(v>100?2:4):'-';
+                }
+              }
+            }
+          },
+          scales:{
+            x:{ticks:{maxTicksLimit:10,color:'var(--m)',font:{size:10},maxRotation:0},grid:{color:'var(--b)'}},
+            y:{ticks:{color:'var(--m)',font:{size:10}},grid:{color:'var(--b)'}}
+          }
+        }
+      });
+
+      // Legg til forklaring
+      var inner = document.querySelector('.cot-modal-inner');
+      var existing = inner.querySelector('.cot-explain');
+      if(existing) existing.remove();
+      var exp = document.createElement('div');
+      exp.className = 'cot-explain';
+      exp.style.cssText = 'font-size:12px;color:var(--m);margin-top:12px;padding:10px 12px;background:var(--s2);border-radius:6px;border:1px solid var(--b);line-height:1.6';
+      var lastNet = nets[nets.length-1];
+      var prevNet = nets[nets.length-2]||0;
+      var trend   = lastNet > prevNet ? 'øker' : 'reduserer';
+      var bias    = lastNet > 0 ? 'LONG (bullish)' : 'SHORT (bearish)';
+      var extreme = Math.abs(lastNet) > Math.max.apply(null,nets.map(Math.abs))*0.8;
+      var extTxt  = extreme ? ' ⚠️ Posisjonering nær historisk ekstrem — reverseringsrisiko.' : '';
+      exp.innerHTML =
+        '<strong>Hva betyr dette?</strong><br>'+
+        'Søylene viser netto spekulant-posisjon (Managed Money / Non-Commercial). '+
+        'Grønt = netto long (forventer oppgang), rødt = netto short (forventer fall).<br><br>'+
+        'Nå er spekulanter <strong>'+bias+'</strong> og '+trend+' posisjonen sin.'+extTxt+'<br><br>'+
+        'Prislinjen under viser hva som faktisk skjedde med '+yahooSym+' i samme periode. '+
+        'Når COT og pris beveger seg likt = spekulanter har rett. Når de divergerer = mulig vending.';
+      inner.querySelector('.cot-stat-row').after(exp);
+    }
 
     // Stats
     var last  = nets[nets.length-1];
