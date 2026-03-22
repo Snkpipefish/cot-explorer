@@ -97,6 +97,47 @@ footer a{color:var(--accent);text-decoration:none}
 <script>
 let DATA=[], filter='all', q='';
 
+const MARKETS = {
+  "S&P 500 Consolidated":{"no":"S&P 500 (USA aksjer)","info":"De 500 største børsnoterte selskapene i USA."},
+  "Nasdaq":{"no":"Nasdaq (Teknologi)","info":"Teknologitung indeks. Apple, Microsoft, Nvidia m.fl."},
+  "Nasdaq Mini":{"no":"Nasdaq Mini","info":"Mindre versjon av Nasdaq-futures."},
+  "Russell E":{"no":"Russell 2000 (Småselskaper)","info":"2000 mindre amerikanske selskaper."},
+  "Msci Eafe":{"no":"MSCI EAFE (Int. aksjer)","info":"Aksjer i Europa, Australia og Asia."},
+  "Msci Em Index":{"no":"MSCI EM (Fremvoksende)","info":"Aksjer i Kina, India, Brasil m.fl."},
+  "Nikkei Stock Average":{"no":"Nikkei (Japan)","info":"De 225 største selskapene på Tokyo-børsen."},
+  "Nikkei Stock Average Yen Denom":{"no":"Nikkei Yen","info":"Japansk aksjeindeks i yen."},
+  "Vix Futures":{"no":"VIX (Fryktindeks)","info":"Høy VIX = mye usikkerhet i markedet."},
+  "Ust 10Y Note":{"no":"US 10-års statsobl.","info":"Styringsrenten for boliglån og globale markeder."},
+  "Ust 2Y Note":{"no":"US 2-års statsobl.","info":"Sensitiv for renteforventninger."},
+  "Ust 5Y Note":{"no":"US 5-års statsobl.","info":"Mellomlang amerikansk statsrente."},
+  "Ust Bond":{"no":"US 30-års statsobl.","info":"Langsiktig amerikansk rente."},
+  "Ultra Ust 10Y":{"no":"Ultra 10-årig statsobl.","info":"Utvidet 10-årig statsobligasjon."},
+  "Ultra Ust Bond":{"no":"Ultra 30-årig statsobl.","info":"Utvidet 30-årig statsobligasjon."},
+  "Sofr":{"no":"SOFR (Kortsiktig rente USA)","info":"Erstatter LIBOR. Kortsiktige dollar-lån mellom banker."},
+  "10 Year Eris Sofr Swap":{"no":"10-år SOFR Swap","info":"Rentebytteavtale basert på SOFR over 10 år."},
+  "Euro Fx":{"no":"Euro (EUR/USD)","info":"Verdens mest handlede valutapar."},
+  "Japanese Yen":{"no":"Japansk Yen (JPY/USD)","info":"Trygg havn-valuta i urolige tider."},
+  "Swiss Franc":{"no":"Sveitsisk Franc (CHF/USD)","info":"Ansett som trygg havn i usikre markeder."},
+  "British Pound":{"no":"Britisk Pund (GBP/USD)","info":"Påvirkes av Bank of England og britisk økonomi."},
+  "Nz Dollar":{"no":"New Zealand Dollar","info":"Barometer for global risikoappetitt."},
+  "So African Rand":{"no":"Sørafrikansk Rand","info":"Volatil valuta fra fremvoksende marked."},
+  "Usd Index":{"no":"Dollarindeks (DXY)","info":"Styrken til USD mot 6 valutaer."},
+  "Bitcoin":{"no":"Bitcoin (BTC)","info":"Verdens største kryptovaluta."},
+  "Nano Bitcoin":{"no":"Bitcoin Mini","info":"Mindre Bitcoin-futures (1/100 BTC)."},
+  "Nano Bitcoin Perp Style":{"no":"Bitcoin Mini Perp","info":"Evigvarende Bitcoin mini-futures."},
+  "Nano Ether":{"no":"Ethereum Mini","info":"Mindre Ethereum-futures kontrakt."},
+  "Nano Ether Perp Style":{"no":"Ethereum Mini Perp","info":"Evigvarende Ethereum mini-futures."},
+  "Nano Solana":{"no":"Solana Mini","info":"Mindre Solana-futures kontrakt."},
+  "Nano Solana Perp Style":{"no":"Solana Mini Perp","info":"Evigvarende Solana mini-futures."},
+  "Nano Xrp":{"no":"XRP Mini","info":"Mindre XRP-futures kontrakt."},
+  "Nano Xrp Perp Style":{"no":"XRP Mini Perp","info":"Evigvarende XRP mini-futures."},
+  "Sol":{"no":"Solana (SOL)","info":"Solana kryptovaluta futures."},
+  "Xrp":{"no":"XRP","info":"XRP kryptovaluta futures."},
+};
+function mname(m){return (MARKETS[m]||{}).no||m;}
+function minfo(m){return (MARKETS[m]||{}).info||'';}
+
+
 function fmt(n){
   if(n==null||n===undefined)return'–';
   const a=Math.abs(n);
@@ -140,7 +181,7 @@ function render(){
     const dl=d.dealers||{};
     const nr=d.non_reportable||{};
     return`<tr onclick="tog(${i})">
-      <td style="color:var(--text);font-weight:500">${d.market}</td>
+      <td style="color:var(--text);font-weight:500">${mname(d.market)}<div style="font-size:10px;color:var(--muted);font-weight:400;white-space:normal;max-width:260px">${minfo(d.market)}</div></td>
       <td><span style="font-size:10px;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:2px">${d.symbol||'–'}</span></td>
       <td class="tn ${cc(lev.net||0)}">${s(lev.net||0)}${fmt(lev.net||0)}</td>
       <td class="tn ${cc(am.net||0)}">${s(am.net||0)}${fmt(am.net||0)}</td>
