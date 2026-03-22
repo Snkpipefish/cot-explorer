@@ -634,24 +634,10 @@ async function openCotChart(symbol, report, navn){
       prices = await fetchYahooPrices(priceKey, data[0].date, data[data.length-1].date);
     }
 
-    // Match COT-datoer med nærmeste pris
-    var priceMap = {};
-    prices.forEach(function(p){ priceMap[p.date] = p.price; });
-
-    // Interpolar pris for COT-datoer
-    var priceData = labels.map(function(dt){
-      if(priceMap[dt]) return priceMap[dt];
-      // Finn nærmeste dato
-      var best = null, bestDiff = 999999;
-      prices.forEach(function(p){
-        var diff = Math.abs(new Date(p.date) - new Date(dt));
-        if(diff < bestDiff){ bestDiff=diff; best=p.price; }
-      });
-      return best;
-    });
-
-    var hasPrices = priceData.some(function(p){ return p!=null; });
-    console.log('prices loaded:', prices.length, 'priceData nulls:', priceData.filter(function(p){return p==null;}).length, 'first price:', prices[0]);
+    // Bruk prisdata direkte med egne datoer
+    var priceLabels = prices.map(function(p){ return p.date; });
+    var priceData   = prices.map(function(p){ return p.price; });
+    var hasPrices   = prices.length > 0;
 
     // Vis/skjul priceWrap
     var priceWrap = document.getElementById('priceWrap');
@@ -711,7 +697,7 @@ async function openCotChart(symbol, report, navn){
       window.priceChartInst = new Chart(ctx2, {
         type: 'line',
         data: {
-          labels: labels,
+          labels: priceLabels,
           datasets:[{
             label: yahooSym,
             data: priceData,
