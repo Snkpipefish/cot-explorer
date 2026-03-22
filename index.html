@@ -235,6 +235,7 @@ footer a{color:var(--blue);text-decoration:none}
         <button class="cot-modal-close" onclick="document.getElementById('cotModal').classList.remove('open')">✕</button>
       </div>
       <div class="cot-chart-wrap"><canvas id="cotChart"></canvas></div>
+      <div class="cot-chart-wrap" id="priceWrap" style="display:none;margin-top:8px"><canvas id="priceChart"></canvas></div>
       <div class="cot-stat-row" id="cotModalStats"></div>
     </div>
   </div>
@@ -652,12 +653,14 @@ async function openCotChart(symbol, report, navn){
 
     var hasPrices = priceData.some(function(p){ return p!=null; });
 
-    // Wrapper for dual chart
-    var wrap = document.querySelector('.cot-chart-wrap');
+    // Vis/skjul priceWrap
+    var priceWrap = document.getElementById('priceWrap');
     if(hasPrices){
-      wrap.innerHTML = '<canvas id="cotChart" style="height:200px"></canvas><canvas id="priceChart" style="height:150px;margin-top:8px"></canvas>';
+      priceWrap.style.display = 'block';
+      document.getElementById('cotChart').style.height = '200px';
     } else {
-      wrap.innerHTML = '<canvas id="cotChart" style="height:300px"></canvas>';
+      priceWrap.style.display = 'none';
+      document.getElementById('cotChart').style.height = '300px';
     }
 
     var ctx = document.getElementById('cotChart').getContext('2d');
@@ -702,8 +705,10 @@ async function openCotChart(symbol, report, navn){
 
     // Prisgraf
     if(hasPrices){
-      var ctx2 = document.getElementById('priceChart').getContext('2d');
-      new Chart(ctx2, {
+      var priceCanvas = document.getElementById('priceChart');
+      if(window.priceChartInst) window.priceChartInst.destroy();
+      var ctx2 = priceCanvas.getContext('2d');
+      window.priceChartInst = new Chart(ctx2, {
         type: 'line',
         data: {
           labels: labels,
