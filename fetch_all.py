@@ -569,7 +569,8 @@ for inst in INSTRUMENTS:
     if t1_s is None:
         cands = tagged_res if dir_color == "bull" else tagged_sup
         pot = next((l for l in cands if l["weight"] >= 2), cands[0] if cands else None)
-        t1_s = f"~{pot['price']}" if pot else "-"
+        p = pot["price"]
+        t1_s = f"~{round(p, 5 if p < 100 else 2)}" if pot else "-"
         rr_s = "-"
     st      = "🟢" if at_level_now else "🟡"
     dir_tag = "▲" if dir_color == "bull" else "▼"
