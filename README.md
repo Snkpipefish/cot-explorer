@@ -20,17 +20,29 @@ Alt drives av JSON-filer i data/ som genereres lokalt og pushes til GitHub.
 
 ---
 
-## Workflow — ukentlig oppdatering
-```bash
-cd ~/cot-explorer
-python3 fetch_cot.py
-python3 build_combined.py
-python3 fetch_calendar.py
-python3 fetch_all.py
-git add data/
-git commit -m "ukesoppdatering $(date +%Y-%m-%d)"
-git push origin main
+## Workflow — automatisk oppdatering (crontab)
+
+Scriptet `update.sh` kjøres automatisk via crontab på hverdager (man–fre):
+
+| Tid   | Beskrivelse |
+|-------|-------------|
+| 07:45 | Morgen |
+| 12:30 | Middag |
+| 14:15 | Ettermiddag |
+| 17:15 | Stenging |
+
+Crontab-oppsettet:
 ```
+45 7  * * 1-5 cd /home/user/cot-explorer && bash update.sh
+30 12 * * 1-5 cd /home/user/cot-explorer && bash update.sh
+15 14 * * 1-5 cd /home/user/cot-explorer && bash update.sh
+15 17 * * 1-5 cd /home/user/cot-explorer && bash update.sh
+```
+
+> **Merk:** Hvis PC-en sover på kjøretidspunktet hoppes jobben over.
+> Kjør manuelt ved behov: `bash ~/cot-explorer/update.sh`
+
+For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 
 ---
 
