@@ -23,4 +23,13 @@ else
     echo "  push: ingen bot konfigurert (sett TELEGRAM_TOKEN/DISCORD_WEBHOOK)" >> "$LOG"
 fi
 
+# Push data-filer til GitHub (oppdaterer GitHub Pages)
+git add data/macro/latest.json data/calendar/ data/combined/ 2>/dev/null || true
+if git diff --cached --quiet; then
+    echo "  git: ingen nye data å pushe" >> "$LOG"
+else
+    git commit -m "data: oppdatering $(date '+%Y-%m-%d %H:%M')" >> "$LOG" 2>&1
+    git push origin main >> "$LOG" 2>&1 && echo "  git push OK" >> "$LOG" || echo "  git push FEIL" >> "$LOG"
+fi
+
 echo "  FERDIG" >> "$LOG"
