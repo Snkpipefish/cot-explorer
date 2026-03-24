@@ -228,6 +228,8 @@ footer a{color:var(--blue);text-decoration:none}
       </div>
     </div>
     <div class="g4" id="macroStats"></div>
+    <div class="sh" style="margin-top:16px"><div class="sh-t">Rente &amp; Kreditt</div><div class="sh-b">Realrenter, spreader, vekst</div></div>
+    <div class="g4" id="macroRente"></div>
   </div>
   <!-- COT GRAF MODAL -->
   <div class="cot-modal" id="cotModal" onclick="closeCotModal(event)">
@@ -315,17 +317,44 @@ function renderMakro(m){
   var bc=sm.usd_color==='bull'?'var(--bull)':'var(--bear)';
   document.getElementById('smileDesc').innerHTML='<strong style="color:'+bc+'">USD '+sm.usd_bias+'</strong> - '+sm.desc;
   var inp=sm.inputs;
-  var si2=[['VIX',(inp.vix||0).toFixed(1),inp.vix>25?'bear':inp.vix>20?'warn':'bull'],['HY Stress',inp.hy_stress?'JA':'NEI',inp.hy_stress?'bear':'bull'],['Brent','$'+(inp.brent||0).toFixed(0),inp.brent>85?'warn':'bull'],['TIPS 5d',fp(inp.tip_trend_5d||0),inp.tip_trend_5d>0?'bull':'bear'],['DXY 5d',fp(inp.dxy_trend_5d||0),inp.dxy_trend_5d>0?'bull':'bear']];
+  var hyTxt = inp.hy_stress ? 'JA ('+fp(inp.hy_chg5d||0)+')' : 'NEI ('+fp(inp.hy_chg5d||0)+')';
+  var ycTxt = inp.yield_curve!=null ? (inp.yield_curve>0?'+':'')+inp.yield_curve.toFixed(2)+'%' : '-';
+  var ycCol = inp.yield_curve==null?'neutral':inp.yield_curve<-0.3?'bear':inp.yield_curve<0.3?'warn':'bull';
+  var si2=[
+    ['VIX',        (inp.vix||0).toFixed(1),          inp.vix>25?'bear':inp.vix>20?'warn':'bull'],
+    ['HY Stress',  hyTxt,                             inp.hy_stress?'bear':'bull'],
+    ['Brent',      '$'+(inp.brent||0).toFixed(0),     inp.brent>85?'warn':'bull'],
+    ['TIPS 5d',    fp(inp.tip_trend_5d||0),           inp.tip_trend_5d>0?'bull':'bear'],
+    ['DXY 5d',     fp(inp.dxy_trend_5d||0),           inp.dxy_trend_5d>0?'bull':'bear'],
+    ['10Y-3M',     ycTxt,                             ycCol],
+    ['Kobber 5d',  fp(inp.copper_5d||0),              inp.copper_5d>0?'bull':'bear'],
+    ['EM 5d',      fp(inp.em_5d||0),                  inp.em_5d>0?'bull':'bear'],
+  ];
   var sih='';si2.forEach(function(x){sih+='<div class="sii"><div class="sil">'+x[0]+'</div><div class="siv '+x[2]+'">'+x[1]+'</div></div>';});
   document.getElementById('smileInp').innerHTML=sih;
   document.getElementById('vixDet').innerHTML='<div class="snum '+(vx.color||'')+'">'+((vx.value||0).toFixed(1))+'</div><div class="slabel" style="margin-top:4px;color:var(--'+(vx.color||'m')+')">'+vx.label+'</div>';
   document.getElementById('vbadge').textContent='VIX '+(vx.value||0).toFixed(1);
   document.getElementById('vbadge').className='vb '+(vx.regime||'normal');
-  document.getElementById('safeH').innerHTML=inp.vix>20?'<strong style="color:var(--bear)">Risk-off aktiv</strong><br>Kjop: USD, XAU, CHF, JPY<br>Selg: NOK, AUD, NZD, CAD':'<strong style="color:var(--bull)">Normalt marked</strong><br>Carry: AUD, NZD, CAD, NOK';
+  var riskOff=inp.vix>20||inp.hy_stress||(inp.yield_curve!=null&&inp.yield_curve<-0.3);
+  document.getElementById('safeH').innerHTML=riskOff?'<strong style="color:var(--bear)">Risk-off aktiv</strong><br>Kjop: USD, XAU, CHF, JPY<br>Selg: NOK, AUD, NZD, CAD':'<strong style="color:var(--bull)">Normalt marked</strong><br>Carry: AUD, NZD, CAD, NOK';
   var ms=[['VIX',(p.VIX||{}).price,(p.VIX||{}).chg5d||0,(p.VIX||{}).chg5d>0?'bear':'bull'],['DXY',(p.DXY||{}).price,(p.DXY||{}).chg5d||0,(p.DXY||{}).chg5d>0?'bull':'bear'],['Brent',(p.Brent||{}).price,(p.Brent||{}).chg5d||0,'warn'],['Gull',(p.Gold||{}).price,(p.Gold||{}).chg5d||0,(p.Gold||{}).chg5d>0?'bull':'bear']];
   var msh='';
   ms.forEach(function(x){msh+='<div class="card"><div class="ct">'+x[0]+'</div><div class="snum">'+(x[1]?x[1].toFixed(x[1]>100?0:2):'-')+'</div><div class="slabel" style="margin-top:4px;color:var(--'+x[3]+')">'+fp(x[2])+' (5d)</div></div>';});
   document.getElementById('macroStats').innerHTML=msh;
+  // Rente & kreditt-panel
+  var mi=m.macro_indicators||{};
+  var rc=[
+    ['10Y rente',    mi.TNX  ? mi.TNX.price.toFixed(2)+'%'  : '-', inp.yield_curve!=null&&inp.yield_curve<0?'bear':'bull'],
+    ['3M rente',     mi.IRX  ? mi.IRX.price.toFixed(2)+'%'  : '-', 'neutral'],
+    ['Rentekurve',   ycTxt,                                          ycCol],
+    ['HY (HYG) 5d',  mi.HYG  ? fp(mi.HYG.chg5d)             : '-', mi.HYG&&mi.HYG.chg5d<-1.5?'bear':mi.HYG&&mi.HYG.chg5d<0?'warn':'bull'],
+    ['TIPS 5d',      mi.TIP  ? fp(mi.TIP.chg5d)              : '-', mi.TIP&&mi.TIP.chg5d>0?'bull':'bear'],
+    ['Kobber 5d',    mi.Copper? fp(mi.Copper.chg5d)          : '-', mi.Copper&&mi.Copper.chg5d>0?'bull':'bear'],
+    ['EM (EEM) 5d',  mi.EEM  ? fp(mi.EEM.chg5d)              : '-', mi.EEM&&mi.EEM.chg5d>0?'bull':'bear'],
+  ];
+  var rch='';
+  rc.forEach(function(x){rch+='<div class="card"><div class="ct">'+x[0]+'</div><div class="snum" style="font-size:20px">'+x[1]+'</div><div class="slabel" style="margin-top:4px;color:var(--'+x[2]+')">'+x[2].toUpperCase()+'</div></div>';});
+  document.getElementById('macroRente').innerHTML=rch;
   document.getElementById('upd').textContent='Oppdatert: '+m.date;
 }
 
