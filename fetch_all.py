@@ -177,7 +177,7 @@ def merge_tagged_levels(tagged, curr, atr, max_n=6):
 
 def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, klasse, min_rr=1.5):
     """
-    Level-til-level setup — korrekt risiko/reward-kalkyle:
+    Level-til-level setup - korrekt risiko/reward-kalkyle:
 
     Geometri:
       LONG:  entry=støtte  SL=entry-1×ATR  T1=motstand (R:R>=min_rr fra entry)
