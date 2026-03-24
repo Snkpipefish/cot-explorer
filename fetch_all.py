@@ -679,6 +679,18 @@ def detect_conflict(vix, dxy_5d, fg, cot_usd, hy_stress=False, yield_curve=None,
         conflicts.append("Nyheter risk-on men ekstrem frykt i markedet – potensiell bunnstemning")
     return conflicts
 
+# ── Last fundamentals ────────────────────────────────────────
+fund_data = {}
+fund_file = os.path.join(BASE, "fundamentals", "latest.json")
+if os.path.exists(fund_file):
+    try:
+        with open(fund_file) as f:
+            fund_data = json.load(f)
+        n = len(fund_data.get("indicators", {}))
+        print(f"Fundamentals: {n} indikatorer lastet ({fund_data.get('usd_fundamental',{}).get('bias','?')} USD)")
+    except Exception:
+        pass
+
 # ── Last kalender ────────────────────────────────────────────
 calendar_events = []
 cal_file = os.path.join(BASE, 'calendar', 'latest.json')
@@ -912,6 +924,13 @@ for inst in INSTRUMENTS:
     elif ns_label == "risk_off" and nc_map[1] and nc_map[1] != dir_color:
         news_headwind = True
 
+    # ── Fundamentals ──────────────────────────────────────────
+    inst_fund       = fund_data.get("instrument_scores", {}).get(inst["key"], {})
+    inst_fund_score = inst_fund.get("score", 0)
+    inst_fund_bias  = inst_fund.get("bias", "neutral")
+    fund_confirms   = (inst_fund_score > 0.3 and dir_color == "bull") or \
+                      (inst_fund_score < -0.3 and dir_color == "bear")
+
     score_details = [
         {"kryss": "Over SMA200 (D1 trend)",         "verdi": above_sma},
         {"kryss": "Momentum 20d bekrefter",          "verdi": (chg20 > 0 if dir_color == "bull" else chg20 < 0)},
@@ -922,10 +941,11 @@ for inst in INSTRUMENTS:
         {"kryss": "D1 + 4H trend kongruent",         "verdi": align in ("bull","bear")},
         {"kryss": "Ingen event-risiko (4t)",          "verdi": no_event_risk},
         {"kryss": "Nyhetssentiment bekrefter",        "verdi": news_confirms_dir},
+        {"kryss": "Fundamental bekrefter",            "verdi": fund_confirms},
     ]
     score       = sum(1 for s in score_details if s["verdi"])
-    grade       = "A+" if score>=8 else "A" if score>=6 else "B" if score>=4 else "C"
-    grade_color = "bull" if score>=8 else "warn" if score>=6 else "bear"
+    grade       = "A+" if score>=9 else "A" if score>=7 else "B" if score>=5 else "C"
+    grade_color = "bull" if score>=9 else "warn" if score>=7 else "bear"
 
     # Tidshorisonts-klassifisering — hvilken type trader kan bruke dette nå
     if score >= 6 and cot_confirms and htf_level_nearby:
@@ -1015,7 +1035,7 @@ for inst in INSTRUMENTS:
         "grade":         grade,
         "grade_color":   grade_color,
         "score":         score,
-        "score_pct":     round(score/9*100),
+        "score_pct":     round(score/10*100),
         "score_details": score_details,
         "news_headwind": news_headwind,
         "news_sentiment_label": ns_label,
@@ -1043,6 +1063,18 @@ for inst in INSTRUMENTS:
         "combined_bias":  "LONG" if dir_color=="bull" else "SHORT",
         "timeframe_bias": timeframe_bias,
         "sentiment":      {"fear_greed": fg},
+        "fundamentals": {
+            "score":      inst_fund_score,
+            "bias":       inst_fund_bias,
+            "confirms":   fund_confirms,
+            "categories": {
+                cat: fund_data.get("category_scores", {}).get(cat, {})
+                for cat in ("econ_growth", "inflation", "jobs")
+            },
+            "indicators": fund_data.get("indicators", {}),
+            "usd_bias":   fund_data.get("usd_fundamental", {}).get("bias", "neutral"),
+            "updated":    fund_data.get("updated", ""),
+        },
     }
 
 # ── Makro-indikatorer ──────────────────────────────────────

@@ -14,6 +14,17 @@ echo "=== $(date '+%Y-%m-%d %H:%M %Z') ===" >> "$LOG"
 python3 fetch_calendar.py >> "$LOG" 2>&1 && echo "  kalender OK" >> "$LOG"
 python3 fetch_cot.py      >> "$LOG" 2>&1 && echo "  COT OK"      >> "$LOG"
 python3 build_combined.py >> "$LOG" 2>&1 && echo "  combined OK" >> "$LOG"
+
+# Fundamentals: kjøres kun én gang per 12 timer (FRED-data oppdateres månedlig/ukentlig)
+FUND_FILE="$HOME/cot-explorer/data/fundamentals/latest.json"
+if [ ! -f "$FUND_FILE" ] || [ "$(find "$FUND_FILE" -mmin +720 2>/dev/null | wc -l)" -gt 0 ]; then
+    python3 fetch_fundamentals.py >> "$LOG" 2>&1 \
+        && echo "  fundamentals OK" >> "$LOG" \
+        || echo "  fundamentals FEIL (sjekk FRED_API_KEY / nettverkstilgang)" >> "$LOG"
+else
+    echo "  fundamentals: nylig oppdatert, hopper over" >> "$LOG"
+fi
+
 python3 fetch_all.py      >> "$LOG" 2>&1 && echo "  analyse OK"  >> "$LOG"
 
 # Push signaler til Telegram/Discord (kun hvis minst én er konfigurert)
@@ -24,7 +35,7 @@ else
 fi
 
 # Push data-filer til GitHub (oppdaterer GitHub Pages)
-git add data/macro/latest.json data/calendar/ data/combined/ 2>/dev/null || true
+git add data/macro/latest.json data/calendar/ data/combined/ data/fundamentals/ 2>/dev/null || true
 if git diff --cached --quiet; then
     echo "  git: ingen nye data å pushe" >> "$LOG"
 else
