@@ -559,12 +559,23 @@ for inst in INSTRUMENTS:
         return out
 
     atr_s = f"{atr_15m:.5f}" if atr_15m else "N/A"
-    sl_s  = setup_long["sl"]  if setup_long  else "-"
-    t1_s  = setup_long["t1"]  if setup_long  else "-"
-    rr_s  = setup_long["rr_t1"] if setup_long else "-"
-    st    = "🟢" if at_level_now else "🟡"
+    # Velg setup basert på dir_color; vis begge hvis de finnes
+    if dir_color == "bull":
+        active_setup = setup_long or setup_short
+    else:
+        active_setup = setup_short or setup_long
+    t1_s = active_setup["t1"]    if active_setup else None
+    rr_s = active_setup["rr_t1"] if active_setup else None
+    # Ingen aktiv setup: vis nærmeste HTF-mål som potensielt mål (~)
+    if t1_s is None:
+        cands = tagged_res if dir_color == "bull" else tagged_sup
+        pot = next((l for l in cands if l["weight"] >= 2), cands[0] if cands else None)
+        t1_s = f"~{pot['price']}" if pot else "-"
+        rr_s = "-"
+    st      = "🟢" if at_level_now else "🟡"
+    dir_tag = "▲" if dir_color == "bull" else "▼"
     htf_tag = f"HTF:w{max(nearest_sup_w, nearest_res_w)}" if htf_level_nearby else "noHTF"
-    print(f"  {st} {inst['navn']:10s} {curr:.5f}  ATR15m={atr_s}  {grade}({score}/8)  {htf_tag}  T1:{t1_s}  R:R:{rr_s}")
+    print(f"  {st} {inst['navn']:10s} {curr:.5f}  ATR15m={atr_s}  {grade}({score}/8) {dir_tag} {htf_tag}  T1:{t1_s}  R:R:{rr_s}")
 
     levels[inst["key"]] = {
         "name":          inst["navn"],
