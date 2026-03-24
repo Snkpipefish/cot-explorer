@@ -1,6 +1,6 @@
 # COT Explorer – Markedspuls
 
-Live: https://snkpipefish.github.io/cot-explorer  
+Live: https://snkpipefish.github.io/cot-explorer
 Repo: https://github.com/Snkpipefish/cot-explorer
 
 ---
@@ -15,6 +15,8 @@ En statisk nettside (GitHub Pages) som viser daglige trading-ideer basert på:
 - **COT-posisjoner** for 366 markeder fra CFTC (siste uke)
 - **COT-historikk** med prisgraf (klikk på marked i COT-fanen)
 - **Økonomisk kalender** med binær risiko-varsling
+- **Timeframe bias** — D1 + 4H retning vises per instrument
+- **COT momentum** — endring i netto-posisjon siste uke
 
 Alt drives av JSON-filer i data/ som genereres lokalt og pushes til GitHub.
 
@@ -44,6 +46,36 @@ Crontab-oppsettet:
 
 For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 
+### Hva update.sh gjør (i rekkefølge)
+1. `fetch_calendar.py` — henter ForexFactory-kalender
+2. `fetch_cot.py` — henter CFTC COT-data
+3. `build_combined.py` — bygger kombinert datasett
+4. `fetch_all.py` — kjører full analyse (priser, SMC, setup-generering)
+5. `push_signals.py` — pusher topp-setups til Telegram/Discord (valgfritt)
+6. `git push` — oppdaterer GitHub Pages med nye JSON-filer
+
+---
+
+## Signal-varsling (valgfritt)
+
+`push_signals.py` sender de beste tradingideene til Telegram og/eller Discord etter hver analyse.
+
+Konfigureres med miljøvariabler:
+
+| Variabel | Beskrivelse |
+|----------|-------------|
+| `TELEGRAM_TOKEN` | Bot-token fra @BotFather |
+| `TELEGRAM_CHAT_ID` | Chat-ID som skal motta meldinger |
+| `DISCORD_WEBHOOK` | Discord webhook-URL |
+| `PUSH_MIN_SCORE` | Minimum konfluens-score for å pushe (standard: 5) |
+| `PUSH_MAX_SIGNALS` | Maks antall signaler per kjøring (standard: 5) |
+
+Sett variablene i `~/.bashrc` eller `~/.profile`:
+```bash
+export TELEGRAM_TOKEN="din-token"
+export TELEGRAM_CHAT_ID="din-chat-id"
+```
+
 ---
 
 ## Slik beregnes trading-ideer
@@ -57,11 +89,16 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 6. Swing-nivåer daglig
 
 ### Level-til-Level setup
-- Entry = nåpris ved nivå (MÅ være innen 0.3xATR 15m)
-- SL = bak nivå + spread-buffer
-- T1 = neste faktiske nivå
+- Entry = nåpris ved nivå (MÅ være innen 0.3×ATR 15m)
+- SL = strukturelt nivå bak entry (supply/demand sone eller swing)
+- T1 = neste faktiske nivå (HTF-prioritet: D1+ > 4H/SMC > 15m)
 - T2 = nivå etter T1
 - Dropp hvis R:R < 1.5
+- T1 merkes med `?` i frontend hvis kun svakt 15m-nivå finnes
+
+### SL-typer
+- **Strukturell SL** — bak supply/demand sone eller swing high/low
+- Fallback: 1×ATR(15m) bak entry
 
 ### Konfluens-score (7 punkter)
 1. Over SMA200
@@ -75,9 +112,9 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 Grade: A+ = 6-7p / B = 4-5p / C = 0-3p
 
 ### VIX-regime
-- VIX < 20 → Full
-- VIX 20-30 → Halv
-- VIX > 30 → Kvart
+- VIX < 20 → Full posisjonsstørrelse
+- VIX 20-30 → Halv posisjonsstørrelse
+- VIX > 30 → Kvart posisjonsstørrelse
 
 ---
 
@@ -96,6 +133,7 @@ Grade: A+ = 6-7p / B = 4-5p / C = 0-3p
 | SPX | ^GSPC | 133741 | C | NY 14:30-17:00 |
 | NAS100 | ^NDX | 209742 | C | NY 14:30-17:00 |
 | DXY | DX-Y.NYB | 098662 | A | London 08-12 CET |
+| VIX | ^VIX | — | C | NY 14:30-17:00 |
 
 ---
 
@@ -116,3 +154,5 @@ Grade: A+ = 6-7p / B = 4-5p / C = 0-3p
 - Frontend: Vanilla HTML/CSS/JS, én fil (index.html)
 - Backend: Python 3, ingen dependencies utover stdlib
 - Hosting: GitHub Pages (statisk)
+- Automatisering: crontab (4× daglig, hverdager)
+- Varsling: Telegram bot / Discord webhook (valgfritt)
