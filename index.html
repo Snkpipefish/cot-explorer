@@ -348,7 +348,7 @@ function renderSetupSide(setup, type){
   var t1W=setup.t1_weight||1;
   return '<div class="setup-label '+col+'">'+type+' – '+setup.entry_name+' '+weightBadge(entryW)+'</div>'+
     '<div class="setup-row"><span class="setup-key">Entry</span><span class="setup-val '+(distOk?col:'warn')+'">'+fmtP(setup.entry)+(distOk?' *':' ('+setup.entry_dist_atr+'xATR)')+'</span></div>'+
-    '<div class="setup-row"><span class="setup-key">Stop Loss</span><span class="setup-val bear">'+fmtP(setup.sl)+'</span></div>'+
+    '<div class="setup-row"><span class="setup-key">Stop Loss</span><span class="setup-val bear">'+fmtP(setup.sl)+'<span style="font-size:10px;color:var(--m);margin-left:6px">'+(setup.sl_type||'')+(setup.risk_atr_d?' · '+setup.risk_atr_d+'×ATRd':'')+'</span></span></div>'+
     '<div class="setup-row"><span class="setup-key">Target 1</span><span class="setup-val bull">'+fmtP(setup.t1)+' '+weightBadge(t1W)+(setup.t1_quality==='weak'?'<span class="tf-badge neutral" title="Svak T1 – ingen D1/4H-nivå funnet">?</span>':'')+'</span></div>'+
     '<div class="setup-row"><span class="setup-key">Target 2</span><span class="setup-val bull">'+fmtP(setup.t2)+'</span></div>'+
     '<div class="setup-row"><span class="setup-key">R:R T1</span><span class="rr-badge '+(rrOk?'ok':'bad')+'">1:'+setup.rr_t1+'</span></div>'+
@@ -370,19 +370,23 @@ function renderIdeer(m){
   var bgrade=arr.filter(function(l){return l.grade==='B';}).length;
   var active=arr.filter(function(l){return l.session&&l.session.active&&!l.binary_risk.length&&l.grade!=='C';}).length;
   var risk=arr.filter(function(l){return l.binary_risk&&l.binary_risk.length>0;}).length;
+  var makro=arr.filter(function(l){return l.timeframe_bias==='MAKRO';}).length;
 
   document.getElementById('ideStats').innerHTML=
-    '<div class="card"><div class="ct">A+ Setups</div><div class="snum bull">'+aplus+'</div><div class="slabel">Score 6-7/7</div></div>'+
-    '<div class="card"><div class="ct">B Setups</div><div class="snum warn">'+bgrade+'</div><div class="slabel">Score 4-5/7</div></div>'+
-    '<div class="card"><div class="ct">Aktive na</div><div class="snum bull">'+active+'</div><div class="slabel">I sesjon, ingen binær risiko</div></div>'+
+    '<div class="card"><div class="ct">A+ Setups</div><div class="snum bull">'+aplus+'</div><div class="slabel">Score 7-8/8</div></div>'+
+    '<div class="card"><div class="ct">B Setups</div><div class="snum warn">'+bgrade+'</div><div class="slabel">Score 4-5/8</div></div>'+
+    '<div class="card"><div class="ct">MAKRO Setups</div><div class="snum bull">'+makro+'</div><div class="slabel">COT + HTF struktur</div></div>'+
     '<div class="card"><div class="ct">Binar risiko</div><div class="snum bear">'+risk+'</div><div class="slabel">High impact neste 4t</div></div>';
 
   if(!arr.length){document.getElementById('ideGrid').innerHTML='<div class="loading">Ingen data – kjor fetch_all.py</div>';return;}
 
   arr.sort(function(a,b){
-    var ga={A:0,B:1,C:2};
-    var diff=(ga[a.grade]||2)-(ga[b.grade]||2);
-    if(diff!==0)return diff;
+    var ga={'A+':-1,'A':0,'B':1,'C':2};
+    var tf={'MAKRO':-1,'SWING':0,'SCALP':1,'WATCHLIST':2};
+    var gd=(ga[a.grade]!==undefined?ga[a.grade]:2)-(ga[b.grade]!==undefined?ga[b.grade]:2);
+    if(gd!==0)return gd;
+    var td=(tf[a.timeframe_bias]||0)-(tf[b.timeframe_bias]||0);
+    if(td!==0)return td;
     return (b.score||0)-(a.score||0);
   });
 
@@ -402,6 +406,8 @@ function renderIdeer(m){
     var smaFmt=lv.sma200?fmtP(lv.sma200):'-';
     var atrFmt=lv.atr14?(lv.atr14>10?lv.atr14.toFixed(1):lv.atr14.toFixed(5)):'-';
     var biasText=lv.dir_color==='bull'?'LONG':lv.dir_color==='bear'?'SHORT':'NOYTRAL';
+    var tf=lv.timeframe_bias||'WATCHLIST';
+    var tfCol=tf==='MAKRO'?'bull':tf==='SWING'?'warn':tf==='SCALP'?'neutral':'bear';
 
     function makeLR(l,type){
       var act=l.dist_atr<=1.0;
@@ -431,6 +437,7 @@ function renderIdeer(m){
           '<span class="tcls">'+clsLv+'</span>'+
           '<div><div class="tname">'+lv.name+'</div><div class="tsub">'+(lv.label||'')+'</div></div>'+
           '<span class="tgrade '+gc+'">'+lv.grade+' '+lv.score+'/8</span>'+
+          '<span class="tgrade '+tfCol+'">'+tf+'</span>'+
           '<span class="tbias '+(lv.dir_color||'neutral')+'">'+biasText+'</span>'+
           '<span class="tprice">'+fmtP(curr)+'</span>'+
           '<span class="tsess '+(sess.active?'active':'inactive')+'">'+(sess.active?'AKTIV SESJON':sess.label||'Utenfor sesjon')+'</span>'+
@@ -462,6 +469,7 @@ function renderIdeer(m){
           '</div>'+
           '<div class="tmeta">'+
             '<div><div class="ml">COT Bias</div><div class="mv '+(cot.color||'neutral')+'">'+(cot.bias||'-')+'</div></div>'+
+            '<div><div class="ml">COT Trend</div><div class="mv '+(cot.momentum==='ØKER'?'bull':cot.momentum==='SNUR'?'warn':'neutral')+'">'+(cot.momentum||'-')+'</div></div>'+
             '<div><div class="ml">DXY</div><div class="mv '+(lv.dxy_conf==='medvind'?'bull':'bear')+'">'+(lv.dxy_conf||'-')+'</div></div>'+
             '<div><div class="ml">Posisjon</div><div class="mv warn">'+(lv.pos_size||'-')+'</div></div>'+
             '<div><div class="ml">Spread-faktor</div><div class="mv">'+(lv.vix_spread_factor||'-')+'x</div></div>'+
