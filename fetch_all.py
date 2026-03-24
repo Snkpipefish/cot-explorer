@@ -131,69 +131,150 @@ def find_swing_levels(rows, n=5):
                     key=lambda x: abs(x-curr))[:3]
     return r_filt, s_filt
 
-def is_at_level(curr, level, atr_15m, tight=0.3):
+def is_at_level(curr, level, atr_15m, weight=1):
     """
     Hard sjekk: pris MÅ være innen tight×ATR(15m) fra nivå.
-    0.3×ATR(15m) er ~5-8 pip på EUR/USD — realistisk for intradag.
+    HTF-nivåer (weight>=3) får litt mer toleranse siden de er soner, ikke linjer.
+      weight 1 (15m):    0.30×ATR
+      weight 2 (4H/SMC): 0.35×ATR
+      weight 3+ (D1/Ukentlig): 0.45×ATR
     """
+    tight = 0.30 if weight <= 1 else (0.35 if weight == 2 else 0.45)
     return abs(curr - level) <= atr_15m * tight
 
-def make_setup_l2l(curr, atr_15m, atr_daily, sup, res, direction, klasse, min_rr=1.5):
+def merge_tagged_levels(tagged, curr, atr, max_n=6):
     """
-    Level-til-level intradag:
-    - SL = rett bak nivå + 1.5×spread (estimert som 15% av ATR 15m)
-    - T1 = neste faktiske nivå
-    - T2 = nivå etter det
-    - Dropp hvis R:R < min_rr
-    - Dropp hvis SL > 2×ATR(15m) — for stor risiko for intradag
+    Slår sammen nivåer som er innen 0.5×ATR av hverandre.
+    Beholder det med høyest weight (tidsvindus-styrke).
+    Sorterer etter nærhet til nåpris.
+
+    Vektskala:
+      1 = 15m pivot (svakest)
+      2 = 4H swing / SMC-sone
+      3 = Daglig swing / PDC
+      4 = PDH / PDL
+      5 = PWH / PWL (sterkest)
     """
-    if not atr_15m or atr_15m <= 0: return None
-    spread_buf = atr_15m * 0.15  # ca 1.5× spread
+    if not tagged:
+        return []
+    atr_buf = (atr or 0) * 0.5
+    merged = []
+    for lvl in sorted(tagged, key=lambda x: abs(x["price"] - curr)):
+        absorbed = False
+        for m in merged:
+            if atr_buf > 0 and abs(lvl["price"] - m["price"]) < atr_buf:
+                # Behold høyest weight; oppdater kilde og pris hvis sterkere
+                if lvl["weight"] > m["weight"]:
+                    m["price"]  = lvl["price"]
+                    m["source"] = lvl["source"]
+                    m["weight"] = lvl["weight"]
+                absorbed = True
+                break
+        if not absorbed:
+            merged.append(dict(lvl))
+    return sorted(merged, key=lambda x: abs(x["price"] - curr))[:max_n]
+
+
+def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, klasse, min_rr=1.5):
+    """
+    Level-til-level intradag med tidsvindus-vekting:
+    - Entry: nærmeste nivå (hvilken som helst TF)
+    - SL: rett bak entry-nivå + 1.5×spread
+    - T1: nærmeste HTF-nivå (weight>=3, D1+) på motsatt side.
+          Faller tilbake på nærmeste nivå uansett TF hvis ingen D1+ finnes.
+    - T2: neste nivå etter T1
+    - entry_weight i output → frontend kan vise styrke-badge
+    - Dropp hvis R:R < min_rr eller SL > 2.5×ATR(15m)
+    """
+    if not atr_15m or atr_15m <= 0:
+        return None
+    spread_buf = atr_15m * 0.15
+
+    def first_htf(levels, min_w=3):
+        """Nærmeste nivå med weight >= min_w, ellers nærmeste uansett."""
+        for l in levels:
+            if l["weight"] >= min_w:
+                return l
+        return levels[0] if levels else None
 
     if direction == "long":
-        if not sup or not res: return None
-        sl    = sup[0] - spread_buf
-        risk  = curr - sl
-        if risk <= 0:              return None
-        if risk > atr_15m * 2.5:  return None  # SL for stor for intradag
-        t1 = res[0]
-        t2 = res[1] if len(res) > 1 else t1 + risk
+        if not sup_tagged or not res_tagged:
+            return None
+        entry_obj   = sup_tagged[0]
+        entry_level = entry_obj["price"]
+        entry_w     = entry_obj["weight"]
+
+        sl   = entry_level - spread_buf
+        risk = curr - sl
+        if risk <= 0:             return None
+        if risk > atr_15m * 2.5: return None
+
+        t1_obj = first_htf(res_tagged, min_w=3)
+        if t1_obj is None:        return None
+        t1 = t1_obj["price"]
+
+        res_after = [l for l in res_tagged if l["price"] > t1]
+        t2 = res_after[0]["price"] if res_after else round(t1 + risk, 5)
+
         rr1 = round((t1 - curr) / risk, 2)
         rr2 = round((t2 - curr) / risk, 2)
-        if rr1 < min_rr:          return None
-        at_level = is_at_level(curr, sup[0], atr_15m)
+        if rr1 < min_rr: return None
+
+        at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
         return {
             "entry": round(curr, 5), "sl": round(sl, 5),
-            "t1": round(t1, 5), "t2": round(t2, 5),
+            "t1": round(t1, 5),     "t2": round(t2, 5),
             "rr_t1": rr1, "rr_t2": rr2, "min_rr": min_rr,
-            "entry_dist_atr": round(abs(curr - sup[0]) / atr_15m, 2),
-            "entry_name": f"Støtte {round(sup[0], 5)}",
-            "entry_level": round(sup[0], 5),
-            "status": "aktiv" if at_level else "watchlist",
-            "note": f"L2L intradag: S {round(sup[0],4)} → T1 {round(t1,4)} | SL={round(sl,4)} | ATR15m={round(atr_15m,4)}",
+            "entry_dist_atr":  round(abs(curr - entry_level) / atr_15m, 2),
+            "entry_name":      f"Støtte {round(entry_level,5)} [{entry_obj['source']}]",
+            "entry_level":     round(entry_level, 5),
+            "entry_weight":    entry_w,
+            "t1_source":       t1_obj["source"],
+            "t1_weight":       t1_obj["weight"],
+            "status":          "aktiv" if at_level else "watchlist",
+            "note": (f"L2L: S {round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
+                     f" → T1 {round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']}]"
+                     f" | SL={round(sl,4)} | ATR15m={round(atr_15m,4)}"),
             "timeframe": "15m",
         }
     else:
-        if not res or not sup: return None
-        sl    = res[0] + spread_buf
-        risk  = sl - curr
-        if risk <= 0:              return None
-        if risk > atr_15m * 2.5:  return None
-        t1 = sup[0]
-        t2 = sup[1] if len(sup) > 1 else t1 - risk
+        if not res_tagged or not sup_tagged:
+            return None
+        entry_obj   = res_tagged[0]
+        entry_level = entry_obj["price"]
+        entry_w     = entry_obj["weight"]
+
+        sl   = entry_level + spread_buf
+        risk = sl - curr
+        if risk <= 0:             return None
+        if risk > atr_15m * 2.5: return None
+
+        t1_obj = first_htf(sup_tagged, min_w=3)
+        if t1_obj is None:        return None
+        t1 = t1_obj["price"]
+
+        sup_after = [l for l in sup_tagged if l["price"] < t1]
+        t2 = sup_after[0]["price"] if sup_after else round(t1 - risk, 5)
+
         rr1 = round((curr - t1) / risk, 2)
         rr2 = round((curr - t2) / risk, 2)
-        if rr1 < min_rr:          return None
-        at_level = is_at_level(curr, res[0], atr_15m)
+        if rr1 < min_rr: return None
+
+        at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
         return {
             "entry": round(curr, 5), "sl": round(sl, 5),
-            "t1": round(t1, 5), "t2": round(t2, 5),
+            "t1": round(t1, 5),     "t2": round(t2, 5),
             "rr_t1": rr1, "rr_t2": rr2, "min_rr": min_rr,
-            "entry_dist_atr": round(abs(curr - res[0]) / atr_15m, 2),
-            "entry_name": f"Motstand {round(res[0], 5)}",
-            "entry_level": round(res[0], 5),
-            "status": "aktiv" if at_level else "watchlist",
-            "note": f"L2L intradag: R {round(res[0],4)} → T1 {round(t1,4)} | SL={round(sl,4)} | ATR15m={round(atr_15m,4)}",
+            "entry_dist_atr":  round(abs(curr - entry_level) / atr_15m, 2),
+            "entry_name":      f"Motstand {round(entry_level,5)} [{entry_obj['source']}]",
+            "entry_level":     round(entry_level, 5),
+            "entry_weight":    entry_w,
+            "t1_source":       t1_obj["source"],
+            "t1_weight":       t1_obj["weight"],
+            "status":          "aktiv" if at_level else "watchlist",
+            "note": (f"L2L: R {round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
+                     f" → T1 {round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']}]"
+                     f" | SL={round(sl,4)} | ATR15m={round(atr_15m,4)}"),
             "timeframe": "15m",
         }
 
@@ -306,43 +387,64 @@ for inst in INSTRUMENTS:
         except Exception as e:
             print(f"  SMC FEIL: {e}")
 
-    # ── Nivåer ───────────────────────────────────────────
+    # ── Nivåer med tidsvindus-vekting ────────────────────
+    #  weight 5 = Ukentlig (sterkest), 4 = PDH/PDL, 3 = D1 swing/PDC,
+    #  weight 2 = 4H / SMC-sone,       1 = 15m pivot (svakest)
     pdh, pdl, pdc = get_pdh_pdl_pdc(daily)
     pwh, pwl      = get_pwh_pwl(daily)
 
-    # 15m intradag-nivåer (primære for entry)
-    res_15m, sup_15m = find_intraday_levels(rows_15m) if rows_15m else ([], [])
+    raw_res, raw_sup = [], []
 
-    # Daglige swing-nivåer (kontekst og T2)
+    # Ukentlige nøkkelnivåer (weight 5)
+    if pwh and pwh > curr: raw_res.append({"price": pwh, "source": "PWH", "weight": 5})
+    if pwl and pwl < curr: raw_sup.append({"price": pwl, "source": "PWL", "weight": 5})
+
+    # Daglige nøkkelnivåer (weight 4)
+    if pdh and pdh > curr: raw_res.append({"price": pdh, "source": "PDH", "weight": 4})
+    if pdl and pdl < curr: raw_sup.append({"price": pdl, "source": "PDL", "weight": 4})
+
+    # PDC (weight 3)
+    if pdc:
+        if pdc > curr: raw_res.append({"price": pdc, "source": "PDC", "weight": 3})
+        elif pdc < curr: raw_sup.append({"price": pdc, "source": "PDC", "weight": 3})
+
+    # Daglige swing-nivåer (weight 3)
     res_d, sup_d = find_swing_levels(daily)
+    for r in res_d:
+        if r > curr: raw_res.append({"price": r, "source": "D1", "weight": 3})
+    for s in sup_d:
+        if s < curr: raw_sup.append({"price": s, "source": "D1", "weight": 3})
 
-    # Slå sammen: PDH/PDL/PWH/PWL inn i riktig liste
-    extra_res = [r for r in [pdh, pwh] if r and r > curr]
-    extra_sup = [s for s in [pdl, pwl] if s and s < curr]
+    # 4H swing-nivåer (weight 2)
+    res_4h, sup_4h = find_swing_levels(h4, n=3) if len(h4) >= 10 else ([], [])
+    for r in res_4h:
+        if r > curr: raw_res.append({"price": r, "source": "4H", "weight": 2})
+    for s in sup_4h:
+        if s < curr: raw_sup.append({"price": s, "source": "4H", "weight": 2})
 
-    # Hent SMC supply/demand POI-er som ekstra nivåer
-    smc_res = []
-    smc_sup = []
+    # SMC supply/demand-soner (weight 2 — struktur-basert men fra 15m)
     if smc:
-        smc_res = [z["poi"] for z in smc.get("supply_zones",[]) if z["poi"] > curr]
-        smc_sup = [z["poi"] for z in smc.get("demand_zones",[]) if z["poi"] < curr]
-        # Merk SMC-nivåer i sources
+        for z in smc.get("supply_zones", []):
+            if z["poi"] > curr: raw_res.append({"price": z["poi"], "source": "SMC", "weight": 2})
+        for z in smc.get("demand_zones", []):
+            if z["poi"] < curr: raw_sup.append({"price": z["poi"], "source": "SMC", "weight": 2})
 
-    all_res = sorted(list(dict.fromkeys(
-        [round(x,5) for x in res_15m + smc_res + extra_res + res_d if x > curr]
-    )), key=lambda x: abs(x-curr))[:5]
+    # 15m intradag-pivots (weight 1 — svakest, kun for lokal entry-presisjon)
+    res_15m, sup_15m = find_intraday_levels(rows_15m) if rows_15m else ([], [])
+    for r in res_15m:
+        if r > curr: raw_res.append({"price": r, "source": "15m", "weight": 1})
+    for s in sup_15m:
+        if s < curr: raw_sup.append({"price": s, "source": "15m", "weight": 1})
 
-    all_sup = sorted(list(dict.fromkeys(
-        [round(x,5) for x in sup_15m + smc_sup + extra_sup + sup_d if x < curr]
-    )), key=lambda x: abs(x-curr))[:5]
+    atr_for_merge = atr_15m if atr_15m else (atr_d * 0.4 if atr_d else None)
 
-    # Kildemerking
-    lvl_sources = {}
-    if pdh: lvl_sources[round(pdh,5)] = "PDH"
-    if pdl: lvl_sources[round(pdl,5)] = "PDL"
-    if pdc: lvl_sources[round(pdc,5)] = "PDC"
-    if pwh: lvl_sources[round(pwh,5)] = "PWH"
-    if pwl: lvl_sources[round(pwl,5)] = "PWL"
+    # Merge: nivåer innen 0.5×ATR slås sammen, høyest weight vinner
+    tagged_res = merge_tagged_levels(raw_res, curr, atr_for_merge)
+    tagged_sup = merge_tagged_levels(raw_sup, curr, atr_for_merge)
+
+    # Flate lister for bakoverkompatibilitet (fmt_level, is_at_level)
+    all_res = [l["price"] for l in tagged_res]
+    all_sup = [l["price"] for l in tagged_sup]
 
     # ── EMA9 + Regime ─────────────────────────────────────
     closes_d  = [r[2] for r in daily]
@@ -376,10 +478,21 @@ for inst in INSTRUMENTS:
     chg20     = prices[inst["key"]]["chg20d"]
     fg_score  = fg["score"] if fg else 50
 
-    # Pris VED nivå nå — hard binær sjekk
-    at_sup = any(is_at_level(curr, s, atr_15m or atr_d*0.4) for s in all_sup) if all_sup else False
-    at_res = any(is_at_level(curr, r, atr_15m or atr_d*0.4) for r in all_res) if all_res else False
+    # Pris VED nivå nå — vektbevisst sjekk
+    at_sup = any(
+        is_at_level(curr, l["price"], atr_for_merge or atr_d*0.4, l["weight"])
+        for l in tagged_sup
+    ) if tagged_sup else False
+    at_res = any(
+        is_at_level(curr, l["price"], atr_for_merge or atr_d*0.4, l["weight"])
+        for l in tagged_res
+    ) if tagged_res else False
     at_level_now = at_sup or at_res
+
+    # Nærmeste nivå har HTF-styrke (D1 / ukentlig / PDH/PDL → weight >= 3)
+    nearest_sup_w = tagged_sup[0]["weight"] if tagged_sup else 0
+    nearest_res_w = tagged_res[0]["weight"] if tagged_res else 0
+    htf_level_nearby = max(nearest_sup_w, nearest_res_w) >= 3
 
     # Sesjon aktiv nå
     sesjon_aktiv = session_now["active"]
@@ -393,36 +506,40 @@ for inst in INSTRUMENTS:
     cot_confirms = (cot_bias == "LONG" and dir_color == "bull") or \
                    (cot_bias == "SHORT" and dir_color == "bear")
     score_details = [
-        {"kryss": "Over SMA200",          "verdi": above_sma},
-        {"kryss": "D1 + 15m regime likt", "verdi": align in ("bull","bear")},
-        {"kryss": "COT bekrefter",        "verdi": cot_confirms},
-        {"kryss": "Pris VED nivå nå",     "verdi": at_level_now},
-        {"kryss": "Riktig sesjon aktiv",  "verdi": sesjon_riktig},
-        {"kryss": "Momentum 20d",         "verdi": chg20 > 0},
-        {"kryss": "Sentiment",            "verdi": fg_score < 35},
+        {"kryss": "Over SMA200",             "verdi": above_sma},
+        {"kryss": "D1 + 15m regime likt",    "verdi": align in ("bull","bear")},
+        {"kryss": "COT bekrefter",           "verdi": cot_confirms},
+        {"kryss": "Pris VED nivå nå",        "verdi": at_level_now},
+        {"kryss": "HTF-nivå (D1+) bekrefter","verdi": htf_level_nearby},
+        {"kryss": "Riktig sesjon aktiv",     "verdi": sesjon_riktig},
+        {"kryss": "Momentum 20d",            "verdi": chg20 > 0},
+        {"kryss": "Sentiment",               "verdi": fg_score < 35},
     ]
     score       = sum(1 for s in score_details if s["verdi"])
-    grade       = "A+" if score>=6 else "B" if score>=4 else "C"
-    grade_color = "bull" if score>=6 else "warn" if score>=4 else "bear"
+    grade       = "A+" if score>=7 else "A" if score>=5 else "B" if score>=3 else "C"
+    grade_color = "bull" if score>=7 else "warn" if score>=5 else "bear"
     dir_color   = "bull" if (above_sma and chg5>0) else "bear" if (not above_sma and chg5<0) else ("bull" if above_sma else "bear")
 
     vix_price = (prices.get("VIX") or {}).get("price", 20)
     pos_size  = "Full" if vix_price<20 else "Halv" if vix_price<30 else "Kvart"
 
-    # ── Setups med 15m ATR ────────────────────────────────
+    # ── Setups med tagget nivåer ──────────────────────────
     atr_for_setup = atr_15m if atr_15m else (atr_d * 0.4)
-    setup_long  = make_setup_l2l(curr, atr_for_setup, atr_d, all_sup, all_res, "long",  klasse)
-    setup_short = make_setup_l2l(curr, atr_for_setup, atr_d, all_sup, all_res, "short", klasse)
+    setup_long  = make_setup_l2l(curr, atr_for_setup, atr_d, tagged_sup, tagged_res, "long",  klasse)
+    setup_short = make_setup_l2l(curr, atr_for_setup, atr_d, tagged_sup, tagged_res, "short", klasse)
     for s in [setup_long, setup_short]:
         if s: s["session"] = inst["session"]
 
-    def fmt_level(lvl, typ, atr):
+    def fmt_level(tagged, typ, atr):
         out = []
-        for i, l in enumerate(lvl[:5]):
-            lr  = round(l, 5 if l<100 else 2)
-            src = lvl_sources.get(round(l,5), f"{typ}{i+1}")
-            out.append({"name": src, "level": lr,
-                        "dist_atr": round(abs(l-curr)/(atr or 1), 1)})
+        for i, l in enumerate(tagged[:5]):
+            lr = round(l["price"], 5 if l["price"] < 100 else 2)
+            out.append({
+                "name":     l.get("source", f"{typ}{i+1}"),
+                "level":    lr,
+                "weight":   l.get("weight", 1),
+                "dist_atr": round(abs(l["price"] - curr) / (atr or 1), 1),
+            })
         return out
 
     atr_s = f"{atr_15m:.5f}" if atr_15m else "N/A"
@@ -430,7 +547,8 @@ for inst in INSTRUMENTS:
     t1_s  = setup_long["t1"]  if setup_long  else "-"
     rr_s  = setup_long["rr_t1"] if setup_long else "-"
     st    = "🟢" if at_level_now else "🟡"
-    print(f"  {st} {inst['navn']:10s} {curr:.5f}  ATR15m={atr_s}  {grade}({score}/8)  T1:{t1_s}  R:R:{rr_s}")
+    htf_tag = f"HTF:w{max(nearest_sup_w, nearest_res_w)}" if htf_level_nearby else "noHTF"
+    print(f"  {st} {inst['navn']:10s} {curr:.5f}  ATR15m={atr_s}  {grade}({score}/8)  {htf_tag}  T1:{t1_s}  R:R:{rr_s}")
 
     levels[inst["key"]] = {
         "name":          inst["navn"],
@@ -465,11 +583,11 @@ for inst in INSTRUMENTS:
         "grade":         grade,
         "grade_color":   grade_color,
         "score":         score,
-        "score_pct":     round(score/7*100),
+        "score_pct":     round(score/8*100),
         "score_details": score_details,
         "open_interest": oi,
-        "resistances":   fmt_level(all_res, "R", atr_15m or atr_d),
-        "supports":      fmt_level(all_sup, "S", atr_15m or atr_d),
+        "resistances":   fmt_level(tagged_res, "R", atr_15m or atr_d),
+        "supports":      fmt_level(tagged_sup, "S", atr_15m or atr_d),
         "setup_long":    setup_long,
         "setup_short":   setup_short,
         "binary_risk":   get_binary_risk(inst["key"]),
