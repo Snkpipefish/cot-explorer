@@ -351,7 +351,34 @@ def fetch_fear_greed():
         print(f"  Fear&Greed FEIL: {e}")
         return None
 
-def detect_conflict(vix, dxy_5d, fg, cot_usd):
+MACRO_SYMBOLS = {
+    "HYG":    "HYG",       # iShares High Yield Corp Bond ETF — kredittrisiko
+    "TIP":    "TIP",       # iShares TIPS Bond ETF — inflasjonsdrevne realrenter
+    "TNX":    "^TNX",      # 10-årig statsrente (USA)
+    "IRX":    "^IRX",      # 3-måneds statskasseveksel
+    "Copper": "HG=F",      # Kobber-futures — ledende vekstindikator
+    "EEM":    "EEM",       # iShares MSCI Emerging Markets ETF — risikoappetitt
+}
+
+def fetch_macro_indicators():
+    """Henter tilleggsindikatorer for makrobilde. Returnerer dict nøkkel→{price, chg5d}."""
+    out = {}
+    for key, sym in MACRO_SYMBOLS.items():
+        daily = fetch_yahoo(sym, "1d", "30d")
+        if not daily or len(daily) < 6:
+            out[key] = None
+            continue
+        curr = daily[-1][2]
+        c5   = daily[-6][2] if len(daily) >= 6 else curr
+        c1   = daily[-2][2] if len(daily) >= 2 else curr
+        out[key] = {
+            "price":  round(curr, 4 if curr < 10 else 2),
+            "chg1d":  round((curr / c1 - 1) * 100, 2),
+            "chg5d":  round((curr / c5 - 1) * 100, 2),
+        }
+    return out
+
+def detect_conflict(vix, dxy_5d, fg, cot_usd, hy_stress=False, yield_curve=None):
     conflicts = []
     if vix > 25 and dxy_5d < 0:
         conflicts.append("VIX>25 men DXY faller – risk-off uten USD-etterspørsel")
@@ -361,6 +388,10 @@ def detect_conflict(vix, dxy_5d, fg, cot_usd):
         conflicts.append("Grådighet men VIX forhøyet – divergens")
     if cot_usd and cot_usd > 0 and dxy_5d < -1:
         conflicts.append("COT long USD men pris faller – divergens")
+    if hy_stress and vix < 20:
+        conflicts.append("HY-spreader øker men VIX lav – skjult kredittrisiko")
+    if yield_curve is not None and yield_curve < -0.3:
+        conflicts.append(f"Rentekurve invertert ({yield_curve:+.2f}%) – resesjonsrisiko")
     return conflicts
 
 # ── Last kalender ────────────────────────────────────────────
@@ -706,6 +737,37 @@ for inst in INSTRUMENTS:
         "sentiment":      {"fear_greed": fg},
     }
 
+# ── Makro-indikatorer ──────────────────────────────────────
+print("Henter makro-indikatorer (HYG, TIP, TNX, IRX, Kobber, EM)...")
+macro_ind = fetch_macro_indicators()
+for k, v in macro_ind.items():
+    if v: print(f"  {k}: {v['price']}  5d={v['chg5d']:+.2f}%")
+    else: print(f"  {k}: FEIL")
+
+# HY kredittrisiko: HYG ned > 1.5% siste 5d = kredittpress
+hyg         = macro_ind.get("HYG") or {}
+hy_chg5d    = hyg.get("chg5d", 0)
+hy_stress   = hy_chg5d < -1.5
+
+# TIPS (realrenter / inflasjonsforventninger)
+tip         = macro_ind.get("TIP") or {}
+tip_trend_5d = tip.get("chg5d", 0)
+
+# Rentekurve: 10Y minus 3M (invertert < 0 = resesjonsrisiko)
+tnx         = macro_ind.get("TNX") or {}
+irx         = macro_ind.get("IRX") or {}
+yield_10y   = tnx.get("price")
+yield_3m    = irx.get("price")
+yield_curve = round(yield_10y - yield_3m, 2) if (yield_10y and yield_3m) else None
+
+# Kobber (vekstindikator): trend 5d
+copper      = macro_ind.get("Copper") or {}
+copper_5d   = copper.get("chg5d", 0)
+
+# Emerging Markets (risikoappetitt)
+eem         = macro_ind.get("EEM") or {}
+em_5d       = eem.get("chg5d", 0)
+
 # ── Makro ──────────────────────────────────────────────────
 vix_price   = (prices.get("VIX") or {}).get("price", 20)
 dxy_5d      = (prices.get("DXY") or {}).get("chg5d", 0)
@@ -713,13 +775,15 @@ brent_p     = (prices.get("Brent") or {}).get("price", 80)
 fg_score    = fg["score"] if fg else 50
 cot_dxy     = cot_data.get("usd index",{})
 cot_dxy_net = ((cot_dxy.get("spekulanter") or {}).get("net",0) or 0)
-conflicts   = detect_conflict(vix_price, dxy_5d, fg, cot_dxy_net)
+conflicts   = detect_conflict(vix_price, dxy_5d, fg, cot_dxy_net, hy_stress, yield_curve)
 
+# Dollar Smile: hy_stress eller yield_curve inversion gir risk-off bias
+risk_off_signals = sum([vix_price > 25, hy_stress, (yield_curve or 0) < -0.3, (fg["score"] if fg else 50) < 35])
 if conflicts:
     smile_pos,usd_bias,usd_color,smile_desc = "konflikt","UKLAR","warn","Motstridende signaler: "+" | ".join(conflicts[:2])
-elif vix_price > 30:
+elif vix_price > 30 or risk_off_signals >= 2:
     smile_pos,usd_bias,usd_color,smile_desc = "venstre","STERKT","bull","Risk-off – USD trygg havn"
-elif vix_price < 18 and brent_p < 85:
+elif vix_price < 18 and brent_p < 85 and not hy_stress:
     smile_pos,usd_bias,usd_color,smile_desc = "midten","SVAKT","bear","Goldilocks – svak USD"
 else:
     smile_pos,usd_bias,usd_color,smile_desc = "hoyre","MODERAT","bull","Vekst/inflasjon driver USD"
@@ -740,8 +804,21 @@ macro = {
     "dollar_smile": {
         "position":smile_pos,"usd_bias":usd_bias,"usd_color":usd_color,"desc":smile_desc,
         "conflicts": conflicts,
-        "inputs":{"vix":vix_price,"hy_stress":False,"brent":brent_p,"tip_trend_5d":0,"dxy_trend_5d":dxy_5d}
+        "inputs": {
+            "vix":          vix_price,
+            "hy_stress":    hy_stress,
+            "hy_chg5d":     hy_chg5d,
+            "brent":        brent_p,
+            "tip_trend_5d": tip_trend_5d,
+            "dxy_trend_5d": dxy_5d,
+            "yield_curve":  yield_curve,
+            "yield_10y":    yield_10y,
+            "yield_3m":     yield_3m,
+            "copper_5d":    copper_5d,
+            "em_5d":        em_5d,
+        }
     },
+    "macro_indicators": macro_ind,
     "trading_levels": levels,
     "calendar": calendar_events,
 }
