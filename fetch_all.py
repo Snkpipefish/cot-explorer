@@ -559,11 +559,8 @@ for inst in INSTRUMENTS:
         return out
 
     atr_s = f"{atr_15m:.5f}" if atr_15m else "N/A"
-    # Velg setup basert på dir_color; vis begge hvis de finnes
-    if dir_color == "bull":
-        active_setup = setup_long or setup_short
-    else:
-        active_setup = setup_short or setup_long
+    # Velg setup strengt basert på dir_color — aldri vis motstatt retnings mål
+    active_setup = setup_long if dir_color == "bull" else setup_short
     t1_s = active_setup["t1"]    if active_setup else None
     rr_s = active_setup["rr_t1"] if active_setup else None
     # Ingen aktiv setup: vis nærmeste HTF-mål som potensielt mål (~)
