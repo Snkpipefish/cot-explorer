@@ -349,7 +349,7 @@ function renderSetupSide(setup, type){
   return '<div class="setup-label '+col+'">'+type+' – '+setup.entry_name+' '+weightBadge(entryW)+'</div>'+
     '<div class="setup-row"><span class="setup-key">Entry</span><span class="setup-val '+(distOk?col:'warn')+'">'+fmtP(setup.entry)+(distOk?' *':' ('+setup.entry_dist_atr+'xATR)')+'</span></div>'+
     '<div class="setup-row"><span class="setup-key">Stop Loss</span><span class="setup-val bear">'+fmtP(setup.sl)+'</span></div>'+
-    '<div class="setup-row"><span class="setup-key">Target 1</span><span class="setup-val bull">'+fmtP(setup.t1)+' '+weightBadge(t1W)+'</span></div>'+
+    '<div class="setup-row"><span class="setup-key">Target 1</span><span class="setup-val bull">'+fmtP(setup.t1)+' '+weightBadge(t1W)+(setup.t1_quality==='weak'?'<span class="tf-badge neutral" title="Svak T1 – ingen D1/4H-nivå funnet">?</span>':'')+'</span></div>'+
     '<div class="setup-row"><span class="setup-key">Target 2</span><span class="setup-val bull">'+fmtP(setup.t2)+'</span></div>'+
     '<div class="setup-row"><span class="setup-key">R:R T1</span><span class="rr-badge '+(rrOk?'ok':'bad')+'">1:'+setup.rr_t1+'</span></div>'+
     '<div class="setup-row"><span class="setup-key">R:R T2</span><span class="setup-val">1:'+setup.rr_t2+'</span></div>'+
