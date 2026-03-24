@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import urllib.request, urllib.parse, json, os, time
+import urllib.request, urllib.parse, json, os, time, re
 from datetime import datetime, timezone
 import sys
 sys.path.insert(0, os.path.expanduser('~/cot-explorer'))
@@ -80,6 +80,23 @@ FINNHUB_QUOTE_MAP = {
     "BZ=F":      "UKOIL",
     "CL=F":      "USOIL",
     "HG=F":      "HG1!",
+}
+
+# Nyhetssentiment: hvilken retning bekrefter risk_on / risk_off per instrument
+# (risk_on_dir, risk_off_dir) — None = ikke bruk nyheter for dette instrumentet
+NEWS_CONFIRMS_MAP = {
+    "SPX":    ("bull", "bear"),   # aksjer stiger ved risk-on
+    "NAS100": ("bull", "bear"),
+    "Gold":   ("bear", "bull"),   # gull faller ved risk-on, stiger ved risk-off
+    "Silver": ("bear", "bull"),
+    "EURUSD": ("bull", "bear"),   # risk-on = svak USD = EUR/USD opp
+    "GBPUSD": ("bull", "bear"),
+    "AUDUSD": ("bull", "bear"),   # AUD er risikovaluta
+    "USDJPY": ("bull", "bear"),   # risk-on = JPY svekkes = USD/JPY opp
+    "DXY":    ("bear", "bull"),   # risk-on = svak USD
+    "Brent":  (None,  None),      # olje: geopolitikk kompliserer retning
+    "WTI":    (None,  None),
+    "VIX":    ("bear", "bull"),
 }
 
 COT_MAP = {
@@ -524,6 +541,71 @@ def fetch_fear_greed():
         print(f"  Fear&Greed FEIL: {e}")
         return None
 
+def fetch_news_sentiment():
+    """Henter RSS-nyheter (Google News + BBC), scorer risk-on/risk-off nøkkelord.
+    Returnerer dict med score (-1..1), label, top_headlines og key_drivers.
+    """
+    RISK_ON = [
+        "peace", "ceasefire", "deal", "agreement", "truce", "treaty",
+        "stimulus", "rate cut", "rate cuts", "recovery", "trade deal",
+        "tariff pause", "tariff reduction", "tariff removed", "de-escalation",
+        "deescalation", "accord", "optimism", "soft landing", "talks progress",
+        "diplomatic", "breakthrough", "resolved", "lifted sanctions",
+    ]
+    RISK_OFF = [
+        "war", "attack", "invasion", "escalation", "sanctions", "default",
+        "crisis", "collapse", "recession", "military strike", "nuclear",
+        "terror", "conflict", "threatens", "tariff hike", "new tariffs",
+        "imposed tariffs", "sell-off", "selloff", "bank run", "debt crisis",
+        "banking crisis", "crash", "downgrade", "emergency", "missile",
+    ]
+    feeds = [
+        "https://news.google.com/rss/search?q=economy+markets+geopolitics&hl=en-US&gl=US&ceid=US:en",
+        "https://feeds.bbci.co.uk/news/world/rss.xml",
+    ]
+    headlines = []
+    for url in feeds:
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=7) as r:
+                txt = r.read().decode("utf-8", errors="replace")
+            titles = re.findall(r"<title><!\[CDATA\[(.*?)\]\]></title>", txt)
+            if not titles:
+                titles = re.findall(r"<title>(.*?)</title>", txt)
+            headlines.extend(titles[1:16])
+        except Exception as e:
+            print(f"  Nyheter FEIL ({url[:45]}): {e}")
+    if not headlines:
+        return None
+    ro_count = roff_count = 0
+    drivers = []
+    for h in headlines:
+        hl = h.lower()
+        ro   = sum(1 for w in RISK_ON  if w in hl)
+        roff = sum(1 for w in RISK_OFF if w in hl)
+        if ro > roff:
+            ro_count += 1
+            drivers.append({"headline": h[:90], "type": "risk_on"})
+        elif roff > ro:
+            roff_count += 1
+            drivers.append({"headline": h[:90], "type": "risk_off"})
+    total = ro_count + roff_count
+    if total == 0:
+        label, net = "neutral", 0.0
+    else:
+        net   = round((ro_count - roff_count) / total, 2)
+        label = "risk_on" if net >= 0.3 else "risk_off" if net <= -0.3 else "neutral"
+    print(f"  Nyhetssentiment: {label} (score={net:+.2f}, ro={ro_count}, roff={roff_count}, n={len(headlines)})")
+    return {
+        "score":          net,
+        "label":          label,
+        "top_headlines":  headlines[:5],
+        "key_drivers":    drivers[:6],
+        "ro_count":       ro_count,
+        "roff_count":     roff_count,
+        "headlines_n":    len(headlines),
+    }
+
 MACRO_SYMBOLS = {
     "HYG":    "HYG",       # iShares High Yield Corp Bond ETF — kredittrisiko
     "TIP":    "TIP",       # iShares TIPS Bond ETF — inflasjonsdrevne realrenter
@@ -574,7 +656,7 @@ def fetch_macro_indicators():
         }
     return out
 
-def detect_conflict(vix, dxy_5d, fg, cot_usd, hy_stress=False, yield_curve=None):
+def detect_conflict(vix, dxy_5d, fg, cot_usd, hy_stress=False, yield_curve=None, news_sent=None):
     conflicts = []
     if vix > 25 and dxy_5d < 0:
         conflicts.append("VIX>25 men DXY faller – risk-off uten USD-etterspørsel")
@@ -588,7 +670,26 @@ def detect_conflict(vix, dxy_5d, fg, cot_usd, hy_stress=False, yield_curve=None)
         conflicts.append("HY-spreader øker men VIX lav – skjult kredittrisiko")
     if yield_curve is not None and yield_curve < -0.3:
         conflicts.append(f"Rentekurve invertert ({yield_curve:+.2f}%) – resesjonsrisiko")
+    # Nyhetssentiment vs makro
+    if news_sent and news_sent.get("label") == "risk_on" and vix > 25:
+        conflicts.append("Nyheter risk-on men VIX forhøyet – sentimentskifte pågår")
+    if news_sent and news_sent.get("label") == "risk_off" and fg and fg["score"] > 60:
+        conflicts.append("Nyheter risk-off men Fear&Greed viser grådighet – divergens")
+    if news_sent and news_sent.get("label") == "risk_on" and fg and fg["score"] < 25:
+        conflicts.append("Nyheter risk-on men ekstrem frykt i markedet – potensiell bunnstemning")
     return conflicts
+
+# ── Last fundamentals ────────────────────────────────────────
+fund_data = {}
+fund_file = os.path.join(BASE, "fundamentals", "latest.json")
+if os.path.exists(fund_file):
+    try:
+        with open(fund_file) as f:
+            fund_data = json.load(f)
+        n = len(fund_data.get("indicators", {}))
+        print(f"Fundamentals: {n} indikatorer lastet ({fund_data.get('usd_fundamental',{}).get('bias','?')} USD)")
+    except Exception:
+        pass
 
 # ── Last kalender ────────────────────────────────────────────
 calendar_events = []
@@ -625,6 +726,10 @@ if os.path.exists(cot_file):
 print("Henter Fear & Greed...")
 fg = fetch_fear_greed()
 if fg: print(f"  → {fg['score']} ({fg['rating']})")
+
+# ── Nyhetssentiment ────────────────────────────────────────
+print("Henter nyhetssentiment...")
+news_sentiment = fetch_news_sentiment()
 
 # ── Priser og setups ──────────────────────────────────────
 prices, levels = {}, {}
@@ -803,6 +908,29 @@ for inst in INSTRUMENTS:
     cot_strong   = abs(cot_pct) > 10   # >10% av OI = signifikant makro-posisjonering
     no_event_risk = len(get_binary_risk(inst["key"], hours=4)) == 0
 
+    # Nyhetssentiment bekrefter retning?
+    ns_label = (news_sentiment or {}).get("label", "neutral")
+    nc_map   = NEWS_CONFIRMS_MAP.get(inst["key"], (None, None))
+    if ns_label == "risk_on" and nc_map[0]:
+        news_confirms_dir = (nc_map[0] == dir_color)
+    elif ns_label == "risk_off" and nc_map[1]:
+        news_confirms_dir = (nc_map[1] == dir_color)
+    else:
+        news_confirms_dir = False
+    # Nyhetsmotvindsvarsel: nyheter strider klart mot retning
+    news_headwind = False
+    if ns_label == "risk_on" and nc_map[0] and nc_map[0] != dir_color:
+        news_headwind = True
+    elif ns_label == "risk_off" and nc_map[1] and nc_map[1] != dir_color:
+        news_headwind = True
+
+    # ── Fundamentals ──────────────────────────────────────────
+    inst_fund       = fund_data.get("instrument_scores", {}).get(inst["key"], {})
+    inst_fund_score = inst_fund.get("score", 0)
+    inst_fund_bias  = inst_fund.get("bias", "neutral")
+    fund_confirms   = (inst_fund_score > 0.3 and dir_color == "bull") or \
+                      (inst_fund_score < -0.3 and dir_color == "bear")
+
     score_details = [
         {"kryss": "Over SMA200 (D1 trend)",         "verdi": above_sma},
         {"kryss": "Momentum 20d bekrefter",          "verdi": (chg20 > 0 if dir_color == "bull" else chg20 < 0)},
@@ -812,10 +940,12 @@ for inst in INSTRUMENTS:
         {"kryss": "HTF-nivå D1/Ukentlig",            "verdi": htf_level_nearby},
         {"kryss": "D1 + 4H trend kongruent",         "verdi": align in ("bull","bear")},
         {"kryss": "Ingen event-risiko (4t)",          "verdi": no_event_risk},
+        {"kryss": "Nyhetssentiment bekrefter",        "verdi": news_confirms_dir},
+        {"kryss": "Fundamental bekrefter",            "verdi": fund_confirms},
     ]
     score       = sum(1 for s in score_details if s["verdi"])
-    grade       = "A+" if score>=7 else "A" if score>=5 else "B" if score>=3 else "C"
-    grade_color = "bull" if score>=7 else "warn" if score>=5 else "bear"
+    grade       = "A+" if score>=9 else "A" if score>=7 else "B" if score>=5 else "C"
+    grade_color = "bull" if score>=9 else "warn" if score>=7 else "bear"
 
     # Tidshorisonts-klassifisering — hvilken type trader kan bruke dette nå
     if score >= 6 and cot_confirms and htf_level_nearby:
@@ -905,8 +1035,10 @@ for inst in INSTRUMENTS:
         "grade":         grade,
         "grade_color":   grade_color,
         "score":         score,
-        "score_pct":     round(score/8*100),
+        "score_pct":     round(score/10*100),
         "score_details": score_details,
+        "news_headwind": news_headwind,
+        "news_sentiment_label": ns_label,
         "open_interest": oi,
         "resistances":   fmt_level(tagged_res, "R", atr_15m or atr_d),
         "supports":      fmt_level(tagged_sup, "S", atr_15m or atr_d),
@@ -931,6 +1063,18 @@ for inst in INSTRUMENTS:
         "combined_bias":  "LONG" if dir_color=="bull" else "SHORT",
         "timeframe_bias": timeframe_bias,
         "sentiment":      {"fear_greed": fg},
+        "fundamentals": {
+            "score":      inst_fund_score,
+            "bias":       inst_fund_bias,
+            "confirms":   fund_confirms,
+            "categories": {
+                cat: fund_data.get("category_scores", {}).get(cat, {})
+                for cat in ("econ_growth", "inflation", "jobs")
+            },
+            "indicators": fund_data.get("indicators", {}),
+            "usd_bias":   fund_data.get("usd_fundamental", {}).get("bias", "neutral"),
+            "updated":    fund_data.get("updated", ""),
+        },
     }
 
 # ── Makro-indikatorer ──────────────────────────────────────
@@ -971,7 +1115,7 @@ brent_p     = (prices.get("Brent") or {}).get("price", 80)
 fg_score    = fg["score"] if fg else 50
 cot_dxy     = cot_data.get("usd index",{})
 cot_dxy_net = ((cot_dxy.get("spekulanter") or {}).get("net",0) or 0)
-conflicts   = detect_conflict(vix_price, dxy_5d, fg, cot_dxy_net, hy_stress, yield_curve)
+conflicts   = detect_conflict(vix_price, dxy_5d, fg, cot_dxy_net, hy_stress, yield_curve, news_sentiment)
 
 # Dollar Smile: hy_stress eller yield_curve inversion gir risk-off bias
 risk_off_signals = sum([vix_price > 25, hy_stress, (yield_curve or 0) < -0.3, (fg["score"] if fg else 50) < 35])
@@ -996,7 +1140,7 @@ macro = {
     "cot_date": max((d.get("date","") for d in cot_data.values() if d.get("date")), default="ukjent"),
     "prices":  prices,
     "vix_regime": vix_regime,
-    "sentiment": {"fear_greed": fg, "conflicts": conflicts},
+    "sentiment": {"fear_greed": fg, "news": news_sentiment, "conflicts": conflicts},
     "dollar_smile": {
         "position":smile_pos,"usd_bias":usd_bias,"usd_color":usd_color,"desc":smile_desc,
         "conflicts": conflicts,
