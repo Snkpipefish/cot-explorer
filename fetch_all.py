@@ -223,6 +223,7 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         t1_obj = best_t1(res_tagged, min_w=3)
         if t1_obj is None:        return None
         t1 = t1_obj["price"]
+        if t1 <= curr:            return None  # T1 må være over nåpris for long
 
         # T2: neste nivå etter T1 (uansett weight)
         res_after = [l for l in res_tagged if l["price"] > t1]
@@ -266,6 +267,7 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         t1_obj = best_t1(sup_tagged, min_w=3)
         if t1_obj is None:        return None
         t1 = t1_obj["price"]
+        if t1 >= curr:            return None  # T1 må være under nåpris for short
 
         sup_after = [l for l in sup_tagged if l["price"] < t1]
         t2 = sup_after[0]["price"] if sup_after else round(t1 - risk, 5)
