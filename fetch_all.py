@@ -31,32 +31,23 @@ INSTRUMENTS = [
 
 TWELVEDATA_API_KEY = os.environ.get("TWELVEDATA_API_KEY", "")
 
-# Yahoo-symbol → Twelvedata-symbol
+# Kun symboler bekreftet tilgjengelig på Twelvedata gratis-plan
+TD_FREE_SYMBOLS = {"EURUSD=X", "JPY=X", "GBPUSD=X", "AUDUSD=X", "GC=F",
+                   "HYG", "TIP", "EEM"}
+
 TWELVEDATA_MAP = {
     "EURUSD=X":  "EUR/USD",
     "JPY=X":     "USD/JPY",
     "GBPUSD=X":  "GBP/USD",
     "AUDUSD=X":  "AUD/USD",
     "GC=F":      "XAU/USD",
-    "SI=F":      "XAG/USD",
-    "BZ=F":      "BRENT",
-    "CL=F":      "WTI",
-    "^GSPC":     "SPX",
-    "^NDX":      "NDX",
-    "^VIX":      "VIX",
-    "DX-Y.NYB":  "DXY",
     "HYG":       "HYG",
     "TIP":       "TIP",
-    "HG=F":      "COPPER",
     "EEM":       "EEM",
 }
 
 TD_INTERVAL = {"1d": "1day", "15m": "15min", "60m": "1h"}
 TD_SIZE     = {"1y": 365, "5d": 500, "60d": 500, "30d": 35}
-
-# Throttle-state for Twelvedata (maks 8 req/min på gratis-tier)
-_td_calls = 0
-_td_window_start = time.time()
 
 COT_MAP = {
     "EURUSD":"euro fx","USDJPY":"japanese yen","GBPUSD":"british pound",
@@ -81,24 +72,10 @@ def fetch_yahoo(symbol, interval="1d", range_="1y"):
 
 def fetch_twelvedata(symbol, interval="1d", outputsize=365):
     """Henter OHLC fra Twelvedata. Returnerer [(h,l,c), ...] eldst→nyest."""
-    global _td_calls, _td_window_start
-    if not TWELVEDATA_API_KEY:
+    if not TWELVEDATA_API_KEY or symbol not in TD_FREE_SYMBOLS:
         return []
     td_sym = TWELVEDATA_MAP.get(symbol, symbol)
     td_int = TD_INTERVAL.get(interval, interval)
-    # Throttle: maks 8 kall per 60 sekunder
-    now = time.time()
-    if now - _td_window_start >= 60:
-        _td_calls = 0
-        _td_window_start = now
-    if _td_calls >= 8:
-        sleep_s = 61 - (now - _td_window_start)
-        if sleep_s > 0:
-            print(f"  TD throttle: venter {sleep_s:.0f}s...")
-            time.sleep(sleep_s)
-        _td_calls = 0
-        _td_window_start = time.time()
-    _td_calls += 1
     url = (f"https://api.twelvedata.com/time_series"
            f"?symbol={urllib.parse.quote(td_sym)}"
            f"&interval={td_int}&outputsize={outputsize}"
@@ -116,6 +93,7 @@ def fetch_twelvedata(symbol, interval="1d", outputsize=365):
                 rows.append((float(v["high"]), float(v["low"]), float(v["close"])))
             except:
                 continue
+        time.sleep(8)  # Gratis-plan: maks 8 req/min
         return rows
     except Exception as e:
         print(f"  TD FEIL {td_sym} ({interval}): {e}")
