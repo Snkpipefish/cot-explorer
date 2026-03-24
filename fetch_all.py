@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import urllib.request, urllib.parse, json, os
+import urllib.request, urllib.parse, json, os, time
 from datetime import datetime, timezone
 import sys
 sys.path.insert(0, os.path.expanduser('~/cot-explorer'))
@@ -29,6 +29,35 @@ INSTRUMENTS = [
     {"key":"DXY",   "navn":"DXY",    "symbol":"DX-Y.NYB","label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET"},
 ]
 
+TWELVEDATA_API_KEY = os.environ.get("TWELVEDATA_API_KEY", "")
+
+# Yahoo-symbol → Twelvedata-symbol
+TWELVEDATA_MAP = {
+    "EURUSD=X":  "EUR/USD",
+    "JPY=X":     "USD/JPY",
+    "GBPUSD=X":  "GBP/USD",
+    "AUDUSD=X":  "AUD/USD",
+    "GC=F":      "XAU/USD",
+    "SI=F":      "XAG/USD",
+    "BZ=F":      "BRENT",
+    "CL=F":      "WTI",
+    "^GSPC":     "SPX",
+    "^NDX":      "NDX",
+    "^VIX":      "VIX",
+    "DX-Y.NYB":  "DXY",
+    "HYG":       "HYG",
+    "TIP":       "TIP",
+    "HG=F":      "COPPER",
+    "EEM":       "EEM",
+}
+
+TD_INTERVAL = {"1d": "1day", "15m": "15min", "60m": "1h"}
+TD_SIZE     = {"1y": 365, "5d": 500, "60d": 500, "30d": 35}
+
+# Throttle-state for Twelvedata (maks 8 req/min på gratis-tier)
+_td_calls = 0
+_td_window_start = time.time()
+
 COT_MAP = {
     "EURUSD":"euro fx","USDJPY":"japanese yen","GBPUSD":"british pound",
     "Gold":"gold","Silver":"silver","Brent":"crude oil, light sweet",
@@ -49,6 +78,73 @@ def fetch_yahoo(symbol, interval="1d", range_="1y"):
     except Exception as e:
         print(f"  FEIL {symbol} ({interval}): {e}")
         return []
+
+def fetch_twelvedata(symbol, interval="1d", outputsize=365):
+    """Henter OHLC fra Twelvedata. Returnerer [(h,l,c), ...] eldst→nyest."""
+    global _td_calls, _td_window_start
+    if not TWELVEDATA_API_KEY:
+        return []
+    td_sym = TWELVEDATA_MAP.get(symbol, symbol)
+    td_int = TD_INTERVAL.get(interval, interval)
+    # Throttle: maks 8 kall per 60 sekunder
+    now = time.time()
+    if now - _td_window_start >= 60:
+        _td_calls = 0
+        _td_window_start = now
+    if _td_calls >= 8:
+        sleep_s = 61 - (now - _td_window_start)
+        if sleep_s > 0:
+            print(f"  TD throttle: venter {sleep_s:.0f}s...")
+            time.sleep(sleep_s)
+        _td_calls = 0
+        _td_window_start = time.time()
+    _td_calls += 1
+    url = (f"https://api.twelvedata.com/time_series"
+           f"?symbol={urllib.parse.quote(td_sym)}"
+           f"&interval={td_int}&outputsize={outputsize}"
+           f"&apikey={TWELVEDATA_API_KEY}")
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=12) as r:
+            d = json.loads(r.read())
+        if d.get("status") == "error":
+            print(f"  TD {td_sym}: {d.get('message','ukjent feil')}")
+            return []
+        rows = []
+        for v in reversed(d.get("values", [])):
+            try:
+                rows.append((float(v["high"]), float(v["low"]), float(v["close"])))
+            except:
+                continue
+        return rows
+    except Exception as e:
+        print(f"  TD FEIL {td_sym} ({interval}): {e}")
+        return []
+
+def fetch_fred(series_id):
+    """Henter siste daglige verdi fra FRED (Federal Reserve). Ingen API-nøkkel."""
+    url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            lines = r.read().decode().strip().split("\n")
+        for line in reversed(lines[1:]):
+            parts = line.strip().split(",")
+            if len(parts) == 2 and parts[1] not in (".", ""):
+                return float(parts[1])
+        return None
+    except Exception as e:
+        print(f"  FRED {series_id} FEIL: {e}")
+        return None
+
+def fetch_prices(symbol, interval, range_or_size):
+    """Prøver Twelvedata først (nær real-time), faller tilbake på Yahoo (15min delay)."""
+    if TWELVEDATA_API_KEY:
+        size = TD_SIZE.get(range_or_size, 365)
+        rows = fetch_twelvedata(symbol, interval, size)
+        if rows:
+            return rows
+    return fetch_yahoo(symbol, interval, range_or_size)
 
 def calc_atr(rows, n=14):
     if len(rows) < n+1: return None
@@ -361,10 +457,33 @@ MACRO_SYMBOLS = {
 }
 
 def fetch_macro_indicators():
-    """Henter tilleggsindikatorer for makrobilde. Returnerer dict nøkkel→{price, chg5d}."""
+    """Henter tilleggsindikatorer for makrobilde. Returnerer dict nøkkel→{price, chg5d}.
+    Bruker FRED for renter (offisielle Fed-data), Twelvedata/Yahoo for ETF og råvarer.
+    """
     out = {}
-    for key, sym in MACRO_SYMBOLS.items():
-        daily = fetch_yahoo(sym, "1d", "30d")
+
+    # Renter fra FRED (DGS10 = 10Y, DTB3 = 3-måneds T-bill)
+    print("  FRED: henter renter...")
+    for key, series in [("TNX", "DGS10"), ("IRX", "DTB3")]:
+        val = fetch_fred(series)
+        if val:
+            out[key] = {"price": round(val, 3), "chg1d": 0, "chg5d": 0}
+            print(f"    {key} ({series}): {val:.3f}%")
+        else:
+            # Fallback til Yahoo
+            daily = fetch_yahoo(MACRO_SYMBOLS[key], "1d", "30d")
+            if daily and len(daily) >= 2:
+                curr = daily[-1][2]
+                c5   = daily[-6][2] if len(daily) >= 6 else curr
+                out[key] = {"price": round(curr, 3), "chg1d": 0,
+                            "chg5d": round((curr/c5-1)*100, 2)}
+            else:
+                out[key] = None
+
+    # ETF og råvarer via Twelvedata (fallback Yahoo)
+    for key in ["HYG", "TIP", "Copper", "EEM"]:
+        sym = MACRO_SYMBOLS[key]
+        daily = fetch_prices(sym, "1d", "30d")
         if not daily or len(daily) < 6:
             out[key] = None
             continue
@@ -436,9 +555,9 @@ prices, levels = {}, {}
 for inst in INSTRUMENTS:
     print(f"Henter {inst['navn']}...")
 
-    daily   = fetch_yahoo(inst["symbol"], "1d", "1y")
-    rows_15m = fetch_yahoo(inst["symbol"], "15m", "5d")
-    rows_1h  = fetch_yahoo(inst["symbol"], "60m", "60d")
+    daily    = fetch_prices(inst["symbol"], "1d",  "1y")
+    rows_15m = fetch_prices(inst["symbol"], "15m", "5d")
+    rows_1h  = fetch_prices(inst["symbol"], "60m", "60d")
     h4       = to_4h(rows_1h) if rows_1h else []
 
     if not daily or len(daily) < 15:
