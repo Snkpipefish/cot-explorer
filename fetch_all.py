@@ -190,12 +190,23 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         return None
     spread_buf = atr_15m * 0.15
 
-    def first_htf(levels, min_w=3):
-        """Nærmeste nivå med weight >= min_w, ellers nærmeste uansett."""
+    def best_t1(levels, min_w=3):
+        """
+        Velg T1-mål med prioritet:
+          1. Nærmeste nivå med weight >= min_w (D1+)
+          2. Nærmeste nivå med weight >= 2 (4H/SMC) — fallback
+          3. Nærmeste nivå uansett (siste utvei, merkes som svak T1)
+        Returnerer nivå-obj med ekstra felt 't1_quality': 'htf'|'4h'|'weak'
+        """
         for l in levels:
             if l["weight"] >= min_w:
-                return l
-        return levels[0] if levels else None
+                return dict(l, t1_quality="htf")
+        for l in levels:
+            if l["weight"] >= 2:
+                return dict(l, t1_quality="4h")
+        if levels:
+            return dict(levels[0], t1_quality="weak")
+        return None
 
     if direction == "long":
         if not sup_tagged or not res_tagged:
@@ -209,10 +220,11 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         if risk <= 0:             return None
         if risk > atr_15m * 2.5: return None
 
-        t1_obj = first_htf(res_tagged, min_w=3)
+        t1_obj = best_t1(res_tagged, min_w=3)
         if t1_obj is None:        return None
         t1 = t1_obj["price"]
 
+        # T2: neste nivå etter T1 (uansett weight)
         res_after = [l for l in res_tagged if l["price"] > t1]
         t2 = res_after[0]["price"] if res_after else round(t1 + risk, 5)
 
@@ -221,6 +233,7 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         if rr1 < min_rr: return None
 
         at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
+        q = t1_obj.get("t1_quality", "weak")
         return {
             "entry": round(curr, 5), "sl": round(sl, 5),
             "t1": round(t1, 5),     "t2": round(t2, 5),
@@ -231,9 +244,10 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
             "entry_weight":    entry_w,
             "t1_source":       t1_obj["source"],
             "t1_weight":       t1_obj["weight"],
+            "t1_quality":      q,
             "status":          "aktiv" if at_level else "watchlist",
             "note": (f"L2L: S {round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
-                     f" → T1 {round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']}]"
+                     f" → T1 {round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']} {q}]"
                      f" | SL={round(sl,4)} | ATR15m={round(atr_15m,4)}"),
             "timeframe": "15m",
         }
@@ -249,7 +263,7 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         if risk <= 0:             return None
         if risk > atr_15m * 2.5: return None
 
-        t1_obj = first_htf(sup_tagged, min_w=3)
+        t1_obj = best_t1(sup_tagged, min_w=3)
         if t1_obj is None:        return None
         t1 = t1_obj["price"]
 
@@ -261,6 +275,7 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         if rr1 < min_rr: return None
 
         at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
+        q = t1_obj.get("t1_quality", "weak")
         return {
             "entry": round(curr, 5), "sl": round(sl, 5),
             "t1": round(t1, 5),     "t2": round(t2, 5),
@@ -271,9 +286,10 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
             "entry_weight":    entry_w,
             "t1_source":       t1_obj["source"],
             "t1_weight":       t1_obj["weight"],
+            "t1_quality":      q,
             "status":          "aktiv" if at_level else "watchlist",
             "note": (f"L2L: R {round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
-                     f" → T1 {round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']}]"
+                     f" → T1 {round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']} {q}]"
                      f" | SL={round(sl,4)} | ATR15m={round(atr_15m,4)}"),
             "timeframe": "15m",
         }
