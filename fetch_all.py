@@ -177,35 +177,40 @@ def merge_tagged_levels(tagged, curr, atr, max_n=6):
 
 def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, klasse, min_rr=1.5):
     """
-    Level-til-level intradag med tidsvindus-vekting:
-    - Entry: nærmeste nivå (hvilken som helst TF)
-    - SL: rett bak entry-nivå + 1.5×spread
-    - T1: nærmeste HTF-nivå (weight>=3, D1+) på motsatt side.
-          Faller tilbake på nærmeste nivå uansett TF hvis ingen D1+ finnes.
-    - T2: neste nivå etter T1
-    - entry_weight i output → frontend kan vise styrke-badge
-    - Dropp hvis R:R < min_rr eller SL > 2.5×ATR(15m)
+    Level-til-level setup — korrekt risiko/reward-kalkyle:
+
+    Geometri:
+      LONG:  entry=støtte  SL=entry-1×ATR  T1=motstand (R:R>=min_rr fra entry)
+      SHORT: entry=motstand SL=entry+1×ATR T1=støtte   (R:R>=min_rr fra entry)
+
+    Regler:
+      - SL = 1×ATR(15m) bak entry-nivå   (ikke 0.15×ATR spread)
+      - Risk = 1×ATR(15m) konstant        (ikke curr-til-SL-avstand)
+      - R:R måles fra entry-nivå → T1    (ikke fra nåpris)
+      - Pris kan max være 2×ATR fra entry (watchlist-filter)
+      - T1 må være min min_rr×ATR fra entry (sikrer R:R >= min_rr)
+      - entry i output = faktisk entry-nivå (ikke nåpris)
     """
     if not atr_15m or atr_15m <= 0:
         return None
-    spread_buf = atr_15m * 0.15
 
-    def best_t1(levels, min_w=3):
+    sl_buf = atr_15m * 1.0    # SL-avstand: 1×ATR bak entry-nivå
+    risk   = sl_buf            # Konstant risiko = 1×ATR
+    min_t1_dist = atr_15m * min_rr  # T1 må være minst min_rr×ATR fra entry
+
+    def best_t1(levels, entry):
         """
-        Velg T1-mål med prioritet:
-          1. Nærmeste nivå med weight >= min_w (D1+)
-          2. Nærmeste nivå med weight >= 2 (4H/SMC) — fallback
-          3. Nærmeste nivå uansett (siste utvei, merkes som svak T1)
-        Returnerer nivå-obj med ekstra felt 't1_quality': 'htf'|'4h'|'weak'
+        Beste T1 med HTF-prioritet.
+        Krever at T1 er minst min_rr×ATR fra entry-nivå.
+        Sorterer: høyest weight → nærmest entry.
         """
-        for l in levels:
-            if l["weight"] >= min_w:
-                return dict(l, t1_quality="htf")
-        for l in levels:
-            if l["weight"] >= 2:
-                return dict(l, t1_quality="4h")
-        if levels:
-            return dict(levels[0], t1_quality="weak")
+        cands = sorted(levels, key=lambda x: (-x["weight"], abs(x["price"] - entry)))
+        for l in cands:
+            p = l["price"]
+            ok = (p > entry + min_t1_dist) if direction == "long" else (p < entry - min_t1_dist)
+            if ok:
+                q = "htf" if l["weight"] >= 3 else ("4h" if l["weight"] >= 2 else "weak")
+                return dict(l, t1_quality=q)
         return None
 
     if direction == "long":
@@ -215,41 +220,44 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         entry_level = entry_obj["price"]
         entry_w     = entry_obj["weight"]
 
-        sl   = entry_level - spread_buf
-        risk = curr - sl
-        if risk <= 0:             return None
-        if risk > atr_15m * 2.5: return None
+        # Kun gyldig hvis pris er innen 2×ATR av støtten (watchlist-filter)
+        entry_dist = curr - entry_level
+        if entry_dist < 0 or entry_dist > atr_15m * 2.0:
+            return None
 
-        t1_obj = best_t1(res_tagged, min_w=3)
-        if t1_obj is None:        return None
+        sl = round(entry_level - sl_buf, 5)
+
+        t1_obj = best_t1(res_tagged, entry_level)
+        if t1_obj is None: return None
         t1 = t1_obj["price"]
-        if t1 <= curr:            return None  # T1 må være over nåpris for long
 
-        # T2: neste nivå etter T1 (uansett weight)
         res_after = [l for l in res_tagged if l["price"] > t1]
         t2 = res_after[0]["price"] if res_after else round(t1 + risk, 5)
 
-        rr1 = round((t1 - curr) / risk, 2)
-        rr2 = round((t2 - curr) / risk, 2)
-        if rr1 < min_rr: return None
+        # R:R fra entry-nivå (ikke fra nåpris)
+        rr1 = round((t1 - entry_level) / risk, 2)
+        rr2 = round((t2 - entry_level) / risk, 2)
 
         at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
-        q = t1_obj.get("t1_quality", "weak")
+        q = t1_obj["t1_quality"]
         return {
-            "entry": round(curr, 5), "sl": round(sl, 5),
-            "t1": round(t1, 5),     "t2": round(t2, 5),
-            "rr_t1": rr1, "rr_t2": rr2, "min_rr": min_rr,
-            "entry_dist_atr":  round(abs(curr - entry_level) / atr_15m, 2),
-            "entry_name":      f"Støtte {round(entry_level,5)} [{entry_obj['source']}]",
-            "entry_level":     round(entry_level, 5),
-            "entry_weight":    entry_w,
-            "t1_source":       t1_obj["source"],
-            "t1_weight":       t1_obj["weight"],
-            "t1_quality":      q,
-            "status":          "aktiv" if at_level else "watchlist",
-            "note": (f"L2L: S {round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
-                     f" → T1 {round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']} {q}]"
-                     f" | SL={round(sl,4)} | ATR15m={round(atr_15m,4)}"),
+            "entry":          round(entry_level, 5),   # faktisk entry-nivå
+            "entry_curr":     round(curr, 5),           # nåpris for referanse
+            "sl":             sl,
+            "t1":             round(t1, 5),
+            "t2":             round(t2, 5),
+            "rr_t1": rr1,    "rr_t2": rr2,   "min_rr": min_rr,
+            "entry_dist_atr": round(entry_dist / atr_15m, 2),
+            "entry_name":     f"Støtte {round(entry_level,5)} [{entry_obj['source']}]",
+            "entry_level":    round(entry_level, 5),
+            "entry_weight":   entry_w,
+            "t1_source":      t1_obj["source"],
+            "t1_weight":      t1_obj["weight"],
+            "t1_quality":     q,
+            "status":         "aktiv" if at_level else "watchlist",
+            "note": (f"L2L LONG: E={round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
+                     f" SL={round(sl,4)} → T1={round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']} {q}]"
+                     f" R:R={rr1} | ATR15m={round(atr_15m,4)}"),
             "timeframe": "15m",
         }
     else:
@@ -259,40 +267,44 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         entry_level = entry_obj["price"]
         entry_w     = entry_obj["weight"]
 
-        sl   = entry_level + spread_buf
-        risk = sl - curr
-        if risk <= 0:             return None
-        if risk > atr_15m * 2.5: return None
+        # Kun gyldig hvis pris er innen 2×ATR av motstanden (watchlist-filter)
+        entry_dist = entry_level - curr
+        if entry_dist < 0 or entry_dist > atr_15m * 2.0:
+            return None
 
-        t1_obj = best_t1(sup_tagged, min_w=3)
-        if t1_obj is None:        return None
+        sl = round(entry_level + sl_buf, 5)
+
+        t1_obj = best_t1(sup_tagged, entry_level)
+        if t1_obj is None: return None
         t1 = t1_obj["price"]
-        if t1 >= curr:            return None  # T1 må være under nåpris for short
 
         sup_after = [l for l in sup_tagged if l["price"] < t1]
         t2 = sup_after[0]["price"] if sup_after else round(t1 - risk, 5)
 
-        rr1 = round((curr - t1) / risk, 2)
-        rr2 = round((curr - t2) / risk, 2)
-        if rr1 < min_rr: return None
+        # R:R fra entry-nivå (ikke fra nåpris)
+        rr1 = round((entry_level - t1) / risk, 2)
+        rr2 = round((entry_level - t2) / risk, 2)
 
         at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
-        q = t1_obj.get("t1_quality", "weak")
+        q = t1_obj["t1_quality"]
         return {
-            "entry": round(curr, 5), "sl": round(sl, 5),
-            "t1": round(t1, 5),     "t2": round(t2, 5),
-            "rr_t1": rr1, "rr_t2": rr2, "min_rr": min_rr,
-            "entry_dist_atr":  round(abs(curr - entry_level) / atr_15m, 2),
-            "entry_name":      f"Motstand {round(entry_level,5)} [{entry_obj['source']}]",
-            "entry_level":     round(entry_level, 5),
-            "entry_weight":    entry_w,
-            "t1_source":       t1_obj["source"],
-            "t1_weight":       t1_obj["weight"],
-            "t1_quality":      q,
-            "status":          "aktiv" if at_level else "watchlist",
-            "note": (f"L2L: R {round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
-                     f" → T1 {round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']} {q}]"
-                     f" | SL={round(sl,4)} | ATR15m={round(atr_15m,4)}"),
+            "entry":          round(entry_level, 5),   # faktisk entry-nivå
+            "entry_curr":     round(curr, 5),           # nåpris for referanse
+            "sl":             sl,
+            "t1":             round(t1, 5),
+            "t2":             round(t2, 5),
+            "rr_t1": rr1,    "rr_t2": rr2,   "min_rr": min_rr,
+            "entry_dist_atr": round(entry_dist / atr_15m, 2),
+            "entry_name":     f"Motstand {round(entry_level,5)} [{entry_obj['source']}]",
+            "entry_level":    round(entry_level, 5),
+            "entry_weight":   entry_w,
+            "t1_source":      t1_obj["source"],
+            "t1_weight":      t1_obj["weight"],
+            "t1_quality":     q,
+            "status":         "aktiv" if at_level else "watchlist",
+            "note": (f"L2L SHORT: E={round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
+                     f" SL={round(sl,4)} → T1={round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']} {q}]"
+                     f" R:R={rr1} | ATR15m={round(atr_15m,4)}"),
             "timeframe": "15m",
         }
 
@@ -565,12 +577,18 @@ for inst in INSTRUMENTS:
     active_setup = setup_long if dir_color == "bull" else setup_short
     t1_s = active_setup["t1"]    if active_setup else None
     rr_s = active_setup["rr_t1"] if active_setup else None
-    # Ingen aktiv setup: vis nærmeste HTF-mål som potensielt mål (~)
+    # Ingen aktiv setup: vis nærmeste meningsfulle mål som potensielt (~T1)
+    # Filtrer bort nivåer innen 1.5×ATR (for nære til å være nyttige mål)
     if t1_s is None:
+        min_dist = (atr_15m or atr_d * 0.4) * 1.5
         cands = tagged_res if dir_color == "bull" else tagged_sup
+        cands = [l for l in cands if abs(l["price"] - curr) >= min_dist]
         pot = next((l for l in cands if l["weight"] >= 2), cands[0] if cands else None)
-        p = pot["price"]
-        t1_s = f"~{round(p, 5 if p < 100 else 2)}" if pot else "-"
+        if pot:
+            p = pot["price"]
+            t1_s = f"~{round(p, 5 if p < 100 else 2)}"
+        else:
+            t1_s = "-"
         rr_s = "-"
     st      = "🟢" if at_level_now else "🟡"
     dir_tag = "▲" if dir_color == "bull" else "▼"
