@@ -168,6 +168,9 @@ def merge_tagged_levels(tagged, curr, atr, max_n=6):
                     m["price"]  = lvl["price"]
                     m["source"] = lvl["source"]
                     m["weight"] = lvl["weight"]
+                    for k in ("zone_top", "zone_bottom"):
+                        if k in lvl: m[k] = lvl[k]
+                        else: m.pop(k, None)
                 absorbed = True
                 break
         if not absorbed:
@@ -177,37 +180,48 @@ def merge_tagged_levels(tagged, curr, atr, max_n=6):
 
 def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, klasse, min_rr=1.5):
     """
-    Level-til-level setup - korrekt risiko/reward-kalkyle:
+    Makro level-til-level setup — strukturbasert stop loss:
 
     Geometri:
-      LONG:  entry=støtte  SL=entry-1×ATR  T1=motstand (R:R>=min_rr fra entry)
-      SHORT: entry=motstand SL=entry+1×ATR T1=støtte   (R:R>=min_rr fra entry)
+      LONG:  entry = støtte/demand-sone,  SL = under sone-bunn eller 0.3–0.5×ATR(D1) under nivå
+      SHORT: entry = motstand/supply-sone, SL = over sone-topp  eller 0.3–0.5×ATR(D1) over nivå
 
     Regler:
-      - SL = 1×ATR(15m) bak entry-nivå   (ikke 0.15×ATR spread)
-      - Risk = 1×ATR(15m) konstant        (ikke curr-til-SL-avstand)
-      - R:R måles fra entry-nivå → T1    (ikke fra nåpris)
-      - Pris kan max være 2×ATR fra entry (watchlist-filter)
-      - T1 må være min min_rr×ATR fra entry (sikrer R:R >= min_rr)
-      - entry i output = faktisk entry-nivå (ikke nåpris)
+      - SL plasseres ved STRUKTUREN, ikke mekanisk ATR fra nåpris
+        · SMC demand/supply-sone: SL = zone_bottom/top + 0.15×ATR(D1) buffer
+        · Linjnivå (PDH/PDL/D1/PWH/PWL): SL = nivå ± 0.3–0.5×ATR(D1)
+      - Risk = faktisk avstand entry → SL (ikke fast ATR)
+      - T1 må gi R:R >= min_rr basert på faktisk risk
+      - Watchlist-filter: pris maks 1×ATR(D1) fra entry-nivå
     """
     if not atr_15m or atr_15m <= 0:
         return None
+    if not atr_daily or atr_daily <= 0:
+        atr_daily = atr_15m * 5
 
-    sl_buf = atr_15m * 1.0    # SL-avstand: 1×ATR bak entry-nivå
-    risk   = sl_buf            # Konstant risiko = 1×ATR
-    min_t1_dist = atr_15m * min_rr  # T1 må være minst min_rr×ATR fra entry
+    def structural_sl(entry_level, entry_obj, dir):
+        """SL ved strukturnivå — aldri mekanisk ATR fra nåpris."""
+        buf = atr_daily * 0.15
+        w   = entry_obj.get("weight", 1)
+        if dir == "long":
+            zone_bot = entry_obj.get("zone_bottom")
+            if zone_bot and zone_bot < entry_level:
+                return round(zone_bot - buf, 5)
+            sl_buf = atr_daily * (0.5 if w >= 4 else 0.3)
+            return round(entry_level - sl_buf, 5)
+        else:
+            zone_top = entry_obj.get("zone_top")
+            if zone_top and zone_top > entry_level:
+                return round(zone_top + buf, 5)
+            sl_buf = atr_daily * (0.5 if w >= 4 else 0.3)
+            return round(entry_level + sl_buf, 5)
 
-    def best_t1(levels, entry):
-        """
-        Beste T1 med HTF-prioritet.
-        Krever at T1 er minst min_rr×ATR fra entry-nivå.
-        Sorterer: høyest weight → nærmest entry.
-        """
+    def best_t1(levels, entry, min_dist):
+        """Beste T1: høyest HTF-weight → nærmest entry, minst min_dist unna."""
         cands = sorted(levels, key=lambda x: (-x["weight"], abs(x["price"] - entry)))
         for l in cands:
             p = l["price"]
-            ok = (p > entry + min_t1_dist) if direction == "long" else (p < entry - min_t1_dist)
+            ok = (p > entry + min_dist) if direction == "long" else (p < entry - min_dist)
             if ok:
                 q = "htf" if l["weight"] >= 3 else ("4h" if l["weight"] >= 2 else "weak")
                 return dict(l, t1_quality=q)
@@ -220,34 +234,39 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         entry_level = entry_obj["price"]
         entry_w     = entry_obj["weight"]
 
-        # Kun gyldig hvis pris er innen 2×ATR av støtten (watchlist-filter)
         entry_dist = curr - entry_level
-        if entry_dist < 0 or entry_dist > atr_15m * 2.0:
+        if entry_dist < 0 or entry_dist > atr_daily * 1.0:
             return None
 
-        sl = round(entry_level - sl_buf, 5)
+        sl   = structural_sl(entry_level, entry_obj, "long")
+        risk = entry_level - sl
+        if risk <= 0:
+            return None
+        min_t1_dist = risk * min_rr
 
-        t1_obj = best_t1(res_tagged, entry_level)
+        t1_obj = best_t1(res_tagged, entry_level, min_t1_dist)
         if t1_obj is None: return None
         t1 = t1_obj["price"]
 
         res_after = [l for l in res_tagged if l["price"] > t1]
         t2 = res_after[0]["price"] if res_after else round(t1 + risk, 5)
 
-        # R:R fra entry-nivå (ikke fra nåpris)
         rr1 = round((t1 - entry_level) / risk, 2)
         rr2 = round((t2 - entry_level) / risk, 2)
 
         at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
-        q = t1_obj["t1_quality"]
+        sl_src   = "zone" if entry_obj.get("zone_bottom") else "struktur"
+        q        = t1_obj["t1_quality"]
         return {
-            "entry":          round(entry_level, 5),   # faktisk entry-nivå
-            "entry_curr":     round(curr, 5),           # nåpris for referanse
+            "entry":          round(entry_level, 5),
+            "entry_curr":     round(curr, 5),
             "sl":             sl,
+            "sl_type":        sl_src,
             "t1":             round(t1, 5),
             "t2":             round(t2, 5),
             "rr_t1": rr1,    "rr_t2": rr2,   "min_rr": min_rr,
-            "entry_dist_atr": round(entry_dist / atr_15m, 2),
+            "risk_atr_d":     round(risk / atr_daily, 2),
+            "entry_dist_atr": round(entry_dist / atr_daily, 2),
             "entry_name":     f"Støtte {round(entry_level,5)} [{entry_obj['source']}]",
             "entry_level":    round(entry_level, 5),
             "entry_weight":   entry_w,
@@ -255,10 +274,11 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
             "t1_weight":      t1_obj["weight"],
             "t1_quality":     q,
             "status":         "aktiv" if at_level else "watchlist",
-            "note": (f"L2L LONG: E={round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
-                     f" SL={round(sl,4)} → T1={round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']} {q}]"
-                     f" R:R={rr1} | ATR15m={round(atr_15m,4)}"),
-            "timeframe": "15m",
+            "note": (f"MAKRO LONG: E={round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
+                     f" SL={round(sl,4)} ({sl_src}) → T1={round(t1,4)}"
+                     f" [{t1_obj['source']} w{t1_obj['weight']} {q}]"
+                     f" R:R={rr1} | Risk={round(risk,4)} ({round(risk/atr_daily,2)}×ATRd)"),
+            "timeframe": "D1/4H",
         }
     else:
         if not res_tagged or not sup_tagged:
@@ -267,34 +287,39 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         entry_level = entry_obj["price"]
         entry_w     = entry_obj["weight"]
 
-        # Kun gyldig hvis pris er innen 2×ATR av motstanden (watchlist-filter)
         entry_dist = entry_level - curr
-        if entry_dist < 0 or entry_dist > atr_15m * 2.0:
+        if entry_dist < 0 or entry_dist > atr_daily * 1.0:
             return None
 
-        sl = round(entry_level + sl_buf, 5)
+        sl   = structural_sl(entry_level, entry_obj, "short")
+        risk = sl - entry_level
+        if risk <= 0:
+            return None
+        min_t1_dist = risk * min_rr
 
-        t1_obj = best_t1(sup_tagged, entry_level)
+        t1_obj = best_t1(sup_tagged, entry_level, min_t1_dist)
         if t1_obj is None: return None
         t1 = t1_obj["price"]
 
         sup_after = [l for l in sup_tagged if l["price"] < t1]
         t2 = sup_after[0]["price"] if sup_after else round(t1 - risk, 5)
 
-        # R:R fra entry-nivå (ikke fra nåpris)
         rr1 = round((entry_level - t1) / risk, 2)
         rr2 = round((entry_level - t2) / risk, 2)
 
         at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
-        q = t1_obj["t1_quality"]
+        sl_src   = "zone" if entry_obj.get("zone_top") else "struktur"
+        q        = t1_obj["t1_quality"]
         return {
-            "entry":          round(entry_level, 5),   # faktisk entry-nivå
-            "entry_curr":     round(curr, 5),           # nåpris for referanse
+            "entry":          round(entry_level, 5),
+            "entry_curr":     round(curr, 5),
             "sl":             sl,
+            "sl_type":        sl_src,
             "t1":             round(t1, 5),
             "t2":             round(t2, 5),
             "rr_t1": rr1,    "rr_t2": rr2,   "min_rr": min_rr,
-            "entry_dist_atr": round(entry_dist / atr_15m, 2),
+            "risk_atr_d":     round(risk / atr_daily, 2),
+            "entry_dist_atr": round(entry_dist / atr_daily, 2),
             "entry_name":     f"Motstand {round(entry_level,5)} [{entry_obj['source']}]",
             "entry_level":    round(entry_level, 5),
             "entry_weight":   entry_w,
@@ -302,10 +327,11 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
             "t1_weight":      t1_obj["weight"],
             "t1_quality":     q,
             "status":         "aktiv" if at_level else "watchlist",
-            "note": (f"L2L SHORT: E={round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
-                     f" SL={round(sl,4)} → T1={round(t1,4)} [{t1_obj['source']} w{t1_obj['weight']} {q}]"
-                     f" R:R={rr1} | ATR15m={round(atr_15m,4)}"),
-            "timeframe": "15m",
+            "note": (f"MAKRO SHORT: E={round(entry_level,4)} [{entry_obj['source']} w{entry_w}]"
+                     f" SL={round(sl,4)} ({sl_src}) → T1={round(t1,4)}"
+                     f" [{t1_obj['source']} w{t1_obj['weight']} {q}]"
+                     f" R:R={rr1} | Risk={round(risk,4)} ({round(risk/atr_daily,2)}×ATRd)"),
+            "timeframe": "D1/4H",
         }
 
 def fetch_fear_greed():
@@ -455,9 +481,13 @@ for inst in INSTRUMENTS:
     # SMC supply/demand-soner (weight 2 — struktur-basert men fra 15m)
     if smc:
         for z in smc.get("supply_zones", []):
-            if z["poi"] > curr: raw_res.append({"price": z["poi"], "source": "SMC", "weight": 2})
+            if z["poi"] > curr:
+                raw_res.append({"price": z["poi"], "source": "SMC", "weight": 2,
+                                "zone_top": z["top"], "zone_bottom": z["bottom"]})
         for z in smc.get("demand_zones", []):
-            if z["poi"] < curr: raw_sup.append({"price": z["poi"], "source": "SMC", "weight": 2})
+            if z["poi"] < curr:
+                raw_sup.append({"price": z["poi"], "source": "SMC", "weight": 2,
+                                "zone_top": z["top"], "zone_bottom": z["bottom"]})
 
     # 15m intradag-pivots (weight 1 — svakest, kun for lokal entry-presisjon)
     res_15m, sup_15m = find_intraday_levels(rows_15m) if rows_15m else ([], [])
@@ -501,6 +531,13 @@ for inst in INSTRUMENTS:
     cot_pct   = spec_net / oi * 100
     cot_bias  = "LONG" if cot_pct>4 else "SHORT" if cot_pct<-4 else "NØYTRAL"
     cot_color = "bull"  if cot_pct>4 else "bear"  if cot_pct<-4 else "neutral"
+    _cot_chg  = cot_entry.get("change_spec_net", 0) or 0
+    if _cot_chg == 0:
+        cot_momentum = "STABIL"
+    elif (_cot_chg > 0 and spec_net >= 0) or (_cot_chg < 0 and spec_net <= 0):
+        cot_momentum = "ØKER"   # Legger til i eksisterende posisjon
+    else:
+        cot_momentum = "SNUR"   # Reduserer / snur posisjon
 
     # ── Score ─────────────────────────────────────────────
     above_sma = curr > sma200
@@ -533,22 +570,35 @@ for inst in INSTRUMENTS:
         (klasse == "C" and "NY" in session_now["label"])
     )
 
+    dir_color    = "bull" if (above_sma and chg5>0) else "bear" if (not above_sma and chg5<0) else ("bull" if above_sma else "bear")
     cot_confirms = (cot_bias == "LONG" and dir_color == "bull") or \
                    (cot_bias == "SHORT" and dir_color == "bear")
+    cot_strong   = abs(cot_pct) > 10   # >10% av OI = signifikant makro-posisjonering
+    no_event_risk = len(get_binary_risk(inst["key"], hours=4)) == 0
+
     score_details = [
-        {"kryss": "Over SMA200",             "verdi": above_sma},
-        {"kryss": "D1 + 15m regime likt",    "verdi": align in ("bull","bear")},
-        {"kryss": "COT bekrefter",           "verdi": cot_confirms},
-        {"kryss": "Pris VED nivå nå",        "verdi": at_level_now},
-        {"kryss": "HTF-nivå (D1+) bekrefter","verdi": htf_level_nearby},
-        {"kryss": "Riktig sesjon aktiv",     "verdi": sesjon_riktig},
-        {"kryss": "Momentum 20d",            "verdi": chg20 > 0},
-        {"kryss": "Sentiment",               "verdi": fg_score < 35},
+        {"kryss": "Over SMA200 (D1 trend)",         "verdi": above_sma},
+        {"kryss": "Momentum 20d bekrefter",          "verdi": (chg20 > 0 if dir_color == "bull" else chg20 < 0)},
+        {"kryss": "COT bekrefter retning",           "verdi": cot_confirms},
+        {"kryss": "COT sterk posisjonering (>10%)",  "verdi": cot_strong},
+        {"kryss": "Pris VED HTF-nivå nå",            "verdi": at_level_now},
+        {"kryss": "HTF-nivå D1/Ukentlig",            "verdi": htf_level_nearby},
+        {"kryss": "D1 + 4H trend kongruent",         "verdi": align in ("bull","bear")},
+        {"kryss": "Ingen event-risiko (4t)",          "verdi": no_event_risk},
     ]
     score       = sum(1 for s in score_details if s["verdi"])
     grade       = "A+" if score>=7 else "A" if score>=5 else "B" if score>=3 else "C"
     grade_color = "bull" if score>=7 else "warn" if score>=5 else "bear"
-    dir_color   = "bull" if (above_sma and chg5>0) else "bear" if (not above_sma and chg5<0) else ("bull" if above_sma else "bear")
+
+    # Tidshorisonts-klassifisering — hvilken type trader kan bruke dette nå
+    if score >= 6 and cot_confirms and htf_level_nearby:
+        timeframe_bias = "MAKRO"      # COT + HTF struktur → hold dager/uker
+    elif score >= 4 and htf_level_nearby:
+        timeframe_bias = "SWING"      # HTF-nivå gyldig → hold timer/dager
+    elif score >= 2 and at_level_now and sesjon_aktiv:
+        timeframe_bias = "SCALP"      # Pris VED nivå i aktiv sesjon → minutter
+    else:
+        timeframe_bias = "WATCHLIST"  # Ikke klar ennå
 
     vix_price = (prices.get("VIX") or {}).get("price", 20)
     pos_size  = "Full" if vix_price<20 else "Halv" if vix_price<30 else "Kvart"
@@ -649,9 +699,11 @@ for inst in INSTRUMENTS:
         "vix_spread_factor": 1.0 if vix_price<20 else 1.5 if vix_price<30 else 2.0,
         "cot":           {"bias": cot_bias, "color": cot_color, "net": spec_net,
                           "chg": cot_entry.get("change_spec_net",0), "pct": round(abs(cot_pct),1),
+                          "momentum": cot_momentum,
                           "date": cot_entry.get("date",""), "report": cot_entry.get("report","")},
-        "combined_bias": "LONG" if dir_color=="bull" else "SHORT",
-        "sentiment":     {"fear_greed": fg},
+        "combined_bias":  "LONG" if dir_color=="bull" else "SHORT",
+        "timeframe_bias": timeframe_bias,
+        "sentiment":      {"fear_greed": fg},
     }
 
 # ── Makro ──────────────────────────────────────────────────
