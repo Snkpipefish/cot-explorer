@@ -3,10 +3,19 @@
 fetch_fundamentals.py — Henter fundamental makrodata fra FRED og scorer ±2 per indikator.
 Lagrer til data/fundamentals/latest.json.
 
-Dekker alle EdgeFinder-kategorier:
-  - Economic Growth & Consumer Strength: GDP, mPMI, sPMI, Retail Sales, Consumer Confidence
-  - Inflation: CPI YoY, PPI YoY, PCE YoY, Interest Rates
-  - Jobs Market: NFP, Unemployment, Initial Claims, ADP, JOLTS
+Kategorier (EdgeFinder-stil):
+  - Economic Growth: GDP QoQ, Retail Sales MoM, UoM Consumer Confidence
+  - Inflation:       CPI YoY, PPI YoY, PCE YoY, Fed Funds Rate
+  - Jobs Market:     NFP, Unemployment Rate, Initial Claims, ADP, JOLTS
+
+PMI hentes utelukkende fra ForexFactory-kalenderen (ISM-serier er ikke
+tilgjengelige som FRED-serie; de må kjøpes direkte fra ISM).
+
+Vekting for høy-sannsynlighets-setups:
+  - Innenfor kategori: vektes per indikator (NFP/Claims/CPI/PCE veier tyngst)
+  - Mellom kategorier: inflation 0.40 · jobs 0.35 · growth 0.25 (for FX/metaller)
+  - Konsensus-multiplikator: ×1.4 når inflasjon+jobs peker SAMME vei,
+    ×0.7 når de peker MOT hverandre → demper mixet signal
 """
 import urllib.request, json, os, time
 from datetime import datetime, timezone
@@ -16,35 +25,50 @@ BASE = os.path.expanduser("~/cot-explorer/data")
 OUT  = os.path.join(BASE, "fundamentals", "latest.json")
 os.makedirs(os.path.join(BASE, "fundamentals"), exist_ok=True)
 
-# ── FRED-serier ────────────────────────────────────────────────────────────────
-# type:
-#   "level"   = bruk råverdien direkte
-#   "yoy"     = beregn YoY% (trenger 13+ obs)
-#   "mom"     = beregn MoM% (trenger 2+ obs)
-#   "mom_abs" = beregn absolutt MoM-endring (trenger 2+ obs)
-# higher_good:
-#   True  = høyere verdi → bullish USD
-#   False = lavere verdi → bullish USD
-#   None  = kontekstavhengig (inflasjon)
+# ── FRED-serier ───────────────────────────────────────────────────────────────
+# Merk: NAPM og NMFCI (ISM PMI) gir 400-feil — ISM selger dataene, de er ikke
+# gratis på FRED. PMI håndteres i try_calendar_pmi() under.
+# ADPMNUSNERNSA er allerede en månedlig ENDRINGSSERIE (ikke nivåserie),
+# så type = "level" — ikke "mom_abs" (som ville gitt andre derivat).
 
 FRED_SERIES = {
     # Economic Growth & Consumer Strength
-    "GDP":     {"id": "A191RL1Q225SBEA", "type": "level",   "higher_good": True,  "label": "GDP Growth QoQ (%)"},
-    "mPMI":    {"id": "NAPM",            "type": "level",   "higher_good": True,  "label": "ISM Manufacturing PMI"},
-    "sPMI":    {"id": "NMFCI",           "type": "level",   "higher_good": True,  "label": "ISM Services NMI"},
-    "Retail":  {"id": "RSAFS",           "type": "mom",     "higher_good": True,  "label": "Retail Sales MoM (%)"},
-    "ConConf": {"id": "UMCSENT",         "type": "level",   "higher_good": True,  "label": "UoM Consumer Sentiment"},
+    "GDP":     {"id": "A191RL1Q225SBEA", "type": "level",   "label": "GDP Growth QoQ (%)"},
+    "Retail":  {"id": "RSAFS",           "type": "mom",     "label": "Retail Sales MoM (%)"},
+    "ConConf": {"id": "UMCSENT",         "type": "level",   "label": "UoM Consumer Sentiment"},
     # Inflation
-    "CPI":     {"id": "CPIAUCSL",        "type": "yoy",     "higher_good": None,  "label": "CPI YoY (%)"},
-    "PPI":     {"id": "PPIACO",          "type": "yoy",     "higher_good": None,  "label": "PPI YoY (%)"},
-    "PCE":     {"id": "PCEPI",           "type": "yoy",     "higher_good": None,  "label": "PCE YoY (%)"},
-    "IntRate": {"id": "FEDFUNDS",        "type": "level",   "higher_good": True,  "label": "Fed Funds Rate (%)"},
+    "CPI":     {"id": "CPIAUCSL",        "type": "yoy",     "label": "CPI YoY (%)"},
+    "PPI":     {"id": "PPIACO",          "type": "yoy",     "label": "PPI YoY (%)"},
+    "PCE":     {"id": "PCEPI",           "type": "yoy",     "label": "PCE YoY (%)"},
+    "IntRate": {"id": "FEDFUNDS",        "type": "level",   "label": "Fed Funds Rate (%)"},
     # Jobs Market
-    "NFP":     {"id": "PAYEMS",          "type": "mom_abs", "higher_good": True,  "label": "NFP Endring (k)"},
-    "Unemp":   {"id": "UNRATE",          "type": "level",   "higher_good": False, "label": "Arbeidsledighet (%)"},
-    "Claims":  {"id": "ICSA",            "type": "level",   "higher_good": False, "label": "Init. Krav (k)"},
-    "ADP":     {"id": "ADPMNUSNERNSA",   "type": "mom_abs", "higher_good": True,  "label": "ADP Endring (k)"},
-    "JOLTS":   {"id": "JTSJOL",          "type": "level",   "higher_good": True,  "label": "JOLTS Stillinger (k)"},
+    "NFP":     {"id": "PAYEMS",          "type": "mom_abs", "label": "NFP Endring (k)"},
+    "Unemp":   {"id": "UNRATE",          "type": "level",   "label": "Arbeidsledighet (%)"},
+    "Claims":  {"id": "ICSA",            "type": "level",   "label": "Init. Krav (k)"},
+    # ADP: allerede en endringsserie → type="level" (raw = månedlig endring i tusen)
+    "ADP":     {"id": "ADPMNUSNERNSA",   "type": "level",   "label": "ADP Endring (k)"},
+    "JOLTS":   {"id": "JTSJOL",          "type": "level",   "label": "JOLTS Stillinger (k)"},
+}
+
+# Vekter per indikator (innenfor kategori) — høyere = viktigere markedsbeveger
+INDICATOR_WEIGHTS = {
+    # Growth (sum = 4)
+    "GDP":     1.0,
+    "mPMI":    2.0,   # fra kalender
+    "sPMI":    2.0,   # fra kalender
+    "Retail":  1.5,
+    "ConConf": 1.5,
+    # Inflation (sum = 6.5)
+    "CPI":     2.0,
+    "PPI":     1.0,
+    "PCE":     2.0,
+    "IntRate": 1.5,
+    # Jobs (sum = 7)
+    "NFP":     2.0,
+    "Unemp":   1.5,
+    "Claims":  1.5,
+    "ADP":     1.0,
+    "JOLTS":   1.0,
 }
 
 CATEGORIES = {
@@ -53,20 +77,22 @@ CATEGORIES = {
     "jobs":        ["NFP", "Unemp", "Claims", "ADP", "JOLTS"],
 }
 
-# Kart: instrument → hvilken retning USD-fundamental score virker
-# +1 = sterk USD = bullish for instrumentet
-# -1 = sterk USD = bearish for instrumentet
+# Kategori-vekter per instrumenttype
+CAT_WEIGHTS_FX = {"econ_growth": 0.25, "inflation": 0.40, "jobs": 0.35}
+CAT_WEIGHTS_EQ = {"econ_growth": 0.50, "inflation": 0.10, "jobs": 0.40}  # aksjer/råolje
+
 INSTRUMENT_USD_DIR = {
     "EURUSD": -1, "GBPUSD": -1, "AUDUSD": -1,
     "USDJPY": +1, "DXY":    +1,
     "Gold":   -1, "Silver": -1,
-    "SPX":    +1, "NAS100": +1,  # vekst-data er bullish for aksjer
-    "Brent":  +1, "WTI":    +1,  # vekst-data er bullish for råolje
+    "SPX":    +1, "NAS100": +1,
+    "Brent":  +1, "WTI":    +1,
 }
 
-# ── FRED API-henting ───────────────────────────────────────────────────────────
-def fetch_fred_api(series_id, limit=25):
-    """Henter FRED-serie via JSON API. Returnerer [(dato, float), ...] eldst→nyest."""
+EQ_INSTRUMENTS = {"SPX", "NAS100", "Brent", "WTI"}
+
+# ── FRED-henting ──────────────────────────────────────────────────────────────
+def fetch_fred_api(series_id, limit=16):
     url = (f"https://api.stlouisfed.org/fred/series/observations"
            f"?series_id={series_id}&api_key={FRED_API_KEY}"
            f"&file_type=json&sort_order=desc&limit={limit}")
@@ -81,75 +107,83 @@ def fetch_fred_api(series_id, limit=25):
                     obs.append((o["date"], float(o["value"])))
                 except (ValueError, KeyError):
                     pass
-        return list(reversed(obs))   # eldst→nyest
+        return list(reversed(obs))
     except Exception as e:
         print(f"  FRED {series_id} FEIL: {e}")
         return []
 
-# ── Scoringsfunksjoner per indikator ──────────────────────────────────────────
+# ── Scoring per indikator ─────────────────────────────────────────────────────
 def score_indicator(key, current, previous):
     """
-    Returnerer heltall fra -2 til +2 som representerer USD-bullish/bearish styrke.
-    Positiv = USD bullish. Negativ = USD bearish.
+    Returnerer -2..+2 som USD-bullish/bearish styrke.
+    Positivt = USD bullish. Negativt = USD bearish.
     """
     if current is None:
         return 0
 
-    # PMI (Manufacturing og Services) — ekspansjon/kontraksjon vs 50
+    # PMI (fra kalender) — ekspansjon > 50, kontraksjon < 50
     if key in ("mPMI", "sPMI"):
         if current > 56:   s = 2
         elif current > 52: s = 1
         elif current > 50: s = 0
         elif current > 47: s = -1
         else:              s = -2
-        # Trendbonus: sterk oppgang/nedgang
         if previous is not None:
             delta = current - previous
-            if delta > 2 and s < 2:  s += 1
+            if delta > 2 and s < 2:    s += 1
             elif delta < -2 and s > -2: s -= 1
         return max(-2, min(2, s))
 
-    # Inflasjon — scoring basert på YoY-nivå og retning
-    # Høy og stigende inflasjon = mer renteheving → USD bullish
-    # Lav og fallende inflasjon = kutting forventet → USD bearish
+    # Inflasjon (CPI, PPI, PCE)
+    # Høy/stigende = hawkish = USD bullish; lav/fallende = dovish = USD bearish
     if key in ("CPI", "PPI", "PCE"):
-        if current > 4.0:   level_s = 2
+        if current > 4.5:   level_s = 2
         elif current > 2.5: level_s = 1
         elif current > 1.5: level_s = 0
         elif current > 0.5: level_s = -1
         else:               level_s = -2
         trend_s = 0
         if previous is not None:
-            if current > previous + 0.2:  trend_s = 1
+            if current > previous + 0.2:   trend_s = 1
             elif current < previous - 0.2: trend_s = -1
         return max(-2, min(2, level_s + trend_s))
 
-    # Rente — stiger = hawkish = USD bullish, faller = dovish = USD bearish
+    # Rente: endring avgjørende (heving = hawkish; kutt = dovish)
     if key == "IntRate":
         if previous is None:
             return 1 if current >= 3.5 else 0
-        delta = current - previous
-        if delta > 0.1:   return 2
-        elif delta > 0:   return 1
-        elif delta == 0:
-            return 1 if current >= 3.5 else 0
-        elif delta > -0.1: return -1
-        else:              return -2
+        delta = round(current - previous, 3)
+        if delta > 0.1:    return 2   # aktiv heving
+        elif delta > 0:    return 1   # marginalt opp
+        elif delta == 0:   return 1 if current >= 4.0 else 0   # hold – høye renter = svakt USD-støtte
+        elif delta > -0.1: return -1  # begynnende kutt
+        else:              return -2  # aktivt kuttforløp
 
-    # NFP og ADP — monthly change i tusen jobber
-    if key in ("NFP", "ADP"):
+    # NFP — månedlig endring i tusen jobber (fra PAYEMS mom_abs)
+    if key == "NFP":
         if current > 250:   s = 2
         elif current > 150: s = 1
         elif current > 50:  s = 0
         elif current > 0:   s = -1
         else:               s = -2
-        # Trendbonus: signifikant forbedring vs forrige periode
-        if previous is not None:
-            if current > previous * 1.5 and s < 2:  s += 1
-            elif current < previous * 0.5 and s > -2: s -= 1
+        if previous is not None and previous != 0:
+            if current > 0 and previous > 0 and current > previous * 1.5 and s < 2:
+                s += 1
+            elif current < 0 and previous < 0 and s > -2:
+                s -= 1
         return max(-2, min(2, s))
 
-    # Arbeidsledighet — lavere = bedre (inverted)
+    # ADP — allerede månedlig endring i tusen (level-serie)
+    if key == "ADP":
+        # Normaliser: verdier > 5000 er sannsynligvis i antall personer, ikke tusen
+        val = current / 1000 if abs(current) > 5000 else current
+        if val > 250:   return 2
+        elif val > 150: return 1
+        elif val > 50:  return 0
+        elif val > 0:   return -1
+        else:           return -2
+
+    # Arbeidsledighet — lavere = bedre for USD
     if key == "Unemp":
         if current < 3.5:   s = 2
         elif current < 4.0: s = 1
@@ -157,13 +191,13 @@ def score_indicator(key, current, previous):
         elif current < 5.0: s = -1
         else:               s = -2
         if previous is not None:
-            if current < previous:   s = min(2,  s + 1)   # fallende ledighet = bra
+            if current < previous:   s = min(2,  s + 1)
             elif current > previous: s = max(-2, s - 1)
         return s
 
-    # Initial Claims — lavere = bedre (i tusen, mottatt som råtall fra FRED)
+    # Initial Claims — lavere = bedre (FRED gir råtall; deler på 1000 internt)
     if key == "Claims":
-        k = current / 1000   # konverter fra individuelle krav til tusen
+        k = current / 1000
         if k < 200:   s = 2
         elif k < 225: s = 1
         elif k < 260: s = 0
@@ -175,7 +209,7 @@ def score_indicator(key, current, previous):
             elif k > pk: s = max(-2, s - 1)
         return s
 
-    # JOLTS — stillingsutlysninger i tusen
+    # JOLTS stillingsutlysninger (i tusen)
     if key == "JOLTS":
         if current > 9000:   return 2
         elif current > 7500: return 1
@@ -183,7 +217,7 @@ def score_indicator(key, current, previous):
         elif current > 4500: return -1
         else:                return -2
 
-    # GDP — kvartalsvekst i prosent (annualisert)
+    # GDP QoQ % (annualisert)
     if key == "GDP":
         if current > 3.0:   return 2
         elif current > 1.5: return 1
@@ -193,13 +227,13 @@ def score_indicator(key, current, previous):
 
     # Retail Sales MoM %
     if key == "Retail":
-        if current > 1.0:   return 2
-        elif current > 0.3: return 1
+        if current > 1.0:    return 2
+        elif current > 0.3:  return 1
         elif current > -0.3: return 0
         elif current > -0.8: return -1
-        else:               return -2
+        else:                return -2
 
-    # Consumer Confidence (UoM Sentiment, skala 0–100)
+    # Consumer Confidence (UoM 0–100; historisk gjennomsnitt ~70–80)
     if key == "ConConf":
         if current > 90:   s = 2
         elif current > 75: s = 1
@@ -211,29 +245,20 @@ def score_indicator(key, current, previous):
             elif current < previous: s = max(-2, s - 1)
         return max(-2, min(2, s))
 
-    # Generisk fallback
-    if previous is None:
-        return 0
-    delta = current - previous
-    if key in (k for k, c in FRED_SERIES.items() if c.get("higher_good") is False):
-        return 1 if delta < 0 else -1 if delta > 0 else 0
-    return 1 if delta > 0 else -1 if delta < 0 else 0
+    return 0
 
-
-# ── Beregn indikator ───────────────────────────────────────────────────────────
+# ── Beregn indikator ──────────────────────────────────────────────────────────
 def compute_indicator(key, cfg, obs):
-    """Beregner aktuell verdi, forrige og score fra rå FRED-observasjoner."""
     if not obs:
         return None
-
     t   = cfg["type"]
-    raw_current  = obs[-1][1]
-    raw_previous = obs[-2][1] if len(obs) >= 2 else None
-    date         = obs[-1][0]
+    date = obs[-1][0]
+    raw_cur  = obs[-1][1]
+    raw_prev = obs[-2][1] if len(obs) >= 2 else None
 
     if t == "level":
-        current  = round(raw_current,  3)
-        previous = round(raw_previous, 3) if raw_previous is not None else None
+        current  = round(raw_cur, 3)
+        previous = round(raw_prev, 3) if raw_prev is not None else None
 
     elif t == "yoy":
         if len(obs) < 13:
@@ -254,33 +279,36 @@ def compute_indicator(key, cfg, obs):
         previous = round(obs[-2][1] - obs[-3][1], 1) if len(obs) >= 3 else None
 
     else:
-        current, previous = raw_current, raw_previous
+        current, previous = raw_cur, raw_prev
 
     score = score_indicator(key, current, previous)
     trend = ("opp" if current > previous else "ned" if current < previous else "flat") \
             if previous is not None else "ukjent"
 
-    # Lesbar Claims-verdi i tusen
-    display = current
-    if key == "Claims":
-        display = round(current / 1000, 1)
+    # Lesbare visningsverdier
+    display_cur  = round(current  / 1000, 1) if key == "Claims" else current
+    display_prev = round(previous / 1000, 1) if (key == "Claims" and previous is not None) else previous
+
+    # ADP: normaliser store verdier til tusen
+    if key == "ADP" and abs(current) > 5000:
+        display_cur  = round(current  / 1000, 1)
+        display_prev = round(previous / 1000, 1) if previous is not None else None
 
     return {
         "key":      key,
         "label":    cfg["label"],
-        "current":  display if key == "Claims" else current,
-        "previous": round(previous / 1000, 1) if (key == "Claims" and previous) else previous,
+        "current":  display_cur,
+        "previous": display_prev,
         "date":     date,
         "score":    score,
         "trend":    trend,
     }
 
-
-# ── Prøv å hente PMI fra ForexFactory-kalenderen (supplement til FRED) ────────
+# ── PMI fra ForexFactory-kalenderen ──────────────────────────────────────────
 def try_calendar_pmi():
     """
-    Returnerer {key: {"actual": float, "forecast": float, "surprise": int}} for PMI
-    fra denne ukens ForexFactory-kalender, hvis tilgjengelig.
+    Leter etter ISM Manufacturing og Services PMI-releaser med faktiske verdier
+    i ForexFactory-kalenderen. Returnerer {key: {actual, forecast, score}}.
     """
     cal_path = os.path.join(BASE, "calendar", "latest.json")
     if not os.path.exists(cal_path):
@@ -300,127 +328,193 @@ def try_calendar_pmi():
         if not actual:
             continue
         try:
-            act_val = float(actual.replace("%", "").replace("K", "").strip())
+            act_val = float(str(actual).replace("%", "").strip())
         except (ValueError, AttributeError):
             continue
         try:
-            fore_val = float(ev.get("forecast", "").replace("%", "").strip()) \
+            fore_val = float(str(ev.get("forecast", "")).replace("%", "").strip()) \
                        if ev.get("forecast") else None
         except (ValueError, AttributeError):
             fore_val = None
+        try:
+            prev_val = float(str(ev.get("previous", "")).replace("%", "").strip()) \
+                       if ev.get("previous") else None
+        except (ValueError, AttributeError):
+            prev_val = None
 
-        surprise = 0
+        # Score: kombiner nivå og surprise
+        base_score = score_indicator("mPMI", act_val, prev_val)
         if fore_val is not None:
             diff = act_val - fore_val
-            if diff > 1:   surprise = 2
-            elif diff > 0: surprise = 1
-            elif diff < -1: surprise = -2
-            elif diff < 0: surprise = -1
+            surprise = 2 if diff > 1 else 1 if diff > 0 else -2 if diff < -1 else -1 if diff < 0 else 0
+        else:
+            surprise = 0
+        final_score = max(-2, min(2, base_score + surprise))
 
-        if "manufacturing pmi" in title or "ism manufacturing" in title:
-            pmi_map["mPMI"] = {"actual": act_val, "forecast": fore_val, "surprise": surprise}
-        elif "services pmi" in title or "non-manufacturing" in title or "ism services" in title:
-            pmi_map["sPMI"] = {"actual": act_val, "forecast": fore_val, "surprise": surprise}
+        entry = {"actual": act_val, "forecast": fore_val, "previous": prev_val,
+                 "surprise": surprise, "score": final_score}
+        if "ism manufacturing" in title or ("manufacturing pmi" in title and "flash" not in title):
+            pmi_map["mPMI"] = entry
+        elif "ism services" in title or ("services pmi" in title and "flash" not in title) \
+                or "non-manufacturing" in title:
+            pmi_map["sPMI"] = entry
 
     return pmi_map
 
+# ── Vektet kategori-gjennomsnitt ──────────────────────────────────────────────
+def weighted_cat_avg(cat_keys, indicators):
+    """Vektet gjennomsnitt av indikator-scorer innenfor en kategori."""
+    total_score = 0.0
+    total_w     = 0.0
+    for k in cat_keys:
+        if k in indicators:
+            w = INDICATOR_WEIGHTS.get(k, 1.0)
+            total_score += indicators[k]["score"] * w
+            total_w     += w
+    return round(total_score / total_w, 3) if total_w > 0 else 0.0
 
-# ── Hovedlogikk ───────────────────────────────────────────────────────────────
+# ── Konsensus-multiplikator ───────────────────────────────────────────────────
+def consensus_multiplier(cat_scores):
+    """
+    Beregner multiplikator basert på om inflasjon og arbeidsmarked peker
+    i SAMME retning (forsterk signalet) eller MOT hverandre (demp).
+    """
+    THRESHOLD = 0.35
+    infl_dir  = 1 if cat_scores.get("inflation",   0) >  THRESHOLD else \
+               -1 if cat_scores.get("inflation",   0) < -THRESHOLD else 0
+    jobs_dir  = 1 if cat_scores.get("jobs",        0) >  THRESHOLD else \
+               -1 if cat_scores.get("jobs",        0) < -THRESHOLD else 0
+    growth_dir= 1 if cat_scores.get("econ_growth", 0) >  THRESHOLD else \
+               -1 if cat_scores.get("econ_growth", 0) < -THRESHOLD else 0
+
+    # Tell kategori-retninger som har klar signal
+    dirs = [d for d in [infl_dir, jobs_dir, growth_dir] if d != 0]
+
+    if len(dirs) >= 2 and all(d == dirs[0] for d in dirs):
+        return 1.5   # Alle klare kategorier peker SAMME vei
+    elif len(dirs) == 2 and dirs[0] != dirs[1]:
+        return 0.65  # To kategorier peker MOT hverandre
+    elif len(dirs) == 1:
+        return 1.0   # Bare én klar kategori
+    else:
+        return 0.5   # Ingen klar kategori-signal
+
+# ══ HOVEDLOGIKK ══════════════════════════════════════════════════════════════
 print("=== fetch_fundamentals.py ===")
 print(f"FRED API-nøkkel: {'***' + FRED_API_KEY[-4:] if FRED_API_KEY else 'MANGLER'}")
 
 indicators = {}
+
+# 1. Hent FRED-data
 for key, cfg in FRED_SERIES.items():
     print(f"  Henter {key} ({cfg['id']})...")
-    # YoY trenger 14 obs (1 år + 1 ekstra for forrige YoY)
-    limit = 16 if cfg["type"] == "yoy" else 6
-    obs   = fetch_fred_api(cfg["id"], limit=limit)
+    limit  = 16 if cfg["type"] == "yoy" else 6
+    obs    = fetch_fred_api(cfg["id"], limit=limit)
     result = compute_indicator(key, cfg, obs)
     if result:
         indicators[key] = result
         print(f"    → {result['current']} ({result['trend']:5s})  score={result['score']:+d}")
     else:
         print(f"    → FEIL eller for få datapunkter")
-    time.sleep(0.2)   # Respekter FRED rate limit
+    time.sleep(0.15)
 
-# Supplement: oppdater PMI fra kalender hvis vi har faktiske verdier
+# 2. Supplement PMI fra kalender
 cal_pmi = try_calendar_pmi()
 for k, pmi in cal_pmi.items():
-    if k in indicators and pmi.get("actual"):
-        # Kalender-actual overskriver FRED-verdien (ferskere)
-        indicators[k]["current"]   = pmi["actual"]
-        indicators[k]["forecast"]  = pmi.get("forecast")
-        indicators[k]["surprise"]  = pmi.get("surprise", 0)
-        # Juster score med surprise hvis signifikant
-        indicators[k]["score"] = max(-2, min(2,
-            indicators[k]["score"] + pmi.get("surprise", 0)))
-        print(f"  Kalender PMI {k}: actual={pmi['actual']}"
-              f"  forecast={pmi.get('forecast')}  surprise={pmi.get('surprise',0):+d}")
+    indicators[k] = {
+        "key":      k,
+        "label":    "ISM Manufacturing PMI" if k == "mPMI" else "ISM Services NMI",
+        "current":  pmi["actual"],
+        "previous": pmi.get("previous"),
+        "forecast": pmi.get("forecast"),
+        "surprise": pmi.get("surprise", 0),
+        "score":    pmi["score"],
+        "trend":    "ukjent",
+        "kilde":    "kalender",
+    }
+    print(f"  Kalender {k}: actual={pmi['actual']}  forecast={pmi.get('forecast')}"
+          f"  score={pmi['score']:+d}")
 
-# ── Kategoriskårer ────────────────────────────────────────────────────────────
+# 3. Beregn vektede kategori-gjennomsnitt
+cat_avgs = {}
 category_scores = {}
 for cat, keys in CATEGORIES.items():
-    vals  = [indicators[k]["score"] for k in keys if k in indicators]
-    total = sum(vals)
-    avg   = round(total / len(vals), 2) if vals else 0
+    avg   = weighted_cat_avg(keys, indicators)
+    count = sum(1 for k in keys if k in indicators)
+    cat_avgs[cat] = avg
     category_scores[cat] = {
-        "score":    total,
+        "score":    round(sum(indicators[k]["score"] for k in keys if k in indicators), 2),
         "avg":      avg,
-        "count":    len(vals),
-        "bias":     "bullish" if avg >= 0.5 else "bearish" if avg <= -0.5 else "neutral",
+        "count":    count,
+        "bias":     "bullish" if avg >= 0.4 else "bearish" if avg <= -0.4 else "neutral",
         "keys":     keys,
     }
 
-# ── Samlet USD-fundamental score ─────────────────────────────────────────────
-all_scores = [v["score"] for v in indicators.values()]
-usd_total  = sum(all_scores)
-usd_avg    = round(usd_total / len(all_scores), 2) if all_scores else 0
-usd_bias   = "bullish" if usd_avg >= 0.5 else "bearish" if usd_avg <= -0.5 else "neutral"
+# 4. Konsensus-multiplikator
+multiplier = consensus_multiplier(cat_avgs)
 
-# ── Beregn retningsvisende score per instrument ───────────────────────────────
+# 5. USD-samlet score (vektet, med konsensus)
+usd_raw = (cat_avgs.get("econ_growth", 0) * CAT_WEIGHTS_FX["econ_growth"] +
+           cat_avgs.get("inflation",   0) * CAT_WEIGHTS_FX["inflation"]   +
+           cat_avgs.get("jobs",        0) * CAT_WEIGHTS_FX["jobs"])
+usd_score = round(usd_raw * multiplier, 3)
+
+if usd_score > 0.7:    usd_bias = "strong_bullish"
+elif usd_score > 0.25: usd_bias = "bullish"
+elif usd_score < -0.7: usd_bias = "strong_bearish"
+elif usd_score < -0.25: usd_bias = "bearish"
+else:                  usd_bias = "neutral"
+
+# 6. Instrument-scorer
 instrument_scores = {}
 for inst_key, direction in INSTRUMENT_USD_DIR.items():
-    # Alle kategorier brukes; for aksjer/råvarer vektlegges econ_growth mer
-    if inst_key in ("SPX", "NAS100", "Brent", "WTI"):
-        growth = category_scores.get("econ_growth", {}).get("avg", 0)
-        jobs   = category_scores.get("jobs",        {}).get("avg", 0)
-        raw    = (growth * 0.6 + jobs * 0.4) * direction
+    if inst_key in EQ_INSTRUMENTS:
+        cat_w = CAT_WEIGHTS_EQ
     else:
-        # Valuta og metaller: alle tre kategorier
-        growth = category_scores.get("econ_growth", {}).get("avg", 0)
-        infl   = category_scores.get("inflation",   {}).get("avg", 0)
-        jobs   = category_scores.get("jobs",        {}).get("avg", 0)
-        raw    = (growth * 0.3 + infl * 0.35 + jobs * 0.35) * direction
+        cat_w = CAT_WEIGHTS_FX
 
-    score_inst = max(-2, min(2, round(raw, 1)))
+    raw = (cat_avgs.get("econ_growth", 0) * cat_w["econ_growth"] +
+           cat_avgs.get("inflation",   0) * cat_w["inflation"]   +
+           cat_avgs.get("jobs",        0) * cat_w["jobs"])
+    raw_with_consensus = raw * multiplier * direction
+    score_inst = round(max(-2.0, min(2.0, raw_with_consensus)), 2)
+
+    if score_inst > 0.7:    bias = "strong_bullish"
+    elif score_inst > 0.25: bias = "bullish"
+    elif score_inst < -0.7: bias = "strong_bearish"
+    elif score_inst < -0.25: bias = "bearish"
+    else:                   bias = "neutral"
+
     instrument_scores[inst_key] = {
         "score":     score_inst,
-        "bias":      "bullish" if score_inst > 0.3 else "bearish" if score_inst < -0.3 else "neutral",
+        "bias":      bias,
         "direction": direction,
     }
 
-# ── Lagre output ─────────────────────────────────────────────────────────────
+# 7. Lagre
 output = {
-    "updated":            datetime.now(timezone.utc).isoformat(),
+    "updated":           datetime.now(timezone.utc).isoformat(),
+    "consensus_multi":   multiplier,
     "usd_fundamental": {
-        "score":    usd_total,
-        "avg":      usd_avg,
-        "bias":     usd_bias,
-        "n":        len(all_scores),
+        "score": usd_score,
+        "bias":  usd_bias,
+        "n":     len(indicators),
     },
-    "category_scores":    category_scores,
-    "indicators":         indicators,
-    "instrument_scores":  instrument_scores,
+    "category_scores":   category_scores,
+    "indicators":        indicators,
+    "instrument_scores": instrument_scores,
 }
-
 with open(OUT, "w") as f:
     json.dump(output, f, ensure_ascii=False, indent=2)
 
+# 8. Utskrift
 print(f"\nLagret → {OUT}")
-print(f"USD fundamental: {usd_bias.upper()} (avg score={usd_avg:+.2f})")
+print(f"Konsensus-multiplikator: ×{multiplier}")
+print(f"USD fundamental: {usd_bias.upper()}  (score={usd_score:+.3f})")
 for cat, cs in category_scores.items():
-    print(f"  {cat:14s}: {cs['bias']:8s}  (sum={cs['score']:+d})")
+    print(f"  {cat:14s}: {cs['bias']:14s}  (vektet avg={cs['avg']:+.2f})")
 print("\nInstrument-prediksjon:")
 for k, v in instrument_scores.items():
-    bar = "▲" if v["bias"] == "bullish" else "▼" if v["bias"] == "bearish" else "─"
-    print(f"  {bar} {k:8s}: {v['score']:+.1f}  {v['bias']}")
+    bar = "▲" if "bullish" in v["bias"] else "▼" if "bearish" in v["bias"] else "─"
+    bb = "!" if "strong" in v["bias"] else " "
+    print(f"  {bar}{bb} {k:8s}: {v['score']:+.2f}  {v['bias']}")
