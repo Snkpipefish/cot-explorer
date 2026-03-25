@@ -27,6 +27,8 @@ INSTRUMENTS = [
     {"key":"NAS100","navn":"Nasdaq", "symbol":"^NDX",    "label":"Aksjer", "kat":"aksjer", "klasse":"C","session":"NY Open 14:30–17:00 CET"},
     {"key":"VIX",   "navn":"VIX",    "symbol":"^VIX",    "label":"Vol",    "kat":"aksjer", "klasse":"C","session":"NY Open 14:30–17:00 CET"},
     {"key":"DXY",   "navn":"DXY",    "symbol":"DX-Y.NYB","label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET"},
+    {"key":"USDCHF","navn":"USD/CHF","symbol":"CHF=X",   "label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET","prices_only":True},
+    {"key":"USDNOK","navn":"USD/NOK","symbol":"NOK=X",   "label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET","prices_only":True},
 ]
 
 TWELVEDATA_API_KEY = os.environ.get("TWELVEDATA_API_KEY", "")
@@ -768,6 +770,7 @@ for inst in INSTRUMENTS:
     }
 
     if inst["key"] == "VIX": continue
+    if inst.get("prices_only"): continue
 
     # ── SMC analyse (15m, 1H, 4H) ────────────────────────
     smc = None
@@ -1206,6 +1209,11 @@ elif vix_price > 20:
     vix_regime = {"value":vix_price,"label":"Forhøyet – HALV størrelse","color":"warn","regime":"elevated"}
 else:
     vix_regime = {"value":vix_price,"label":"Normalt – full størrelse","color":"bull","regime":"normal"}
+
+# Kopier HYG og TIP fra macro_ind til prices slik at priser-fanen kan vise dem
+for k in ("HYG", "TIP"):
+    if macro_ind.get(k):
+        prices[k] = macro_ind[k]
 
 macro = {
     "date":    datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
