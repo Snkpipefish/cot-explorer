@@ -1,65 +1,6164 @@
 {
-  "date": "2026-03-25 16:15 UTC",
+  "date": "2026-03-25 16:46 UTC",
   "cot_date": "2026-03-17",
   "prices": {
+    "EURUSD": {
+      "price": 1.157,
+      "chg1d": -0.13,
+      "chg5d": 0.11,
+      "chg20d": -0.01
+    },
+    "USDJPY": {
+      "price": 159.18,
+      "chg1d": 0.12,
+      "chg5d": -0.08,
+      "chg20d": 0.86
+    },
+    "GBPUSD": {
+      "price": 1.3379,
+      "chg1d": -0.02,
+      "chg5d": 0.34,
+      "chg20d": 0.45
+    },
+    "AUDUSD": {
+      "price": 0.6964,
+      "chg1d": -0.07,
+      "chg5d": -0.76,
+      "chg20d": -0.25
+    },
+    "Gold": {
+      "price": 4556.44,
+      "chg1d": 3.57,
+      "chg5d": 1.24,
+      "chg20d": -10.05
+    },
+    "Silver": {
+      "price": 72.89,
+      "chg1d": 4.88,
+      "chg5d": -8.03,
+      "chg20d": -16.38
+    },
+    "Brent": {
+      "price": 96.47,
+      "chg1d": -7.68,
+      "chg5d": -10.16,
+      "chg20d": 36.16
+    },
+    "WTI": {
+      "price": 89.92,
+      "chg1d": -2.63,
+      "chg5d": -6.64,
+      "chg20d": 37.45
+    },
+    "SPX": {
+      "price": 6605.4,
+      "chg1d": 0.37,
+      "chg5d": -1.65,
+      "chg20d": -4.13
+    },
+    "NAS100": {
+      "price": 24225.48,
+      "chg1d": 0.15,
+      "chg5d": -2.24,
+      "chg20d": -3.01
+    },
+    "VIX": {
+      "price": 25.74,
+      "chg1d": -4.49,
+      "chg5d": 2.59,
+      "chg20d": 43.56
+    },
+    "DXY": {
+      "price": 99.522,
+      "chg1d": 0.09,
+      "chg5d": -0.57,
+      "chg20d": 1.86
+    },
+    "USDCHF": {
+      "price": 0.7912,
+      "chg1d": 0.61,
+      "chg5d": 0.82,
+      "chg20d": 2.26
+    },
+    "USDNOK": {
+      "price": 9.6826,
+      "chg1d": -0.47,
+      "chg5d": 1.06,
+      "chg20d": 1.29
+    },
+    "HYG": {
+      "price": 79.5,
+      "chg1d": 0.41,
+      "chg5d": 0.12
+    },
     "TIP": {
-      "price": 109.83,
-      "chg1d": -0.33,
-      "chg5d": -1.45
+      "price": 110.11,
+      "chg1d": 0.25,
+      "chg5d": -1.02
     }
   },
   "vix_regime": {
-    "value": 20,
-    "label": "Normalt – full størrelse",
-    "color": "bull",
-    "regime": "normal"
+    "value": 25.74,
+    "label": "Forhøyet – HALV størrelse",
+    "color": "warn",
+    "regime": "elevated"
   },
   "sentiment": {
-    "fear_greed": null,
-    "news": null,
-    "conflicts": []
+    "fear_greed": {
+      "score": 19.6,
+      "rating": "extreme fear"
+    },
+    "news": {
+      "score": -1.0,
+      "label": "risk_off",
+      "top_headlines": [
+        "Google News",
+        "Geopolitical conflict and its impact on global markets - U.S. Bank",
+        "How to understand the Iran war market swings: A geopolitical put option - Atlantic Council",
+        "Economics vs geopolitics: does the wolf finally bite? - CommBank",
+        "Why central bank independence is a boon amid geopolitical turmoil - The World Economic Forum"
+      ],
+      "key_drivers": [
+        {
+          "headline": "Geopolitical conflict and its impact on global markets - U.S. Bank",
+          "type": "risk_off"
+        },
+        {
+          "headline": "How to understand the Iran war market swings: A geopolitical put option - Atlantic Council",
+          "type": "risk_off"
+        },
+        {
+          "headline": "'There's no safety anymore': Palestinians warn of expanding West Bank settler violence",
+          "type": "risk_off"
+        },
+        {
+          "headline": "Marcos promises 'flow of oil' as Philippines declares energy emergency",
+          "type": "risk_off"
+        }
+      ],
+      "ro_count": 0,
+      "roff_count": 4,
+      "headlines_n": 30
+    },
+    "conflicts": [
+      "VIX>25 men DXY faller – risk-off uten USD-etterspørsel",
+      "Ekstrem frykt men USD svekkes – unormalt"
+    ]
   },
   "dollar_smile": {
-    "position": "hoyre",
-    "usd_bias": "MODERAT",
-    "usd_color": "bull",
-    "desc": "Vekst/inflasjon driver USD",
-    "conflicts": [],
+    "position": "konflikt",
+    "usd_bias": "UKLAR",
+    "usd_color": "warn",
+    "desc": "Motstridende signaler: VIX>25 men DXY faller – risk-off uten USD-etterspørsel | Ekstrem frykt men USD svekkes – unormalt",
+    "conflicts": [
+      "VIX>25 men DXY faller – risk-off uten USD-etterspørsel",
+      "Ekstrem frykt men USD svekkes – unormalt"
+    ],
     "inputs": {
-      "vix": 20,
+      "vix": 25.74,
       "hy_stress": false,
-      "hy_chg5d": 0,
-      "brent": 80,
-      "tip_trend_5d": -1.45,
-      "dxy_trend_5d": 0,
-      "yield_curve": null,
-      "yield_10y": null,
-      "yield_3m": null,
-      "copper_5d": -0.2,
-      "em_5d": -3.8
+      "hy_chg5d": 0.12,
+      "brent": 96.47,
+      "tip_trend_5d": -1.02,
+      "dxy_trend_5d": -0.57,
+      "yield_curve": 0.7,
+      "yield_10y": 4.32,
+      "yield_3m": 3.62,
+      "copper_5d": 0.06,
+      "em_5d": 0.1
     }
   },
   "macro_indicators": {
-    "TNX": null,
-    "IRX": null,
-    "HYG": null,
+    "TNX": {
+      "price": 4.32,
+      "chg1d": 0,
+      "chg5d": 1.43
+    },
+    "IRX": {
+      "price": 3.62,
+      "chg1d": 0,
+      "chg5d": 0.28
+    },
+    "HYG": {
+      "price": 79.5,
+      "chg1d": 0.41,
+      "chg5d": 0.12
+    },
     "TIP": {
-      "price": 109.83,
-      "chg1d": -0.33,
-      "chg5d": -1.45
+      "price": 110.11,
+      "chg1d": 0.25,
+      "chg5d": -1.02
     },
     "Copper": {
-      "price": 5.543,
-      "chg1d": 2.22,
-      "chg5d": -0.2
+      "price": 5.5575,
+      "chg1d": 2.49,
+      "chg5d": 0.06
     },
     "EEM": {
-      "price": 56.52,
-      "chg1d": -1.38,
-      "chg5d": -3.8
+      "price": 57.62,
+      "chg1d": 1.94,
+      "chg5d": 0.1
     }
   },
-  "trading_levels": {},
+  "trading_levels": {
+    "EURUSD": {
+      "name": "EUR/USD",
+      "label": "Valuta",
+      "klasse": "A",
+      "session": "London 08:00–12:00 CET",
+      "class": "V",
+      "current": 1.15705,
+      "atr14": 0.0009,
+      "atr_15m": 0.0009,
+      "atr_daily": 0.00922,
+      "atr_4h": 0.00431,
+      "at_level_now": false,
+      "status": "watchlist",
+      "pdh": 1.16177,
+      "pdl": 1.15595,
+      "pdc": 1.15855,
+      "pwh": 1.16393,
+      "pwl": 1.14437,
+      "ema9_d1": 1.15643,
+      "ema9_15m": 1.15723,
+      "ema9_above": true,
+      "d1_regime": "BULLISH",
+      "m15_regime": "BEARISH",
+      "regime_align": "mixed",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 1.1685,
+      "sma200_pos": "under",
+      "chg5d": 0.11,
+      "chg20d": -0.01,
+      "dir_color": "bear",
+      "grade": "B",
+      "grade_color": "bear",
+      "score": 6,
+      "score_pct": 50,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": false
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": false
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": false
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": false
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": true
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": false
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": false
+        }
+      ],
+      "news_headwind": false,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 755789,
+      "resistances": [
+        {
+          "name": "PDC",
+          "level": 1.15855,
+          "weight": 3,
+          "dist_atr": 1.7
+        },
+        {
+          "name": "4H",
+          "level": 1.15951,
+          "weight": 2,
+          "dist_atr": 2.7
+        },
+        {
+          "name": "PDH",
+          "level": 1.16177,
+          "weight": 4,
+          "dist_atr": 5.2
+        },
+        {
+          "name": "D1",
+          "level": 1.16287,
+          "weight": 3,
+          "dist_atr": 6.4
+        },
+        {
+          "name": "PWH",
+          "level": 1.16393,
+          "weight": 5,
+          "dist_atr": 7.6
+        }
+      ],
+      "supports": [
+        {
+          "name": "D1",
+          "level": 1.15654,
+          "weight": 3,
+          "dist_atr": 0.6
+        },
+        {
+          "name": "PDL",
+          "level": 1.15595,
+          "weight": 4,
+          "dist_atr": 1.2
+        },
+        {
+          "name": "4H",
+          "level": 1.1547,
+          "weight": 2,
+          "dist_atr": 2.6
+        },
+        {
+          "name": "D1",
+          "level": 1.15421,
+          "weight": 3,
+          "dist_atr": 3.1
+        },
+        {
+          "name": "SMC15m",
+          "level": 1.14842,
+          "weight": 1,
+          "dist_atr": 9.5
+        }
+      ],
+      "setup_long": {
+        "entry": 1.15654,
+        "entry_curr": 1.15705,
+        "sl": 1.15378,
+        "sl_type": "struktur",
+        "t1": 1.16393,
+        "t2": 1.16553,
+        "rr_t1": 2.68,
+        "rr_t2": 3.26,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.06,
+        "entry_name": "Støtte 1.15654 [D1]",
+        "entry_level": 1.15654,
+        "entry_weight": 3,
+        "t1_source": "PWH",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO LONG: E=1.1565 [D1 w3] SL=1.1538 (struktur) → T1=1.1639 [PWH w5 htf] R:R=2.68 | Risk=0.0028 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "setup_short": {
+        "entry": 1.15855,
+        "entry_curr": 1.15705,
+        "sl": 1.16131,
+        "sl_type": "struktur",
+        "t1": 1.14437,
+        "t2": 1.14161,
+        "rr_t1": 5.14,
+        "rr_t2": 6.14,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.16,
+        "entry_name": "Motstand 1.15855 [PDC]",
+        "entry_level": 1.15855,
+        "entry_weight": 3,
+        "t1_source": "PWL",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=1.1585 [PDC w3] SL=1.1613 (struktur) → T1=1.1444 [PWL w5 htf] R:R=5.14 | Risk=0.0028 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "MIXED",
+        "supply_zones": [
+          {
+            "top": 1.16393,
+            "bottom": 1.16374,
+            "poi": 1.16383,
+            "idx": 299,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 1.14851,
+            "bottom": 1.14832,
+            "poi": 1.14842,
+            "idx": 285,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 1.16094,
+            "type": "BOS_ned",
+            "idx": 336,
+            "zone_top": 1.16103,
+            "zone_bot": 1.16084
+          },
+          {
+            "level": 1.16138,
+            "type": "BOS_opp",
+            "idx": 298,
+            "zone_top": 1.16148,
+            "zone_bot": 1.16129
+          },
+          {
+            "level": 1.15923,
+            "type": "BOS_opp",
+            "idx": 291,
+            "zone_top": 1.15933,
+            "zone_bot": 1.15914
+          }
+        ],
+        "last_swing_high": {
+          "value": 1.15887,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 1.15921,
+          "label": "HL"
+        }
+      },
+      "smc_1h": {
+        "structure": "MIXED",
+        "supply_zones": [
+          {
+            "top": 1.16684,
+            "bottom": 1.1664,
+            "poi": 1.16662,
+            "idx": 140,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 1.13559,
+            "bottom": 1.13515,
+            "poi": 1.13537,
+            "idx": 261,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 1.15625,
+            "type": "BOS_opp",
+            "idx": 358,
+            "zone_top": 1.15647,
+            "zone_bot": 1.15603
+          },
+          {
+            "level": 1.14702,
+            "type": "BOS_ned",
+            "idx": 335,
+            "zone_top": 1.14724,
+            "zone_bot": 1.1468
+          },
+          {
+            "level": 1.15215,
+            "type": "BOS_opp",
+            "idx": 304,
+            "zone_top": 1.15237,
+            "zone_bot": 1.15193
+          }
+        ],
+        "last_swing_high": {
+          "value": 1.163,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 1.15595,
+          "label": "HL"
+        }
+      },
+      "smc_4h": {
+        "structure": "BULLISH",
+        "supply_zones": [],
+        "demand_zones": [],
+        "bos_levels": [
+          {
+            "level": 1.155,
+            "type": "BOS_opp",
+            "idx": 89,
+            "zone_top": 1.1554,
+            "zone_bot": 1.1546
+          },
+          {
+            "level": 1.14153,
+            "type": "BOS_ned",
+            "idx": 64,
+            "zone_top": 1.14193,
+            "zone_bot": 1.14113
+          },
+          {
+            "level": 1.162,
+            "type": "BOS_opp",
+            "idx": 29,
+            "zone_top": 1.1624,
+            "zone_bot": 1.1616
+          }
+        ],
+        "last_swing_high": {
+          "value": 1.16393,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 1.14832,
+          "label": "HL"
+        }
+      },
+      "dxy_conf": "motvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "NØYTRAL",
+        "color": "neutral",
+        "net": -6952,
+        "chg": -12183,
+        "pct": 0.9,
+        "momentum": "ØKER",
+        "date": "2026-03-17",
+        "report": "tff"
+      },
+      "combined_bias": "SHORT",
+      "timeframe_bias": "SWING",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": -0.34,
+        "bias": "bearish",
+        "confirms": true,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    },
+    "USDJPY": {
+      "name": "USD/JPY",
+      "label": "Valuta",
+      "klasse": "A",
+      "session": "London 08:00–12:00 CET",
+      "class": "V",
+      "current": 159.18,
+      "atr14": 0.09463,
+      "atr_15m": 0.09463,
+      "atr_daily": 1.02014,
+      "atr_4h": 0.49109,
+      "at_level_now": true,
+      "status": "aktiv",
+      "pdh": 159.17526,
+      "pdl": 158.2799,
+      "pdc": 158.98917,
+      "pwh": 159.90793,
+      "pwl": 157.53377,
+      "ema9_d1": 158.99054,
+      "ema9_15m": 159.16175,
+      "ema9_above": true,
+      "d1_regime": "BULLISH",
+      "m15_regime": "BULLISH",
+      "regime_align": "bull",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 153.98,
+      "sma200_pos": "over",
+      "chg5d": -0.08,
+      "chg20d": 0.86,
+      "dir_color": "bull",
+      "grade": "B",
+      "grade_color": "bear",
+      "score": 8,
+      "score_pct": 67,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": true
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": false
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": true
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": true
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": true
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": true
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": false
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": false
+        }
+      ],
+      "news_headwind": true,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 326688,
+      "resistances": [
+        {
+          "name": "D1",
+          "level": 159.23,
+          "weight": 3,
+          "dist_atr": 0.5
+        },
+        {
+          "name": "4H",
+          "level": 159.38,
+          "weight": 2,
+          "dist_atr": 2.2
+        },
+        {
+          "name": "D1",
+          "level": 159.46,
+          "weight": 3,
+          "dist_atr": 2.9
+        },
+        {
+          "name": "SMC4H",
+          "level": 159.85,
+          "weight": 2,
+          "dist_atr": 7.1
+        },
+        {
+          "name": "PWH",
+          "level": 159.91,
+          "weight": 5,
+          "dist_atr": 7.7
+        }
+      ],
+      "supports": [
+        {
+          "name": "4H",
+          "level": 159.15,
+          "weight": 2,
+          "dist_atr": 0.3
+        },
+        {
+          "name": "PDC",
+          "level": 158.99,
+          "weight": 3,
+          "dist_atr": 2.0
+        },
+        {
+          "name": "4H",
+          "level": 158.87,
+          "weight": 2,
+          "dist_atr": 3.3
+        },
+        {
+          "name": "SMC15m",
+          "level": 158.8,
+          "weight": 1,
+          "dist_atr": 4.0
+        },
+        {
+          "name": "SMC15m",
+          "level": 158.58,
+          "weight": 1,
+          "dist_atr": 6.3
+        }
+      ],
+      "setup_long": {
+        "entry": 159.14647,
+        "entry_curr": 159.17664,
+        "sl": 158.84043,
+        "sl_type": "struktur",
+        "t1": 159.90793,
+        "t2": 160.06168,
+        "rr_t1": 2.49,
+        "rr_t2": 2.99,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.03,
+        "entry_name": "Støtte 159.14647 [4H]",
+        "entry_level": 159.14647,
+        "entry_weight": 2,
+        "t1_source": "PWH",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "aktiv",
+        "note": "MAKRO LONG: E=159.1465 [4H w2] SL=158.8404 (struktur) → T1=159.9079 [PWH w5 htf] R:R=2.49 | Risk=0.306 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "setup_short": {
+        "entry": 159.22693,
+        "entry_curr": 159.17664,
+        "sl": 159.53297,
+        "sl_type": "struktur",
+        "t1": 158.2799,
+        "t2": 157.97386,
+        "rr_t1": 3.09,
+        "rr_t2": 4.09,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.05,
+        "entry_name": "Motstand 159.22693 [D1]",
+        "entry_level": 159.22693,
+        "entry_weight": 3,
+        "t1_source": "PDL",
+        "t1_weight": 4,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=159.2269 [D1 w3] SL=159.533 (struktur) → T1=158.2799 [PDL w4 htf] R:R=3.09 | Risk=0.306 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "BULLISH",
+        "supply_zones": [],
+        "demand_zones": [
+          {
+            "top": 158.8068,
+            "bottom": 158.78566,
+            "poi": 158.79623,
+            "idx": 481,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 158.59086,
+            "bottom": 158.56972,
+            "poi": 158.58029,
+            "idx": 436,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 158.06362,
+            "bottom": 158.04248,
+            "poi": 158.05305,
+            "idx": 315,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 159.02644,
+            "type": "BOS_opp",
+            "idx": 463,
+            "zone_top": 159.03701,
+            "zone_bot": 159.01587
+          },
+          {
+            "level": 158.82409,
+            "type": "BOS_opp",
+            "idx": 387,
+            "zone_top": 158.83466,
+            "zone_bot": 158.81352
+          },
+          {
+            "level": 158.47635,
+            "type": "BOS_opp",
+            "idx": 336,
+            "zone_top": 158.48692,
+            "zone_bot": 158.46578
+          }
+        ],
+        "last_swing_high": {
+          "value": 159.20304,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 158.78566,
+          "label": "HL"
+        }
+      },
+      "smc_1h": {
+        "structure": "MIXED",
+        "supply_zones": [
+          {
+            "top": 160.08751,
+            "bottom": 160.03585,
+            "poi": 160.06168,
+            "idx": 257,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [],
+        "bos_levels": [
+          {
+            "level": 157.90613,
+            "type": "BOS_ned",
+            "idx": 356,
+            "zone_top": 157.93196,
+            "zone_bot": 157.8803
+          },
+          {
+            "level": 158.60504,
+            "type": "BOS_ned",
+            "idx": 352,
+            "zone_top": 158.63087,
+            "zone_bot": 158.57921
+          },
+          {
+            "level": 159.05349,
+            "type": "BOS_ned",
+            "idx": 280,
+            "zone_top": 159.07932,
+            "zone_bot": 159.02766
+          }
+        ],
+        "last_swing_high": {
+          "value": 159.17526,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 158.3977,
+          "label": "HL"
+        }
+      },
+      "smc_4h": {
+        "structure": "BULLISH",
+        "supply_zones": [
+          {
+            "top": 159.89661,
+            "bottom": 159.80693,
+            "poi": 159.85177,
+            "idx": 54,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [],
+        "bos_levels": [
+          {
+            "level": 158.91307,
+            "type": "BOS_ned",
+            "idx": 79,
+            "zone_top": 158.95791,
+            "zone_bot": 158.86823
+          },
+          {
+            "level": 158.85696,
+            "type": "BOS_opp",
+            "idx": 41,
+            "zone_top": 158.9018,
+            "zone_bot": 158.81212
+          },
+          {
+            "level": 157.68591,
+            "type": "BOS_ned",
+            "idx": 30,
+            "zone_top": 157.73075,
+            "zone_bot": 157.64107
+          }
+        ],
+        "last_swing_high": {
+          "value": 159.64837,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 158.04248,
+          "label": "HL"
+        }
+      },
+      "dxy_conf": "motvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "SHORT",
+        "color": "bear",
+        "net": -65429,
+        "chg": -16210,
+        "pct": 20.0,
+        "momentum": "ØKER",
+        "date": "2026-03-17",
+        "report": "tff"
+      },
+      "combined_bias": "LONG",
+      "timeframe_bias": "SWING",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": 0.34,
+        "bias": "bullish",
+        "confirms": true,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    },
+    "GBPUSD": {
+      "name": "GBP/USD",
+      "label": "Valuta",
+      "klasse": "A",
+      "session": "London 08:00–12:00 CET",
+      "class": "V",
+      "current": 1.33791,
+      "atr14": 0.00115,
+      "atr_15m": 0.00115,
+      "atr_daily": 0.01189,
+      "atr_4h": 0.0058,
+      "at_level_now": true,
+      "status": "aktiv",
+      "pdh": 1.34416,
+      "pdl": 1.33545,
+      "pdc": 1.33824,
+      "pwh": 1.34757,
+      "pwl": 1.32459,
+      "ema9_d1": 1.3363,
+      "ema9_15m": 1.33761,
+      "ema9_above": true,
+      "d1_regime": "BULLISH",
+      "m15_regime": "BULLISH",
+      "regime_align": "bull",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 1.3418,
+      "sma200_pos": "under",
+      "chg5d": 0.34,
+      "chg20d": 0.45,
+      "dir_color": "bear",
+      "grade": "B",
+      "grade_color": "bear",
+      "score": 6,
+      "score_pct": 50,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": false
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": false
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": false
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": true
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": true
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": true
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": false
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": false
+        }
+      ],
+      "news_headwind": false,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 243434,
+      "resistances": [
+        {
+          "name": "PDC",
+          "level": 1.33824,
+          "weight": 3,
+          "dist_atr": 0.3
+        },
+        {
+          "name": "15m",
+          "level": 1.33912,
+          "weight": 1,
+          "dist_atr": 1.1
+        },
+        {
+          "name": "15m",
+          "level": 1.34082,
+          "weight": 1,
+          "dist_atr": 2.5
+        },
+        {
+          "name": "4H",
+          "level": 1.34164,
+          "weight": 2,
+          "dist_atr": 3.2
+        },
+        {
+          "name": "4H",
+          "level": 1.3435,
+          "weight": 2,
+          "dist_atr": 4.9
+        }
+      ],
+      "supports": [
+        {
+          "name": "D1",
+          "level": 1.3372,
+          "weight": 3,
+          "dist_atr": 0.6
+        },
+        {
+          "name": "SMC15m",
+          "level": 1.33605,
+          "weight": 1,
+          "dist_atr": 1.6
+        },
+        {
+          "name": "PDL",
+          "level": 1.33545,
+          "weight": 4,
+          "dist_atr": 2.1
+        },
+        {
+          "name": "D1",
+          "level": 1.33365,
+          "weight": 3,
+          "dist_atr": 3.7
+        },
+        {
+          "name": "4H",
+          "level": 1.33247,
+          "weight": 2,
+          "dist_atr": 4.7
+        }
+      ],
+      "setup_long": {
+        "entry": 1.3372,
+        "entry_curr": 1.33791,
+        "sl": 1.33363,
+        "sl_type": "struktur",
+        "t1": 1.34416,
+        "t2": 1.34773,
+        "rr_t1": 1.95,
+        "rr_t2": 2.95,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.06,
+        "entry_name": "Støtte 1.3372 [D1]",
+        "entry_level": 1.3372,
+        "entry_weight": 3,
+        "t1_source": "PDH",
+        "t1_weight": 4,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO LONG: E=1.3372 [D1 w3] SL=1.3336 (struktur) → T1=1.3442 [PDH w4 htf] R:R=1.95 | Risk=0.0036 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "setup_short": {
+        "entry": 1.33824,
+        "entry_curr": 1.33791,
+        "sl": 1.34181,
+        "sl_type": "struktur",
+        "t1": 1.33247,
+        "t2": 1.33109,
+        "rr_t1": 1.62,
+        "rr_t2": 2.0,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.03,
+        "entry_name": "Motstand 1.33824 [PDC]",
+        "entry_level": 1.33824,
+        "entry_weight": 3,
+        "t1_source": "4H",
+        "t1_weight": 2,
+        "t1_quality": "4h",
+        "status": "aktiv",
+        "note": "MAKRO SHORT: E=1.3382 [PDC w3] SL=1.3418 (struktur) → T1=1.3325 [4H w2 4h] R:R=1.62 | Risk=0.0036 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 1.34757,
+            "bottom": 1.34732,
+            "poi": 1.34745,
+            "idx": 299,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 1.33618,
+            "bottom": 1.33593,
+            "poi": 1.33605,
+            "idx": 494,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 1.32604,
+            "bottom": 1.32579,
+            "poi": 1.32591,
+            "idx": 284,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 1.33818,
+            "type": "BOS_ned",
+            "idx": 389,
+            "zone_top": 1.33831,
+            "zone_bot": 1.33806
+          },
+          {
+            "level": 1.3407,
+            "type": "BOS_opp",
+            "idx": 364,
+            "zone_top": 1.34082,
+            "zone_bot": 1.34057
+          },
+          {
+            "level": 1.34253,
+            "type": "BOS_ned",
+            "idx": 337,
+            "zone_top": 1.34266,
+            "zone_bot": 1.34241
+          }
+        ],
+        "last_swing_high": {
+          "value": 1.33912,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 1.33593,
+          "label": "LL"
+        }
+      },
+      "smc_1h": {
+        "structure": "MIXED",
+        "supply_zones": [
+          {
+            "top": 1.34817,
+            "bottom": 1.3476,
+            "poi": 1.34788,
+            "idx": 131,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 1.32123,
+            "bottom": 1.32066,
+            "poi": 1.32095,
+            "idx": 218,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 1.31495,
+            "bottom": 1.31438,
+            "poi": 1.31467,
+            "idx": 261,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 1.33663,
+            "type": "BOS_opp",
+            "idx": 320,
+            "zone_top": 1.33692,
+            "zone_bot": 1.33635
+          },
+          {
+            "level": 1.3284,
+            "type": "BOS_opp",
+            "idx": 280,
+            "zone_top": 1.32869,
+            "zone_bot": 1.32812
+          },
+          {
+            "level": 1.34148,
+            "type": "BOS_opp",
+            "idx": 118,
+            "zone_top": 1.34177,
+            "zone_bot": 1.3412
+          }
+        ],
+        "last_swing_high": {
+          "value": 1.3435,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 1.33545,
+          "label": "HL"
+        }
+      },
+      "smc_4h": {
+        "structure": "BULLISH",
+        "supply_zones": [],
+        "demand_zones": [
+          {
+            "top": 1.31538,
+            "bottom": 1.31438,
+            "poi": 1.31488,
+            "idx": 65,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 1.32892,
+            "type": "BOS_ned",
+            "idx": 50,
+            "zone_top": 1.32942,
+            "zone_bot": 1.32842
+          },
+          {
+            "level": 1.34127,
+            "type": "BOS_opp",
+            "idx": 29,
+            "zone_top": 1.34177,
+            "zone_bot": 1.34077
+          }
+        ],
+        "last_swing_high": {
+          "value": 1.34757,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 1.33545,
+          "label": "HL"
+        }
+      },
+      "dxy_conf": "motvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "LONG",
+        "color": "bull",
+        "net": 11768,
+        "chg": -8334,
+        "pct": 4.8,
+        "momentum": "SNUR",
+        "date": "2026-03-17",
+        "report": "tff"
+      },
+      "combined_bias": "SHORT",
+      "timeframe_bias": "SWING",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": -0.34,
+        "bias": "bearish",
+        "confirms": true,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    },
+    "AUDUSD": {
+      "name": "AUD/USD",
+      "label": "Valuta",
+      "klasse": "A",
+      "session": "London 08:00–12:00 CET",
+      "class": "V",
+      "current": 0.69635,
+      "atr14": 0.00084,
+      "atr_15m": 0.00084,
+      "atr_daily": 0.00831,
+      "atr_4h": 0.0045,
+      "at_level_now": true,
+      "status": "aktiv",
+      "pdh": 0.70213,
+      "pdl": 0.69401,
+      "pdc": 0.69684,
+      "pwh": 0.7124,
+      "pwl": 0.69117,
+      "ema9_d1": 0.70082,
+      "ema9_15m": 0.69607,
+      "ema9_above": false,
+      "d1_regime": "BEARISH",
+      "m15_regime": "BULLISH",
+      "regime_align": "mixed",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 0.6726,
+      "sma200_pos": "over",
+      "chg5d": -0.76,
+      "chg20d": -0.25,
+      "dir_color": "bull",
+      "grade": "C",
+      "grade_color": "bear",
+      "score": 5,
+      "score_pct": 42,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": true
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": false
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": false
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": true
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": true
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": false
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": false
+        }
+      ],
+      "news_headwind": true,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 1,
+      "resistances": [
+        {
+          "name": "PDC",
+          "level": 0.69684,
+          "weight": 3,
+          "dist_atr": 0.6
+        },
+        {
+          "name": "15m",
+          "level": 0.69729,
+          "weight": 1,
+          "dist_atr": 1.1
+        },
+        {
+          "name": "PDH",
+          "level": 0.70213,
+          "weight": 4,
+          "dist_atr": 6.9
+        },
+        {
+          "name": "4H",
+          "level": 0.70346,
+          "weight": 2,
+          "dist_atr": 8.5
+        },
+        {
+          "name": "4H",
+          "level": 0.7041,
+          "weight": 2,
+          "dist_atr": 9.3
+        }
+      ],
+      "supports": [
+        {
+          "name": "15m",
+          "level": 0.69615,
+          "weight": 1,
+          "dist_atr": 0.2
+        },
+        {
+          "name": "4H",
+          "level": 0.69573,
+          "weight": 2,
+          "dist_atr": 0.7
+        },
+        {
+          "name": "D1",
+          "level": 0.69507,
+          "weight": 3,
+          "dist_atr": 1.5
+        },
+        {
+          "name": "D1",
+          "level": 0.69452,
+          "weight": 3,
+          "dist_atr": 2.2
+        },
+        {
+          "name": "PDL",
+          "level": 0.69401,
+          "weight": 4,
+          "dist_atr": 2.8
+        }
+      ],
+      "setup_long": {
+        "entry": 0.69615,
+        "entry_curr": 0.69635,
+        "sl": 0.69366,
+        "sl_type": "struktur",
+        "t1": 0.70213,
+        "t2": 0.70346,
+        "rr_t1": 2.4,
+        "rr_t2": 2.94,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.02,
+        "entry_name": "Støtte 0.69615 [15m]",
+        "entry_level": 0.69615,
+        "entry_weight": 1,
+        "t1_source": "PDH",
+        "t1_weight": 4,
+        "t1_quality": "htf",
+        "status": "aktiv",
+        "note": "MAKRO LONG: E=0.6962 [15m w1] SL=0.6937 (struktur) → T1=0.7021 [PDH w4 htf] R:R=2.4 | Risk=0.0025 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "setup_short": {
+        "entry": 0.69684,
+        "entry_curr": 0.69635,
+        "sl": 0.69933,
+        "sl_type": "struktur",
+        "t1": 0.69117,
+        "t2": 0.68868,
+        "rr_t1": 2.28,
+        "rr_t2": 3.28,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.06,
+        "entry_name": "Motstand 0.69684 [PDC]",
+        "entry_level": 0.69684,
+        "entry_weight": 3,
+        "t1_source": "PWL",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=0.6968 [PDC w3] SL=0.6993 (struktur) → T1=0.6912 [PWL w5 htf] R:R=2.28 | Risk=0.0025 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 0.70602,
+            "bottom": 0.70584,
+            "poi": 0.70593,
+            "idx": 299,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 0.69135,
+            "bottom": 0.69117,
+            "poi": 0.69126,
+            "idx": 283,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 0.70381,
+            "type": "BOS_opp",
+            "idx": 298,
+            "zone_top": 0.7039,
+            "zone_bot": 0.70372
+          },
+          {
+            "level": 0.70129,
+            "type": "BOS_opp",
+            "idx": 285,
+            "zone_top": 0.70138,
+            "zone_bot": 0.7012
+          },
+          {
+            "level": 0.69755,
+            "type": "BOS_opp",
+            "idx": 285,
+            "zone_top": 0.69764,
+            "zone_bot": 0.69746
+          }
+        ],
+        "last_swing_high": {
+          "value": 0.69708,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 0.6944,
+          "label": "LL"
+        }
+      },
+      "smc_1h": {
+        "structure": "MIXED",
+        "supply_zones": [
+          {
+            "top": 0.71862,
+            "bottom": 0.71816,
+            "poi": 0.71839,
+            "idx": 151,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 0.69163,
+            "bottom": 0.69117,
+            "poi": 0.6914,
+            "idx": 445,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 0.71152,
+            "type": "BOS_opp",
+            "idx": 320,
+            "zone_top": 0.71175,
+            "zone_bot": 0.71129
+          },
+          {
+            "level": 0.70444,
+            "type": "BOS_opp",
+            "idx": 114,
+            "zone_top": 0.70467,
+            "zone_bot": 0.70421
+          },
+          {
+            "level": 0.69766,
+            "type": "BOS_ned",
+            "idx": 98,
+            "zone_top": 0.69789,
+            "zone_bot": 0.69743
+          }
+        ],
+        "last_swing_high": {
+          "value": 0.70103,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 0.69401,
+          "label": "HL"
+        }
+      },
+      "smc_4h": {
+        "structure": "MIXED",
+        "supply_zones": [
+          {
+            "top": 0.71089,
+            "bottom": 0.71008,
+            "poi": 0.71048,
+            "idx": 89,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 0.71862,
+            "bottom": 0.71781,
+            "poi": 0.71821,
+            "idx": 37,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [],
+        "bos_levels": [
+          {
+            "level": 0.70314,
+            "type": "BOS_opp",
+            "idx": 28,
+            "zone_top": 0.70355,
+            "zone_bot": 0.70274
+          },
+          {
+            "level": 0.69784,
+            "type": "BOS_ned",
+            "idx": 24,
+            "zone_top": 0.69824,
+            "zone_bot": 0.69743
+          }
+        ],
+        "last_swing_high": {
+          "value": 0.70602,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 0.69401,
+          "label": "HL"
+        }
+      },
+      "dxy_conf": "motvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "NØYTRAL",
+        "color": "neutral",
+        "net": 0,
+        "chg": 0,
+        "pct": 0.0,
+        "momentum": "STABIL",
+        "date": "",
+        "report": ""
+      },
+      "combined_bias": "LONG",
+      "timeframe_bias": "SWING",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": -0.34,
+        "bias": "bearish",
+        "confirms": false,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    },
+    "Gold": {
+      "name": "Gull",
+      "label": "Råvare",
+      "klasse": "B",
+      "session": "London Fix 10:30 / NY Fix 15:00 CET",
+      "class": "R",
+      "current": 4556.44,
+      "atr14": 14.5343,
+      "atr_15m": 14.5343,
+      "atr_daily": 142.25806,
+      "atr_4h": 97.50969,
+      "at_level_now": false,
+      "status": "watchlist",
+      "pdh": 4448.78875,
+      "pdl": 4310.39454,
+      "pdc": 4399.4287,
+      "pwh": 5016.82098,
+      "pwl": 4104.81533,
+      "ema9_d1": 4597.24622,
+      "ema9_15m": 4557.03581,
+      "ema9_above": false,
+      "d1_regime": "BEARISH",
+      "m15_regime": "BEARISH",
+      "regime_align": "bear",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 4386.36,
+      "sma200_pos": "over",
+      "chg5d": 1.24,
+      "chg20d": -10.05,
+      "dir_color": "bull",
+      "grade": "B",
+      "grade_color": "bear",
+      "score": 8,
+      "score_pct": 67,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": true
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": true
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": false
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": false
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": true
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": true
+        }
+      ],
+      "news_headwind": false,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 411388,
+      "resistances": [
+        {
+          "name": "15m",
+          "level": 4563.67,
+          "weight": 1,
+          "dist_atr": 0.5
+        },
+        {
+          "name": "15m",
+          "level": 4575.88,
+          "weight": 1,
+          "dist_atr": 1.3
+        },
+        {
+          "name": "SMC1H",
+          "level": 4597.58,
+          "weight": 3,
+          "dist_atr": 2.8
+        },
+        {
+          "name": "SMC1H",
+          "level": 4730.97,
+          "weight": 3,
+          "dist_atr": 12.0
+        },
+        {
+          "name": "PWH",
+          "level": 5016.82,
+          "weight": 5,
+          "dist_atr": 31.7
+        }
+      ],
+      "supports": [
+        {
+          "name": "15m",
+          "level": 4537.66,
+          "weight": 1,
+          "dist_atr": 1.3
+        },
+        {
+          "name": "4H",
+          "level": 4514.9,
+          "weight": 2,
+          "dist_atr": 2.9
+        },
+        {
+          "name": "4H",
+          "level": 4475.37,
+          "weight": 2,
+          "dist_atr": 5.6
+        },
+        {
+          "name": "D1",
+          "level": 4410.85,
+          "weight": 3,
+          "dist_atr": 10.0
+        },
+        {
+          "name": "PDC",
+          "level": 4399.43,
+          "weight": 3,
+          "dist_atr": 10.8
+        }
+      ],
+      "setup_long": {
+        "entry": 4537.65723,
+        "entry_curr": 4556.44414,
+        "sl": 4494.97981,
+        "sl_type": "struktur",
+        "t1": 5016.82098,
+        "t2": 5115.80964,
+        "rr_t1": 11.23,
+        "rr_t2": 13.55,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.13,
+        "entry_name": "Støtte 4537.65723 [15m]",
+        "entry_level": 4537.65723,
+        "entry_weight": 1,
+        "t1_source": "PWH",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO LONG: E=4537.6572 [15m w1] SL=4494.9798 (struktur) → T1=5016.821 [PWH w5 htf] R:R=11.23 | Risk=42.6774 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London Fix 10:30 / NY Fix 15:00 CET"
+      },
+      "setup_short": {
+        "entry": 4563.67062,
+        "entry_curr": 4556.44414,
+        "sl": 4606.34804,
+        "sl_type": "struktur",
+        "t1": 4310.39454,
+        "t2": 4267.71712,
+        "rr_t1": 5.93,
+        "rr_t2": 6.93,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.05,
+        "entry_name": "Motstand 4563.67062 [15m]",
+        "entry_level": 4563.67062,
+        "entry_weight": 1,
+        "t1_source": "PDL",
+        "t1_weight": 4,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=4563.6706 [15m w1] SL=4606.348 (struktur) → T1=4310.3945 [PDL w4 htf] R:R=5.93 | Risk=42.6774 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London Fix 10:30 / NY Fix 15:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 4602.63009,
+            "bottom": 4599.33433,
+            "poi": 4600.98221,
+            "idx": 444,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 4538.93392,
+            "bottom": 4535.63816,
+            "poi": 4537.28604,
+            "idx": 457,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 4566.608,
+            "type": "BOS_opp",
+            "idx": 478,
+            "zone_top": 4568.25588,
+            "zone_bot": 4564.96012
+          },
+          {
+            "level": 4530.5816,
+            "type": "BOS_opp",
+            "idx": 431,
+            "zone_top": 4532.22948,
+            "zone_bot": 4528.93372
+          },
+          {
+            "level": 4418.60695,
+            "type": "BOS_opp",
+            "idx": 418,
+            "zone_top": 4420.25483,
+            "zone_bot": 4416.95907
+          }
+        ],
+        "last_swing_high": {
+          "value": 4577.40473,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 4528.40787,
+          "label": "LL"
+        }
+      },
+      "smc_1h": {
+        "structure": "BULLISH",
+        "supply_zones": [
+          {
+            "top": 4602.63009,
+            "bottom": 4592.53477,
+            "poi": 4597.58243,
+            "idx": 485,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 4736.02113,
+            "bottom": 4725.92581,
+            "poi": 4730.97347,
+            "idx": 366,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 4320.48986,
+            "bottom": 4310.39454,
+            "poi": 4315.4422,
+            "idx": 461,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 4114.91065,
+            "bottom": 4104.81533,
+            "poi": 4109.86299,
+            "idx": 442,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 4492.59057,
+            "type": "BOS_opp",
+            "idx": 482,
+            "zone_top": 4497.63823,
+            "zone_bot": 4487.54291
+          },
+          {
+            "level": 4519.94609,
+            "type": "BOS_ned",
+            "idx": 381,
+            "zone_top": 4524.99375,
+            "zone_bot": 4514.89843
+          },
+          {
+            "level": 5019.48237,
+            "type": "BOS_ned",
+            "idx": 266,
+            "zone_top": 5024.53003,
+            "zone_bot": 5014.43471
+          }
+        ],
+        "last_swing_high": {
+          "value": 4602.63009,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 4310.39454,
+          "label": "HL"
+        }
+      },
+      "smc_4h": {
+        "structure": "BEARISH",
+        "supply_zones": [],
+        "demand_zones": [
+          {
+            "top": 4122.99637,
+            "bottom": 4104.81533,
+            "poi": 4113.90585,
+            "idx": 110,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 4523.13896,
+            "type": "BOS_opp",
+            "idx": 120,
+            "zone_top": 4532.22948,
+            "zone_bot": 4514.04844
+          },
+          {
+            "level": 4523.98895,
+            "type": "BOS_ned",
+            "idx": 95,
+            "zone_top": 4533.07947,
+            "zone_bot": 4514.89843
+          },
+          {
+            "level": 5165.04681,
+            "type": "BOS_opp",
+            "idx": 32,
+            "zone_top": 5174.13733,
+            "zone_bot": 5155.95629
+          }
+        ],
+        "last_swing_high": {
+          "value": 4532.22948,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 4104.81533,
+          "label": "LL"
+        }
+      },
+      "dxy_conf": "motvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "LONG",
+        "color": "bull",
+        "net": 102043,
+        "chg": 3644,
+        "pct": 24.8,
+        "momentum": "ØKER",
+        "date": "2026-03-17",
+        "report": "disaggregated"
+      },
+      "combined_bias": "LONG",
+      "timeframe_bias": "WATCHLIST",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": -0.34,
+        "bias": "bearish",
+        "confirms": false,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    },
+    "Silver": {
+      "name": "Sølv",
+      "label": "Råvare",
+      "klasse": "B",
+      "session": "London Fix 10:30 / NY Fix 15:00 CET",
+      "class": "R",
+      "current": 72.89,
+      "atr14": 0.46714,
+      "atr_15m": 0.46714,
+      "atr_daily": 5.92025,
+      "atr_4h": 2.81679,
+      "at_level_now": false,
+      "status": "watchlist",
+      "pdh": 70.761,
+      "pdl": 61.012,
+      "pdc": 69.498,
+      "pwh": 85.434,
+      "pwl": 61.012,
+      "ema9_d1": 74.88162,
+      "ema9_15m": 72.85939,
+      "ema9_above": false,
+      "d1_regime": "BEARISH",
+      "m15_regime": "BULLISH",
+      "regime_align": "mixed",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 57.6134,
+      "sma200_pos": "over",
+      "chg5d": -8.03,
+      "chg20d": -16.38,
+      "dir_color": "bull",
+      "grade": "B",
+      "grade_color": "bear",
+      "score": 6,
+      "score_pct": 50,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": true
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": false
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": false
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": false
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": false
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": true
+        }
+      ],
+      "news_headwind": false,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 114758,
+      "resistances": [
+        {
+          "name": "15m",
+          "level": 73.46,
+          "weight": 1,
+          "dist_atr": 1.2
+        },
+        {
+          "name": "15m",
+          "level": 73.88,
+          "weight": 1,
+          "dist_atr": 2.1
+        },
+        {
+          "name": "SMC1H",
+          "level": 74.46873,
+          "weight": 3,
+          "dist_atr": 3.4
+        },
+        {
+          "name": "4H",
+          "level": 74.8,
+          "weight": 2,
+          "dist_atr": 4.1
+        },
+        {
+          "name": "4H",
+          "level": 79.265,
+          "weight": 2,
+          "dist_atr": 13.6
+        }
+      ],
+      "supports": [
+        {
+          "name": "15m",
+          "level": 72.605,
+          "weight": 1,
+          "dist_atr": 0.6
+        },
+        {
+          "name": "15m",
+          "level": 72.365,
+          "weight": 1,
+          "dist_atr": 1.1
+        },
+        {
+          "name": "15m",
+          "level": 72.095,
+          "weight": 1,
+          "dist_atr": 1.7
+        },
+        {
+          "name": "4H",
+          "level": 71.815,
+          "weight": 2,
+          "dist_atr": 2.3
+        },
+        {
+          "name": "4H",
+          "level": 71.2,
+          "weight": 2,
+          "dist_atr": 3.6
+        }
+      ],
+      "setup_long": {
+        "entry": 72.605,
+        "entry_curr": 72.89,
+        "sl": 70.82892,
+        "sl_type": "struktur",
+        "t1": 83.959,
+        "t2": 85.73508,
+        "rr_t1": 6.39,
+        "rr_t2": 7.39,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.05,
+        "entry_name": "Støtte 72.605 [15m]",
+        "entry_level": 72.605,
+        "entry_weight": 1,
+        "t1_source": "D1",
+        "t1_weight": 3,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO LONG: E=72.605 [15m w1] SL=70.8289 (struktur) → T1=83.959 [D1 w3 htf] R:R=6.39 | Risk=1.7761 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London Fix 10:30 / NY Fix 15:00 CET"
+      },
+      "setup_short": {
+        "entry": 73.46,
+        "entry_curr": 72.89,
+        "sl": 75.23607,
+        "sl_type": "struktur",
+        "t1": 69.498,
+        "t2": 67.72193,
+        "rr_t1": 2.23,
+        "rr_t2": 3.23,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.1,
+        "entry_name": "Motstand 73.46 [15m]",
+        "entry_level": 73.46,
+        "entry_weight": 1,
+        "t1_source": "PDC",
+        "t1_weight": 3,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=73.46 [15m w1] SL=75.2361 (struktur) → T1=69.498 [PDC w3 htf] R:R=2.23 | Risk=1.7761 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London Fix 10:30 / NY Fix 15:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 74.8,
+            "bottom": 74.6833,
+            "poi": 74.74165,
+            "idx": 264,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 72.2117,
+            "bottom": 72.095,
+            "poi": 72.15335,
+            "idx": 299,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 73.33835,
+            "type": "BOS_ned",
+            "idx": 281,
+            "zone_top": 73.3967,
+            "zone_bot": 73.28
+          },
+          {
+            "level": 73.72165,
+            "type": "BOS_opp",
+            "idx": 262,
+            "zone_top": 73.78,
+            "zone_bot": 73.6633
+          },
+          {
+            "level": 72.49665,
+            "type": "BOS_opp",
+            "idx": 258,
+            "zone_top": 72.555,
+            "zone_bot": 72.4383
+          }
+        ],
+        "last_swing_high": {
+          "value": 73.55,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 71.895,
+          "label": "LL"
+        }
+      },
+      "smc_1h": {
+        "structure": "BULLISH",
+        "supply_zones": [
+          {
+            "top": 74.62,
+            "bottom": 74.31745,
+            "poi": 74.46873,
+            "idx": 1050,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 61.51255,
+            "bottom": 61.21,
+            "poi": 61.36127,
+            "idx": 1079,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 70.87872,
+            "type": "BOS_opp",
+            "idx": 1115,
+            "zone_top": 71.03,
+            "zone_bot": 70.72745
+          },
+          {
+            "level": 65.70128,
+            "type": "BOS_ned",
+            "idx": 1074,
+            "zone_top": 65.85255,
+            "zone_bot": 65.55
+          },
+          {
+            "level": 81.66872,
+            "type": "BOS_opp",
+            "idx": 984,
+            "zone_top": 81.82,
+            "zone_bot": 81.51745
+          }
+        ],
+        "last_swing_high": {
+          "value": 74.8,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 66.115,
+          "label": "HL"
+        }
+      },
+      "smc_4h": {
+        "structure": "BEARISH",
+        "supply_zones": [],
+        "demand_zones": [
+          {
+            "top": 64.57935,
+            "bottom": 63.9,
+            "poi": 64.23968,
+            "idx": 95,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 70.69032,
+            "type": "BOS_opp",
+            "idx": 278,
+            "zone_top": 71.03,
+            "zone_bot": 70.35065
+          },
+          {
+            "level": 79.95467,
+            "type": "BOS_ned",
+            "idx": 122,
+            "zone_top": 80.29435,
+            "zone_bot": 79.615
+          },
+          {
+            "level": 83.42033,
+            "type": "BOS_opp",
+            "idx": 114,
+            "zone_top": 83.76,
+            "zone_bot": 83.08065
+          }
+        ],
+        "last_swing_high": {
+          "value": 71.03,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 61.21,
+          "label": "LL"
+        }
+      },
+      "dxy_conf": "motvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "LONG",
+        "color": "bull",
+        "net": 9647,
+        "chg": -642,
+        "pct": 8.4,
+        "momentum": "SNUR",
+        "date": "2026-03-17",
+        "report": "disaggregated"
+      },
+      "combined_bias": "LONG",
+      "timeframe_bias": "WATCHLIST",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": -0.34,
+        "bias": "bearish",
+        "confirms": false,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    },
+    "Brent": {
+      "name": "Brent",
+      "label": "Råvare",
+      "klasse": "B",
+      "session": "London Fix 10:30 / NY Fix 15:00 CET",
+      "class": "R",
+      "current": 96.47,
+      "atr14": 0.61929,
+      "atr_15m": 0.61929,
+      "atr_daily": 12.23214,
+      "atr_4h": 5.50643,
+      "at_level_now": true,
+      "status": "aktiv",
+      "pdh": 105.04,
+      "pdl": 98.09,
+      "pdc": 104.49,
+      "pwh": 119.12,
+      "pwl": 96.25,
+      "ema9_d1": 101.28452,
+      "ema9_15m": 96.55882,
+      "ema9_above": false,
+      "d1_regime": "BEARISH",
+      "m15_regime": "BEARISH",
+      "regime_align": "bear",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 69.041,
+      "sma200_pos": "over",
+      "chg5d": -10.16,
+      "chg20d": 36.16,
+      "dir_color": "bull",
+      "grade": "B",
+      "grade_color": "bear",
+      "score": 8,
+      "score_pct": 67,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": true
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": false
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": false
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": true
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": true
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": true
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": true
+        }
+      ],
+      "news_headwind": false,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 849074,
+      "resistances": [
+        {
+          "name": "15m",
+          "level": 96.69,
+          "weight": 1,
+          "dist_atr": 0.4
+        },
+        {
+          "name": "15m",
+          "level": 97.55,
+          "weight": 1,
+          "dist_atr": 1.7
+        },
+        {
+          "name": "15m",
+          "level": 98.71,
+          "weight": 1,
+          "dist_atr": 3.6
+        },
+        {
+          "name": "4H",
+          "level": 103.88,
+          "weight": 2,
+          "dist_atr": 12.0
+        },
+        {
+          "name": "PDC",
+          "level": 104.49,
+          "weight": 3,
+          "dist_atr": 13.0
+        }
+      ],
+      "supports": [
+        {
+          "name": "PWL",
+          "level": 96.25,
+          "weight": 5,
+          "dist_atr": 0.4
+        },
+        {
+          "name": "4H",
+          "level": 95.62,
+          "weight": 2,
+          "dist_atr": 1.4
+        },
+        {
+          "name": "15m",
+          "level": 94.72,
+          "weight": 1,
+          "dist_atr": 2.8
+        },
+        {
+          "name": "15m",
+          "level": 93.9,
+          "weight": 1,
+          "dist_atr": 4.1
+        },
+        {
+          "name": "4H",
+          "level": 92.0,
+          "weight": 2,
+          "dist_atr": 7.2
+        }
+      ],
+      "setup_long": null,
+      "setup_short": {
+        "entry": 96.69,
+        "entry_curr": 96.47,
+        "sl": 100.35964,
+        "sl_type": "struktur",
+        "t1": 83.88,
+        "t2": 80.21036,
+        "rr_t1": 3.49,
+        "rr_t2": 4.49,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.02,
+        "entry_name": "Motstand 96.69 [15m]",
+        "entry_level": 96.69,
+        "entry_weight": 1,
+        "t1_source": "4H",
+        "t1_weight": 2,
+        "t1_quality": "4h",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=96.69 [15m w1] SL=100.3596 (struktur) → T1=83.88 [4H w2 4h] R:R=3.49 | Risk=3.6696 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London Fix 10:30 / NY Fix 15:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "BULLISH_SVAK",
+        "supply_zones": [],
+        "demand_zones": [
+          {
+            "top": 92.1983,
+            "bottom": 92.0,
+            "poi": 92.09915,
+            "idx": 120,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 96.26085,
+            "type": "BOS_opp",
+            "idx": 318,
+            "zone_top": 96.36,
+            "zone_bot": 96.1617
+          },
+          {
+            "level": 93.99915,
+            "type": "BOS_ned",
+            "idx": 304,
+            "zone_top": 94.0983,
+            "zone_bot": 93.9
+          },
+          {
+            "level": 96.87915,
+            "type": "BOS_ned",
+            "idx": 290,
+            "zone_top": 96.9783,
+            "zone_bot": 96.78
+          }
+        ],
+        "last_swing_high": {
+          "value": 96.69,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 93.64,
+          "label": "LL"
+        }
+      },
+      "smc_1h": {
+        "structure": "BULLISH",
+        "supply_zones": [
+          {
+            "top": 109.95,
+            "bottom": 109.4722,
+            "poi": 109.7111,
+            "idx": 1013,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 119.4,
+            "bottom": 118.9222,
+            "poi": 119.1611,
+            "idx": 840,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 81.9978,
+            "bottom": 81.52,
+            "poi": 81.7589,
+            "idx": 800,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 77.2178,
+            "bottom": 76.74,
+            "poi": 76.9789,
+            "idx": 738,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 96.0089,
+            "type": "BOS_ned",
+            "idx": 1121,
+            "zone_top": 96.2478,
+            "zone_bot": 95.77
+          },
+          {
+            "level": 101.1189,
+            "type": "BOS_ned",
+            "idx": 1004,
+            "zone_top": 101.3578,
+            "zone_bot": 100.88
+          },
+          {
+            "level": 103.6411,
+            "type": "BOS_opp",
+            "idx": 981,
+            "zone_top": 103.88,
+            "zone_bot": 103.4022
+          }
+        ],
+        "last_swing_high": {
+          "value": 105.04,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 96.96,
+          "label": "HL"
+        }
+      },
+      "smc_4h": {
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 119.4,
+            "bottom": 118.42045,
+            "poi": 118.91023,
+            "idx": 210,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 79.99955,
+            "bottom": 79.02,
+            "poi": 79.50977,
+            "idx": 219,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 64.25955,
+            "bottom": 63.28,
+            "poi": 63.76977,
+            "idx": 12,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 96.10978,
+            "type": "BOS_ned",
+            "idx": 280,
+            "zone_top": 96.59955,
+            "zone_bot": 95.62
+          },
+          {
+            "level": 103.39022,
+            "type": "BOS_opp",
+            "idx": 252,
+            "zone_top": 103.88,
+            "zone_bot": 102.90045
+          },
+          {
+            "level": 84.56023,
+            "type": "BOS_opp",
+            "idx": 205,
+            "zone_top": 85.05,
+            "zone_bot": 84.07045
+          }
+        ],
+        "last_swing_high": {
+          "value": 105.04,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 92.0,
+          "label": "LL"
+        }
+      },
+      "dxy_conf": "motvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "NØYTRAL",
+        "color": "neutral",
+        "net": -31287,
+        "chg": -3142,
+        "pct": 3.7,
+        "momentum": "ØKER",
+        "date": "2026-03-17",
+        "report": "disaggregated"
+      },
+      "combined_bias": "LONG",
+      "timeframe_bias": "SWING",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": 0.06,
+        "bias": "neutral",
+        "confirms": false,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    },
+    "WTI": {
+      "name": "WTI",
+      "label": "Råvare",
+      "klasse": "B",
+      "session": "London Fix 10:30 / NY Fix 15:00 CET",
+      "class": "R",
+      "current": 89.92,
+      "atr14": 0.67286,
+      "atr_15m": 0.67286,
+      "atr_daily": 11.66286,
+      "atr_4h": 4.455,
+      "at_level_now": false,
+      "status": "watchlist",
+      "pdh": 93.36,
+      "pdl": 86.34,
+      "pdc": 92.35,
+      "pwh": 102.44,
+      "pwl": 84.37,
+      "ema9_d1": 91.913,
+      "ema9_15m": 89.71918,
+      "ema9_above": false,
+      "d1_regime": "BEARISH",
+      "m15_regime": "BULLISH",
+      "regime_align": "mixed",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 65.0401,
+      "sma200_pos": "over",
+      "chg5d": -6.64,
+      "chg20d": 37.45,
+      "dir_color": "bull",
+      "grade": "C",
+      "grade_color": "bear",
+      "score": 4,
+      "score_pct": 33,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": true
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": false
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": false
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": false
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": false
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": false
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": false
+        }
+      ],
+      "news_headwind": false,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 849074,
+      "resistances": [
+        {
+          "name": "15m",
+          "level": 90.31,
+          "weight": 1,
+          "dist_atr": 0.6
+        },
+        {
+          "name": "15m",
+          "level": 90.68,
+          "weight": 1,
+          "dist_atr": 1.1
+        },
+        {
+          "name": "15m",
+          "level": 91.45,
+          "weight": 1,
+          "dist_atr": 2.3
+        },
+        {
+          "name": "PDC",
+          "level": 92.35,
+          "weight": 3,
+          "dist_atr": 3.6
+        },
+        {
+          "name": "SMC4H",
+          "level": 92.9287,
+          "weight": 2,
+          "dist_atr": 4.5
+        }
+      ],
+      "supports": [
+        {
+          "name": "15m",
+          "level": 89.43,
+          "weight": 1,
+          "dist_atr": 0.7
+        },
+        {
+          "name": "15m",
+          "level": 88.5,
+          "weight": 1,
+          "dist_atr": 2.1
+        },
+        {
+          "name": "PDL",
+          "level": 86.34,
+          "weight": 4,
+          "dist_atr": 5.3
+        },
+        {
+          "name": "PWL",
+          "level": 84.37,
+          "weight": 5,
+          "dist_atr": 8.2
+        },
+        {
+          "name": "4H",
+          "level": 81.19,
+          "weight": 2,
+          "dist_atr": 13.0
+        }
+      ],
+      "setup_long": null,
+      "setup_short": {
+        "entry": 90.31,
+        "entry_curr": 89.92,
+        "sl": 93.80886,
+        "sl_type": "struktur",
+        "t1": 84.37,
+        "t2": 81.19,
+        "rr_t1": 1.7,
+        "rr_t2": 2.61,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.03,
+        "entry_name": "Motstand 90.31 [15m]",
+        "entry_level": 90.31,
+        "entry_weight": 1,
+        "t1_source": "PWL",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=90.31 [15m w1] SL=93.8089 (struktur) → T1=84.37 [PWL w5 htf] R:R=1.7 | Risk=3.4989 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London Fix 10:30 / NY Fix 15:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "BULLISH_SVAK",
+        "supply_zones": [
+          {
+            "top": 93.36,
+            "bottom": 93.18905,
+            "poi": 93.27453,
+            "idx": 236,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 84.54095,
+            "bottom": 84.37,
+            "poi": 84.45548,
+            "idx": 120,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 86.81548,
+            "type": "BOS_ned",
+            "idx": 304,
+            "zone_top": 86.90095,
+            "zone_bot": 86.73
+          },
+          {
+            "level": 88.58548,
+            "type": "BOS_ned",
+            "idx": 251,
+            "zone_top": 88.67095,
+            "zone_bot": 88.5
+          },
+          {
+            "level": 91.03547,
+            "type": "BOS_ned",
+            "idx": 195,
+            "zone_top": 91.12095,
+            "zone_bot": 90.95
+          }
+        ],
+        "last_swing_high": {
+          "value": 89.39,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 86.46,
+          "label": "LL"
+        }
+      },
+      "smc_1h": {
+        "structure": "MIXED",
+        "supply_zones": [
+          {
+            "top": 101.76,
+            "bottom": 101.37395,
+            "poi": 101.56698,
+            "idx": 951,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 84.75605,
+            "bottom": 84.37,
+            "poi": 84.56303,
+            "idx": 1079,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 77.11605,
+            "bottom": 76.73,
+            "poi": 76.92303,
+            "idx": 878,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 73.66605,
+            "bottom": 73.28,
+            "poi": 73.47302,
+            "idx": 781,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 70.47605,
+            "bottom": 70.09,
+            "poi": 70.28302,
+            "idx": 738,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 92.23303,
+            "type": "BOS_ned",
+            "idx": 1080,
+            "zone_top": 92.42605,
+            "zone_bot": 92.04
+          },
+          {
+            "level": 95.77698,
+            "type": "BOS_opp",
+            "idx": 925,
+            "zone_top": 95.97,
+            "zone_bot": 95.58395
+          },
+          {
+            "level": 88.79697,
+            "type": "BOS_opp",
+            "idx": 905,
+            "zone_top": 88.99,
+            "zone_bot": 88.60395
+          }
+        ],
+        "last_swing_high": {
+          "value": 93.36,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 86.34,
+          "label": "HL"
+        }
+      },
+      "smc_4h": {
+        "structure": "MIXED",
+        "supply_zones": [
+          {
+            "top": 93.36,
+            "bottom": 92.4974,
+            "poi": 92.9287,
+            "idx": 277,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 101.76,
+            "bottom": 100.8974,
+            "poi": 101.3287,
+            "idx": 237,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 119.48,
+            "bottom": 118.6174,
+            "poi": 119.0487,
+            "idx": 210,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 85.2326,
+            "bottom": 84.37,
+            "poi": 84.8013,
+            "idx": 269,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 77.5926,
+            "bottom": 76.73,
+            "poi": 77.1613,
+            "idx": 219,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 59.5826,
+            "bottom": 58.72,
+            "poi": 59.1513,
+            "idx": 21,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 92.4713,
+            "type": "BOS_ned",
+            "idx": 270,
+            "zone_top": 92.9026,
+            "zone_bot": 92.04
+          },
+          {
+            "level": 77.5487,
+            "type": "BOS_opp",
+            "idx": 201,
+            "zone_top": 77.98,
+            "zone_bot": 77.1174
+          },
+          {
+            "level": 61.9287,
+            "type": "BOS_opp",
+            "idx": 53,
+            "zone_top": 62.36,
+            "zone_bot": 61.4974
+          }
+        ],
+        "last_swing_high": {
+          "value": 93.36,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 86.34,
+          "label": "HL"
+        }
+      },
+      "dxy_conf": "motvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "NØYTRAL",
+        "color": "neutral",
+        "net": -31287,
+        "chg": -3142,
+        "pct": 3.7,
+        "momentum": "ØKER",
+        "date": "2026-03-17",
+        "report": "disaggregated"
+      },
+      "combined_bias": "LONG",
+      "timeframe_bias": "WATCHLIST",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": 0.06,
+        "bias": "neutral",
+        "confirms": false,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    },
+    "SPX": {
+      "name": "S&P 500",
+      "label": "Aksjer",
+      "klasse": "C",
+      "session": "NY Open 14:30–17:00 CET",
+      "class": "A",
+      "current": 6605.4,
+      "atr14": 20.61925,
+      "atr_15m": 20.61925,
+      "atr_daily": 102.39286,
+      "atr_4h": 74.42648,
+      "at_level_now": false,
+      "status": "watchlist",
+      "pdh": 6651.62,
+      "pdl": 6565.55,
+      "pdc": 6581.0,
+      "pwh": 6754.3,
+      "pwl": 6473.52,
+      "ema9_d1": 6624.06158,
+      "ema9_15m": 6599.78445,
+      "ema9_above": false,
+      "d1_regime": "BEARISH",
+      "m15_regime": "BULLISH",
+      "regime_align": "mixed",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 6627.87,
+      "sma200_pos": "under",
+      "chg5d": -1.65,
+      "chg20d": -4.13,
+      "dir_color": "bear",
+      "grade": "B",
+      "grade_color": "bear",
+      "score": 8,
+      "score_pct": 67,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": false
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": true
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": false
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": true
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": false
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": true
+        }
+      ],
+      "news_headwind": false,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 2359720,
+      "resistances": [
+        {
+          "name": "15m",
+          "level": 6617.84,
+          "weight": 1,
+          "dist_atr": 0.6
+        },
+        {
+          "name": "15m",
+          "level": 6633.94,
+          "weight": 1,
+          "dist_atr": 1.4
+        },
+        {
+          "name": "PDH",
+          "level": 6651.62,
+          "weight": 4,
+          "dist_atr": 2.2
+        },
+        {
+          "name": "D1",
+          "level": 6699.52,
+          "weight": 3,
+          "dist_atr": 4.6
+        },
+        {
+          "name": "PWH",
+          "level": 6754.3,
+          "weight": 5,
+          "dist_atr": 7.2
+        }
+      ],
+      "supports": [
+        {
+          "name": "PDC",
+          "level": 6581.0,
+          "weight": 3,
+          "dist_atr": 1.2
+        },
+        {
+          "name": "PDL",
+          "level": 6565.55,
+          "weight": 4,
+          "dist_atr": 1.9
+        },
+        {
+          "name": "D1",
+          "level": 6550.78,
+          "weight": 3,
+          "dist_atr": 2.6
+        },
+        {
+          "name": "D1",
+          "level": 6521.92,
+          "weight": 3,
+          "dist_atr": 4.0
+        },
+        {
+          "name": "PWL",
+          "level": 6473.52,
+          "weight": 5,
+          "dist_atr": 6.4
+        }
+      ],
+      "setup_long": {
+        "entry": 6581.0,
+        "entry_curr": 6605.3999,
+        "sl": 6550.28214,
+        "sl_type": "struktur",
+        "t1": 6754.3,
+        "t2": 6845.08008,
+        "rr_t1": 5.64,
+        "rr_t2": 8.6,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.24,
+        "entry_name": "Støtte 6581.0 [PDC]",
+        "entry_level": 6581.0,
+        "entry_weight": 3,
+        "t1_source": "PWH",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO LONG: E=6581.0 [PDC w3] SL=6550.2821 (struktur) → T1=6754.3 [PWH w5 htf] R:R=5.64 | Risk=30.7179 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "NY Open 14:30–17:00 CET"
+      },
+      "setup_short": {
+        "entry": 6617.83984,
+        "entry_curr": 6605.3999,
+        "sl": 6648.5577,
+        "sl_type": "struktur",
+        "t1": 6473.52,
+        "t2": 6360.58,
+        "rr_t1": 4.7,
+        "rr_t2": 8.37,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.12,
+        "entry_name": "Motstand 6617.83984 [15m]",
+        "entry_level": 6617.83984,
+        "entry_weight": 1,
+        "t1_source": "PWL",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=6617.8398 [15m w1] SL=6648.5577 (struktur) → T1=6473.52 [PWL w5 htf] R:R=4.7 | Risk=30.7179 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "NY Open 14:30–17:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "BULLISH",
+        "supply_zones": [
+          {
+            "top": 6651.62012,
+            "bottom": 6647.19227,
+            "poi": 6649.40619,
+            "idx": 58,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 6529.53771,
+            "bottom": 6525.10986,
+            "poi": 6527.32379,
+            "idx": 79,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 6477.94787,
+            "bottom": 6473.52002,
+            "poi": 6475.73394,
+            "idx": 50,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 6564.09613,
+            "type": "BOS_opp",
+            "idx": 52,
+            "zone_top": 6566.31006,
+            "zone_bot": 6561.88221
+          },
+          {
+            "level": 6566.8941,
+            "type": "BOS_ned",
+            "idx": 27,
+            "zone_top": 6569.10802,
+            "zone_bot": 6564.68018
+          },
+          {
+            "level": 6602.71625,
+            "type": "BOS_opp",
+            "idx": 22,
+            "zone_top": 6604.93018,
+            "zone_bot": 6600.50233
+          }
+        ],
+        "last_swing_high": {
+          "value": 6633.93994,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 6568.41016,
+          "label": "HL"
+        }
+      },
+      "smc_1h": {
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 6651.62012,
+            "bottom": 6643.62591,
+            "poi": 6647.62301,
+            "idx": 400,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 6754.2998,
+            "bottom": 6746.3056,
+            "poi": 6750.3027,
+            "idx": 371,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 6901.00977,
+            "bottom": 6893.01556,
+            "poi": 6897.01266,
+            "idx": 299,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 6481.51423,
+            "bottom": 6473.52002,
+            "poi": 6477.51712,
+            "idx": 398,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 6640.03714,
+            "type": "BOS_ned",
+            "idx": 362,
+            "zone_top": 6644.03425,
+            "zone_bot": 6636.04004
+          },
+          {
+            "level": 6714.41703,
+            "type": "BOS_ned",
+            "idx": 329,
+            "zone_top": 6718.41413,
+            "zone_bot": 6710.41992
+          },
+          {
+            "level": 6828.30716,
+            "type": "BOS_ned",
+            "idx": 102,
+            "zone_top": 6832.30427,
+            "zone_bot": 6824.31006
+          }
+        ],
+        "last_swing_high": {
+          "value": 6651.62012,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 6473.52002,
+          "label": "LL"
+        }
+      },
+      "smc_4h": {
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 6986.33008,
+            "bottom": 6968.00034,
+            "poi": 6977.16521,
+            "idx": 17,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [],
+        "bos_levels": [
+          {
+            "level": 6645.20491,
+            "type": "BOS_ned",
+            "idx": 90,
+            "zone_top": 6654.36978,
+            "zone_bot": 6636.04004
+          },
+          {
+            "level": 6833.47493,
+            "type": "BOS_ned",
+            "idx": 25,
+            "zone_top": 6842.6398,
+            "zone_bot": 6824.31006
+          }
+        ],
+        "last_swing_high": {
+          "value": 6845.08008,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 6623.91992,
+          "label": "LL"
+        }
+      },
+      "dxy_conf": "motvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "SHORT",
+        "color": "bear",
+        "net": -347577,
+        "chg": 10519,
+        "pct": 14.7,
+        "momentum": "SNUR",
+        "date": "2026-03-17",
+        "report": "tff"
+      },
+      "combined_bias": "SHORT",
+      "timeframe_bias": "MAKRO",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": 0.06,
+        "bias": "neutral",
+        "confirms": false,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    },
+    "NAS100": {
+      "name": "Nasdaq",
+      "label": "Aksjer",
+      "klasse": "C",
+      "session": "NY Open 14:30–17:00 CET",
+      "class": "A",
+      "current": 24225.48,
+      "atr14": 85.29715,
+      "atr_15m": 85.29715,
+      "atr_daily": 421.20071,
+      "atr_4h": 308.67383,
+      "at_level_now": true,
+      "status": "aktiv",
+      "pdh": 24465.16,
+      "pdl": 24097.68,
+      "pdc": 24188.59,
+      "pwh": 24884.68,
+      "pwl": 23759.97,
+      "ema9_d1": 24334.00168,
+      "ema9_15m": 24198.70499,
+      "ema9_above": false,
+      "d1_regime": "BEARISH",
+      "m15_regime": "BULLISH",
+      "regime_align": "mixed",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 24383.77,
+      "sma200_pos": "under",
+      "chg5d": -2.24,
+      "chg20d": -3.01,
+      "dir_color": "bear",
+      "grade": "A",
+      "grade_color": "warn",
+      "score": 9,
+      "score_pct": 75,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": false
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": true
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": true
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": true
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": false
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": false
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": true
+        }
+      ],
+      "news_headwind": false,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 300943,
+      "resistances": [
+        {
+          "name": "15m",
+          "level": 24306.03,
+          "weight": 1,
+          "dist_atr": 0.9
+        },
+        {
+          "name": "15m",
+          "level": 24355.21,
+          "weight": 1,
+          "dist_atr": 1.5
+        },
+        {
+          "name": "PDH",
+          "level": 24465.16,
+          "weight": 4,
+          "dist_atr": 2.8
+        },
+        {
+          "name": "D1",
+          "level": 24781.73,
+          "weight": 3,
+          "dist_atr": 6.5
+        },
+        {
+          "name": "PWH",
+          "level": 24884.68,
+          "weight": 5,
+          "dist_atr": 7.7
+        }
+      ],
+      "supports": [
+        {
+          "name": "PDC",
+          "level": 24188.59,
+          "weight": 3,
+          "dist_atr": 0.4
+        },
+        {
+          "name": "PDL",
+          "level": 24097.68,
+          "weight": 4,
+          "dist_atr": 1.5
+        },
+        {
+          "name": "SMC15m",
+          "level": 23940.02,
+          "weight": 1,
+          "dist_atr": 3.3
+        },
+        {
+          "name": "D1",
+          "level": 23854.03,
+          "weight": 3,
+          "dist_atr": 4.4
+        },
+        {
+          "name": "PWL",
+          "level": 23759.97,
+          "weight": 5,
+          "dist_atr": 5.5
+        }
+      ],
+      "setup_long": {
+        "entry": 24188.59,
+        "entry_curr": 24225.47656,
+        "sl": 24062.22979,
+        "sl_type": "struktur",
+        "t1": 24884.68,
+        "t2": 25075.80664,
+        "rr_t1": 5.51,
+        "rr_t2": 7.02,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.09,
+        "entry_name": "Støtte 24188.59 [PDC]",
+        "entry_level": 24188.59,
+        "entry_weight": 3,
+        "t1_source": "PWH",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "aktiv",
+        "note": "MAKRO LONG: E=24188.59 [PDC w3] SL=24062.2298 (struktur) → T1=24884.68 [PWH w5 htf] R:R=5.51 | Risk=126.3602 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "NY Open 14:30–17:00 CET"
+      },
+      "setup_short": {
+        "entry": 24306.0293,
+        "entry_curr": 24225.47656,
+        "sl": 24432.38951,
+        "sl_type": "struktur",
+        "t1": 23759.97,
+        "t2": 22977.89,
+        "rr_t1": 4.32,
+        "rr_t2": 10.51,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.19,
+        "entry_name": "Motstand 24306.0293 [15m]",
+        "entry_level": 24306.0293,
+        "entry_weight": 1,
+        "t1_source": "PWL",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=24306.0293 [15m w1] SL=24432.3895 (struktur) → T1=23759.97 [PWL w5 htf] R:R=4.32 | Risk=126.3602 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "NY Open 14:30–17:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "BULLISH",
+        "supply_zones": [],
+        "demand_zones": [
+          {
+            "top": 23949.06373,
+            "bottom": 23930.98047,
+            "poi": 23940.0221,
+            "idx": 79,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 23778.97584,
+            "bottom": 23760.89258,
+            "poi": 23769.93421,
+            "idx": 50,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 24130.8236,
+            "type": "BOS_opp",
+            "idx": 52,
+            "zone_top": 24139.86523,
+            "zone_bot": 24121.78197
+          },
+          {
+            "level": 24175.29749,
+            "type": "BOS_ned",
+            "idx": 27,
+            "zone_top": 24184.33912,
+            "zone_bot": 24166.25586
+          },
+          {
+            "level": 24346.16345,
+            "type": "BOS_opp",
+            "idx": 22,
+            "zone_top": 24355.20508,
+            "zone_bot": 24337.12182
+          }
+        ],
+        "last_swing_high": {
+          "value": 24312.33008,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 24083.80273,
+          "label": "HL"
+        }
+      },
+      "smc_1h": {
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 24464.89648,
+            "bottom": 24431.38889,
+            "poi": 24448.14269,
+            "idx": 399,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 26164.70312,
+            "bottom": 26131.19553,
+            "poi": 26147.94933,
+            "idx": 140,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 23794.40018,
+            "bottom": 23760.89258,
+            "poi": 23777.64638,
+            "idx": 398,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 24472.21474,
+            "type": "BOS_ned",
+            "idx": 301,
+            "zone_top": 24488.96854,
+            "zone_bot": 24455.46094
+          },
+          {
+            "level": 25040.35167,
+            "type": "BOS_opp",
+            "idx": 273,
+            "zone_top": 25057.10547,
+            "zone_bot": 25023.59787
+          },
+          {
+            "level": 25856.42394,
+            "type": "BOS_opp",
+            "idx": 133,
+            "zone_top": 25873.17773,
+            "zone_bot": 25839.67014
+          }
+        ],
+        "last_swing_high": {
+          "value": 24464.89648,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 23760.89258,
+          "label": "LL"
+        }
+      },
+      "smc_4h": {
+        "structure": "BULLISH",
+        "supply_zones": [],
+        "demand_zones": [],
+        "bos_levels": [
+          {
+            "level": 24428.8186,
+            "type": "BOS_ned",
+            "idx": 90,
+            "zone_top": 24469.10986,
+            "zone_bot": 24388.52734
+          },
+          {
+            "level": 25138.87866,
+            "type": "BOS_opp",
+            "idx": 84,
+            "zone_top": 25179.16992,
+            "zone_bot": 25098.5874
+          },
+          {
+            "level": 25832.88647,
+            "type": "BOS_opp",
+            "idx": 33,
+            "zone_top": 25873.17773,
+            "zone_bot": 25792.59521
+          }
+        ],
+        "last_swing_high": {
+          "value": 25189.17383,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 24337.02734,
+          "label": "HL"
+        }
+      },
+      "dxy_conf": "motvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "SHORT",
+        "color": "bear",
+        "net": -31462,
+        "chg": -6295,
+        "pct": 10.5,
+        "momentum": "ØKER",
+        "date": "2026-03-17",
+        "report": "tff"
+      },
+      "combined_bias": "SHORT",
+      "timeframe_bias": "MAKRO",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": 0.06,
+        "bias": "neutral",
+        "confirms": false,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    },
+    "DXY": {
+      "name": "DXY",
+      "label": "Valuta",
+      "klasse": "A",
+      "session": "London 08:00–12:00 CET",
+      "class": "V",
+      "current": 99.522,
+      "atr14": 0.07564,
+      "atr_15m": 0.07564,
+      "atr_daily": 0.78807,
+      "atr_4h": 0.36843,
+      "at_level_now": false,
+      "status": "watchlist",
+      "pdh": 99.62,
+      "pdl": 99.06,
+      "pdc": 99.43,
+      "pwh": 100.48,
+      "pwl": 98.88,
+      "ema9_d1": 99.42774,
+      "ema9_15m": 99.51806,
+      "ema9_above": true,
+      "d1_regime": "BULLISH",
+      "m15_regime": "BULLISH",
+      "regime_align": "bull",
+      "session_now": {
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
+      },
+      "sma200": 98.4082,
+      "sma200_pos": "over",
+      "chg5d": -0.57,
+      "chg20d": 1.86,
+      "dir_color": "bull",
+      "grade": "A",
+      "grade_color": "warn",
+      "score": 9,
+      "score_pct": 75,
+      "score_details": [
+        {
+          "kryss": "Over SMA200 (D1 trend)",
+          "verdi": true
+        },
+        {
+          "kryss": "Momentum 20d bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "COT bekrefter retning",
+          "verdi": false
+        },
+        {
+          "kryss": "COT sterk posisjonering (>10%)",
+          "verdi": true
+        },
+        {
+          "kryss": "Pris VED HTF-nivå nå",
+          "verdi": false
+        },
+        {
+          "kryss": "HTF-nivå D1/Ukentlig",
+          "verdi": true
+        },
+        {
+          "kryss": "D1 + 4H trend kongruent",
+          "verdi": true
+        },
+        {
+          "kryss": "Ingen event-risiko (4t)",
+          "verdi": true
+        },
+        {
+          "kryss": "Nyhetssentiment bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "Fundamental bekrefter",
+          "verdi": true
+        },
+        {
+          "kryss": "BOS 1H/4H bekrefter retning",
+          "verdi": true
+        },
+        {
+          "kryss": "SMC 1H struktur bekrefter",
+          "verdi": false
+        }
+      ],
+      "news_headwind": false,
+      "news_sentiment_label": "risk_off",
+      "open_interest": 35456,
+      "resistances": [
+        {
+          "name": "D1",
+          "level": 99.56,
+          "weight": 3,
+          "dist_atr": 0.5
+        },
+        {
+          "name": "PDH",
+          "level": 99.62,
+          "weight": 4,
+          "dist_atr": 1.3
+        },
+        {
+          "name": "SMC15m",
+          "level": 100.14,
+          "weight": 1,
+          "dist_atr": 8.2
+        },
+        {
+          "name": "D1",
+          "level": 100.26,
+          "weight": 3,
+          "dist_atr": 9.8
+        },
+        {
+          "name": "D1",
+          "level": 100.36,
+          "weight": 3,
+          "dist_atr": 11.1
+        }
+      ],
+      "supports": [
+        {
+          "name": "PDC",
+          "level": 99.43,
+          "weight": 3,
+          "dist_atr": 1.2
+        },
+        {
+          "name": "15m",
+          "level": 99.392,
+          "weight": 1,
+          "dist_atr": 1.7
+        },
+        {
+          "name": "15m",
+          "level": 99.351,
+          "weight": 1,
+          "dist_atr": 2.3
+        },
+        {
+          "name": "15m",
+          "level": 99.304,
+          "weight": 1,
+          "dist_atr": 2.9
+        },
+        {
+          "name": "PDL",
+          "level": 99.06,
+          "weight": 4,
+          "dist_atr": 6.1
+        }
+      ],
+      "setup_long": {
+        "entry": 99.43,
+        "entry_curr": 99.522,
+        "sl": 99.19358,
+        "sl_type": "struktur",
+        "t1": 100.48,
+        "t2": 100.71642,
+        "rr_t1": 4.44,
+        "rr_t2": 5.44,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.12,
+        "entry_name": "Støtte 99.43 [PDC]",
+        "entry_level": 99.43,
+        "entry_weight": 3,
+        "t1_source": "PWH",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO LONG: E=99.43 [PDC w3] SL=99.1936 (struktur) → T1=100.48 [PWH w5 htf] R:R=4.44 | Risk=0.2364 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "setup_short": {
+        "entry": 99.56,
+        "entry_curr": 99.522,
+        "sl": 99.79642,
+        "sl_type": "struktur",
+        "t1": 99.06,
+        "t2": 98.99,
+        "rr_t1": 2.11,
+        "rr_t2": 2.41,
+        "min_rr": 1.5,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.05,
+        "entry_name": "Motstand 99.56 [D1]",
+        "entry_level": 99.56,
+        "entry_weight": 3,
+        "t1_source": "PDL",
+        "t1_weight": 4,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=99.56 [D1 w3] SL=99.7964 (struktur) → T1=99.06 [PDL w4 htf] R:R=2.11 | Risk=0.2364 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "binary_risk": [],
+      "smc": {
+        "structure": "MIXED",
+        "supply_zones": [
+          {
+            "top": 100.148,
+            "bottom": 100.13153,
+            "poi": 100.13977,
+            "idx": 119,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 98.89647,
+            "bottom": 98.88,
+            "poi": 98.88823,
+            "idx": 134,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 99.15377,
+            "type": "BOS_opp",
+            "idx": 165,
+            "zone_top": 99.162,
+            "zone_bot": 99.14553
+          },
+          {
+            "level": 99.13624,
+            "type": "BOS_ned",
+            "idx": 133,
+            "zone_top": 99.14447,
+            "zone_bot": 99.128
+          },
+          {
+            "level": 99.26824,
+            "type": "BOS_ned",
+            "idx": 126,
+            "zone_top": 99.27648,
+            "zone_bot": 99.26
+          }
+        ],
+        "last_swing_high": {
+          "value": 99.389,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 99.392,
+          "label": "HL"
+        }
+      },
+      "smc_1h": {
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 100.54,
+            "bottom": 100.50676,
+            "poi": 100.52338,
+            "idx": 991,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [],
+        "bos_levels": [
+          {
+            "level": 99.26662,
+            "type": "BOS_ned",
+            "idx": 1084,
+            "zone_top": 99.28324,
+            "zone_bot": 99.25
+          },
+          {
+            "level": 100.09838,
+            "type": "BOS_opp",
+            "idx": 1061,
+            "zone_top": 100.115,
+            "zone_bot": 100.08176
+          },
+          {
+            "level": 99.67662,
+            "type": "BOS_ned",
+            "idx": 1031,
+            "zone_top": 99.69324,
+            "zone_bot": 99.66
+          }
+        ],
+        "last_swing_high": {
+          "value": 99.622,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 99.06,
+          "label": "LL"
+        }
+      },
+      "smc_4h": {
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 100.54,
+            "bottom": 100.46218,
+            "poi": 100.50109,
+            "idx": 247,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 96.57182,
+            "bottom": 96.494,
+            "poi": 96.53291,
+            "idx": 118,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 95.62882,
+            "bottom": 95.551,
+            "poi": 95.58991,
+            "idx": 56,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 99.45309,
+            "type": "BOS_opp",
+            "idx": 218,
+            "zone_top": 99.492,
+            "zone_bot": 99.41418
+          },
+          {
+            "level": 98.82909,
+            "type": "BOS_opp",
+            "idx": 196,
+            "zone_top": 98.868,
+            "zone_bot": 98.79018
+          },
+          {
+            "level": 97.33691,
+            "type": "BOS_ned",
+            "idx": 108,
+            "zone_top": 97.37582,
+            "zone_bot": 97.298
+          }
+        ],
+        "last_swing_high": {
+          "value": 99.622,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 98.88,
+          "label": "LL"
+        }
+      },
+      "dxy_conf": "medvind",
+      "pos_size": "Halv",
+      "vix_spread_factor": 1.5,
+      "cot": {
+        "bias": "SHORT",
+        "color": "bear",
+        "net": -5615,
+        "chg": 6068,
+        "pct": 15.8,
+        "momentum": "SNUR",
+        "date": "2026-03-17",
+        "report": "tff"
+      },
+      "combined_bias": "LONG",
+      "timeframe_bias": "SWING",
+      "sentiment": {
+        "fear_greed": {
+          "score": 19.6,
+          "rating": "extreme fear"
+        }
+      },
+      "fundamentals": {
+        "score": 0.34,
+        "bias": "bullish",
+        "confirms": true,
+        "categories": {
+          "econ_growth": {
+            "score": 0,
+            "avg": 0.0,
+            "count": 3,
+            "bias": "neutral",
+            "keys": [
+              "GDP",
+              "mPMI",
+              "sPMI",
+              "Retail",
+              "ConConf"
+            ]
+          },
+          "inflation": {
+            "score": 4,
+            "avg": 0.923,
+            "count": 4,
+            "bias": "bullish",
+            "keys": [
+              "CPI",
+              "PPI",
+              "PCE",
+              "IntRate"
+            ]
+          },
+          "jobs": {
+            "score": 1,
+            "avg": -0.071,
+            "count": 5,
+            "bias": "neutral",
+            "keys": [
+              "NFP",
+              "Unemp",
+              "Claims",
+              "ADP",
+              "JOLTS"
+            ]
+          }
+        },
+        "indicators": {
+          "GDP": {
+            "key": "GDP",
+            "label": "GDP Growth QoQ (%)",
+            "current": 0.7,
+            "previous": 4.4,
+            "date": "2025-10-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "Retail": {
+            "key": "Retail",
+            "label": "Retail Sales MoM (%)",
+            "current": -0.16,
+            "previous": -0.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "ned"
+          },
+          "ConConf": {
+            "key": "ConConf",
+            "label": "UoM Consumer Sentiment",
+            "current": 56.4,
+            "previous": 52.9,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          },
+          "CPI": {
+            "key": "CPI",
+            "label": "CPI YoY (%)",
+            "current": 2.66,
+            "previous": 2.83,
+            "date": "2026-02-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "PPI": {
+            "key": "PPI",
+            "label": "PPI YoY (%)",
+            "current": 3.22,
+            "previous": 1.95,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "opp"
+          },
+          "PCE": {
+            "key": "PCE",
+            "label": "PCE YoY (%)",
+            "current": 2.83,
+            "previous": 2.91,
+            "date": "2026-01-01",
+            "score": 1,
+            "trend": "ned"
+          },
+          "IntRate": {
+            "key": "IntRate",
+            "label": "Fed Funds Rate (%)",
+            "current": 3.64,
+            "previous": 3.64,
+            "date": "2026-02-01",
+            "score": 0,
+            "trend": "flat"
+          },
+          "NFP": {
+            "key": "NFP",
+            "label": "NFP Endring (k)",
+            "current": -92.0,
+            "previous": 126.0,
+            "date": "2026-02-01",
+            "score": -2,
+            "trend": "ned"
+          },
+          "Unemp": {
+            "key": "Unemp",
+            "label": "Arbeidsledighet (%)",
+            "current": 4.4,
+            "previous": 4.3,
+            "date": "2026-02-01",
+            "score": -1,
+            "trend": "opp"
+          },
+          "Claims": {
+            "key": "Claims",
+            "label": "Init. Krav (k)",
+            "current": 205.0,
+            "previous": 213.0,
+            "date": "2026-03-14",
+            "score": 2,
+            "trend": "ned"
+          },
+          "ADP": {
+            "key": "ADP",
+            "label": "ADP Endring (k)",
+            "current": 132177.0,
+            "previous": 132607.0,
+            "date": "2026-02-01",
+            "score": 2,
+            "trend": "ned"
+          },
+          "JOLTS": {
+            "key": "JOLTS",
+            "label": "JOLTS Stillinger (k)",
+            "current": 6946.0,
+            "previous": 6550.0,
+            "date": "2026-01-01",
+            "score": 0,
+            "trend": "opp"
+          }
+        },
+        "usd_bias": "bullish",
+        "updated": "2026-03-25T12:23:32.122706+00:00"
+      }
+    }
+  },
   "calendar": [
     {
       "date": "2026-03-23T20:00:00+00:00",
@@ -72,7 +6171,7 @@
       "berorte": [
         "NZDUSD"
       ],
-      "hours_away": -41.7
+      "hours_away": -44.7
     },
     {
       "date": "2026-03-24T08:15:00+00:00",
@@ -85,7 +6184,7 @@
       "berorte": [
         "EURUSD"
       ],
-      "hours_away": -29.4
+      "hours_away": -32.5
     },
     {
       "date": "2026-03-24T08:15:00+00:00",
@@ -98,7 +6197,7 @@
       "berorte": [
         "EURUSD"
       ],
-      "hours_away": -29.4
+      "hours_away": -32.5
     },
     {
       "date": "2026-03-24T08:30:00+00:00",
@@ -111,7 +6210,7 @@
       "berorte": [
         "EURUSD"
       ],
-      "hours_away": -29.2
+      "hours_away": -32.2
     },
     {
       "date": "2026-03-24T08:30:00+00:00",
@@ -124,7 +6223,7 @@
       "berorte": [
         "EURUSD"
       ],
-      "hours_away": -29.2
+      "hours_away": -32.2
     },
     {
       "date": "2026-03-24T09:30:00+00:00",
@@ -137,7 +6236,7 @@
       "berorte": [
         "GBPUSD"
       ],
-      "hours_away": -28.2
+      "hours_away": -31.2
     },
     {
       "date": "2026-03-24T09:30:00+00:00",
@@ -150,7 +6249,7 @@
       "berorte": [
         "GBPUSD"
       ],
-      "hours_away": -28.2
+      "hours_away": -31.2
     },
     {
       "date": "2026-03-24T13:45:00+00:00",
@@ -172,7 +6271,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": -23.9
+      "hours_away": -27.0
     },
     {
       "date": "2026-03-24T13:45:00+00:00",
@@ -194,7 +6293,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": -23.9
+      "hours_away": -27.0
     },
     {
       "date": "2026-03-24T14:00:00+00:00",
@@ -216,7 +6315,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": -23.7
+      "hours_away": -26.7
     },
     {
       "date": "2026-03-24T17:00:00+00:00",
@@ -229,7 +6328,7 @@
       "berorte": [
         "USDCHF"
       ],
-      "hours_away": -20.7
+      "hours_away": -23.7
     },
     {
       "date": "2026-03-25T00:30:00+00:00",
@@ -242,7 +6341,7 @@
       "berorte": [
         "AUDUSD"
       ],
-      "hours_away": -13.2
+      "hours_away": -16.2
     },
     {
       "date": "2026-03-25T00:30:00+00:00",
@@ -255,7 +6354,7 @@
       "berorte": [
         "AUDUSD"
       ],
-      "hours_away": -13.2
+      "hours_away": -16.2
     },
     {
       "date": "2026-03-25T00:30:00+00:00",
@@ -268,7 +6367,7 @@
       "berorte": [
         "AUDUSD"
       ],
-      "hours_away": -13.2
+      "hours_away": -16.2
     },
     {
       "date": "2026-03-25T07:00:00+00:00",
@@ -281,7 +6380,7 @@
       "berorte": [
         "GBPUSD"
       ],
-      "hours_away": -6.7
+      "hours_away": -9.7
     },
     {
       "date": "2026-03-25T08:45:00+00:00",
@@ -294,7 +6393,7 @@
       "berorte": [
         "EURUSD"
       ],
-      "hours_away": -4.9
+      "hours_away": -8.0
     },
     {
       "date": "2026-03-25T23:20:00+00:00",
@@ -316,7 +6415,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": 9.6
+      "hours_away": 6.6
     },
     {
       "date": "2026-03-26T12:30:00+00:00",
@@ -338,7 +6437,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": 22.8
+      "hours_away": 19.8
     },
     {
       "date": "2026-03-27T07:00:00+00:00",
@@ -351,7 +6450,7 @@
       "berorte": [
         "GBPUSD"
       ],
-      "hours_away": 41.3
+      "hours_away": 38.3
     },
     {
       "date": "2026-03-27T14:00:00+00:00",
@@ -373,7 +6472,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": 48.3
+      "hours_away": 45.3
     }
   ]
 }
