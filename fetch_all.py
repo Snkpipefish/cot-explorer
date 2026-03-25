@@ -425,7 +425,8 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         entry_w     = entry_obj["weight"]
 
         entry_dist = curr - entry_level
-        if entry_dist < 0 or entry_dist > atr_daily * 1.0:
+        max_entry_dist = atr_daily * (0.3 if entry_w <= 1 else 0.7 if entry_w == 2 else 1.0)
+        if entry_dist < 0 or entry_dist > max_entry_dist:
             return None
 
         sl   = structural_sl(entry_level, entry_obj, "long")
@@ -478,7 +479,8 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         entry_w     = entry_obj["weight"]
 
         entry_dist = entry_level - curr
-        if entry_dist < 0 or entry_dist > atr_daily * 1.0:
+        max_entry_dist = atr_daily * (0.3 if entry_w <= 1 else 0.7 if entry_w == 2 else 1.0)
+        if entry_dist < 0 or entry_dist > max_entry_dist:
             return None
 
         sl   = structural_sl(entry_level, entry_obj, "short")
@@ -767,13 +769,25 @@ for inst in INSTRUMENTS:
 
     if inst["key"] == "VIX": continue
 
-    # ── SMC analyse ──────────────────────────────────────
+    # ── SMC analyse (15m, 1H, 4H) ────────────────────────
     smc = None
+    smc_1h = None
+    smc_4h = None
     if SMC_OK and rows_15m and len(rows_15m) > 50:
         try:
             smc = run_smc(rows_15m, swing_length=5)
         except Exception as e:
-            print(f"  SMC FEIL: {e}")
+            print(f"  SMC 15m FEIL: {e}")
+    if SMC_OK and rows_1h and len(rows_1h) > 50:
+        try:
+            smc_1h = run_smc(rows_1h, swing_length=10)
+        except Exception as e:
+            print(f"  SMC 1H FEIL: {e}")
+    if SMC_OK and h4 and len(h4) > 30:
+        try:
+            smc_4h = run_smc(h4, swing_length=5)
+        except Exception as e:
+            print(f"  SMC 4H FEIL: {e}")
 
     # ── Nivåer med tidsvindus-vekting ────────────────────
     #  weight 5 = Ukentlig (sterkest), 4 = PDH/PDL, 3 = D1 swing/PDC,
@@ -810,15 +824,37 @@ for inst in INSTRUMENTS:
     for s in sup_4h:
         if s < curr: raw_sup.append({"price": s, "source": "4H", "weight": 2})
 
-    # SMC supply/demand-soner (weight 2 — struktur-basert men fra 15m)
+    # SMC 1H supply/demand-soner (weight 3 — institusjonell struktur, dager)
+    if smc_1h:
+        for z in smc_1h.get("supply_zones", []):
+            if z["poi"] > curr:
+                raw_res.append({"price": z["poi"], "source": "SMC1H", "weight": 3,
+                                "zone_top": z["top"], "zone_bottom": z["bottom"]})
+        for z in smc_1h.get("demand_zones", []):
+            if z["poi"] < curr:
+                raw_sup.append({"price": z["poi"], "source": "SMC1H", "weight": 3,
+                                "zone_top": z["top"], "zone_bottom": z["bottom"]})
+
+    # SMC 4H supply/demand-soner (weight 2 — intradag struktur, timer)
+    if smc_4h:
+        for z in smc_4h.get("supply_zones", []):
+            if z["poi"] > curr:
+                raw_res.append({"price": z["poi"], "source": "SMC4H", "weight": 2,
+                                "zone_top": z["top"], "zone_bottom": z["bottom"]})
+        for z in smc_4h.get("demand_zones", []):
+            if z["poi"] < curr:
+                raw_sup.append({"price": z["poi"], "source": "SMC4H", "weight": 2,
+                                "zone_top": z["top"], "zone_bottom": z["bottom"]})
+
+    # SMC 15m supply/demand-soner (weight 1 — lokal struktur, timer)
     if smc:
         for z in smc.get("supply_zones", []):
             if z["poi"] > curr:
-                raw_res.append({"price": z["poi"], "source": "SMC", "weight": 2,
+                raw_res.append({"price": z["poi"], "source": "SMC15m", "weight": 1,
                                 "zone_top": z["top"], "zone_bottom": z["bottom"]})
         for z in smc.get("demand_zones", []):
             if z["poi"] < curr:
-                raw_sup.append({"price": z["poi"], "source": "SMC", "weight": 2,
+                raw_sup.append({"price": z["poi"], "source": "SMC15m", "weight": 1,
                                 "zone_top": z["top"], "zone_bottom": z["bottom"]})
 
     # 15m intradag-pivots (weight 1 — svakest, kun for lokal entry-presisjon)
@@ -908,6 +944,23 @@ for inst in INSTRUMENTS:
     cot_strong   = abs(cot_pct) > 10   # >10% av OI = signifikant makro-posisjonering
     no_event_risk = len(get_binary_risk(inst["key"], hours=4)) == 0
 
+    # BOS fra 1H/4H bekrefter retning (Break of Structure)
+    bos_1h_levels = (smc_1h or {}).get("bos_levels", [])
+    bos_4h_levels = (smc_4h or {}).get("bos_levels", [])
+    recent_bos = sorted(bos_1h_levels + bos_4h_levels, key=lambda b: b["idx"], reverse=True)[:3]
+    bos_confirms = any(
+        (b["type"] == "BOS_opp" and dir_color == "bull") or
+        (b["type"] == "BOS_ned" and dir_color == "bear")
+        for b in recent_bos
+    )
+
+    # 1H SMC markedsstruktur bekrefter retning
+    smc_1h_structure = (smc_1h or {}).get("structure", "MIXED")
+    smc_struct_confirms = (
+        (dir_color == "bull" and smc_1h_structure in ("BULLISH", "BULLISH_SVAK")) or
+        (dir_color == "bear" and smc_1h_structure in ("BEARISH", "BEARISH_SVAK"))
+    )
+
     # Nyhetssentiment bekrefter retning?
     ns_label = (news_sentiment or {}).get("label", "neutral")
     nc_map   = NEWS_CONFIRMS_MAP.get(inst["key"], (None, None))
@@ -942,10 +995,13 @@ for inst in INSTRUMENTS:
         {"kryss": "Ingen event-risiko (4t)",          "verdi": no_event_risk},
         {"kryss": "Nyhetssentiment bekrefter",        "verdi": news_confirms_dir},
         {"kryss": "Fundamental bekrefter",            "verdi": fund_confirms},
+        {"kryss": "BOS 1H/4H bekrefter retning",      "verdi": bos_confirms},
+        {"kryss": "SMC 1H struktur bekrefter",         "verdi": smc_struct_confirms},
     ]
     score       = sum(1 for s in score_details if s["verdi"])
-    grade       = "A+" if score>=9 else "A" if score>=7 else "B" if score>=5 else "C"
-    grade_color = "bull" if score>=9 else "warn" if score>=7 else "bear"
+    max_score   = len(score_details)
+    grade       = "A+" if score>=11 else "A" if score>=9 else "B" if score>=6 else "C"
+    grade_color = "bull" if score>=11 else "warn" if score>=9 else "bear"
 
     # Tidshorisonts-klassifisering — hvilken type trader kan bruke dette nå
     if score >= 6 and cot_confirms and htf_level_nearby:
@@ -1035,7 +1091,7 @@ for inst in INSTRUMENTS:
         "grade":         grade,
         "grade_color":   grade_color,
         "score":         score,
-        "score_pct":     round(score/10*100),
+        "score_pct":     round(score/max_score*100),
         "score_details": score_details,
         "news_headwind": news_headwind,
         "news_sentiment_label": ns_label,
@@ -1052,6 +1108,22 @@ for inst in INSTRUMENTS:
             "bos_levels":   smc["bos_levels"]   if smc else [],
             "last_swing_high": smc["last_swing_high"] if smc else None,
             "last_swing_low":  smc["last_swing_low"]  if smc else None,
+        },
+        "smc_1h": {
+            "structure":    smc_1h["structure"]    if smc_1h else None,
+            "supply_zones": smc_1h["supply_zones"] if smc_1h else [],
+            "demand_zones": smc_1h["demand_zones"] if smc_1h else [],
+            "bos_levels":   smc_1h["bos_levels"]   if smc_1h else [],
+            "last_swing_high": smc_1h["last_swing_high"] if smc_1h else None,
+            "last_swing_low":  smc_1h["last_swing_low"]  if smc_1h else None,
+        },
+        "smc_4h": {
+            "structure":    smc_4h["structure"]    if smc_4h else None,
+            "supply_zones": smc_4h["supply_zones"] if smc_4h else [],
+            "demand_zones": smc_4h["demand_zones"] if smc_4h else [],
+            "bos_levels":   smc_4h["bos_levels"]   if smc_4h else [],
+            "last_swing_high": smc_4h["last_swing_high"] if smc_4h else None,
+            "last_swing_low":  smc_4h["last_swing_low"]  if smc_4h else None,
         },
         "dxy_conf":      "medvind" if (inst["kat"]=="valuta" and (prices.get("DXY") or {}).get("chg5d",0)<0) else "motvind",
         "pos_size":      pos_size,
