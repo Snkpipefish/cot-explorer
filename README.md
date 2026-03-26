@@ -26,26 +26,24 @@ Alt drives av JSON-filer i `data/` som genereres lokalt og pushes til GitHub.
 
 ---
 
-## Workflow — automatisk oppdatering (crontab)
+## Workflow — automatisk oppdatering (systemd timer)
 
-Scriptet `update.sh` kjøres automatisk via crontab på hverdager (man–fre):
+Scriptet `update.sh` kjøres automatisk via systemd timer på hverdager (man–fre), hvert 4. time hele døgnet:
 
-| Tid   | Beskrivelse |
-|-------|-------------|
-| 07:45 | Morgen |
-| 12:30 | Middag |
-| 14:15 | Ettermiddag |
-| 17:15 | Stenging |
+| Tid (CET) |
+|-----------|
+| 00:00 |
+| 04:00 |
+| 08:00 |
+| 12:00 |
+| 16:00 |
+| 20:00 |
 
-Crontab-oppsettet:
-```
-45 7  * * 1-5 cd /home/user/cot-explorer && bash update.sh
-30 12 * * 1-5 cd /home/user/cot-explorer && bash update.sh
-15 14 * * 1-5 cd /home/user/cot-explorer && bash update.sh
-15 17 * * 1-5 cd /home/user/cot-explorer && bash update.sh
-```
+Timer-oppsett: `/etc/systemd/system/cot-explorer.timer`
+Service-oppsett: `/etc/systemd/system/cot-explorer.service`
 
-> **Merk:** Hvis PC-en sover på kjøretidspunktet hoppes jobben over.
+`Persistent=true` sikrer at missede kjøringer (f.eks. PC i dvale) kjøres automatisk når maskinen våkner.
+
 > Kjør manuelt ved behov: `bash ~/cot-explorer/update.sh`
 
 For å se logg: `tail -f ~/cot-explorer/logs/update.log`
@@ -205,8 +203,10 @@ Outputter: supply/demand soner, BOS-nivåer (opp/ned), swing high/low, markedsst
 | NAS100 | ^NDX | nasdaq mini | C | NY Open 14:30–17:00 CET |
 | DXY | DX-Y.NYB | usd index | A | London 08:00–12:00 CET |
 | VIX | ^VIX | — | C | NY Open 14:30–17:00 CET |
+| USDCHF | CHF=X | — | A | London 08:00–12:00 CET |
+| USDNOK | NOK=X | — | A | London 08:00–12:00 CET |
 
-VIX brukes kun for posisjonsstørrelse — ingen setup-analyse kjøres.
+VIX brukes kun for posisjonsstørrelse. USDCHF og USDNOK vises kun i priser-fanen — ingen COT/SMC-analyse.
 
 ---
 
@@ -277,6 +277,6 @@ Yield curve (TNX − IRX) brukes i konflikt-detektor. HYG ned > 1.5% siste 5 dag
 | Frontend | Vanilla HTML/CSS/JS, én fil (`index.html`) |
 | Backend | Python 3, ingen dependencies utover stdlib |
 | Hosting | GitHub Pages (statisk) |
-| Automatisering | crontab (4× daglig, hverdager) |
+| Automatisering | systemd timer (6× daglig hvert 4. time, hverdager) |
 | Varsling | Telegram bot / Discord webhook / Flask REST API (valgfritt) |
 | SMC-motor | `smc.py` — Python-port av FluidTrades SMC Lite |
