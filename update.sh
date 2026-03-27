@@ -32,15 +32,11 @@ python3 fetch_comex.py   >> "$LOG" 2>&1 && echo "  COMEX OK"    >> "$LOG" || ech
 python3 fetch_seismic.py >> "$LOG" 2>&1 && echo "  seismikk OK" >> "$LOG" || echo "  seismikk FEIL" >> "$LOG"
 python3 fetch_intel.py   >> "$LOG" 2>&1 && echo "  intel OK"    >> "$LOG" || echo "  intel FEIL"    >> "$LOG"
 
-# Push signaler til Telegram/Discord (kun hvis minst én er konfigurert)
-if [ -n "$TELEGRAM_TOKEN" ] || [ -n "$DISCORD_WEBHOOK" ] || [ -n "$SCALP_API_KEY" ]; then
-    python3 push_signals.py >> "$LOG" 2>&1 && echo "  push OK" >> "$LOG"
-else
-    echo "  push: ingen bot konfigurert (sett TELEGRAM_TOKEN/DISCORD_WEBHOOK)" >> "$LOG"
-fi
+# Push signaler — alltid (skriver data/signals.json), sender til bot kun hvis konfigurert
+python3 push_signals.py >> "$LOG" 2>&1 && echo "  signals OK" >> "$LOG" || echo "  signals FEIL" >> "$LOG"
 
 # Push data-filer til GitHub (oppdaterer GitHub Pages)
-git add data/macro/latest.json data/calendar/ data/combined/ data/fundamentals/ data/comex/ data/geointel/ 2>/dev/null || true
+git add data/macro/latest.json data/signals.json data/calendar/ data/combined/ data/fundamentals/ data/comex/ data/geointel/ 2>/dev/null || true
 if git diff --cached --quiet; then
     echo "  git: ingen nye data å pushe" >> "$LOG"
 else
