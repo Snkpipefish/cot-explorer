@@ -438,7 +438,9 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         min_t1_dist = risk * min_rr
 
         t1_obj = best_t1(res_tagged, entry_level, min_t1_dist)
-        if t1_obj is None: return None
+        if t1_obj is None:
+            t1_obj = {"price": round(entry_level + min_t1_dist, 5),
+                      "t1_quality": "weak", "weight": 0, "source": "projected"}
         t1 = t1_obj["price"]
 
         res_after = [l for l in res_tagged if l["price"] > t1]
@@ -492,7 +494,9 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         min_t1_dist = risk * min_rr
 
         t1_obj = best_t1(sup_tagged, entry_level, min_t1_dist)
-        if t1_obj is None: return None
+        if t1_obj is None:
+            t1_obj = {"price": round(entry_level - min_t1_dist, 5),
+                      "t1_quality": "weak", "weight": 0, "source": "projected"}
         t1 = t1_obj["price"]
 
         sup_after = [l for l in sup_tagged if l["price"] < t1]
@@ -1059,7 +1063,7 @@ for inst in INSTRUMENTS:
     st      = "🟢" if at_level_now else "🟡"
     dir_tag = "▲" if dir_color == "bull" else "▼"
     htf_tag = f"HTF:w{max(nearest_sup_w, nearest_res_w)}" if htf_level_nearby else "noHTF"
-    print(f"  {st} {inst['navn']:10s} {curr:.5f}  ATR15m={atr_s}  {grade}({score}/8) {dir_tag} {htf_tag}  T1:{t1_s}  R:R:{rr_s}")
+    print(f"  {st} {inst['navn']:10s} {curr:.5f}  ATR15m={atr_s}  {grade}({score}/{max_score}) {dir_tag} {htf_tag}  T1:{t1_s}  R:R:{rr_s}")
 
     levels[inst["key"]] = {
         "name":          inst["navn"],

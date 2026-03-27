@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 # ── Konfigurasjon ─────────────────────────────────────────
 BASE           = Path(__file__).parent
 DATA_FILE      = BASE / "data" / "macro.json"
-MIN_SCORE      = int(os.environ.get("PUSH_MIN_SCORE",   "5"))
+MIN_SCORE      = int(os.environ.get("PUSH_MIN_SCORE",   "7"))
 MAX_SIGNALS    = int(os.environ.get("PUSH_MAX_SIGNALS", "5"))
 TG_TOKEN       = os.environ.get("TELEGRAM_TOKEN",  "")
 TG_CHAT_ID     = os.environ.get("TELEGRAM_CHAT_ID","")
@@ -54,6 +54,7 @@ def score_key(item):
 candidates = [
     (key, d) for key, d in levels.items()
     if d.get("score", 0) >= MIN_SCORE
+    and d.get("dir_color") in ("bull", "bear")   # bare klare retninger
 ]
 candidates.sort(key=score_key, reverse=True)
 top = candidates[:MAX_SIGNALS]
@@ -123,6 +124,46 @@ message = build_message()
 print(message)
 print()
 
+# ── Skriv ren signals.json for trading-bot ────────────────
+SIGNALS_FILE = BASE / "data" / "signals.json"
+
+def build_signal_record(key, d):
+    is_long  = d.get("dir_color") == "bull"
+    action   = "BUY" if is_long else "SELL"
+    setup    = d.get("setup_long") if is_long else d.get("setup_short")
+    curr     = d.get("current", 0)
+    p        = 5 if curr < 100 else 2
+    cot      = d.get("cot", {})
+    rec = {
+        "key":       key,
+        "name":      d.get("name", key),
+        "action":    action,
+        "timeframe": d.get("timeframe_bias", "SWING"),
+        "grade":     d.get("grade", "?"),
+        "score":     d.get("score", 0),
+        "current":   curr,
+        "cot_bias":  cot.get("bias", "?"),
+        "cot_pct":   round(cot.get("pct", 0), 1),
+    }
+    if setup:
+        rec["entry"]   = round(setup.get("entry", 0), p)
+        rec["sl"]      = round(setup.get("sl", 0), p)
+        rec["t1"]      = round(setup.get("t1", 0), p)
+        rec["t2"]      = round(setup.get("t2", 0), p) if setup.get("t2") else None
+        rec["rr_t1"]   = setup.get("rr_t1")
+        rec["rr_t2"]   = setup.get("rr_t2")
+        rec["sl_type"] = setup.get("sl_type", "structural")
+    return rec
+
+signals_out = {
+    "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    "cot_date":  generated,
+    "signals":   [build_signal_record(key, d) for key, d in top],
+}
+with open(SIGNALS_FILE, "w") as f:
+    json.dump(signals_out, f, ensure_ascii=False, indent=2)
+print(f"→ {SIGNALS_FILE} ({len(top)} signaler)")
+
 # ── Push til Telegram ─────────────────────────────────────
 def push_telegram(text):
     if not TG_TOKEN or not TG_CHAT_ID:
@@ -176,13 +217,4 @@ def push_flask(signals):
 # ── Kjør pushes ───────────────────────────────────────────
 push_telegram(message)
 push_discord(message)
-push_flask([{
-    "key":            key,
-    "name":           d.get("name", key),
-    "timeframe_bias": d.get("timeframe_bias", "SWING"),
-    "direction":      d.get("dir_color", "?"),
-    "grade":          d.get("grade", "?"),
-    "score":          d.get("score", 0),
-    "setup":          d.get("setup_long") if d.get("dir_color") == "bull" else d.get("setup_short"),
-    "cot":            d.get("cot", {}),
-} for key, d in top])
+push_flask(signals_out["signals"])
