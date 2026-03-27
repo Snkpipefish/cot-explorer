@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 # ── Konfigurasjon ─────────────────────────────────────────
 BASE           = Path(__file__).parent
 DATA_FILE      = BASE / "data" / "macro.json"
-MIN_SCORE      = int(os.environ.get("PUSH_MIN_SCORE",   "5"))
+MIN_SCORE      = int(os.environ.get("PUSH_MIN_SCORE",   "7"))
 MAX_SIGNALS    = int(os.environ.get("PUSH_MAX_SIGNALS", "5"))
 TG_TOKEN       = os.environ.get("TELEGRAM_TOKEN",  "")
 TG_CHAT_ID     = os.environ.get("TELEGRAM_CHAT_ID","")

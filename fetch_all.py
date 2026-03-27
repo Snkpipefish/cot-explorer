@@ -1059,7 +1059,7 @@ for inst in INSTRUMENTS:
     st      = "🟢" if at_level_now else "🟡"
     dir_tag = "▲" if dir_color == "bull" else "▼"
     htf_tag = f"HTF:w{max(nearest_sup_w, nearest_res_w)}" if htf_level_nearby else "noHTF"
-    print(f"  {st} {inst['navn']:10s} {curr:.5f}  ATR15m={atr_s}  {grade}({score}/8) {dir_tag} {htf_tag}  T1:{t1_s}  R:R:{rr_s}")
+    print(f"  {st} {inst['navn']:10s} {curr:.5f}  ATR15m={atr_s}  {grade}({score}/{max_score}) {dir_tag} {htf_tag}  T1:{t1_s}  R:R:{rr_s}")
 
     levels[inst["key"]] = {
         "name":          inst["navn"],
