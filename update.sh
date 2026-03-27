@@ -41,6 +41,7 @@ if git diff --cached --quiet; then
     echo "  git: ingen nye data å pushe" >> "$LOG"
 else
     git commit -m "data: oppdatering $(date '+%Y-%m-%d %H:%M')" >> "$LOG" 2>&1
+    git pull origin main --rebase 2>> "$LOG" || git rebase --abort >> "$LOG" 2>&1
     git push origin main >> "$LOG" 2>&1 && echo "  git push OK" >> "$LOG" || echo "  git push FEIL" >> "$LOG"
 fi
 
