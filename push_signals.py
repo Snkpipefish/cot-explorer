@@ -226,4 +226,16 @@ def push_flask(signals):
 # ── Kjør pushes ───────────────────────────────────────────
 push_telegram(message)
 push_discord(message)
-push_flask(signals_out["signals"])
+
+# Flask: bruk originalt format serveren forventer (direction=bull/bear, nestet setup/cot)
+flask_payload = [{
+    "key":            key,
+    "name":           d.get("name", key),
+    "timeframe_bias": d.get("timeframe_bias", "SWING"),
+    "direction":      d.get("dir_color", "?"),
+    "grade":          d.get("grade", "?"),
+    "score":          d.get("score", 0),
+    "setup":          d.get("setup_long") if d.get("dir_color") == "bull" else d.get("setup_short"),
+    "cot":            d.get("cot", {}),
+} for key, d in top]
+push_flask(flask_payload)
