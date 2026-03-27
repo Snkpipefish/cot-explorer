@@ -367,6 +367,22 @@ function weightBadge(w){
   return '<span class="tf-badge '+cls+'">'+label+'</span>';
 }
 
+function renderActiveSetup(lv){
+  var isLong  = lv.dir_color === 'bull';
+  var setup   = isLong ? lv.setup_long : lv.setup_short;
+  var type    = isLong ? 'LONG' : 'SHORT';
+  if(setup) return renderSetupSide(setup, type);
+  var levels  = isLong ? (lv.supports||[]) : (lv.resistances||[]);
+  var nearest = levels[0];
+  var col     = isLong ? 'bull' : 'bear';
+  var hint    = nearest
+    ? 'Vent på rally til <span style="font-family:\'DM Mono\',monospace">'+nearest.level+'</span> ['+nearest.name+'] ('+nearest.dist_atr+'×ATR unna)'
+    : 'Ingen '+(!isLong?'motstand':'støtte')+' i rekkevidde';
+  return '<div class="setup-label '+col+'">'+type+'</div>'+
+    '<div style="color:var(--m);font-size:12px;padding:18px 0;text-align:center;line-height:1.8">'+
+    'Ingen aktiv setup – pris for langt fra '+(!isLong?'motstand':'støtte')+'<br>'+hint+'</div>';
+}
+
 function renderSetupSide(setup, type){
   if(!setup){
     return '<div class="setup-label na">'+type+'</div><div style="color:var(--m);font-size:12px;padding:20px 0;text-align:center">Ikke tilgjengelig</div>';
@@ -475,9 +491,8 @@ function renderIdeer(m){
         '</div>'+
         '<div id="tdet'+i+'" class="tdet">'+
           briskHtml+
-          '<div class="setup-grid">'+
-            '<div class="setup-side">'+renderSetupSide(lv.setup_long,'LONG')+'</div>'+
-            '<div class="setup-side">'+renderSetupSide(lv.setup_short,'SHORT')+'</div>'+
+          '<div class="setup-grid" style="grid-template-columns:1fr">'+
+            '<div class="setup-side">'+renderActiveSetup(lv)+'</div>'+
           '</div>'+
           '<div class="score-section">'+
             '<div class="ct">Konfluens-score ('+lv.score_pct+'%)</div>'+
