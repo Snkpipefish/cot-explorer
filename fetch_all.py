@@ -438,7 +438,9 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         min_t1_dist = risk * min_rr
 
         t1_obj = best_t1(res_tagged, entry_level, min_t1_dist)
-        if t1_obj is None: return None
+        if t1_obj is None:
+            t1_obj = {"price": round(entry_level + min_t1_dist, 5),
+                      "t1_quality": "weak", "weight": 0, "source": "projected"}
         t1 = t1_obj["price"]
 
         res_after = [l for l in res_tagged if l["price"] > t1]
@@ -492,7 +494,9 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         min_t1_dist = risk * min_rr
 
         t1_obj = best_t1(sup_tagged, entry_level, min_t1_dist)
-        if t1_obj is None: return None
+        if t1_obj is None:
+            t1_obj = {"price": round(entry_level - min_t1_dist, 5),
+                      "t1_quality": "weak", "weight": 0, "source": "projected"}
         t1 = t1_obj["price"]
 
         sup_after = [l for l in sup_tagged if l["price"] < t1]
