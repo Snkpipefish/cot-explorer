@@ -60,10 +60,14 @@ def score_key(item):
     tf_rank = {"MAKRO": 3, "SWING": 2, "SCALP": 1, "WATCHLIST": 0}
     return (tf_rank.get(d.get("timeframe_bias", "WATCHLIST"), 0), d.get("score", 0))
 
+def active_setup(d):
+    return d.get("setup_long") if d.get("dir_color") == "bull" else d.get("setup_short")
+
 candidates = [
     (key, d) for key, d in levels.items()
     if d.get("score", 0) >= MIN_SCORE
     and d.get("dir_color") in ("bull", "bear")   # bare klare retninger
+    and active_setup(d) is not None               # må ha aktiv setup (ikke watchlist)
 ]
 candidates.sort(key=score_key, reverse=True)
 top = candidates[:MAX_SIGNALS]
@@ -235,7 +239,7 @@ flask_payload = [{
     "direction":      d.get("dir_color", "?"),
     "grade":          d.get("grade", "?"),
     "score":          d.get("score", 0),
-    "setup":          d.get("setup_long") if d.get("dir_color") == "bull" else d.get("setup_short"),
+    "setup":          active_setup(d),
     "cot":            d.get("cot", {}),
 } for key, d in top]
 push_flask(flask_payload)
