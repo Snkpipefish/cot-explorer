@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Automatisk oppdatering av COT Explorer
-# Kjøres 4× daglig: 07:45, 12:30, 14:15, 17:15 CET/CEST
+# Kjøres 6× daglig (hverdager): 00:00, 04:00, 08:00, 12:00, 16:00, 20:00 CET
 
 set -e
 cd "$(dirname "$0")"
@@ -27,6 +27,11 @@ fi
 
 python3 fetch_all.py      >> "$LOG" 2>&1 && echo "  analyse OK"  >> "$LOG"
 
+# Metals Intel: COMEX lagerdata, jordskjelv, intel-feed
+python3 fetch_comex.py   >> "$LOG" 2>&1 && echo "  COMEX OK"    >> "$LOG" || echo "  COMEX FEIL"   >> "$LOG"
+python3 fetch_seismic.py >> "$LOG" 2>&1 && echo "  seismikk OK" >> "$LOG" || echo "  seismikk FEIL" >> "$LOG"
+python3 fetch_intel.py   >> "$LOG" 2>&1 && echo "  intel OK"    >> "$LOG" || echo "  intel FEIL"    >> "$LOG"
+
 # Push signaler til Telegram/Discord (kun hvis minst én er konfigurert)
 if [ -n "$TELEGRAM_TOKEN" ] || [ -n "$DISCORD_WEBHOOK" ] || [ -n "$SCALP_API_KEY" ]; then
     python3 push_signals.py >> "$LOG" 2>&1 && echo "  push OK" >> "$LOG"
@@ -35,7 +40,7 @@ else
 fi
 
 # Push data-filer til GitHub (oppdaterer GitHub Pages)
-git add data/macro/latest.json data/calendar/ data/combined/ data/fundamentals/ 2>/dev/null || true
+git add data/macro/latest.json data/calendar/ data/combined/ data/fundamentals/ data/comex/ data/geointel/ 2>/dev/null || true
 if git diff --cached --quiet; then
     echo "  git: ingen nye data å pushe" >> "$LOG"
 else
