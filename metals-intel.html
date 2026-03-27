@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metals & Macro Intel – Markedspuls</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--bg:#0d1117;--s:#161b22;--s2:#1c2128;--b:#21262d;--b2:#30363d;--t:#e6edf3;--m:#7d8590;--bull:#3fb950;--bbg:rgba(63,185,80,.12);--bear:#f85149;--rbg:rgba(248,81,73,.12);--warn:#d29922;--wbg:rgba(210,153,34,.12);--blue:#58a6ff;--blbg:rgba(88,166,255,.12);--gold:#FFD700;--silver:#C0C0C0;--copper:#B87333}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5}
+.topbar{background:var(--s);border-bottom:1px solid var(--b);padding:0 20px;height:50px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:200}
+.logo{font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.logo em{font-style:italic;font-weight:400;color:var(--blue)}
+.back-link{font-size:12px;color:var(--blue);text-decoration:none;padding:4px 10px;border:1px solid var(--b2);border-radius:6px;margin-left:8px}
+.back-link:hover{background:var(--blbg)}
+.upd{font-size:10px;color:var(--m);margin-left:auto}
+.nav{background:var(--s);border-bottom:1px solid var(--b);padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nt{background:none;border:none;border-bottom:2px solid transparent;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--m);cursor:pointer;white-space:nowrap;transition:all .15s}
+.nt:hover{color:var(--t)}.nt.active{color:var(--blue);border-bottom-color:var(--blue)}
+.panel{display:none}.panel.active{display:block}
+.main{padding:18px 20px;max-width:1600px;margin:0 auto}
+.card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:16px 18px}
+.ct{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+
+/* MAP PANEL */
+.map-wrap{display:grid;grid-template-columns:1fr 320px;gap:12px;height:calc(100vh - 140px);min-height:500px}
+#map{height:100%;border-radius:8px;border:1px solid var(--b);overflow:hidden}
+.map-sidebar{display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+
+/* LEGEND */
+.legend{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:12px 14px}
+.leg-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
+.leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.3)}
+.leg-diam{width:12px;height:12px;transform:rotate(45deg);flex-shrink:0;border:2px solid rgba(255,255,255,.3)}
+
+/* CHOKEPOINT CARDS */
+.cp-card{background:var(--s2);border:1px solid var(--b);border-radius:6px;padding:10px 12px;cursor:pointer;transition:border-color .15s}
+.cp-card:hover{border-color:var(--blue)}
+.cp-name{font-weight:600;font-size:13px}
+.cp-sub{font-size:11px;color:var(--m);margin-top:2px}
+.cp-risk{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid;font-family:'DM Mono',monospace}
+.cp-risk.high{color:var(--bear);border-color:var(--bear);background:var(--rbg)}
+.cp-risk.medium{color:var(--warn);border-color:var(--warn);background:var(--wbg)}
+.cp-risk.low{color:var(--bull);border-color:var(--bull);background:var(--bbg)}
+
+/* SEISMIC LIST */
+.seis-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--s2);border-radius:6px;margin-bottom:4px;font-size:12px}
+.seis-mag{font-family:'DM Mono',monospace;font-weight:700;font-size:13px;min-width:36px}
+.seis-mag.m7{color:var(--bear)}.seis-mag.m6{color:var(--warn)}.seis-mag.m5{color:#d29922}.seis-mag.m4{color:var(--m)}
+.seis-place{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seis-region{font-size:10px;color:var(--blue);margin-top:1px}
+
+/* COMEX PANEL */
+.comex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.comex-card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:18px;position:relative;overflow:hidden}
+.comex-metal{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.comex-metal.gold{color:var(--gold)}.comex-metal.silver{color:var(--silver)}.comex-metal.copper{color:var(--copper)}
+.comex-total{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;margin-bottom:2px}
+.comex-unit{font-size:11px;color:var(--m)}
+.comex-bar-wrap{margin:12px 0 8px;background:var(--b);border-radius:4px;height:8px;overflow:hidden}
+.comex-bar-reg{height:100%;border-radius:4px;transition:width .5s}
+.comex-bar-reg.gold{background:var(--gold)}.comex-bar-reg.silver{background:var(--silver)}.comex-bar-reg.copper{background:var(--copper)}
+.comex-bar-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--m)}
+.comex-chg{font-family:'DM Mono',monospace;font-size:12px}
+.comex-chg.pos{color:var(--bull)}.comex-chg.neg{color:var(--bear)}
+
+/* STRESS GAUGE */
+.stress-section{margin-bottom:20px}
+.stress-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.stress-label{width:80px;font-size:12px;font-weight:600}
+.stress-label.gold{color:var(--gold)}.stress-label.silver{color:var(--silver)}.stress-label.copper{color:var(--copper)}
+.stress-track{flex:1;height:10px;background:var(--b);border-radius:5px;overflow:hidden}
+.stress-fill{height:100%;border-radius:5px;transition:width .5s}
+.stress-val{font-family:'DM Mono',monospace;font-size:12px;min-width:36px;text-align:right}
+
+/* INTEL FEED */
+.intel-filters{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.intel-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--b2);background:none;color:var(--m);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.intel-btn:hover,.intel-btn.active{border-color:var(--blue);color:var(--blue);background:var(--blbg)}
+.intel-item{padding:10px 12px;background:var(--s);border:1px solid var(--b);border-radius:6px;margin-bottom:6px}
+.intel-title{font-size:13px;font-weight:500;margin-bottom:4px}
+.intel-title a{color:var(--t);text-decoration:none}
+.intel-title a:hover{color:var(--blue)}
+.intel-meta{font-size:10px;color:var(--m);display:flex;gap:8px}
+.intel-cat{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;border:1px solid}
+.intel-cat.gold{color:var(--gold);border-color:var(--gold)}
+.intel-cat.silver{color:var(--silver);border-color:var(--silver)}
+.intel-cat.copper{color:var(--copper);border-color:var(--copper)}
+.intel-cat.red{color:var(--bear);border-color:var(--bear)}
+
+.loading{color:var(--m);font-size:12px;padding:16px;text-align:center}
+.section-title{font-size:16px;font-weight:600;margin-bottom:14px}
+.sh{margin-bottom:18px}
+.sh-t{font-size:20px;font-weight:700}
+.sh-b{font-size:12px;color:var(--m);margin-top:2px}
+
+/* Leaflet popup dark theme */
+.leaflet-popup-content-wrapper{background:var(--s);border:1px solid var(--b);color:var(--t);border-radius:8px}
+.leaflet-popup-tip{background:var(--s)}
+.leaflet-popup-content{font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.5}
+.pop-name{font-weight:700;font-size:14px;margin-bottom:6px}
+.pop-row{font-size:12px;color:var(--m)}.pop-row span{color:var(--t)}
+
+@media(max-width:900px){
+  .map-wrap{grid-template-columns:1fr;grid-template-rows:60vh auto}
+  .comex-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Markedspuls <em>Metals</em></div>
+  <a href="index.html" class="back-link">← Setups</a>
+  <div class="upd" id="updLabel">-</div>
+</div>
+
+<nav class="nav">
+  <button class="nt active" data-tab="map">🗺️ Geo-Intel Kart</button>
+  <button class="nt" data-tab="comex">🏦 COMEX Lager</button>
+  <button class="nt" data-tab="intel">📰 Intel Feed</button>
+</nav>
+
+<div class="main">
+
+  <!-- ── GEO-INTEL MAP ───────────────────────────────────── -->
+  <div class="panel active" id="panel-map">
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="map-sidebar">
+        <div class="legend card">
+          <div class="ct">Kart-legend</div>
+          <div class="leg-row"><div class="leg-dot" style="background:var(--gold)"></div>Gull-gruve</div>
+          <div class="leg-row"><div class="leg-dot" style="background:var(--silver)"></div>Sølv-gruve</div>
+          <div class="leg-row"><div class="leg-dot" style="background:var(--copper)"></div>Kobber-gruve</div>
+          <div class="leg-row"><div class="leg-diam" style="background:var(--bear)"></div>Chokepoint (høy risiko)</div>
+          <div class="leg-row"><div class="leg-diam" style="background:var(--warn)"></div>Chokepoint (middels)</div>
+          <div class="leg-row"><div class="leg-diam" style="background:var(--bull)"></div>Chokepoint (lav risiko)</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#ff6b00;opacity:.7"></div>Jordskjelv (siste 7d)</div>
+        </div>
+        <div class="card" id="cpList">
+          <div class="ct">Chokepoints</div>
+          <div class="loading">Laster...</div>
+        </div>
+        <div class="card" id="seismicList">
+          <div class="ct">Jordskjelv i gruveregioner</div>
+          <div class="loading">Laster...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COMEX LAGER ─────────────────────────────────────── -->
+  <div class="panel" id="panel-comex">
+    <div class="sh">
+      <div class="sh-t">COMEX Lagerdata</div>
+      <div class="sh-b" id="comexDate">-</div>
+    </div>
+
+    <div class="comex-grid" id="comexCards">
+      <div class="loading">Laster COMEX-data...</div>
+    </div>
+
+    <div class="card stress-section">
+      <div class="ct">Stress-indeks (0 = trygg, 100 = ekstremt press)</div>
+      <div id="stressGauges"><div class="loading">Laster...</div></div>
+      <div style="margin-top:12px;font-size:11px;color:var(--m);line-height:1.6">
+        Stress øker når andel <em>registered</em> (leveringsklart) synker mot <em>eligible</em> (lagret men ikke kontraktsbundet).
+        Høy stress → potensielt squeezepress på futuresmarkedet.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="ct">Forklaring</div>
+      <div style="font-size:13px;color:var(--m);line-height:1.8">
+        <strong style="color:var(--t)">Registered</strong> — Sertifiserte og leveringsklare lagerenheter. Direkte koblet til futures-kontrakter.<br>
+        <strong style="color:var(--t)">Eligible</strong> — Lagret metall som møter COMEX-krav, men ikke registrert for levering ennå.<br>
+        <strong style="color:var(--t)">Dekning</strong> — Andel registered av totalt lager. Synker mot 30%: watch closely. Under 20%: squeeze-risiko.<br>
+        <strong style="color:var(--t)">Kilde</strong> — CME Group daglige warehouse reports. Oppdateres med fetch_comex.py.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── INTEL FEED ──────────────────────────────────────── -->
+  <div class="panel" id="panel-intel">
+    <div class="sh">
+      <div class="sh-t">Metals Intel Feed</div>
+      <div class="sh-b" id="intelDate">-</div>
+    </div>
+    <div class="intel-filters" id="intelFilters">
+      <button class="intel-btn active" data-cat="all">Alle</button>
+    </div>
+    <div id="intelFeed"><div class="loading">Laster nyheter...</div></div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ── Tab navigation ──────────────────────────────────────────
+document.querySelectorAll('.nt').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.nt').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab==='map' && !window.mapInited) initMap();
+  });
+});
+
+// ── Helpers ─────────────────────────────────────────────────
+function fmtOz(n){
+  if(!n) return '0';
+  if(Math.abs(n)>=1e6) return (n/1e6).toFixed(2)+' Moz';
+  if(Math.abs(n)>=1e3) return (n/1e3).toFixed(0)+'K oz';
+  return n.toLocaleString()+' oz';
+}
+function fmtSt(n){
+  if(!n) return '0';
+  if(Math.abs(n)>=1e3) return (n/1e3).toFixed(1)+'K st';
+  return n.toLocaleString()+' st';
+}
+function fmtChg(n, isOz){
+  if(!n) return '';
+  var s=(n>0?'+':'')+( isOz ? fmtOz(n) : fmtSt(n) );
+  return '<span class="comex-chg '+(n>0?'pos':'neg')+'">'+s+'</span>';
+}
+function stressColor(v){
+  if(v>=70) return 'var(--bear)';
+  if(v>=40) return 'var(--warn)';
+  return 'var(--bull)';
+}
+
+// ── Load JSON ───────────────────────────────────────────────
+function loadJSON(url, cb){
+  fetch(url).then(function(r){return r.json();}).then(cb).catch(function(e){
+    console.warn('Load failed:', url, e);
+    cb(null);
+  });
+}
+
+// ── Leaflet Map ─────────────────────────────────────────────
+var mapInited = false;
+var leafMap, minesData=[], cpData=[], seismicData=[];
+
+function metalColor(metal){
+  if(metal==='gold')   return '#FFD700';
+  if(metal==='silver') return '#C0C0C0';
+  if(metal==='copper') return '#B87333';
+  return '#88aacc';
+}
+function cpColor(risk){
+  if(risk==='high')   return '#f85149';
+  if(risk==='medium') return '#d29922';
+  return '#3fb950';
+}
+
+function initMap(){
+  if(mapInited) return;
+  mapInited = true;
+
+  leafMap = L.map('map', {zoomControl:true, attributionControl:false}).setView([20, 20], 2);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 18
+  }).addTo(leafMap);
+
+  L.control.attribution({prefix:false}).addTo(leafMap);
+  leafMap.attributionControl.addAttribution('© CartoDB | USGS | CME Group');
+
+  // Load mines
+  loadJSON('data/geointel/mines.json', function(mines){
+    if(!mines) return;
+    minesData = mines;
+    mines.forEach(function(m){
+      var col = metalColor(m.metal);
+      var marker = L.circleMarker([m.lat, m.lon], {
+        radius: 7,
+        fillColor: col,
+        color: 'rgba(0,0,0,0.5)',
+        weight: 1.5,
+        fillOpacity: 0.85,
+      }).addTo(leafMap);
+      marker.bindPopup(
+        '<div class="pop-name" style="color:'+col+'">⛏ '+m.name+'</div>'+
+        '<div class="pop-row">Land: <span>'+m.country+' ('+m.region+')</span></div>'+
+        '<div class="pop-row">Selskap: <span>'+m.company+'</span></div>'+
+        '<div class="pop-row">Produksjon: <span>'+m.production+'</span></div>'+
+        (m.note?'<div class="pop-row" style="margin-top:4px;font-style:italic">'+m.note+'</div>':'')
+      );
+    });
+  });
+
+  // Load chokepoints
+  loadJSON('data/geointel/chokepoints.json', function(cps){
+    if(!cps) return;
+    cpData = cps;
+    cps.forEach(function(cp){
+      var col = cpColor(cp.risk);
+      var icon = L.divIcon({
+        className: '',
+        html: '<div style="width:16px;height:16px;background:'+col+';transform:rotate(45deg);border:2px solid rgba(0,0,0,.4);opacity:.9"></div>',
+        iconSize: [16,16],
+        iconAnchor: [8,8],
+      });
+      var marker = L.marker([cp.lat, cp.lon], {icon:icon}).addTo(leafMap);
+      marker.bindPopup(
+        '<div class="pop-name" style="color:'+col+'">⚓ '+cp.name+'</div>'+
+        '<div class="pop-row">Gjennomstrømning: <span>'+cp.throughput+'</span></div>'+
+        '<div class="pop-row">Risiko: <span>'+cp.risk.toUpperCase()+'</span></div>'+
+        '<div class="pop-row">Laster: <span>'+cp.cargo.join(', ')+'</span></div>'+
+        '<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+cp.desc+'</div>'
+      );
+    });
+    renderCpList(cps);
+  });
+
+  // Load seismic
+  loadJSON('data/geointel/seismic.json', function(seis){
+    if(!seis) return;
+    seismicData = seis;
+    var events = (seis.all || []).slice(0, 30);
+    events.forEach(function(ev){
+      var r = Math.max(5, Math.min(18, (ev.mag - 4) * 4));
+      var col = ev.mag >= 7 ? '#f85149' : ev.mag >= 6 ? '#d29922' : '#ff6b00';
+      L.circleMarker([ev.lat, ev.lon], {
+        radius: r,
+        fillColor: col,
+        color: 'rgba(0,0,0,.3)',
+        weight: 1,
+        fillOpacity: 0.5,
+      }).addTo(leafMap).bindPopup(
+        '<div class="pop-name">🌍 M'+ev.mag+' – '+ev.place+'</div>'+
+        '<div class="pop-row">Tid: <span>'+ev.time+'</span></div>'+
+        (ev.depth_km!=null?'<div class="pop-row">Dybde: <span>'+ev.depth_km+' km</span></div>':'')+
+        (ev.region?'<div class="pop-row">Gruveregion: <span style="color:var(--blue)">'+ev.region+'</span></div>':'')
+      );
+    });
+    renderSeismicList(seis.mine_region || []);
+    document.getElementById('updLabel').textContent = 'Oppdatert: '+seis.updated;
+  });
+}
+
+function renderCpList(cps){
+  var html = '<div class="ct">Chokepoints</div>';
+  cps.forEach(function(cp){
+    html += '<div class="cp-card" onclick="flyTo('+cp.lat+','+cp.lon+',6)">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
+      '<div class="cp-name">'+cp.name+'</div>'+
+      '<span class="cp-risk '+cp.risk+'">'+cp.risk.toUpperCase()+'</span>'+
+      '</div>'+
+      '<div class="cp-sub">'+cp.throughput+'</div>'+
+      '</div>';
+  });
+  document.getElementById('cpList').innerHTML = html;
+}
+
+function renderSeismicList(events){
+  var el = document.getElementById('seismicList');
+  if(!events.length){
+    el.innerHTML = '<div class="ct">Jordskjelv i gruveregioner</div><div style="font-size:12px;color:var(--m);padding:8px">Ingen M≥4.5 siste 7 dager</div>';
+    return;
+  }
+  var html = '<div class="ct">Jordskjelv i gruveregioner (M≥4.5, 7d)</div>';
+  events.slice(0,10).forEach(function(ev){
+    var cls = ev.mag>=7?'m7':ev.mag>=6?'m6':ev.mag>=5?'m5':'m4';
+    html += '<div class="seis-item">'+
+      '<div class="seis-mag '+cls+'">M'+ev.mag+'</div>'+
+      '<div><div class="seis-place">'+ev.place+'</div>'+
+      '<div class="seis-region">'+ev.region+'  ·  '+ev.time.substring(0,10)+'</div></div>'+
+      '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function flyTo(lat, lon, zoom){
+  if(leafMap) leafMap.flyTo([lat, lon], zoom, {duration:1.2});
+}
+
+// Init map immediately since it's the default tab
+window.addEventListener('DOMContentLoaded', initMap);
+
+// ── COMEX ───────────────────────────────────────────────────
+loadJSON('data/comex/latest.json', function(d){
+  if(!d){ document.getElementById('comexCards').innerHTML='<div class="loading">Ingen COMEX-data – kjør fetch_comex.py</div>'; return; }
+  document.getElementById('comexDate').textContent = 'Oppdatert: '+(d.updated||'-')+' · Kilde: '+(d.source||'-');
+
+  function makeCard(metal, label, reg, elig, total, prev, change, unit, isOz){
+    var cov = total ? Math.round(reg/total*100) : 0;
+    var regW = cov;
+    var fmt = isOz ? fmtOz : fmtSt;
+    return '<div class="comex-card">'+
+      '<div class="comex-metal '+metal+'">'+label+'</div>'+
+      '<div class="comex-total">'+fmt(total)+'</div>'+
+      '<div class="comex-unit">Totalt lager ('+unit+')</div>'+
+      '<div class="comex-bar-wrap"><div class="comex-bar-reg '+metal+'" style="width:'+regW+'%"></div></div>'+
+      '<div class="comex-bar-labels">'+
+        '<span>Registered: '+fmt(reg)+' ('+cov+'%)</span>'+
+        '<span>Eligible: '+fmt(elig)+'</span>'+
+      '</div>'+
+      '<div style="margin-top:8px;font-size:11px;color:var(--m)">Endring: '+fmtChg(change,isOz)+'</div>'+
+    '</div>';
+  }
+
+  var g = d.gold||{}, si = d.silver||{}, cu = d.copper||{};
+  document.getElementById('comexCards').innerHTML =
+    makeCard('gold',  'Gull',  g.registered_oz,  g.eligible_oz,  g.total_oz,  g.registered_prev_oz,  g.change_oz,  'troy oz', true) +
+    makeCard('silver','Sølv',  si.registered_oz, si.eligible_oz, si.total_oz, si.registered_prev_oz, si.change_oz, 'troy oz', true) +
+    makeCard('copper','Kobber',cu.registered_st, cu.eligible_st, cu.total_st, cu.registered_prev_st, cu.change_st, 'short tons', false);
+
+  var sx = d.stress_index||{};
+  function stressRow(metal, label, val){
+    var col = stressColor(val);
+    return '<div class="stress-row">'+
+      '<div class="stress-label '+metal+'">'+label+'</div>'+
+      '<div class="stress-track"><div class="stress-fill" style="width:'+val+'%;background:'+col+'"></div></div>'+
+      '<div class="stress-val" style="color:'+col+'">'+val+'</div>'+
+    '</div>';
+  }
+  document.getElementById('stressGauges').innerHTML =
+    stressRow('gold',  'Gull',   sx.gold  ||0)+
+    stressRow('silver','Sølv',   sx.silver||0)+
+    stressRow('copper','Kobber', sx.copper||0);
+});
+
+// ── Intel Feed ──────────────────────────────────────────────
+var intelData = [];
+var activeIntelCat = 'all';
+
+loadJSON('data/geointel/intel.json', function(d){
+  if(!d || !d.articles){ document.getElementById('intelFeed').innerHTML='<div class="loading">Ingen intel-data – kjør fetch_intel.py</div>'; return; }
+  document.getElementById('intelDate').textContent = 'Oppdatert: '+(d.updated||'-');
+  intelData = d.articles;
+
+  // Build filter buttons
+  var cats = d.categories||[];
+  var filterHtml = '<button class="intel-btn active" data-cat="all" onclick="filterIntel(\'all\',this)">Alle ('+intelData.length+')</button>';
+  cats.forEach(function(c){
+    var cnt = intelData.filter(function(a){return a.cat===c.id;}).length;
+    filterHtml += '<button class="intel-btn" data-cat="'+c.id+'" onclick="filterIntel(\''+c.id+'\',this)">'+c.label+' ('+cnt+')</button>';
+  });
+  document.getElementById('intelFilters').innerHTML = filterHtml;
+  renderIntel();
+});
+
+function filterIntel(cat, btn){
+  activeIntelCat = cat;
+  document.querySelectorAll('.intel-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  renderIntel();
+}
+
+function renderIntel(){
+  var arts = activeIntelCat==='all' ? intelData : intelData.filter(function(a){return a.cat===activeIntelCat;});
+  if(!arts.length){ document.getElementById('intelFeed').innerHTML='<div class="loading">Ingen artikler i denne kategorien</div>'; return; }
+  var html = '';
+  arts.forEach(function(a){
+    html += '<div class="intel-item">'+
+      '<div class="intel-title">'+
+        '<a href="'+a.url+'" target="_blank" rel="noopener">'+a.title+'</a>'+
+      '</div>'+
+      '<div class="intel-meta">'+
+        '<span class="intel-cat '+a.color+'">'+a.cat.toUpperCase()+'</span>'+
+        '<span>'+a.source+'</span>'+
+        '<span>'+a.time+'</span>'+
+      '</div>'+
+    '</div>';
+  });
+  document.getElementById('intelFeed').innerHTML = html;
+}
+</script>
+</body>
+</html>
