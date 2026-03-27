@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 
 # ── Konfigurasjon ─────────────────────────────────────────
 BASE           = Path(__file__).parent
-DATA_FILE      = BASE / "data" / "macro.json"
+DATA_FILE      = BASE / "data" / "macro" / "latest.json"
 MIN_SCORE      = int(os.environ.get("PUSH_MIN_SCORE",   "7"))
 MAX_SIGNALS    = int(os.environ.get("PUSH_MAX_SIGNALS", "5"))
 TG_TOKEN       = os.environ.get("TELEGRAM_TOKEN",  "")
@@ -80,7 +80,7 @@ def fmt_signal(key, d):
 
     lines = [
         f"── {d.get('name', key)} [{tf}] ──",
-        f"{direction}  {grade}({score}/8)  VIX:{vix_price:.1f} → {pos_size}",
+        f"{direction}  {grade}({score}/12)  VIX:{vix_price:.1f} → {pos_size}",
     ]
 
     if active_setup:
