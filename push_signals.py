@@ -32,6 +32,15 @@ DC_WEBHOOK     = os.environ.get("DISCORD_WEBHOOK", "")
 FLASK_URL      = os.environ.get("FLASK_URL",       "http://localhost:5000")
 SCALP_API_KEY  = os.environ.get("SCALP_API_KEY",   "")
 
+# Fallback: les SCALP_API_KEY fra ~/.bashrc hvis ikke satt i miljø
+if not SCALP_API_KEY:
+    bashrc = Path.home() / ".bashrc"
+    if bashrc.exists():
+        for line in bashrc.read_text().splitlines():
+            if line.startswith("export SCALP_API_KEY="):
+                SCALP_API_KEY = line.split("=", 1)[1].strip().strip('"\'')
+                break
+
 # ── Hent data ─────────────────────────────────────────────
 if not DATA_FILE.exists():
     print(f"FEIL: {DATA_FILE} finnes ikke — kjør fetch_all.py først")
