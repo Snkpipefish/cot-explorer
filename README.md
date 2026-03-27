@@ -13,14 +13,18 @@ En statisk nettside (GitHub Pages) som viser daglige trading-ideer basert på:
 - **Konfluens-score (12 punkter)** inkl. SMA200, momentum, COT, HTF-nivå, sesjon, BOS, SMC-struktur, nyheter, fundamentals
 - **SMC-analyse på tre tidshorisonter** — 15m, 1H og 4H: supply/demand soner, BOS, HH/LH/HL/LL
 - **Makro-panel** med Dollar Smile-modell, VIX-regime, yield curve og konflikt-flagging
-- **COT-posisjoner** for 366 markeder fra CFTC (siste uke)
+- **VIX term-struktur** — spot vs. 9D vs. 3M, contango/backwardation-regime
+- **Korrelasjonstabell** — 20-dagers Pearson-korrelasjon mellom EUR/USD, XAU/USD, US100 og Brent
+- **COT-posisjoner** for 366 markeder fra CFTC (siste uke) med 8-ukers sparkline
 - **COT-historikk** med prisgraf (klikk på marked i COT-fanen)
 - **Fundamentals-panel** — FRED-data: GDP, CPI, PPI, PCE, NFP, jobbtall (USD-bias-score)
 - **Nyhetssentiment** — RSS fra Google News + BBC, risk-on/risk-off-scoring
 - **Makroindikatorer** — HYG, TIP, TNX (10Y), IRX (3M), Kobber, EEM
+- **Gjennomsnittlig daglig range (ADR)** — 20-dagers snitt per instrument, vises i Makro-panel
 - **Økonomisk kalender** med binær risiko-varsling
 - **Timeframe bias** — MAKRO / SWING / SCALP / WATCHLIST per instrument
 - **COT momentum** — ØKER / SNUR / STABIL basert på ukeendring i netto-posisjon
+- **Signal-logg** — historikk over alle genererte signaler med treffsikkerhet (hit-rate) per grade
 - **Metals & Macro Intel** — Geo-Intel kart (mines/chokepoints/seismisk), COMEX lagerbeholdning, nyhetsstrøm
 
 Alt drives av JSON-filer i `data/` som genereres lokalt og pushes til GitHub.
@@ -55,11 +59,11 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 2. `fetch_cot.py` — henter CFTC COT-data
 3. `build_combined.py` — bygger kombinert COT-datasett (legacy + TFF + disaggregated)
 4. `fetch_fundamentals.py` — henter FRED makrodata (kun hvis > 12 timer siden sist)
-5. `fetch_all.py` — full analyse: priser, SMC (15m/1H/4H), nivåer, score, setup-generering
+5. `fetch_all.py` — full analyse: priser, SMC (15m/1H/4H), nivåer, score, setup-generering, VIX term-struktur, korrelasjonmatrise, ADR
 6. `fetch_comex.py` — henter COMEX lagerbeholdning (gull/sølv/kobber) til `data/comex/latest.json`
 7. `fetch_seismic.py` — henter USGS seismiske data for gruveregioner til `data/geointel/seismic.json`
 8. `fetch_intel.py` — henter nyheter fra Google News RSS (gull, sølv, kobber, geopolitikk) til `data/geointel/intel.json`
-9. `push_signals.py` — genererer alltid `data/signals.json`, pusher topp-setups til Telegram/Discord/Flask (valgfritt)
+9. `push_signals.py` — genererer alltid `data/signals.json` og `data/signal_log.json`, pusher topp-setups til Telegram/Discord/Flask (valgfritt)
 10. `git push` — oppdaterer GitHub Pages med nye JSON-filer
 
 ---
@@ -189,6 +193,8 @@ Eget panel med tre faner:
 | `data/geointel/seismic.json` | USGS seismiske hendelser | 6× daglig |
 | `data/geointel/intel.json` | Google News RSS feed | 6× daglig |
 | `data/comex/latest.json` | COMEX lagerbeholdning + stress-indeks | 6× daglig |
+| `data/signals.json` | Aktive BUY/SELL-signaler (score≥7) | 6× daglig |
+| `data/signal_log.json` | Historikk over alle signaler + treffsikkerhet | 6× daglig |
 
 ---
 
@@ -299,12 +305,15 @@ VIX brukes kun for posisjonsstørrelse. USDCHF og USDNOK vises kun i priser-fane
 | Intradag 15m / 1H | Yahoo Finance | Nei | Ved kjøring |
 | Forex + gull OHLC | Twelvedata | Ja (`TWELVEDATA_API_KEY`) | Ved kjøring, maks 800/dag |
 | Sanntidspris (indekser/råvarer) | Finnhub | Ja (`FINNHUB_API_KEY`) | Ved kjøring |
+| VIX term-struktur (^VIX9D, ^VIX3M) | Yahoo Finance | Nei | Ved kjøring |
 | Renter (10Y, 3M T-bill) | FRED | Nei | Ved kjøring |
 | Fundamentals (GDP, CPI, NFP m.fl.) | FRED | Ja (`FRED_API_KEY`) | Maks 1× per 12 timer |
 | Fear & Greed | CNN dataviz API | Nei | Ved kjøring |
 | Nyhetssentiment | Google News RSS + BBC RSS | Nei | Ved kjøring |
 | Kalender | ForexFactory JSON | Nei | Ved kjøring |
 | SMC supply/demand/BOS | Beregnet fra 15m, 1H, 4H | — | Ved kjøring |
+| Korrelasjoner | Beregnet fra daily-data (Pearson) | — | Ved kjøring |
+| ADR | Beregnet fra daily-data | — | Ved kjøring |
 | COMEX lager (gull/sølv/kobber) | CME Group → fallback | Nei | 6× daglig |
 | Seismisk aktivitet | USGS Earthquake API | Nei | 6× daglig |
 | Metals nyheter | Google News RSS | Nei | 6× daglig |
@@ -359,6 +368,7 @@ Yield curve (TNX − IRX) brukes i konflikt-detektor. HYG ned > 1.5% siste 5 dag
 |-----------|-----------|
 | Frontend | Vanilla HTML/CSS/JS, `index.html` + `metals-intel.html` |
 | Kart | Leaflet.js med CartoDB Dark Matter tiles |
+| Grafer | Chart.js (COT-historikk modal) |
 | Backend | Python 3, ingen dependencies utover stdlib |
 | Hosting | GitHub Pages (statisk) |
 | Automatisering | systemd timer (6× daglig hvert 4. time, hverdager) |
