@@ -741,6 +741,9 @@ news_sentiment = fetch_news_sentiment()
 
 # ── Priser og setups ──────────────────────────────────────
 prices, levels = {}, {}
+CORR_KEYS = ["EURUSD", "Gold", "NAS100", "Brent"]
+daily_closes_for_corr = {}   # key → list of closes (last 22 days)
+daily_adr_cache = {}         # key → list of (h-l) for last 20 days
 
 for inst in INSTRUMENTS:
     print(f"Henter {inst['navn']}...")
@@ -752,6 +755,12 @@ for inst in INSTRUMENTS:
 
     if not daily or len(daily) < 15:
         continue
+
+    # Accumulate closes for correlation matrix and ADR
+    if inst["key"] in CORR_KEYS:
+        daily_closes_for_corr[inst["key"]] = [r[2] for r in daily[-22:]]
+    if not inst.get("prices_only") and inst["key"] != "VIX":
+        daily_adr_cache[inst["key"]] = [r[0] - r[1] for r in daily[-20:] if r[0] and r[1]]
 
     curr     = daily[-1][2]
     # Bruk siste 15m close hvis tilgjengelig (mer oppdatert)
@@ -1156,6 +1165,77 @@ for inst in INSTRUMENTS:
         },
     }
 
+# ── VIX term-struktur (contango / backwardation) ────────────
+print("Henter VIX term-struktur (^VIX9D, ^VIX3M)...")
+_vix9d_rows = fetch_yahoo("^VIX9D", "1d", "5d")
+_vix3m_rows = fetch_yahoo("^VIX3M", "1d", "5d")
+_vix_spot   = (prices.get("VIX") or {}).get("price")
+_vix9d  = round(_vix9d_rows[-1][2], 2) if _vix9d_rows else None
+_vix3m  = round(_vix3m_rows[-1][2], 2) if _vix3m_rows else None
+vix_term_structure = None
+if _vix_spot and _vix9d and _vix3m:
+    s9  = round((_vix9d / _vix_spot - 1) * 100, 1)
+    s3m = round((_vix3m / _vix_spot - 1) * 100, 1)
+    regime = ("backwardation" if _vix9d < _vix_spot * 0.98 else
+              "flat"          if abs(s9) < 2 else "contango")
+    vix_term_structure = {
+        "spot": _vix_spot, "vix9d": _vix9d, "vix3m": _vix3m,
+        "spot_to_9d_pct": s9, "spot_to_3m_pct": s3m, "regime": regime,
+    }
+    print(f"  VIX9D={_vix9d:.2f}  VIX3M={_vix3m:.2f}  regime={regime}")
+
+# ── Korrelasjonsmatrise (20-dagers Pearson) ─────────────────
+def pearson_corr(a, b, n=20):
+    pairs = list(zip(a, b))[-n:]
+    if len(pairs) < 5:
+        return None
+    ra = [pairs[i][0]/pairs[i-1][0]-1 for i in range(1, len(pairs))]
+    rb = [pairs[i][1]/pairs[i-1][1]-1 for i in range(1, len(pairs))]
+    if not ra or not rb:
+        return None
+    ma, mb = sum(ra)/len(ra), sum(rb)/len(rb)
+    num  = sum((ra[i]-ma)*(rb[i]-mb) for i in range(len(ra)))
+    dena = sum((x-ma)**2 for x in ra)**0.5
+    denb = sum((x-mb)**2 for x in rb)**0.5
+    if dena*denb == 0:
+        return 0.0
+    return round(num / (dena*denb), 2)
+
+CORR_LABELS = {"EURUSD": "EUR/USD", "Gold": "XAU/USD", "NAS100": "US100", "Brent": "Brent"}
+corr_matrix = {}
+for k1 in CORR_KEYS:
+    corr_matrix[k1] = {}
+    for k2 in CORR_KEYS:
+        if k1 == k2:
+            corr_matrix[k1][k2] = 1.0
+        else:
+            c1 = daily_closes_for_corr.get(k1, [])
+            c2 = daily_closes_for_corr.get(k2, [])
+            corr_matrix[k1][k2] = pearson_corr(c1, c2) if c1 and c2 else None
+
+correlations = {
+    "labels":  [CORR_LABELS[k] for k in CORR_KEYS],
+    "keys":    CORR_KEYS,
+    "matrix":  [[corr_matrix[k1].get(k2) for k2 in CORR_KEYS] for k1 in CORR_KEYS],
+    "period":  "20d",
+}
+print(f"  Korrelasjoner: {len(CORR_KEYS)}×{len(CORR_KEYS)} matrise")
+
+# ── Gjennomsnittlig daglig range (ADR) per instrument ───────
+session_ranges = {}
+for key, ranges in daily_adr_cache.items():
+    if not ranges:
+        continue
+    adr = sum(ranges) / len(ranges)
+    lv  = levels.get(key, {})
+    adr_pct = round(adr / lv.get("current", adr) * 100, 2) if lv.get("current") else None
+    session_ranges[key] = {
+        "name":    lv.get("name", key),
+        "adr_20d": round(adr, 5 if adr < 1 else 2),
+        "adr_pct": adr_pct,
+        "atr14":   lv.get("atr_daily"),
+    }
+
 # ── Makro-indikatorer ──────────────────────────────────────
 print("Henter makro-indikatorer (HYG, TIP, TNX, IRX, Kobber, EM)...")
 macro_ind = fetch_macro_indicators()
@@ -1242,9 +1322,12 @@ macro = {
             "em_5d":        em_5d,
         }
     },
-    "macro_indicators": macro_ind,
-    "trading_levels": levels,
-    "calendar": calendar_events,
+    "macro_indicators":    macro_ind,
+    "trading_levels":      levels,
+    "calendar":            calendar_events,
+    "vix_term_structure":  vix_term_structure,
+    "correlations":        correlations,
+    "session_ranges":      session_ranges,
 }
 
 with open(OUT,"w") as f:

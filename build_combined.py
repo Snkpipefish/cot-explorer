@@ -55,6 +55,26 @@ for rep in REPORTS:
 
 result = sorted(seen.values(), key=lambda x: abs((x.get("spekulanter") or {}).get("net",0)), reverse=True)
 
+# Berik hvert marked med spec_net-historikk fra timeseries (siste 8 uker) for sparkline
+ts_dir = os.path.join(BASE, "timeseries")
+enriched = 0
+for entry in result:
+    sym = entry.get("symbol", "")
+    rep = entry.get("report", "")
+    ts_file = os.path.join(ts_dir, f"{sym}_{rep}.json")
+    if not os.path.exists(ts_file):
+        continue
+    try:
+        with open(ts_file) as f:
+            ts_data = json.load(f)
+        weeks = [d["spec_net"] for d in ts_data.get("data", [])[-8:] if d.get("spec_net") is not None]
+        entry["spec_net_history"] = weeks
+        enriched += 1
+    except Exception:
+        pass
+
+print(f"  Sparkline-historikk beriket: {enriched}/{len(result)} markeder")
+
 with open(OUT, "w") as f:
     json.dump(result, f, ensure_ascii=False, indent=2)
 

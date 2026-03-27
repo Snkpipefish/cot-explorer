@@ -32,11 +32,11 @@ python3 fetch_comex.py   >> "$LOG" 2>&1 && echo "  COMEX OK"    >> "$LOG" || ech
 python3 fetch_seismic.py >> "$LOG" 2>&1 && echo "  seismikk OK" >> "$LOG" || echo "  seismikk FEIL" >> "$LOG"
 python3 fetch_intel.py   >> "$LOG" 2>&1 && echo "  intel OK"    >> "$LOG" || echo "  intel FEIL"    >> "$LOG"
 
-# Push signaler — alltid (skriver data/signals.json), sender til bot kun hvis konfigurert
+# Push signaler — kjøres alltid (skriver signals.json og signal_log.json)
 python3 push_signals.py >> "$LOG" 2>&1 && echo "  signals OK" >> "$LOG" || echo "  signals FEIL" >> "$LOG"
 
 # Push data-filer til GitHub (oppdaterer GitHub Pages)
-git add data/macro/latest.json data/signals.json data/calendar/ data/combined/ data/fundamentals/ data/comex/ data/geointel/ 2>/dev/null || true
+git add data/macro/latest.json data/signals.json data/signal_log.json data/calendar/ data/combined/ data/fundamentals/ data/comex/ data/geointel/ 2>/dev/null || true
 if git diff --cached --quiet; then
     echo "  git: ingen nye data å pushe" >> "$LOG"
 else

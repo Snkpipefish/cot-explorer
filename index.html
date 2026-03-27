@@ -164,9 +164,12 @@ canvas#cotChart{width:100%!important;height:300px!important}
 .pcp{font-family:'DM Mono',monospace;font-size:15px;font-weight:500}
 .pcc{font-family:'DM Mono',monospace;font-size:10px;margin-top:2px}
 .pcc.up{color:var(--bull)}.pcc.dn{color:var(--bear)}
-.sh{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.sh{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .sh-t{font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
 .sh-b{font-size:10px;font-family:'DM Mono',monospace;color:var(--m);background:var(--s2);padding:2px 7px;border-radius:4px;border:1px solid var(--b)}
+.sh-b.bull{color:var(--bull);background:var(--bbg);border-color:var(--bull)}
+.sh-b.bear{color:var(--bear);background:var(--rbg);border-color:var(--bear)}
+.sh-b.warn{color:var(--warn);background:var(--wbg);border-color:var(--warn)}
 .loading{padding:40px;text-align:center;color:var(--m);font-size:13px}
 .spinner{width:26px;height:26px;border:2px solid var(--b);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -190,6 +193,8 @@ footer a{color:var(--blue);text-decoration:none}
   <button class="nt active" data-tab="ideer">💡 Setups</button>
   <button class="nt" data-tab="makro">🌐 Makro</button>
   <button class="nt" data-tab="cot">📊 COT</button>
+  <button class="nt" data-tab="korrelasjoner">🔗 Korrelasjoner</button>
+  <button class="nt" data-tab="signallogg">📋 Signal-logg</button>
   <button class="nt" data-tab="kalender">📅 Kalender</button>
   <button class="nt" data-tab="priser">💹 Priser</button>
   <a href="metals-intel.html" class="nt" style="text-decoration:none">⛏️ Metals Intel</a>
@@ -231,6 +236,8 @@ footer a{color:var(--blue);text-decoration:none}
     <div class="g4" id="macroStats"></div>
     <div class="sh" style="margin-top:16px"><div class="sh-t">Rente &amp; Kreditt</div><div class="sh-b">Realrenter, spreader, vekst</div></div>
     <div class="g4" id="macroRente"></div>
+    <div id="vixTerm"></div>
+    <div id="sessionRanges"></div>
   </div>
   <!-- COT GRAF MODAL -->
   <div class="cot-modal" id="cotModal" onclick="closeCotModal(event)">
@@ -251,6 +258,15 @@ footer a{color:var(--blue);text-decoration:none}
       <div id="fchips"></div>
     </div>
     <div id="cotGrid"></div>
+  </div>
+  <div class="panel" id="panel-korrelasjoner">
+    <div class="sh"><div class="sh-t">Korrelasjonstabell</div><div class="sh-b" id="corrPeriod">20-dagers Pearson</div></div>
+    <div id="corrGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+  </div>
+  <div class="panel" id="panel-signallogg">
+    <div class="sh"><div class="sh-t">Signal-logg</div><div class="sh-b" id="logCnt">-</div></div>
+    <div class="g4" id="logStats" style="margin-bottom:16px"></div>
+    <div id="logGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
   </div>
   <div class="panel" id="panel-kalender">
     <div class="sh"><div class="sh-t">Okonomisk kalender</div><div class="sh-b">Denne uken</div></div>
@@ -357,6 +373,42 @@ function renderMakro(m){
   rc.forEach(function(x){rch+='<div class="card"><div class="ct">'+x[0]+'</div><div class="snum" style="font-size:20px">'+x[1]+'</div><div class="slabel" style="margin-top:4px;color:var(--'+x[2]+')">'+x[2].toUpperCase()+'</div></div>';});
   document.getElementById('macroRente').innerHTML=rch;
   document.getElementById('upd').textContent='Oppdatert: '+m.date;
+
+  // VIX term-struktur
+  var vts=m.vix_term_structure;
+  var vtEl=document.getElementById('vixTerm');
+  if(vts&&vtEl){
+    var rCol=vts.regime==='backwardation'?'bear':vts.regime==='contango'?'bull':'warn';
+    var rLbl=vts.regime==='backwardation'?'Backwardation – stress':vts.regime==='contango'?'Contango – normalt':'Flat';
+    vtEl.innerHTML=
+      '<div class="sh" style="margin-top:16px"><div class="sh-t" style="font-size:14px">VIX Term-struktur</div><div class="sh-b '+rCol+'">'+rLbl+'</div></div>'+
+      '<div class="g4">'+
+        '<div class="card"><div class="ct">VIX Spot</div><div class="snum">'+(vts.spot||'-').toFixed(2)+'</div><div class="slabel neutral">Nå</div></div>'+
+        '<div class="card"><div class="ct">VIX 9D</div><div class="snum '+(vts.vix9d>vts.spot?'bear':'bull')+'">'+(vts.vix9d||'-').toFixed(2)+'</div><div class="slabel '+(vts.spot_to_9d_pct>=0?'bear':'bull')+'">'+(vts.spot_to_9d_pct>=0?'+':'')+vts.spot_to_9d_pct+'%</div></div>'+
+        '<div class="card"><div class="ct">VIX 3M</div><div class="snum '+(vts.vix3m>vts.spot?'bear':'bull')+'">'+(vts.vix3m||'-').toFixed(2)+'</div><div class="slabel '+(vts.spot_to_3m_pct>=0?'bear':'bull')+'">'+(vts.spot_to_3m_pct>=0?'+':'')+vts.spot_to_3m_pct+'%</div></div>'+
+        '<div class="card"><div class="ct">Regime</div><div class="snum '+rCol+'" style="font-size:13px">'+rLbl+'</div><div class="slabel neutral" style="font-size:10px">Backwardation = stress</div></div>'+
+      '</div>';
+  }
+
+  // Sesjonsoversikt (ADR)
+  var sr=m.session_ranges;
+  var srEl=document.getElementById('sessionRanges');
+  if(sr&&srEl){
+    var srKeys=Object.keys(sr);
+    if(srKeys.length){
+      var rows2='';
+      srKeys.forEach(function(k){
+        var v=sr[k];
+        if(!v)return;
+        var adr=v.adr_20d;
+        var adrF=adr?(adr>10?adr.toFixed(1):adr.toFixed(5)):'-';
+        var pct=v.adr_pct?v.adr_pct.toFixed(2)+'%':'-';
+        rows2+='<tr><td><strong>'+v.name+'</strong></td><td class="tdr" style="font-family:monospace">'+adrF+'</td><td class="tdr" style="color:var(--m)">'+pct+'</td></tr>';
+      });
+      srEl.innerHTML='<div class="sh" style="margin-top:16px"><div class="sh-t" style="font-size:14px">Gjennomsnittlig daglig range (ADR 20d)</div></div>'+
+        '<div class="cotw"><table class="cott"><thead><tr><th>Instrument</th><th style="text-align:right">ADR</th><th style="text-align:right">% av pris</th></tr></thead><tbody>'+rows2+'</tbody></table></div>';
+    }
+  }
 }
 
 function weightBadge(w){
@@ -367,28 +419,12 @@ function weightBadge(w){
   return '<span class="tf-badge '+cls+'">'+label+'</span>';
 }
 
-function renderActiveSetup(lv){
-  var isLong  = lv.dir_color === 'bull';
-  var setup   = isLong ? lv.setup_long : lv.setup_short;
-  var type    = isLong ? 'LONG' : 'SHORT';
-  if(setup) return renderSetupSide(setup, type);
-  var levels  = isLong ? (lv.supports||[]) : (lv.resistances||[]);
-  var nearest = levels[0];
-  var col     = isLong ? 'bull' : 'bear';
-  var hint    = nearest
-    ? 'Vent på rally til <span style="font-family:\'DM Mono\',monospace">'+nearest.level+'</span> ['+nearest.name+'] ('+nearest.dist_atr+'×ATR unna)'
-    : 'Ingen '+(!isLong?'motstand':'støtte')+' i rekkevidde';
-  return '<div class="setup-label '+col+'">'+type+'</div>'+
-    '<div style="color:var(--m);font-size:12px;padding:18px 0;text-align:center;line-height:1.8">'+
-    'Ingen aktiv setup – pris for langt fra '+(!isLong?'motstand':'støtte')+'<br>'+hint+'</div>';
-}
-
 function renderSetupSide(setup, type, nearLevels){
   if(!setup){
-    var n = nearLevels && nearLevels[0];
-    var msg = n
-      ? 'Pris for langt fra '+type+'-nivå<br><span style="font-family:\'DM Mono\',monospace;color:var(--t)">'+n.level+'</span> <span style="font-size:10px">['+n.name+']</span> <span style="color:var(--warn)">'+n.dist_atr+'×ATR unna</span>'
-      : 'Ingen '+type+'-nivå i rekkevidde';
+    var n=nearLevels&&nearLevels[0];
+    var msg=n
+      ?'Pris for langt fra '+type+'-nivå<br><span style="font-family:\'DM Mono\',monospace;color:var(--t)">'+n.level+'</span> <span style="font-size:10px">['+n.name+']</span> <span style="color:var(--warn)">'+n.dist_atr+'×ATR unna</span>'
+      :'Ingen '+type+'-nivå i rekkevidde';
     return '<div class="setup-label na">'+type+'</div><div style="font-size:12px;padding:20px 0;text-align:center;line-height:1.8">'+msg+'</div>';
   }
   var col=type==='LONG'?'bull':'bear';
@@ -539,6 +575,23 @@ function renderIdeer(m){
   document.getElementById('ideGrid').innerHTML=html;
 }
 
+function sparkline(history, w, h){
+  if(!history||history.length<2)return'<span style="color:var(--m);font-size:10px">–</span>';
+  var min=Math.min.apply(null,history),max=Math.max.apply(null,history);
+  var rng=max-min||1;
+  w=w||56;h=h||20;
+  var step=w/(history.length-1);
+  var pts=history.map(function(v,i){
+    return(i*step).toFixed(1)+','+(h-((v-min)/rng)*h*0.85-1).toFixed(1);
+  }).join(' ');
+  var last=history[history.length-1];
+  var prev=history[history.length-2];
+  var col=last>=prev?'var(--bull)':'var(--bear)';
+  return'<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:block;overflow:visible">'+
+    '<polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round"/>'+
+    '</svg>';
+}
+
 function renderCot(){
   var data=COT.filter(function(d){
     if(cotF!=='alle'&&d.kategori!==cotF)return false;
@@ -565,10 +618,11 @@ function renderCot(){
       '<td><span class="sp2 '+s2+'">'+si.i+' '+si.t+'</span></td>'+
       '<td class="'+(sp.net>=0?'tdbull':'tdbear')+'">'+(sp.net>0?'+':'')+fm(sp.net||0)+'</td>'+
       '<td class="'+(d.change_spec_net>=0?'tdbull':'tdbear')+'">'+(d.change_spec_net>0?'+':'')+fm(d.change_spec_net||0)+'</td>'+
+      '<td class="tdr">'+sparkline(d.spec_net_history)+'</td>'+
       '<td class="tdr">'+fm(d.open_interest||0)+'</td>'+
       '<td class="tdr" style="font-size:10px;color:var(--m)">'+d.report+'</td></tr>';
   });
-  document.getElementById('cotGrid').innerHTML='<div class="cotw"><table class="cott"><thead><tr><th>Marked</th><th>Signal</th><th style="text-align:right">Spec. Netto</th><th style="text-align:right">Uke</th><th style="text-align:right">OI</th><th style="text-align:right">Kilde</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  document.getElementById('cotGrid').innerHTML='<div class="cotw"><table class="cott"><thead><tr><th>Marked</th><th>Signal</th><th style="text-align:right">Spec. Netto</th><th style="text-align:right">Uke Δ</th><th style="text-align:right">8 uker</th><th style="text-align:right">OI</th><th style="text-align:right">Kilde</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 function setCF(c){cotF=c;renderCot();}
 function filterCot(){cotQ=document.getElementById('cotS').value.toLowerCase();renderCot();}
@@ -605,6 +659,81 @@ function renderPrices(p){
   });
 }
 
+function renderKorrelasjoner(corr){
+  var el=document.getElementById('corrGrid');
+  if(!corr||!corr.matrix){el.innerHTML='<div class="loading">Ingen korrelasjonsdata</div>';return;}
+  document.getElementById('corrPeriod').textContent=corr.period+' Pearson';
+  var labels=corr.labels;
+  // Heatmap-farge: -1=rød, 0=nøytral, +1=grønn
+  function corrColor(v){
+    if(v===null||v===undefined)return'background:var(--s2);color:var(--m)';
+    var a=Math.abs(v);
+    var col=v>0?'63,185,80':'248,81,73';
+    return'background:rgba('+col+','+(a*0.6).toFixed(2)+');color:var(--t)';
+  }
+  var th='<th></th>'+labels.map(function(l){return'<th style="text-align:center;font-size:11px;padding:6px 4px">'+l+'</th>';}).join('');
+  var rows3='';
+  corr.matrix.forEach(function(row,i){
+    rows3+='<tr><td style="font-size:11px;font-weight:600;padding:6px 8px;white-space:nowrap">'+labels[i]+'</td>';
+    row.forEach(function(v){
+      var f=v===null?'-':(v===1.0?'1.00':v===undefined?'-':v.toFixed(2));
+      rows3+='<td style="text-align:center;font-family:monospace;font-size:13px;padding:8px 12px;'+corrColor(v)+'">'+f+'</td>';
+    });
+    rows3+='</tr>';
+  });
+  el.innerHTML=
+    '<p style="font-size:12px;color:var(--m);margin-bottom:12px">20-dagers rulende Pearson-korrelasjon på daglige avkastninger. +1 = fullstendig positiv korrelasjon, -1 = negativ, 0 = ingen korrelasjon.</p>'+
+    '<div class="cotw"><table class="cott"><thead><tr>'+th+'</tr></thead><tbody>'+rows3+'</tbody></table></div>'+
+    '<p style="font-size:11px;color:var(--m);margin-top:10px">Tips: Høy korrelasjon EUR/USD–XAU = risk-on bevegelse. Negativ US100–XAU = safe-haven rotasjon.</p>';
+}
+
+function renderSignallogg(log){
+  if(!log)return;
+  var entries=log.entries||[];
+  var stats=log.hit_stats||{};
+  var total=stats.total||{};
+  var byGrade=stats.by_grade||{};
+  document.getElementById('logCnt').textContent=entries.length+' oppføringer';
+
+  var statsH='';
+  var n=total.n||0;
+  var rate=total.rate;
+  statsH+='<div class="card"><div class="ct">Totalt evaluert</div><div class="snum">'+(n||0)+'</div><div class="slabel neutral">signaler</div></div>';
+  statsH+='<div class="card"><div class="ct">Treffsikkerhet</div><div class="snum '+(rate>=60?'bull':rate>=40?'warn':'bear')+'">'+(rate!=null?rate+'%':'–')+'</div><div class="slabel neutral">HIT/(HIT+MISS)</div></div>';
+  ['A+','A','B'].forEach(function(g){
+    var gs=byGrade[g];
+    if(!gs)return;
+    statsH+='<div class="card"><div class="ct">Grade '+g+'</div><div class="snum '+(gs.rate>=60?'bull':gs.rate>=40?'warn':'bear')+'">'+(gs.rate!=null?gs.rate+'%':'–')+'</div><div class="slabel neutral">'+gs.n+' evaluert</div></div>';
+  });
+  document.getElementById('logStats').innerHTML=statsH;
+
+  if(!entries.length){document.getElementById('logGrid').innerHTML='<div class="loading">Ingen logg ennå</div>';return;}
+
+  var rows4='';
+  entries.slice(0,100).forEach(function(e){
+    var sig=e.signal||{};
+    var res=e.result;
+    var rCol=res==='HIT'?'bull':res==='MISS'?'bear':res==='PENDING'?'warn':'neutral';
+    var rLbl=res||'–';
+    var actCol=sig.action==='BUY'?'bull':'bear';
+    rows4+='<tr>'+
+      '<td style="font-size:11px;color:var(--m)">'+((e.timestamp||'').slice(0,16))+'</td>'+
+      '<td><strong>'+sig.name+'</strong></td>'+
+      '<td><span class="sp2 '+(sig.action==='BUY'?'bull-mild':'bear-mild')+'">'+sig.action+'</span></td>'+
+      '<td style="font-size:11px">'+sig.timeframe+'</td>'+
+      '<td><span class="tgrade '+(sig.grade==='A+'?'bull':sig.grade==='A'?'warn':'neutral')+'">'+sig.grade+'</span></td>'+
+      '<td class="tdr" style="font-size:11px">'+sig.score+'/12</td>'+
+      '<td class="tdr" style="font-family:monospace;font-size:11px">'+(sig.entry||'–')+'</td>'+
+      '<td class="tdr" style="font-family:monospace;font-size:11px">'+(sig.rr_t1?'1:'+sig.rr_t1:'–')+'</td>'+
+      '<td><span class="sh-b '+rCol+'" style="font-size:10px">'+rLbl+'</span></td>'+
+      '</tr>';
+  });
+  document.getElementById('logGrid').innerHTML=
+    '<div class="cotw"><table class="cott">'+
+    '<thead><tr><th>Tid</th><th>Instrument</th><th>Retning</th><th>TF</th><th>Grade</th><th style="text-align:right">Score</th><th style="text-align:right">Entry</th><th style="text-align:right">R:R</th><th>Resultat</th></tr></thead>'+
+    '<tbody>'+rows4+'</tbody></table></div>';
+}
+
 async function loadAll(){
   try{
     var r=await fetch('data/macro/latest.json');
@@ -614,6 +743,7 @@ async function loadAll(){
     renderIdeer(M);
     renderCal(M.calendar||[]);
     renderPrices(M.prices||{});
+    renderKorrelasjoner(M.correlations||null);
   }catch(e){
     document.getElementById('ideGrid').innerHTML='<div class="loading">Kjor fetch_all.py og push til GitHub</div>';
     console.error(e);
@@ -623,6 +753,14 @@ async function loadAll(){
     COT=await r2.json();
     renderCot();
   }catch(e){console.error(e);}
+  try{
+    var r3=await fetch('data/signal_log.json');
+    var logData=await r3.json();
+    renderSignallogg(logData);
+  }catch(e){
+    document.getElementById('logGrid').innerHTML='<div class="loading">Ingen logg ennå — kjøres etter neste fetch_all.py</div>';
+    console.error(e);
+  }
 }
 loadAll();
 

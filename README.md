@@ -21,6 +21,7 @@ En statisk nettside (GitHub Pages) som viser daglige trading-ideer basert på:
 - **Økonomisk kalender** med binær risiko-varsling
 - **Timeframe bias** — MAKRO / SWING / SCALP / WATCHLIST per instrument
 - **COT momentum** — ØKER / SNUR / STABIL basert på ukeendring i netto-posisjon
+- **Metals & Macro Intel** — Geo-Intel kart (mines/chokepoints/seismisk), COMEX lagerbeholdning, nyhetsstrøm
 
 Alt drives av JSON-filer i `data/` som genereres lokalt og pushes til GitHub.
 
@@ -55,14 +56,27 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 3. `build_combined.py` — bygger kombinert COT-datasett (legacy + TFF + disaggregated)
 4. `fetch_fundamentals.py` — henter FRED makrodata (kun hvis > 12 timer siden sist)
 5. `fetch_all.py` — full analyse: priser, SMC (15m/1H/4H), nivåer, score, setup-generering
-6. `push_signals.py` — pusher topp-setups til Telegram/Discord/Flask (valgfritt)
-7. `git push` — oppdaterer GitHub Pages med nye JSON-filer
+6. `fetch_comex.py` — henter COMEX lagerbeholdning (gull/sølv/kobber) til `data/comex/latest.json`
+7. `fetch_seismic.py` — henter USGS seismiske data for gruveregioner til `data/geointel/seismic.json`
+8. `fetch_intel.py` — henter nyheter fra Google News RSS (gull, sølv, kobber, geopolitikk) til `data/geointel/intel.json`
+9. `push_signals.py` — genererer alltid `data/signals.json`, pusher topp-setups til Telegram/Discord/Flask (valgfritt)
+10. `git push` — oppdaterer GitHub Pages med nye JSON-filer
 
 ---
 
 ## Signal-varsling og trading bot (valgfritt)
 
 `push_signals.py` sender de beste tradingideene til Telegram, Discord og/eller en lokal Flask-server etter hver analyse.
+
+**Kjøres alltid** (ikke gated av env-variabler) og skriver alltid `data/signals.json` som pushes til GitHub Pages.
+
+### Filtrering
+
+- Kun setups med score ≥ `PUSH_MIN_SCORE` (standard: **7** av 12)
+- Kun klare retninger: `dir_color` er `bull` eller `bear`
+- Kun instrumenter med aktiv setup (entry/SL/T1 kalkulert) — watchlist-instrumenter ekskluderes
+- Boten mottar **kun** riktig retnings-setup (ikke begge): LONG-entry hvis bull, SHORT-entry hvis bear
+- Sortert: MAKRO > SWING > SCALP, deretter score
 
 ### Miljøvariabler
 
@@ -71,7 +85,7 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 | `TELEGRAM_TOKEN` | Bot-token fra @BotFather |
 | `TELEGRAM_CHAT_ID` | Chat-ID som skal motta meldinger |
 | `DISCORD_WEBHOOK` | Discord webhook-URL |
-| `PUSH_MIN_SCORE` | Minimum konfluens-score for å pushe (standard: 5) |
+| `PUSH_MIN_SCORE` | Minimum konfluens-score for å pushe (standard: **7**) |
 | `PUSH_MAX_SIGNALS` | Maks antall signaler per kjøring (standard: 5) |
 | `FLASK_URL` | URL til signal_server.py (standard: `http://localhost:5000`) |
 | `SCALP_API_KEY` | API-nøkkel til Flask-endepunktet `/push-alert` |
@@ -81,6 +95,39 @@ Sett variablene i `~/.bashrc` eller `~/.profile`:
 export TELEGRAM_TOKEN="din-token"
 export TELEGRAM_CHAT_ID="din-chat-id"
 export SCALP_API_KEY="din-api-nøkkel"
+```
+
+`SCALP_API_KEY` leses automatisk fra `~/.bashrc` som fallback hvis den ikke er satt i shell-miljøet.
+
+### data/signals.json
+
+Genereres ved **hver** kjøring og pushes til GitHub Pages. Kan leses av eksterne bots direkte fra GitHub.
+
+```json
+{
+  "generated": "2026-03-27 12:00 UTC",
+  "cot_date": "2026-03-21",
+  "signals": [
+    {
+      "key": "gold",
+      "name": "Gold",
+      "action": "BUY",
+      "timeframe": "MAKRO",
+      "grade": "A+",
+      "score": 11,
+      "current": 3012.5,
+      "entry": 2985.0,
+      "sl": 2940.0,
+      "t1": 3050.0,
+      "t2": 3120.0,
+      "rr_t1": 1.44,
+      "rr_t2": 2.98,
+      "sl_type": "structural",
+      "cot_bias": "LONG",
+      "cot_pct": 72.3
+    }
+  ]
+}
 ```
 
 ### Flask /push-alert
@@ -93,23 +140,55 @@ Headers: X-API-Key: <SCALP_API_KEY>
          Content-Type: application/json
 
 Body: {
-  "generated": "2026-03-25 12:00 UTC",
+  "generated": "2026-03-27 12:00 UTC",
   "signals": [
     {
-      "key": "eurusd",
-      "name": "EUR/USD",
-      "timeframe_bias": "SWING",
+      "key": "gold",
+      "name": "Gold",
+      "timeframe_bias": "MAKRO",
       "direction": "bull",
-      "grade": "A",
-      "score": 8,
-      "setup": { "entry": 1.1617, "sl": 1.1480, "t1": 1.1780, "t2": 1.1920,
-                 "risk_atr_d": 1.2, "sl_type": "zone", "rr_t1": 1.19, "rr_t2": 2.21,
+      "grade": "A+",
+      "score": 11,
+      "setup": { "entry": 2985.0, "sl": 2940.0, "t1": 3050.0, "t2": 3120.0,
+                 "risk_atr_d": 0.9, "sl_type": "structural", "rr_t1": 1.44, "rr_t2": 2.98,
                  "t1_source": "D1" },
-      "cot": { "bias": "LONG", "momentum": "ØKER", "pct": 68.4 }
+      "cot": { "bias": "LONG", "momentum": "ØKER", "pct": 72.3 }
     }
   ]
 }
 ```
+
+---
+
+## Metals & Macro Intel (`metals-intel.html`)
+
+Eget panel med tre faner:
+
+### Geo-Intel (kart)
+- Interaktivt Leaflet.js-kart med CartoDB Dark Matter tiles
+- Viser **26 gruver** (gull/sølv/kobber) med status, selskap, produksjon og risikoflagg
+- Viser **6 forsyningskjede-chokepoints** (Hormuz, Malacca, Suez, Bab-el-Mandeb, Panama, Kapp det gode håp)
+- Viser **seismisk aktivitet** (USGS M≥4.5) nær gruveregioner, oppdatert ukentlig
+- Klikk på markør for popup med detaljer
+
+### COMEX Dashboard
+- Registrert vs. eligible lagerbeholdning for gull, sølv og kobber
+- Stress-indeks per metall (0–100): lav registered-dekning + synkende trend øker stress
+- Oppdateres fra `data/comex/latest.json`
+
+### Intel Feed
+- Nyhetsstrøm fra Google News RSS (4 kategorier: gull, sølv, kobber, geopolitikk)
+- Oppdateres fra `data/geointel/intel.json`
+
+### Datafiler (Geo-Intel)
+
+| Fil | Innhold | Oppdatering |
+|-----|---------|-------------|
+| `data/geointel/mines.json` | 26 gruver manuelt kuratert | Statisk |
+| `data/geointel/chokepoints.json` | 6 chokepoints | Statisk |
+| `data/geointel/seismic.json` | USGS seismiske hendelser | 6× daglig |
+| `data/geointel/intel.json` | Google News RSS feed | 6× daglig |
+| `data/comex/latest.json` | COMEX lagerbeholdning + stress-indeks | 6× daglig |
 
 ---
 
@@ -129,13 +208,14 @@ Nivåer innen 0.5×ATR av hverandre slås sammen — høyest weight beholder pos
 
 ### Level-til-Level setup (L2L)
 
-- Entry = faktisk strukturnivå (MÅ være innen 0.3–0.45×ATR(15m) avhengig av weight)
+- Entry = faktisk strukturnivå (MÅ være innen 0.3–1.0×ATR(D1) avhengig av weight)
 - SL = strukturell stop loss:
   - SMC supply/demand-sone: SL = zone_bottom/top ± 0.15×ATR(D1) buffer
   - Linjnivå: SL = nivå ± 0.3–0.5×ATR(D1)
 - T1 = neste faktiske nivå med høyest HTF-weight (R:R ≥ 1.5 kreves)
+  - Hvis ingen strukturell T1 finnes: T1 projiseres ved entry ± min_t1_dist, merket som `t1_quality: "weak"`
 - T2 = neste nivå etter T1, eller T1 + 1×risk hvis ingen nivåer finnes
-- T1 merkes som "weak" i frontend hvis kun svak 15m-kilde
+- T1 merkes som "weak" i frontend hvis kun svak 15m-kilde eller projisert
 
 ### SMC-analyse (smc.py)
 
@@ -225,6 +305,9 @@ VIX brukes kun for posisjonsstørrelse. USDCHF og USDNOK vises kun i priser-fane
 | Nyhetssentiment | Google News RSS + BBC RSS | Nei | Ved kjøring |
 | Kalender | ForexFactory JSON | Nei | Ved kjøring |
 | SMC supply/demand/BOS | Beregnet fra 15m, 1H, 4H | — | Ved kjøring |
+| COMEX lager (gull/sølv/kobber) | CME Group → fallback | Nei | 6× daglig |
+| Seismisk aktivitet | USGS Earthquake API | Nei | 6× daglig |
+| Metals nyheter | Google News RSS | Nei | 6× daglig |
 
 ### Pris-fallback-kjede (per instrument)
 
@@ -274,7 +357,8 @@ Yield curve (TNX − IRX) brukes i konflikt-detektor. HYG ned > 1.5% siste 5 dag
 
 | Komponent | Teknologi |
 |-----------|-----------|
-| Frontend | Vanilla HTML/CSS/JS, én fil (`index.html`) |
+| Frontend | Vanilla HTML/CSS/JS, `index.html` + `metals-intel.html` |
+| Kart | Leaflet.js med CartoDB Dark Matter tiles |
 | Backend | Python 3, ingen dependencies utover stdlib |
 | Hosting | GitHub Pages (statisk) |
 | Automatisering | systemd timer (6× daglig hvert 4. time, hverdager) |
