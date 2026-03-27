@@ -383,9 +383,13 @@ function renderActiveSetup(lv){
     'Ingen aktiv setup – pris for langt fra '+(!isLong?'motstand':'støtte')+'<br>'+hint+'</div>';
 }
 
-function renderSetupSide(setup, type){
+function renderSetupSide(setup, type, nearLevels){
   if(!setup){
-    return '<div class="setup-label na">'+type+'</div><div style="color:var(--m);font-size:12px;padding:20px 0;text-align:center">Ikke tilgjengelig</div>';
+    var n = nearLevels && nearLevels[0];
+    var msg = n
+      ? 'Pris for langt fra '+type+'-nivå<br><span style="font-family:\'DM Mono\',monospace;color:var(--t)">'+n.level+'</span> <span style="font-size:10px">['+n.name+']</span> <span style="color:var(--warn)">'+n.dist_atr+'×ATR unna</span>'
+      : 'Ingen '+type+'-nivå i rekkevidde';
+    return '<div class="setup-label na">'+type+'</div><div style="font-size:12px;padding:20px 0;text-align:center;line-height:1.8">'+msg+'</div>';
   }
   var col=type==='LONG'?'bull':'bear';
   var rrOk=setup.rr_t1>=setup.min_rr;
@@ -492,8 +496,8 @@ function renderIdeer(m){
         '<div id="tdet'+i+'" class="tdet">'+
           briskHtml+
           '<div class="setup-grid">'+
-            '<div class="setup-side">'+renderSetupSide(lv.setup_long,'LONG')+'</div>'+
-            '<div class="setup-side">'+renderSetupSide(lv.setup_short,'SHORT')+'</div>'+
+            '<div class="setup-side">'+renderSetupSide(lv.setup_long,'LONG',lv.supports)+'</div>'+
+            '<div class="setup-side">'+renderSetupSide(lv.setup_short,'SHORT',lv.resistances)+'</div>'+
           '</div>'+
           '<div class="score-section">'+
             '<div class="ct">Konfluens-score ('+lv.score_pct+'%)</div>'+
