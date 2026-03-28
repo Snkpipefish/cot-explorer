@@ -15,7 +15,7 @@ En statisk nettside (GitHub Pages) som viser daglige trading-ideer basert på:
 - **Makro-panel** med Dollar Smile-modell, VIX-regime, yield curve og konflikt-flagging
 - **VIX term-struktur** — spot vs. 9D vs. 3M, contango/backwardation-regime
 - **Korrelasjonstabell** — 20-dagers Pearson-korrelasjon mellom EUR/USD, XAU/USD, US100 og Brent
-- **COT-posisjoner** for 366 markeder fra CFTC (siste uke) med 8-ukers sparkline
+- **COT-posisjoner** for 600+ markeder fra CFTC (siste uke) med 8-ukers sparkline, gruppert i accordion-kategorier (Aksjer, Valuta, Renter, Råvarer, Landbruk, Krypto, Volatilitet, Annet)
 - **COT-historikk** med prisgraf (klikk på marked i COT-fanen)
 - **Fundamentals-panel** — FRED-data: GDP, CPI, PPI, PCE, NFP, jobbtall (USD-bias-score)
 - **Nyhetssentiment** — RSS fra Google News + BBC, risk-on/risk-off-scoring
@@ -26,6 +26,7 @@ En statisk nettside (GitHub Pages) som viser daglige trading-ideer basert på:
 - **COT momentum** — ØKER / SNUR / STABIL basert på ukeendring i netto-posisjon
 - **Signal-logg** — historikk over alle genererte signaler med treffsikkerhet (hit-rate) per grade
 - **Metals & Macro Intel** — Geo-Intel kart (mines/chokepoints/seismisk), COMEX lagerbeholdning, nyhetsstrøm
+- **Krypto Intel** — Priser (BTC/ETH/SOL/XRP m.fl.), markedsdominans, Fear & Greed-indeks, Bitcoin COT, makrokorrelasjoner og krypto-nyheter
 
 Alt drives av JSON-filer i `data/` som genereres lokalt og pushes til GitHub.
 
@@ -63,7 +64,8 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 6. `fetch_comex.py` — henter COMEX lagerbeholdning (gull/sølv/kobber) til `data/comex/latest.json`
 7. `fetch_seismic.py` — henter USGS seismiske data for gruveregioner til `data/geointel/seismic.json`
 8. `fetch_intel.py` — henter nyheter fra Google News RSS (gull, sølv, kobber, geopolitikk) til `data/geointel/intel.json`
-9. `push_signals.py` — genererer alltid `data/signals.json` og `data/signal_log.json`, pusher topp-setups til Telegram/Discord/Flask (valgfritt)
+9. `fetch_crypto.py` — henter krypto-priser (Yahoo Finance), markedsdata (CoinGecko), Fear & Greed (alternative.me), Bitcoin COT, Pearson-korrelasjoner og nyheter til `data/crypto/latest.json`
+10. `push_signals.py` — genererer alltid `data/signals.json` og `data/signal_log.json`, pusher topp-setups til Telegram/Discord/Flask (valgfritt)
 10. `git push` — oppdaterer GitHub Pages med nye JSON-filer
 
 ---
@@ -195,6 +197,7 @@ Eget panel med tre faner:
 | `data/comex/latest.json` | COMEX lagerbeholdning + stress-indeks | 6× daglig |
 | `data/signals.json` | Aktive BUY/SELL-signaler (score≥7) | 6× daglig |
 | `data/signal_log.json` | Historikk over alle signaler + treffsikkerhet | 6× daglig |
+| `data/crypto/latest.json` | Krypto-priser, markedsdata, Fear & Greed, COT, korrelasjoner, nyheter | 6× daglig |
 
 ---
 
@@ -317,6 +320,10 @@ VIX brukes kun for posisjonsstørrelse. USDCHF og USDNOK vises kun i priser-fane
 | COMEX lager (gull/sølv/kobber) | CME Group → fallback | Nei | 6× daglig |
 | Seismisk aktivitet | USGS Earthquake API | Nei | 6× daglig |
 | Metals nyheter | Google News RSS | Nei | 6× daglig |
+| Krypto-priser | Yahoo Finance | Nei | 6× daglig |
+| Krypto markedsdata | CoinGecko API | Nei | 6× daglig |
+| Krypto Fear & Greed | alternative.me | Nei | 6× daglig |
+| Krypto-nyheter | Google News RSS | Nei | 6× daglig |
 
 ### Pris-fallback-kjede (per instrument)
 
@@ -366,7 +373,7 @@ Yield curve (TNX − IRX) brukes i konflikt-detektor. HYG ned > 1.5% siste 5 dag
 
 | Komponent | Teknologi |
 |-----------|-----------|
-| Frontend | Vanilla HTML/CSS/JS, `index.html` + `metals-intel.html` |
+| Frontend | Vanilla HTML/CSS/JS, `index.html` + `metals-intel.html` + `crypto-intel.html` |
 | Kart | Leaflet.js med CartoDB Dark Matter tiles |
 | Grafer | Chart.js (COT-historikk modal) |
 | Backend | Python 3, ingen dependencies utover stdlib |
