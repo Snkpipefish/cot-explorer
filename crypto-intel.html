@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Krypto Intel – Markedspuls</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--s:#161b22;--s2:#1c2128;--b:#21262d;--b2:#30363d;--t:#e6edf3;--m:#7d8590;--bull:#3fb950;--bbg:rgba(63,185,80,.12);--bear:#f85149;--rbg:rgba(248,81,73,.12);--warn:#d29922;--wbg:rgba(210,153,34,.12);--blue:#58a6ff;--blbg:rgba(88,166,255,.12);--btc:#F7931A;--eth:#627EEA;--purple:#9945FF}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5}
+.topbar{background:var(--s);border-bottom:1px solid var(--b);padding:0 20px;height:50px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:200}
+.logo{font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.logo em{font-style:italic;font-weight:400;color:var(--blue)}
+.back-link{font-size:12px;color:var(--blue);text-decoration:none;padding:4px 10px;border:1px solid var(--b2);border-radius:6px;margin-left:8px}
+.back-link:hover{background:var(--blbg)}
+.upd{font-size:10px;color:var(--m);margin-left:auto}
+.nav{background:var(--s);border-bottom:1px solid var(--b);padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nt{background:none;border:none;border-bottom:2px solid transparent;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--m);cursor:pointer;white-space:nowrap;transition:all .15s}
+.nt:hover{color:var(--t)}.nt.active{color:var(--blue);border-bottom-color:var(--blue)}
+.panel{display:none}.panel.active{display:block}
+.main{padding:18px 20px;max-width:1600px;margin:0 auto}
+.card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:16px 18px}
+.ct{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:12px}
+.sh{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.sh-t{font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.sh-b{font-size:10px;font-family:'DM Mono',monospace;color:var(--m);background:var(--s2);padding:2px 7px;border-radius:4px;border:1px solid var(--b)}
+.sh-b.bull{color:var(--bull);background:var(--bbg);border-color:var(--bull)}
+.sh-b.bear{color:var(--bear);background:var(--rbg);border-color:var(--bear)}
+.sh-b.warn{color:var(--warn);background:var(--wbg);border-color:var(--warn)}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.snum{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;margin:6px 0 2px}
+.snum.bull{color:var(--bull)}.snum.bear{color:var(--bear)}.snum.warn{color:var(--warn)}
+.slabel{font-size:11px;color:var(--m)}
+.loading{padding:40px;text-align:center;color:var(--m);font-size:13px}
+.spinner{width:26px;height:26px;border:2px solid var(--b);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* PRICE CARDS */
+.pcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.pc{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px 16px;position:relative}
+.pc-icon{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:var(--m);margin-bottom:4px}
+.pc-name{font-size:12px;font-weight:600;margin-bottom:6px}
+.pc-price{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;margin-bottom:4px}
+.pc-chg{font-family:'DM Mono',monospace;font-size:11px;display:flex;gap:8px;flex-wrap:wrap}
+.up{color:var(--bull)}.dn{color:var(--bear)}
+
+/* DOMINANCE BAR */
+.dom-bar{height:12px;background:var(--b2);border-radius:6px;overflow:hidden;display:flex;margin:8px 0 4px}
+.dom-seg{height:100%;transition:width .3s}
+.dom-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--m);margin-top:4px}
+.dom-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
+
+/* FEAR GREED */
+.fg-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0}
+.fg-num{font-family:'DM Mono',monospace;font-size:48px;font-weight:500}
+.fg-label{font-size:13px;margin-top:4px}
+.fg-bar{width:100%;height:8px;border-radius:4px;background:linear-gradient(to right,#f85149,#d29922,#3fb950);margin:10px 0 4px;position:relative}
+.fg-needle{position:absolute;top:-4px;width:4px;height:16px;background:var(--t);border-radius:2px;transform:translateX(-50%)}
+.fg-history{display:flex;gap:3px;align-items:flex-end;height:30px;margin-top:8px}
+.fg-bar2{width:14px;border-radius:2px 2px 0 0;min-height:4px}
+
+/* CORRELATION */
+.corr-table{width:100%;border-collapse:collapse;font-size:13px}
+.corr-table th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);padding:8px 12px;text-align:left}
+.corr-table td{padding:10px 12px;border-top:1px solid var(--b)}
+.corr-val{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;padding:4px 10px;border-radius:4px}
+.corr-bar{height:4px;border-radius:2px;margin-top:4px}
+.corr-desc{font-size:11px;color:var(--m);margin-top:2px}
+
+/* COT */
+.cot-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.cbt{height:8px;background:var(--b2);border-radius:4px;overflow:hidden;margin-top:8px}
+.cbf{height:100%;border-radius:4px;transition:width .3s}
+
+/* NEWS */
+.news-item{padding:12px 0;border-bottom:1px solid var(--b);display:flex;flex-direction:column;gap:4px}
+.news-item:last-child{border-bottom:none}
+.news-title{font-size:13px;font-weight:500;line-height:1.4}
+.news-title a{color:var(--t);text-decoration:none}
+.news-title a:hover{color:var(--blue);text-decoration:underline}
+.news-meta{font-size:11px;color:var(--m);display:flex;gap:8px;flex-wrap:wrap}
+.news-cat{font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;background:var(--blbg);color:var(--blue)}
+
+/* SPARKLINE */
+.spark{display:inline-block;vertical-align:middle}
+
+@media(max-width:900px){.g4,.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.g4,.g3,.g2{grid-template-columns:1fr}.pcg{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo">Markeds<em>puls</em></div>
+  <a href="index.html" class="back-link">← Tilbake</a>
+  <div class="upd" id="upd">-</div>
+</header>
+<nav class="nav">
+  <button class="nt active" data-tab="marked">💰 Markedsoversikt</button>
+  <button class="nt" data-tab="korr">🔗 Korrelasjoner</button>
+  <button class="nt" data-tab="cot">📊 COT Futures</button>
+  <button class="nt" data-tab="nyheter">📰 Nyheter</button>
+</nav>
+<div class="main">
+
+  <!-- MARKEDSOVERSIKT -->
+  <div class="panel active" id="panel-marked">
+    <div class="sh"><div class="sh-t">Krypto Markedsoversikt</div><div class="sh-b" id="mktDate">-</div></div>
+    <div class="g4" id="mktStats"></div>
+    <div class="sh" style="margin-top:4px"><div class="sh-t" style="font-size:14px">Priser</div></div>
+    <div class="pcg" id="priceGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+    <div class="g2" style="margin-top:8px">
+      <div class="card">
+        <div class="ct">Markedsdominans</div>
+        <div id="domBar"><div class="loading" style="padding:20px">Laster...</div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Krypto Fear &amp; Greed</div>
+        <div class="fg-wrap" id="fgWrap"><div class="loading" style="padding:20px">Laster...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KORRELASJONER -->
+  <div class="panel" id="panel-korr">
+    <div class="sh"><div class="sh-t">Makro-korrelasjoner</div><div class="sh-b">30-dagers Pearson</div></div>
+    <p style="font-size:12px;color:var(--m);margin-bottom:16px">Positiv korrelasjon mot SPX = krypto følger risikoappetitten. Negativ mot DXY = BTC svekkes når dollar styrkes. Høy ETH/BTC-korrelasjon = altseason lite sannsynlig.</p>
+    <div id="corrGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+  </div>
+
+  <!-- COT FUTURES -->
+  <div class="panel" id="panel-cot">
+    <div class="sh"><div class="sh-t">Bitcoin CME Futures – COT</div><div class="sh-b" id="cotDate">-</div></div>
+    <p style="font-size:12px;color:var(--m);margin-bottom:16px">CFTC Commitments of Traders for Bitcoin-futures på CME. Viser institusjonelle spekulanters netto-posisjon. Høy netto-long = institusjonell etterspørsel.</p>
+    <div id="cotGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+  </div>
+
+  <!-- NYHETER -->
+  <div class="panel" id="panel-nyheter">
+    <div class="sh"><div class="sh-t">Krypto-nyheter</div><div class="sh-b" id="newsDate">-</div></div>
+    <div id="newsGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+  </div>
+
+</div>
+<footer style="border-top:1px solid var(--b);padding:12px 20px;font-size:11px;color:var(--m);display:flex;gap:16px;flex-wrap:wrap;margin-top:28px">
+  <span>Priser: Yahoo Finance · CoinGecko · alternative.me · CFTC</span>
+  <span>Data: <a href="data/crypto/latest.json" style="color:var(--blue);text-decoration:none">data/crypto/latest.json</a></span>
+</footer>
+
+<script>
+document.querySelectorAll('.nt').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.nt').forEach(function(x){x.classList.remove('active');});
+    document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
+    b.classList.add('active');
+    document.getElementById('panel-'+b.dataset.tab).classList.add('active');
+  });
+});
+
+function fp(n){return(n>0?'+':'')+n.toFixed(2)+'%';}
+function fm(n){if(!n&&n!==0)return'-';var a=Math.abs(n);if(a>=1e12)return(n/1e12).toFixed(2)+'T';if(a>=1e9)return(n/1e9).toFixed(1)+'B';if(a>=1e6)return(n/1e6).toFixed(1)+'M';return String(Math.round(n));}
+function cc(n){return n>0?'bull':n<0?'bear':'neutral';}
+
+function fmtPrice(v){
+  if(!v&&v!==0)return'-';
+  if(v>=1000)return v.toLocaleString('no-NO',{maximumFractionDigits:0});
+  if(v>=1)return v.toFixed(4);
+  if(v>=0.01)return v.toFixed(5);
+  return v.toFixed(8);
+}
+
+function sparkline(hist,w,h){
+  if(!hist||hist.length<2)return'';
+  var min=Math.min.apply(null,hist),max=Math.max.apply(null,hist),rng=max-min||1;
+  w=w||50;h=h||18;
+  var step=w/(hist.length-1);
+  var pts=hist.map(function(v,i){return(i*step).toFixed(1)+','+(h-((v-min)/rng)*h*0.8-1).toFixed(1);}).join(' ');
+  var col=hist[hist.length-1]>=hist[hist.length-2]?'var(--bull)':'var(--bear)';
+  return'<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:inline-block;vertical-align:middle;margin-left:6px"><polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+}
+
+function corrColor(v){
+  if(v===null||v===undefined)return'background:var(--s2)';
+  var a=Math.abs(v);
+  var col=v>0?'63,185,80':'248,81,73';
+  return'background:rgba('+col+','+(a*0.55).toFixed(2)+')';
+}
+
+function corrLabel(v){
+  if(v===null||v===undefined)return'Ingen data';
+  var a=Math.abs(v);
+  var dir=v>0?'positiv':'negativ';
+  return a>=0.7?'Sterk '+dir:a>=0.4?'Moderat '+dir:a>=0.2?'Svak '+dir:'Ingen korrelasjon';
+}
+
+function renderAll(d){
+  document.getElementById('upd').textContent='Oppdatert: '+d.updated;
+
+  // ── MARKEDSOVERSIKT ──
+  var mkt=d.market||{};
+  var fg=d.fear_greed||{};
+  var fgScore=fg.score||0;
+  var fgCol=fgScore<=25?'bear':fgScore<=45?'warn':fgScore<=55?'neutral':fgScore<=75?'bull':'bull';
+  var fgLbl=fg.label||'-';
+
+  document.getElementById('mktDate').textContent=d.updated||'-';
+  document.getElementById('newsDate').textContent=d.updated||'-';
+
+  // Stats
+  var mcap=mkt.total_mcap;
+  var mcapChg=mkt.total_mcap_chg24h||0;
+  document.getElementById('mktStats').innerHTML=
+    '<div class="card"><div class="ct">Total Market Cap</div><div class="snum '+(mcapChg>=0?'bull':'bear')+'" style="font-size:20px">'+(mcap?'$'+fm(mcap):'-')+'</div><div class="slabel '+(mcapChg>=0?'up':'dn')+'">'+fp(mcapChg)+' (24t)</div></div>'+
+    '<div class="card"><div class="ct">BTC Dominans</div><div class="snum warn" style="font-size:24px">'+(mkt.btc_dominance||'-')+'%</div><div class="slabel">ETH: '+(mkt.eth_dominance||'-')+'%</div></div>'+
+    '<div class="card"><div class="ct">Fear &amp; Greed</div><div class="snum '+fgCol+'" style="font-size:24px">'+fgScore+'</div><div class="slabel">'+fgLbl+'</div></div>'+
+    '<div class="card"><div class="ct">Aktive mynter</div><div class="snum" style="font-size:20px">'+(mkt.active_coins?mkt.active_coins.toLocaleString('no-NO'):'-')+'</div><div class="slabel">CoinGecko</div></div>';
+
+  // Pris-kort
+  var prices=d.prices||{};
+  var ORDER=['BTC','ETH','SOL','XRP','BNB','ADA','DOGE','AVAX'];
+  var ph='';
+  ORDER.forEach(function(k){
+    var v=prices[k];if(!v)return;
+    var c1=v.chg1d||0,c7=v.chg7d||0,c30=v.chg30d||0;
+    var COLORS={BTC:'#F7931A',ETH:'#627EEA',SOL:'#9945FF',XRP:'#346AA9',BNB:'#F3BA2F',ADA:'#0033AD',DOGE:'#C2A633',AVAX:'#E84142'};
+    var col=COLORS[k]||'var(--blue)';
+    ph+='<div class="pc" style="border-top:3px solid '+col+'">'+
+      '<div class="pc-icon">'+k+'</div>'+
+      '<div class="pc-name">'+v.name+'</div>'+
+      '<div class="pc-price">$'+fmtPrice(v.price)+'</div>'+
+      '<div class="pc-chg">'+
+        '<span class="'+(c1>=0?'up':'dn')+'">'+fp(c1)+' (1d)</span>'+
+        '<span class="'+(c7>=0?'up':'dn')+'">'+fp(c7)+' (7d)</span>'+
+        '<span class="'+(c30>=0?'up':'dn')+'">'+fp(c30)+' (30d)</span>'+
+      '</div>'+
+    '</div>';
+  });
+  document.getElementById('priceGrid').innerHTML=ph||'<div class="loading">Ingen prisdata</div>';
+
+  // Dominans-bar
+  var btcD=mkt.btc_dominance||0,ethD=mkt.eth_dominance||0,otherD=Math.max(0,100-btcD-ethD);
+  document.getElementById('domBar').innerHTML=
+    '<div class="dom-bar">'+
+      '<div class="dom-seg" style="width:'+btcD+'%;background:#F7931A"></div>'+
+      '<div class="dom-seg" style="width:'+ethD+'%;background:#627EEA"></div>'+
+      '<div class="dom-seg" style="width:'+otherD+'%;background:var(--b2)"></div>'+
+    '</div>'+
+    '<div class="dom-legend">'+
+      '<span><span class="dom-dot" style="background:#F7931A"></span>BTC '+btcD+'%</span>'+
+      '<span><span class="dom-dot" style="background:#627EEA"></span>ETH '+ethD+'%</span>'+
+      '<span><span class="dom-dot" style="background:var(--b2)"></span>Andre '+otherD.toFixed(1)+'%</span>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--m);margin-top:8px">BTC dom &gt;55% = altcoins svake. &lt;45% = altseason mulig.</div>';
+
+  // Fear & Greed widget
+  var hist=fg.history||[];
+  var pct=fgScore;
+  var fgH='<div class="fg-num '+fgCol+'">'+fgScore+'</div><div class="fg-label '+fgCol+'">'+fgLbl+'</div>'+
+    '<div class="fg-bar"><div class="fg-needle" style="left:'+pct+'%"></div></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m)"><span>Ekstrem frykt</span><span>Nøytral</span><span>Ekstrem grådighet</span></div>';
+  if(hist.length){
+    fgH+='<div class="fg-history">';
+    hist.forEach(function(v){
+      var hcol=v<=25?'var(--bear)':v<=50?'var(--warn)':'var(--bull)';
+      var hh=Math.max(4,Math.round(v/100*30));
+      fgH+='<div class="fg-bar2" style="height:'+hh+'px;background:'+hcol+'"></div>';
+    });
+    fgH+='</div><div style="font-size:10px;color:var(--m);margin-top:2px">Siste 7 dager</div>';
+  }
+  document.getElementById('fgWrap').innerHTML=fgH;
+
+  // ── KORRELASJONER ──
+  var corr=d.correlations||{};
+  var corrRows=[
+    ['BTC vs S&P 500','btc_spx','Høy = krypto følger risikoappetitten (risk-on/off)'],
+    ['BTC vs Gull','btc_gold','Positiv = begge safe-haven. Negativ = konkurrenter.'],
+    ['ETH vs BTC','eth_btc','Over 0.85 = ingen altseason. Under 0.7 = ETH outperformer.'],
+    ['SOL vs BTC','sol_btc','Høy beta = SOL beveger seg mer enn BTC i begge retninger.'],
+    ['XRP vs BTC','xrp_btc','Lav = XRP drives mer av regulering enn markedssyklus.'],
+  ];
+  var ch='<table class="corr-table"><thead><tr><th>Par</th><th>Korrelasjon (30d)</th><th>Tolkning</th></tr></thead><tbody>';
+  corrRows.forEach(function(row){
+    var v=corr[row[1]];
+    var f=v!==null&&v!==undefined?v.toFixed(2):'–';
+    ch+='<tr><td><strong>'+row[0]+'</strong></td>'+
+      '<td><span class="corr-val" style="'+corrColor(v)+'">'+f+'</span>'+
+      (v!==null&&v!==undefined?'<div class="corr-desc">'+corrLabel(v)+'</div>':'')+'</td>'+
+      '<td style="font-size:12px;color:var(--m)">'+row[2]+'</td></tr>';
+  });
+  ch+='</tbody></table>';
+  document.getElementById('corrGrid').innerHTML=ch;
+
+  // ── COT ──
+  var cot=d.cot_btc||{};
+  var cotDate=cot.date||'-';
+  document.getElementById('cotDate').textContent='CFTC per '+cotDate;
+  if(!cot.net&&cot.net!==0){
+    document.getElementById('cotGrid').innerHTML='<div class="loading">Ingen COT-data</div>';
+  } else {
+    var net=cot.net||0,oi=cot.oi||1,chg=cot.chg||0,pct=cot.pct||0;
+    var barPct=Math.min(100,Math.max(0,50+pct*3));
+    var netCol=net>0?'bull':'bear';
+    var chgCol=chg>0?'bull':'bear';
+    var cotH=
+      '<div class="g3">'+
+        '<div class="card"><div class="ct">Spekulanter netto</div><div class="snum '+netCol+'" style="font-size:22px">'+(net>0?'+':'')+fm(net)+'</div><div class="slabel">kontrakter</div></div>'+
+        '<div class="card"><div class="ct">Ukeendring</div><div class="snum '+chgCol+'" style="font-size:22px">'+(chg>0?'+':'')+fm(chg)+'</div><div class="slabel">'+(chg>0?'Øker long':'Reduserer/snur')+'</div></div>'+
+        '<div class="card"><div class="ct">% av Open Interest</div><div class="snum '+netCol+'" style="font-size:22px">'+(pct>0?'+':'')+pct+'%</div><div class="slabel">OI: '+fm(oi)+' kontrakter</div></div>'+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="ct">Posisjonering</div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">'+
+          '<span style="color:var(--bear)">SHORT</span>'+
+          '<span style="color:var(--m);font-size:11px">Netto '+pct+'% av OI</span>'+
+          '<span style="color:var(--bull)">LONG</span>'+
+        '</div>'+
+        '<div class="cbt"><div class="cbf" style="width:'+barPct+'%;background:'+(net>0?'var(--bull)':'var(--bear)')+'"></div></div>'+
+        (cot.history&&cot.history.length>1?'<div style="margin-top:12px"><div class="ct">8-ukers utvikling</div>'+sparkline(cot.history,300,40)+'</div>':'')+
+      '</div>'+
+      '<div style="margin-top:12px;font-size:12px;color:var(--m);background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px">'+
+        '<strong>Tolkning:</strong> CME Bitcoin-futures er institusjonelle kontrakter (hedge funds, asset managers). '+
+        'Netto-long &gt;15% av OI = sterk institusjonell etterspørsel. '+
+        'Netto-short = institusjonene er skeptiske eller hedger eksponering.'+
+      '</div>';
+    document.getElementById('cotGrid').innerHTML=cotH;
+  }
+
+  // ── NYHETER ──
+  var news=d.news||[];
+  if(!news.length){
+    document.getElementById('newsGrid').innerHTML='<div class="loading">Ingen nyheter tilgjengelig</div>';
+  } else {
+    var nh='';
+    news.forEach(function(n){
+      nh+='<div class="news-item">'+
+        '<div class="news-meta">'+
+          '<span class="news-cat">'+n.cat+'</span>'+
+          '<span>'+n.source+'</span>'+
+          '<span>'+n.time+'</span>'+
+        '</div>'+
+        '<div class="news-title"><a href="'+n.url+'" target="_blank" rel="noopener">'+n.title+'</a></div>'+
+      '</div>';
+    });
+    document.getElementById('newsGrid').innerHTML='<div class="card">'+nh+'</div>';
+  }
+}
+
+fetch('data/crypto/latest.json')
+  .then(function(r){return r.json();})
+  .then(renderAll)
+  .catch(function(e){
+    document.getElementById('priceGrid').innerHTML='<div class="loading">Ingen krypto-data — kjør fetch_crypto.py</div>';
+    console.error(e);
+  });
+</script>
+</body>
+</html>
