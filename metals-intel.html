@@ -103,6 +103,13 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 /* Leaflet popup dark theme */
 .leaflet-popup-content-wrapper{background:var(--s);border:1px solid var(--b);color:var(--t);border-radius:8px}
 .leaflet-popup-tip{background:var(--s)}
+/* LAYER TOGGLE CONTROL */
+.layer-ctrl{position:absolute;top:60px;right:10px;z-index:500;background:rgba(22,27,34,.93);border:1px solid var(--b);border-radius:8px;padding:10px 12px;min-width:160px;pointer-events:auto}
+.lc-ttl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px}
+.lyr-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;cursor:pointer;font-size:12px;color:var(--t);user-select:none}
+.lyr-row input[type=checkbox]{accent-color:var(--blue);width:13px;height:13px;flex-shrink:0;cursor:pointer;margin:0}
+.lyr-sw{width:18px;height:4px;border-radius:2px;flex-shrink:0}
+.lyr-sw.d{width:10px;height:10px;border-radius:50%}
 .leaflet-popup-content{font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.5}
 .pop-name{font-weight:700;font-size:14px;margin-bottom:6px}
 .pop-row{font-size:12px;color:var(--m)}.pop-row span{color:var(--t)}
@@ -132,7 +139,10 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   <!-- ── GEO-INTEL MAP ───────────────────────────────────── -->
   <div class="panel active" id="panel-map">
     <div class="map-wrap">
-      <div id="map"></div>
+      <div style="position:relative;height:100%">
+        <div id="map" style="height:100%"></div>
+        <div class="layer-ctrl" id="layerCtrl"></div>
+      </div>
       <div class="map-sidebar">
         <div class="legend card">
           <div class="ct">Kart-legend</div>
@@ -143,6 +153,16 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
           <div class="leg-row"><div class="leg-diam" style="background:var(--warn)"></div>Chokepoint (middels)</div>
           <div class="leg-row"><div class="leg-diam" style="background:var(--bull)"></div>Chokepoint (lav risiko)</div>
           <div class="leg-row"><div class="leg-dot" style="background:#ff6b00;opacity:.7"></div>Jordskjelv (siste 7d)</div>
+          <div style="margin-top:8px;border-top:1px solid var(--b);padding-top:8px">
+          <div class="leg-row"><div style="width:18px;height:3px;background:#e8a838;border-radius:2px;flex-shrink:0"></div>Oljerørledning</div>
+          <div class="leg-row"><div style="width:18px;height:3px;background:#4fc3f7;border-radius:2px;flex-shrink:0"></div>Gassrørledning</div>
+          <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #6b7280;flex-shrink:0"></div>Sabotert / inaktiv</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7"></div>LNG-terminal</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#e8a838"></div>Raffineri</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#a371f7"></div>Strategisk havn</div>
+          <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #f85149;flex-shrink:0"></div>Skipslei (høy risiko)</div>
+          <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #d29922;flex-shrink:0"></div>Skipslei (middels)</div>
+          </div>
         </div>
         <div class="card" id="cpList">
           <div class="ct">Chokepoints</div>
@@ -247,6 +267,7 @@ function loadJSON(url, cb){
 // ── Leaflet Map ─────────────────────────────────────────────
 var mapInited = false;
 var leafMap, minesData=[], cpData=[], seismicData=[];
+var layers = {};
 
 function metalColor(metal){
   if(metal==='gold')   return '#FFD700';
@@ -260,34 +281,36 @@ function cpColor(risk){
   return '#3fb950';
 }
 
+function pipeColor(c){return c==='gas'?'#4fc3f7':c==='refined'?'#a371f7':'#e8a838';}
+function laneRiskColor(r){return r==='high'?'#f85149':r==='medium'?'#d29922':'#3fb950';}
+function infraColor(t){return t==='LNG'?'#4fc3f7':t==='refinery'?'#e8a838':'#a371f7';}
+
 function initMap(){
   if(mapInited) return;
   mapInited = true;
 
   leafMap = L.map('map', {zoomControl:true, attributionControl:false}).setView([20, 20], 2);
-
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    subdomains: 'abcd',
-    maxZoom: 18
+    subdomains: 'abcd', maxZoom: 18
   }).addTo(leafMap);
-
   L.control.attribution({prefix:false}).addTo(leafMap);
   leafMap.attributionControl.addAttribution('© CartoDB | USGS | CME Group');
 
-  // Load mines
+  layers.lanes     = L.layerGroup().addTo(leafMap);
+  layers.pipelines = L.layerGroup().addTo(leafMap);
+  layers.infra     = L.layerGroup().addTo(leafMap);
+  layers.seismic   = L.layerGroup().addTo(leafMap);
+  layers.choke     = L.layerGroup().addTo(leafMap);
+  layers.mines     = L.layerGroup().addTo(leafMap);
+
   loadJSON('data/geointel/mines.json', function(mines){
     if(!mines) return;
     minesData = mines;
     mines.forEach(function(m){
       var col = metalColor(m.metal);
-      var marker = L.circleMarker([m.lat, m.lon], {
-        radius: 7,
-        fillColor: col,
-        color: 'rgba(0,0,0,0.5)',
-        weight: 1.5,
-        fillOpacity: 0.85,
-      }).addTo(leafMap);
-      marker.bindPopup(
+      L.circleMarker([m.lat, m.lon], {
+        radius: 7, fillColor: col, color: 'rgba(0,0,0,0.5)', weight: 1.5, fillOpacity: 0.85,
+      }).addTo(layers.mines).bindPopup(
         '<div class="pop-name" style="color:'+col+'">⛏ '+m.name+'</div>'+
         '<div class="pop-row">Land: <span>'+m.country+' ('+m.region+')</span></div>'+
         '<div class="pop-row">Selskap: <span>'+m.company+'</span></div>'+
@@ -297,7 +320,6 @@ function initMap(){
     });
   });
 
-  // Load chokepoints
   loadJSON('data/geointel/chokepoints.json', function(cps){
     if(!cps) return;
     cpData = cps;
@@ -306,11 +328,9 @@ function initMap(){
       var icon = L.divIcon({
         className: '',
         html: '<div style="width:16px;height:16px;background:'+col+';transform:rotate(45deg);border:2px solid rgba(0,0,0,.4);opacity:.9"></div>',
-        iconSize: [16,16],
-        iconAnchor: [8,8],
+        iconSize: [16,16], iconAnchor: [8,8],
       });
-      var marker = L.marker([cp.lat, cp.lon], {icon:icon}).addTo(leafMap);
-      marker.bindPopup(
+      L.marker([cp.lat, cp.lon], {icon:icon}).addTo(layers.choke).bindPopup(
         '<div class="pop-name" style="color:'+col+'">⚓ '+cp.name+'</div>'+
         '<div class="pop-row">Gjennomstrømning: <span>'+cp.throughput+'</span></div>'+
         '<div class="pop-row">Risiko: <span>'+cp.risk.toUpperCase()+'</span></div>'+
@@ -321,7 +341,6 @@ function initMap(){
     renderCpList(cps);
   });
 
-  // Load seismic
   loadJSON('data/geointel/seismic.json', function(seis){
     if(!seis) return;
     seismicData = seis;
@@ -330,12 +349,8 @@ function initMap(){
       var r = Math.max(5, Math.min(18, (ev.mag - 4) * 4));
       var col = ev.mag >= 7 ? '#f85149' : ev.mag >= 6 ? '#d29922' : '#ff6b00';
       L.circleMarker([ev.lat, ev.lon], {
-        radius: r,
-        fillColor: col,
-        color: 'rgba(0,0,0,.3)',
-        weight: 1,
-        fillOpacity: 0.5,
-      }).addTo(leafMap).bindPopup(
+        radius: r, fillColor: col, color: 'rgba(0,0,0,.3)', weight: 1, fillOpacity: 0.5,
+      }).addTo(layers.seismic).bindPopup(
         '<div class="pop-name">🌍 M'+ev.mag+' – '+ev.place+'</div>'+
         '<div class="pop-row">Tid: <span>'+ev.time+'</span></div>'+
         (ev.depth_km!=null?'<div class="pop-row">Dybde: <span>'+ev.depth_km+' km</span></div>':'')+
@@ -345,6 +360,87 @@ function initMap(){
     renderSeismicList(seis.mine_region || []);
     document.getElementById('updLabel').textContent = 'Oppdatert: '+seis.updated;
   });
+
+  loadJSON('data/geointel/pipelines.json', function(pipes){
+    if(!pipes) return;
+    pipes.forEach(function(p){
+      var sabotaged = p.status==='sabotaged'||p.status==='inactive';
+      var col = sabotaged ? '#6b7280' : pipeColor(p.commodity||'oil');
+      var dashed = sabotaged || p.status==='partly_active';
+      L.polyline(p.coordinates, {
+        color: col, weight: 2.5, opacity: 0.85,
+        dashArray: dashed ? '8 5' : null,
+      }).addTo(layers.pipelines).bindPopup(
+        '<div class="pop-name" style="color:'+col+'">🛢 '+p.name+'</div>'+
+        '<div class="pop-row">Type: <span>'+((p.commodity||'').charAt(0).toUpperCase()+(p.commodity||'olje').slice(1))+'-rørledning</span></div>'+
+        '<div class="pop-row">Status: <span>'+(p.status==='active'?'✅ Aktiv':p.status==='sabotaged'?'💥 Sabotert':p.status==='partly_active'?'⚠️ Delvis aktiv':'❌ Inaktiv')+'</span></div>'+
+        (p.capacity?'<div class="pop-row">Kapasitet: <span>'+p.capacity+'</span></div>':'')+
+        (p.operator?'<div class="pop-row">Operatør: <span>'+p.operator+'</span></div>':'')+
+        (p.from?'<div class="pop-row">Fra → Til: <span>'+p.from+' → '+p.to+'</span></div>':'')+
+        (p.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+p.desc+'</div>':'')
+      );
+    });
+  });
+
+  loadJSON('data/geointel/infrastructure.json', function(infra){
+    if(!infra) return;
+    infra.forEach(function(f){
+      var col = infraColor(f.type);
+      var emoji = f.type==='LNG'?'🧊':f.type==='refinery'?'🏭':f.type==='storage'?'🛢':'⚓';
+      var typeNO = f.type==='LNG'?'LNG-terminal':f.type==='refinery'?'Raffineri':f.type==='storage'?'Oljelager':'Strategisk havn';
+      L.circleMarker([f.lat, f.lon], {
+        radius: 7, fillColor: col, color: 'rgba(0,0,0,0.5)', weight: 2, fillOpacity: 0.85,
+      }).addTo(layers.infra).bindPopup(
+        '<div class="pop-name" style="color:'+col+'">'+emoji+' '+f.name+'</div>'+
+        '<div class="pop-row">Type: <span>'+typeNO+'</span></div>'+
+        (f.country?'<div class="pop-row">Land: <span>'+f.country+'</span></div>':'')+
+        (f.capacity?'<div class="pop-row">Kapasitet: <span>'+f.capacity+'</span></div>':'')+
+        (f.operator?'<div class="pop-row">Operatør: <span>'+f.operator+'</span></div>':'')+
+        (f.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+f.desc+'</div>':'')
+      );
+    });
+  });
+
+  loadJSON('data/geointel/shipping_lanes.json', function(lanes){
+    if(!lanes) return;
+    lanes.forEach(function(lane){
+      var col = laneRiskColor(lane.risk||'low');
+      var wt = lane.risk==='high'?2.5:lane.risk==='medium'?2:1.5;
+      var op = lane.risk==='high'?0.65:lane.risk==='medium'?0.55:0.4;
+      L.polyline(lane.coordinates, {
+        color: col, weight: wt, opacity: op, dashArray: '10 6',
+      }).addTo(layers.lanes).bindPopup(
+        '<div class="pop-name" style="color:'+col+'">🚢 '+lane.name+'</div>'+
+        '<div class="pop-row">Risiko: <span>'+lane.risk.toUpperCase()+'</span></div>'+
+        (lane.cargo?'<div class="pop-row">Last: <span>'+lane.cargo+'</span></div>':'')+
+        (lane.volume?'<div class="pop-row">Volum: <span>'+lane.volume+'</span></div>':'')+
+        (lane.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+lane.desc+'</div>':'')
+      );
+    });
+  });
+
+  var lyrMeta = [
+    {key:'mines',    label:'Gruver',             col:'#FFD700', dot:true},
+    {key:'choke',    label:'Chokepoints',         col:'#f85149', dot:true},
+    {key:'seismic',  label:'Jordskjelv',          col:'#ff6b00', dot:true},
+    {key:'pipelines',label:'Rørledninger',        col:'#e8a838', dot:false},
+    {key:'infra',    label:'Energiinfrastruktur', col:'#4fc3f7', dot:true},
+    {key:'lanes',    label:'Skipslei',            col:'#d29922', dot:false},
+  ];
+  var ctrl = document.getElementById('layerCtrl');
+  var ch = '<div class="lc-ttl">Kartlag</div>';
+  lyrMeta.forEach(function(lm){
+    ch += '<label class="lyr-row">'+
+      '<input type="checkbox" checked onchange="toggleLayer(\''+lm.key+'\',this.checked)">'+
+      '<div class="lyr-sw'+(lm.dot?' d':'')+'" style="background:'+lm.col+'"></div>'+
+      lm.label+'</label>';
+  });
+  ctrl.innerHTML = ch;
+}
+
+function toggleLayer(key, vis){
+  if(!layers[key]) return;
+  if(vis) layers[key].addTo(leafMap); else leafMap.removeLayer(layers[key]);
 }
 
 function renderCpList(cps){
