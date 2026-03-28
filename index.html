@@ -131,21 +131,34 @@ canvas#cotChart{width:100%!important;height:300px!important}
 .tcotbar{padding:10px 16px;border-top:1px solid var(--b);background:var(--s2)}
 .cbt{height:6px;background:var(--b);border-radius:3px;position:relative;overflow:hidden;margin-top:6px}
 .cbf{height:100%;border-radius:3px;position:absolute;top:0;left:0}
-/* COT TABLE */
+/* COT ACCORDION */
 .sbar2{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-#cotS{background:var(--s);border:1px solid var(--b);color:var(--t);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 12px;border-radius:6px;width:220px;outline:none}
+#cotS{background:var(--s);border:1px solid var(--b);color:var(--t);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 12px;border-radius:6px;width:260px;outline:none}
 #cotS:focus{border-color:var(--blue)}#cotS::placeholder{color:var(--m)}
-.fc{background:var(--s2);border:1px solid var(--b);color:var(--m);font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;cursor:pointer;transition:all .15s}
-.fc:hover,.fc.on{background:var(--blbg);border-color:var(--blue);color:var(--blue)}
-.cotw{background:var(--s);border:1px solid var(--b);border-radius:8px;overflow:hidden}
-.cott{width:100%;border-collapse:collapse}
-.cott th{font-size:10px;font-weight:600;text-transform:uppercase;color:var(--m);padding:8px 12px;text-align:left;border-bottom:1px solid var(--b)}
-.cott td{padding:8px 12px;font-size:13px;border-bottom:1px solid var(--b)}
-.cott tr:last-child td{border-bottom:none}.cott tr:hover td{background:var(--s2)}
-.tdname{font-weight:500}.tdsub{font-size:10px;color:var(--m);margin-top:1px}
-.tdr{text-align:right;font-family:'DM Mono',monospace}
-.tdbull{color:var(--bull);font-family:'DM Mono',monospace;text-align:right;font-weight:500}
-.tdbear{color:var(--bear);font-family:'DM Mono',monospace;text-align:right;font-weight:500}
+.cot-group{background:var(--s);border:1px solid var(--b);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.cot-gh{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;gap:12px}
+.cot-gh:hover{background:var(--s2)}
+.cot-gh-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.cot-gh-emoji{font-size:22px;flex-shrink:0}
+.cot-gh-name{font-size:14px;font-weight:600}
+.cot-gh-desc{font-size:11px;color:var(--m);margin-top:1px}
+.cot-gh-right{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.cot-gh-bar{width:100px;height:6px;border-radius:3px;background:var(--b2);overflow:hidden;display:flex}
+.cot-gh-bar div{height:100%}
+.cot-gh-counts{font-size:11px;white-space:nowrap;display:flex;gap:8px}
+.cot-gh-arrow{font-size:11px;color:var(--m);transition:transform .2s;flex-shrink:0}
+.cot-group.open .cot-gh-arrow{transform:rotate(180deg)}
+.cot-gb{display:none;padding:0 14px 14px}
+.cot-group.open .cot-gb{display:block}
+.cot-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:4px}
+.cot-card{background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:12px 14px;cursor:pointer;transition:border-color .15s}
+.cot-card:hover{border-color:var(--blue)}
+.cot-card-name{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cot-card-desc{font-size:10px;color:var(--m);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cot-card-pct{font-family:'DM Mono',monospace;font-size:13px;font-weight:600}
+.cot-card-pct.bull{color:var(--bull)}.cot-card-pct.bear{color:var(--bear)}
+.tdbull{color:var(--bull);font-family:'DM Mono',monospace;font-weight:500}
+.tdbear{color:var(--bear);font-family:'DM Mono',monospace;font-weight:500}
 .sp2{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase}
 .sp2.bull-strong{background:var(--bbg);color:var(--bull)}.sp2.bull-mild{background:rgba(63,185,80,.07);color:var(--bull)}
 .sp2.neutral{background:var(--s2);color:var(--m)}
@@ -254,9 +267,9 @@ footer a{color:var(--blue);text-decoration:none}
   </div>
   <div class="panel" id="panel-cot">
     <div class="sh"><div class="sh-t">COT-posisjoner</div><div class="sh-b" id="cotCnt">-</div></div>
+    <p style="font-size:12px;color:var(--m);margin-bottom:14px">COT (Commitments of Traders) viser hva store fond og institusjoner posisjonerer seg i. <span style="color:var(--bull)">Grønt</span> = de kjøper, <span style="color:var(--bear)">rødt</span> = de selger. Klikk på et marked for å se historikken.</p>
     <div class="sbar2">
-      <input type="text" id="cotS" placeholder="Sok marked..." oninput="filterCot()">
-      <div id="fchips"></div>
+      <input type="text" id="cotS" placeholder="Søk marked..." oninput="filterCot()">
     </div>
     <div id="cotGrid"></div>
   </div>
@@ -288,9 +301,19 @@ footer a{color:var(--blue);text-decoration:none}
   <span>AI: <a href="data/macro/latest.json">data/macro/latest.json</a></span>
 </footer>
 <script>
-var M=null, COT=[], cotF='alle', cotQ='';
-var CATS={alle:'Alle',aksjer:'Aksjer',valuta:'Valuta',renter:'Renter',ravarer:'Ravarer',krypto:'Krypto',landbruk:'Landbruk',volatilitet:'Vol',annet:'Annet'};
-var SI={'bull-strong':{i:'🟢',t:'Kjoeper sterkt'},'bull-mild':{i:'🟡',t:'Svakt bullish'},'neutral':{i:'⚪',t:'Noytral'},'bear-mild':{i:'🟠',t:'Svakt bearish'},'bear-strong':{i:'🔴',t:'Selger sterkt'}};
+var M=null, COT=[], cotQ='';
+var COT_GROUPS=[
+  {key:'aksjer',    label:'Aksjer',      emoji:'📈', desc:'Aksjeindekser – S&P 500, Nasdaq, DAX m.fl.'},
+  {key:'valuta',    label:'Valuta',      emoji:'💱', desc:'Valutapar – EUR, JPY, GBP, AUD m.fl.'},
+  {key:'renter',    label:'Renter',      emoji:'🏦', desc:'Statsobligasjoner og pengemarked'},
+  {key:'ravarer',   label:'Råvarer',     emoji:'🛢️', desc:'Energi, gull, sølv og industri'},
+  {key:'landbruk',  label:'Landbruk',    emoji:'🌾', desc:'Korn, kaffe, sukker, bomull m.fl.'},
+  {key:'krypto',    label:'Krypto',      emoji:'₿',  desc:'Bitcoin og digitale aktiva'},
+  {key:'volatilitet',label:'Volatilitet',emoji:'📊', desc:'VIX og volatilitetsindekser'},
+  {key:'annet',     label:'Annet',       emoji:'🔹', desc:'Øvrige markeder og indekser'},
+];
+var cotOpen={aksjer:true};
+var SIG_LABEL={'bull-strong':'Kjøper sterkt','bull-mild':'Svakt bullish','neutral':'Nøytral','bear-mild':'Svakt bearish','bear-strong':'Selger sterkt'};
 
 function fm(n){if(n==null)return'-';var a=Math.abs(n);if(a>=1e6)return(n>0?'':'-')+(a/1e6).toFixed(2)+'M';if(a>=1e3)return(n>0?'':'-')+(a/1e3).toFixed(1)+'K';return String(Math.round(n));}
 function fp(n){return(n>0?'+':'')+n.toFixed(2)+'%';}
@@ -594,38 +617,60 @@ function sparkline(history, w, h){
 }
 
 function renderCot(){
-  var data=COT.filter(function(d){
-    if(cotF!=='alle'&&d.kategori!==cotF)return false;
-    if(!cotQ)return true;
-    return(d.navn_no+d.market+d.symbol+d.kategori).toLowerCase().indexOf(cotQ)>=0;
+  var q=cotQ;
+  var filtered=!q?COT:COT.filter(function(d){
+    return(d.navn_no+d.market+d.symbol+d.kategori).toLowerCase().indexOf(q)>=0;
   });
-  document.getElementById('cotCnt').textContent=data.length+' markeder';
-  var counts={alle:COT.length};
-  COT.forEach(function(d){counts[d.kategori]=(counts[d.kategori]||0)+1;});
-  var fch='';
-  Object.entries(CATS).forEach(function(entry){
-    var k=entry[0],v=entry[1];
-    if(k!=='alle'&&!counts[k])return;
-    fch+='<button class="fc'+(k===cotF?' on':'')+'" onclick="setCF(\''+k+'\')">'+v+' <span style="opacity:.6">'+(counts[k]||0)+'</span></button>';
+  document.getElementById('cotCnt').textContent=filtered.length+' markeder';
+  var grouped={};
+  COT_GROUPS.forEach(function(g){grouped[g.key]=[];});
+  filtered.forEach(function(d){var k=d.kategori||'annet';if(!grouped[k])grouped[k]=[];grouped[k].push(d);});
+  var html='';
+  COT_GROUPS.forEach(function(g){
+    var items=grouped[g.key]||[];
+    if(!items.length)return;
+    var bulls=0,bears=0,neutrals=0;
+    items.forEach(function(d){
+      var s=sig((d.spekulanter&&d.spekulanter.net)||0,d.open_interest||1);
+      if(s==='bull-strong'||s==='bull-mild')bulls++;
+      else if(s==='bear-strong'||s==='bear-mild')bears++;
+      else neutrals++;
+    });
+    var tot=items.length;
+    var bp=Math.round(bulls/tot*100),rp=Math.round(bears/tot*100),np=100-bp-rp;
+    var isOpen=q?true:!!cotOpen[g.key];
+    html+='<div class="cot-group'+(isOpen?' open':'')+'">';
+    html+='<div class="cot-gh" onclick="toggleCotGrp(\''+g.key+'\')">';
+    html+='<div class="cot-gh-left"><span class="cot-gh-emoji">'+g.emoji+'</span>';
+    html+='<div><div class="cot-gh-name">'+g.label+'</div><div class="cot-gh-desc">'+g.desc+'</div></div></div>';
+    html+='<div class="cot-gh-right">';
+    html+='<div class="cot-gh-bar"><div style="width:'+bp+'%;background:var(--bull)"></div><div style="width:'+np+'%;background:var(--b2)"></div><div style="width:'+rp+'%;background:var(--bear)"></div></div>';
+    html+='<div class="cot-gh-counts"><span style="color:var(--bull)">'+bulls+'▲</span><span style="color:var(--m)">'+neutrals+'</span><span style="color:var(--bear)">'+bears+'▼</span><span style="color:var(--m);font-size:10px">'+tot+'</span></div>';
+    html+='<span class="cot-gh-arrow">▼</span></div></div>';
+    html+='<div class="cot-gb"><div class="cot-cards">';
+    items.forEach(function(d){
+      var sp=d.spekulanter||{},net=sp.net||0,oi=d.open_interest||1;
+      var s=sig(net,oi),pct=Math.round(net/oi*100);
+      var barW=Math.min(100,Math.max(0,50+pct*2));
+      var chg=d.change_spec_net||0;
+      html+='<div class="cot-card" onclick="openCotChart(\''+d.symbol+'\',\''+d.report+'\',\''+encodeURIComponent(d.navn_no||d.market)+'\')">';
+      html+='<div class="cot-card-name" title="'+(d.navn_no||d.market)+'">'+(d.navn_no||d.market)+'</div>';
+      if(d.forklaring)html+='<div class="cot-card-desc" title="'+d.forklaring+'">'+d.forklaring+'</div>';
+      html+='<div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 4px">';
+      html+='<span class="sp2 '+s+'">'+SIG_LABEL[s]+'</span>';
+      html+='<span class="cot-card-pct '+(pct>=0?'bull':'bear')+'">'+(pct>0?'+':'')+pct+'%</span>';
+      html+='</div>';
+      html+='<div class="cbt"><div class="cbf" style="width:'+barW+'%;background:'+(net>=0?'var(--bull)':'var(--bear)')+'"></div></div>';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">';
+      html+='<span style="font-size:10px;color:var(--m)">Uke Δ <span class="'+(chg>=0?'tdbull':'tdbear')+'">'+(chg>0?'+':'')+fm(chg)+'</span></span>';
+      html+=sparkline(d.spec_net_history);
+      html+='</div></div>';
+    });
+    html+='</div></div></div>';
   });
-  document.getElementById('fchips').innerHTML=fch;
-  if(!data.length){document.getElementById('cotGrid').innerHTML='<div class="loading">Ingen resultater</div>';return;}
-  var rows='';
-  data.forEach(function(d){
-    var sp=d.spekulanter||{};
-    var s2=sig(sp.net||0,d.open_interest||1);
-    var si=SI[s2];
-    rows+='<tr><td style="cursor:pointer" onclick="openCotChart(\''+d.symbol+'\',\''+d.report+'\',\''+encodeURIComponent(d.navn_no||d.market)+'\')" ><div class="tdname">'+(d.navn_no||d.market)+'</div><div class="tdsub">'+(d.forklaring||'')+'</div></td>'+
-      '<td><span class="sp2 '+s2+'">'+si.i+' '+si.t+'</span></td>'+
-      '<td class="'+(sp.net>=0?'tdbull':'tdbear')+'">'+(sp.net>0?'+':'')+fm(sp.net||0)+'</td>'+
-      '<td class="'+(d.change_spec_net>=0?'tdbull':'tdbear')+'">'+(d.change_spec_net>0?'+':'')+fm(d.change_spec_net||0)+'</td>'+
-      '<td class="tdr">'+sparkline(d.spec_net_history)+'</td>'+
-      '<td class="tdr">'+fm(d.open_interest||0)+'</td>'+
-      '<td class="tdr" style="font-size:10px;color:var(--m)">'+d.report+'</td></tr>';
-  });
-  document.getElementById('cotGrid').innerHTML='<div class="cotw"><table class="cott"><thead><tr><th>Marked</th><th>Signal</th><th style="text-align:right">Spec. Netto</th><th style="text-align:right">Uke Δ</th><th style="text-align:right">8 uker</th><th style="text-align:right">OI</th><th style="text-align:right">Kilde</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  document.getElementById('cotGrid').innerHTML=html||'<div class="loading">Ingen resultater</div>';
 }
-function setCF(c){cotF=c;renderCot();}
+function toggleCotGrp(k){cotOpen[k]=!cotOpen[k];renderCot();}
 function filterCot(){cotQ=document.getElementById('cotS').value.toLowerCase();renderCot();}
 
 function renderCal(cal){
