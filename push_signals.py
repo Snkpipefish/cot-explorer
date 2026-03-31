@@ -79,11 +79,43 @@ candidates.sort(key=score_key, reverse=True)
 top = candidates[:MAX_SIGNALS]
 
 
+# ── Detect oil war-spread premium ───────────────────────────
+brent      = (macro.get("prices") or {}).get("Brent") or {}
+brent_20d  = brent.get("chg20d", 0) or 0
+sentiment  = macro.get("sentiment") or {}
+news       = sentiment.get("news") or {}
+headlines  = " ".join(h.get("headline","") for h in news.get("key_drivers",[]))
+WAR_WORDS  = ("iran","israel","attack","war","strike","sanction","invasion","escalat")
+geo_news   = any(w in headlines.lower() for w in WAR_WORDS)
+geo_active = geo_news or (brent_20d > 15)
+oil_geo    = geo_active or (brent_20d > 10)
+oil_reason = []
+if brent_20d > 10:  oil_reason.append(f"Brent +{brent_20d:.0f}% 20d")
+if geo_news:        oil_reason.append("krig/angrep i nyheter")
+oil_warn_str = " · ".join(oil_reason) if oil_reason else ""
+
+vix_obj    = macro.get("vix_regime") or {}
+vix_regime = vix_obj.get("regime", "normal")
+
 # ── Skriv data/signals.json (alltid, for GitHub Pages bots) ─
 now_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 signals_json = {
     "generated": now_ts,
     "cot_date":  cot_date,
+    "global_state": {
+        "geo_active":        geo_active,
+        "vix_regime":        vix_regime,
+        "oil_geo_warning":   oil_geo,
+        "oil_warning_reason": oil_warn_str,
+    },
+    "rules": {
+        "risk_pct_full":           1.0,
+        "risk_pct_half":           0.5,
+        "risk_pct_quarter":        0.25,
+        "geo_spike_atr_multiplier": 2.0,
+        "oil_max_spread_mult":     3.0,
+        "oil_min_sl_pips":         25,
+    },
     "signals":   [],
 }
 for key, d in top:
@@ -115,6 +147,10 @@ SIGNALS_OUT.parent.mkdir(parents=True, exist_ok=True)
 with open(SIGNALS_OUT, "w") as f:
     json.dump(signals_json, f, ensure_ascii=False, indent=2)
 print(f"signals.json → {len(signals_json['signals'])} signaler (score>={MIN_SCORE}/12)")
+if oil_geo:
+    print(f"  ⚠️  OLJE GEO-ADVARSEL: {oil_warn_str} → boten blokkerer smale SL på olje")
+if geo_active:
+    print(f"  🌍 GEO AKTIV: kvart-størrelse på alle trades")
 
 if not top:
     print(f"Ingen signaler med score >= {MIN_SCORE} og aktiv setup")
