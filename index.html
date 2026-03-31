@@ -736,48 +736,48 @@ function renderKorrelasjoner(corr){
 function renderSignallogg(log){
   if(!log)return;
   var entries=log.entries||[];
-  var stats=log.hit_stats||{};
-  var total=stats.total||{};
-  var byGrade=stats.by_grade||{};
-  document.getElementById('logCnt').textContent=entries.length+' oppføringer';
+  document.getElementById('logCnt').textContent=entries.length+' bot-trades';
+
+  var wins=entries.filter(function(e){return e.result==='win';}).length;
+  var losses=entries.filter(function(e){return e.result==='loss';}).length;
+  var managed=entries.filter(function(e){return e.result==='managed';}).length;
+  var open=entries.filter(function(e){return !e.result;}).length;
+  var wr=wins+losses>0?Math.round(wins/(wins+losses)*100):null;
 
   var statsH='';
-  var n=total.n||0;
-  var rate=total.rate;
-  statsH+='<div class="card"><div class="ct">Totalt evaluert</div><div class="snum">'+(n||0)+'</div><div class="slabel neutral">signaler</div></div>';
-  statsH+='<div class="card"><div class="ct">Treffsikkerhet</div><div class="snum '+(rate>=60?'bull':rate>=40?'warn':'bear')+'">'+(rate!=null?rate+'%':'–')+'</div><div class="slabel neutral">HIT/(HIT+MISS)</div></div>';
-  ['A+','A','B'].forEach(function(g){
-    var gs=byGrade[g];
-    if(!gs)return;
-    statsH+='<div class="card"><div class="ct">Grade '+g+'</div><div class="snum '+(gs.rate>=60?'bull':gs.rate>=40?'warn':'bear')+'">'+(gs.rate!=null?gs.rate+'%':'–')+'</div><div class="slabel neutral">'+gs.n+' evaluert</div></div>';
-  });
+  statsH+='<div class="card"><div class="ct">Bot-trades totalt</div><div class="snum">'+entries.length+'</div><div class="slabel neutral">siden 1. april</div></div>';
+  statsH+='<div class="card"><div class="ct">Win rate</div><div class="snum '+(wr>=60?'bull':wr>=40?'warn':'bear')+'">'+(wr!=null?wr+'%':'–')+'</div><div class="slabel neutral">'+wins+' vunnet · '+losses+' tapt</div></div>';
+  statsH+='<div class="card"><div class="ct">Åpne</div><div class="snum blue">'+open+'</div><div class="slabel neutral">aktive posisjoner</div></div>';
+  statsH+='<div class="card"><div class="ct">Managed exit</div><div class="snum warn">'+managed+'</div><div class="slabel neutral">EMA9 / 8-candle</div></div>';
   document.getElementById('logStats').innerHTML=statsH;
 
-  if(!entries.length){document.getElementById('logGrid').innerHTML='<div class="loading">Ingen logg ennå</div>';return;}
+  if(!entries.length){document.getElementById('logGrid').innerHTML='<div class="loading">Ingen bot-trades ennå — start trading_bot.py</div>';return;}
 
-  var rows4='';
-  entries.slice(0,100).forEach(function(e){
+  var rows='';
+  entries.slice(0,200).forEach(function(e){
     var sig=e.signal||{};
     var res=e.result;
-    var rCol=res==='HIT'?'bull':res==='MISS'?'bear':res==='PENDING'?'warn':'neutral';
-    var rLbl=res||'–';
-    var actCol=sig.action==='BUY'?'bull':'bear';
-    rows4+='<tr>'+
+    var rCol=res==='win'?'bull':res==='loss'?'bear':res==='managed'?'warn':'blue';
+    var rLbl=res==='win'?'✅ Win':res==='loss'?'❌ Loss':res==='managed'?'⚡ Managed':'🔵 Åpen';
+    var dir=sig.direction||'';
+    var lots=sig.lots?sig.lots+' lot':'–';
+    var riskPct=sig.risk_pct?sig.risk_pct+'%':'–';
+    rows+='<tr>'+
       '<td style="font-size:11px;color:var(--m)">'+((e.timestamp||'').slice(0,16))+'</td>'+
-      '<td><strong>'+sig.name+'</strong></td>'+
-      '<td><span class="sp2 '+(sig.action==='BUY'?'bull-mild':'bear-mild')+'">'+sig.action+'</span></td>'+
-      '<td style="font-size:11px">'+sig.timeframe+'</td>'+
-      '<td><span class="tgrade '+(sig.grade==='A+'?'bull':sig.grade==='A'?'warn':'neutral')+'">'+sig.grade+'</span></td>'+
-      '<td class="tdr" style="font-size:11px">'+sig.score+'/12</td>'+
+      '<td><strong>'+(sig.instrument||'–')+'</strong></td>'+
+      '<td><span class="sp2 '+(dir==='BUY'?'bull-mild':'bear-mild')+'">'+dir+'</span></td>'+
       '<td class="tdr" style="font-family:monospace;font-size:11px">'+(sig.entry||'–')+'</td>'+
-      '<td class="tdr" style="font-family:monospace;font-size:11px">'+(sig.rr_t1?'1:'+sig.rr_t1:'–')+'</td>'+
+      '<td class="tdr" style="font-family:monospace;font-size:11px;color:var(--bear)">'+(sig.stop||'–')+'</td>'+
+      '<td class="tdr" style="font-family:monospace;font-size:11px;color:var(--bull)">'+(sig.t1||'–')+'</td>'+
+      '<td style="font-size:11px">'+lots+' · '+riskPct+'</td>'+
+      (e.closed_at?'<td style="font-size:11px;color:var(--m)">'+(e.exit_reason||'–')+'</td>':'<td style="font-size:11px;color:var(--m)">–</td>')+
       '<td><span class="sh-b '+rCol+'" style="font-size:10px">'+rLbl+'</span></td>'+
       '</tr>';
   });
   document.getElementById('logGrid').innerHTML=
     '<div class="cotw"><table class="cott">'+
-    '<thead><tr><th>Tid</th><th>Instrument</th><th>Retning</th><th>TF</th><th>Grade</th><th style="text-align:right">Score</th><th style="text-align:right">Entry</th><th style="text-align:right">R:R</th><th>Resultat</th></tr></thead>'+
-    '<tbody>'+rows4+'</tbody></table></div>';
+    '<thead><tr><th>Åpnet</th><th>Instrument</th><th>Retning</th><th style="text-align:right">Entry</th><th style="text-align:right">SL</th><th style="text-align:right">T1</th><th>Størrelse</th><th>Exit-grunn</th><th>Resultat</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div>';
 }
 
 async function loadAll(){

@@ -207,40 +207,10 @@ def calc_hit_stats(log):
 
 
 signal_log = load_signal_log()
-evaluate_previous_signals(signal_log)
 
-new_entries = []
-for key, d in top:
-    setup = active_setup(d)
-    if not setup:
-        continue
-    cot = d.get("cot", {})
-    new_entries.append({
-        "timestamp": now_ts,
-        "result":    None,
-        "signal": {
-            "key_orig": key,
-            "key":      key.upper(),
-            "name":     d.get("name", key),
-            "action":   "BUY" if d.get("dir_color") == "bull" else "SELL",
-            "timeframe":d.get("timeframe_bias", "SWING"),
-            "grade":    d.get("grade", "?"),
-            "score":    d.get("score", 0),
-            "entry":    setup.get("entry"),
-            "sl":       setup.get("sl"),
-            "t1":       setup.get("t1"),
-            "rr_t1":    setup.get("rr_t1"),
-            "cot_bias": cot.get("bias"),
-        },
-    })
-
-signal_log["entries"] = (new_entries + signal_log.get("entries", []))[:MAX_LOG_ENTRIES]
-signal_log["hit_stats"]    = calc_hit_stats(signal_log)
-signal_log["last_updated"] = now_ts
-save_signal_log(signal_log)
-stats_t = signal_log["hit_stats"]["total"]
-print(f"signal_log.json → {len(signal_log['entries'])} oppføringer  "
-      f"treffsikkerhet: {stats_t.get('rate','?')}%  (n={stats_t.get('n',0)})")
+# signal_log.json skrives KUN av trading_bot.py (faktiske bot-trades)
+# push_signals.py logger ikke lenger auto-genererte signaler hit
+print(f"signal_log.json → {len(signal_log.get('entries',[]))} bot-trades (managed av trading_bot.py)")
 
 
 # ── Formater melding ───────────────────────────────────────
