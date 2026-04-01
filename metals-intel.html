@@ -107,6 +107,13 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   .lyr-row{display:inline-flex;margin-right:10px;margin-bottom:2px}
   .lc-ttl{display:none}
 }
+@media(max-width:600px){
+  .rcot-grid{grid-template-columns:1fr}
+  .rcot-mkt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .agri-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .agri-col-drivers{display:none}
+  .agri-col-wx{max-width:90px;font-size:11px}
+}
 </style>
 </head>
 <body>
@@ -633,14 +640,14 @@ function renderAgri(d){
   var WX_IKON = {'tørke':'🔥','tørt':'☀️','frost':'❄️','vått':'🌧️','flom':'🌊','normalt':'✅','utmerket':'✅','ukjent':'❓'};
 
   // ── Sammendragstabell ──
-  var h = '<div style="margin-bottom:24px">';
-  h += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+  var h = '<div class="agri-table-wrap" style="margin-bottom:24px">';
+  h += '<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:320px">';
   h += '<thead><tr style="border-bottom:1px solid var(--b);color:var(--m);font-size:11px;text-transform:uppercase">';
   h += '<th style="text-align:left;padding:6px 8px">Avling</th>';
   h += '<th style="text-align:center;padding:6px 8px">Prisretning</th>';
-  h += '<th style="text-align:center;padding:6px 8px">Vær-risiko</th>';
-  h += '<th style="text-align:center;padding:6px 8px">COT-bias</th>';
-  h += '<th style="text-align:left;padding:6px 8px">Hoveddrivere</th>';
+  h += '<th class="agri-col-wx" style="text-align:center;padding:6px 8px">Vær</th>';
+  h += '<th style="text-align:center;padding:6px 8px">COT</th>';
+  h += '<th class="agri-col-drivers" style="text-align:left;padding:6px 8px">Hoveddrivere</th>';
   h += '</tr></thead><tbody>';
 
   d.crop_summary.forEach(function(c){
@@ -666,11 +673,11 @@ function renderAgri(d){
     h += '<tr style="border-bottom:1px solid var(--b)">';
     h += '<td style="padding:8px;font-weight:600">' + c.ikon + ' ' + c.navn + '</td>';
     h += '<td style="padding:8px;text-align:center;color:' + col + ';' + bold + '">' + sig + '</td>';
-    h += '<td style="padding:8px;text-align:center;color:' + wxCol + '">' + wxIkon + ' ' + wxOut.toUpperCase();
-    if(c.risk_regions > 0) h += ' <span style="color:var(--m);font-size:11px">(' + c.risk_regions + '/' + c.total_regions + ' reg)</span>';
+    h += '<td class="agri-col-wx" style="padding:8px;text-align:center;color:' + wxCol + '">' + wxIkon + ' ' + wxOut.toUpperCase();
+    if(c.risk_regions > 0) h += '<br><span style="color:var(--m);font-size:10px">' + c.risk_regions + '/' + c.total_regions + '</span>';
     h += '</td>';
-    h += '<td style="padding:8px;text-align:center;color:' + cotCol + '">' + cotBias + cotMom + '</td>';
-    h += '<td style="padding:8px;color:var(--m);font-size:12px">' + drivers + '</td>';
+    h += '<td style="padding:8px;text-align:center;color:' + cotCol +';font-size:12px">' + cotBias + '<br><span style="font-size:10px;color:var(--m)">' + cotMom + '</span></td>';
+    h += '<td class="agri-col-drivers" style="padding:8px;color:var(--m);font-size:12px">' + drivers + '</td>';
     h += '</tr>';
   });
   h += '</tbody></table></div>';
