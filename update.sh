@@ -37,6 +37,7 @@ python3 fetch_crypto.py  >> "$LOG" 2>&1 && echo "  krypto OK"   >> "$LOG" || ech
 python3 push_signals.py >> "$LOG" 2>&1 && echo "  signals OK" >> "$LOG" || echo "  signals FEIL" >> "$LOG"
 
 # Push data-filer til GitHub (oppdaterer GitHub Pages)
+git fetch origin main && git rebase origin/main 2>>"$LOG" || true
 git add data/macro/latest.json data/signals.json data/signal_log.json data/calendar/ data/combined/ data/fundamentals/ data/comex/ data/geointel/ data/crypto/ 2>/dev/null || true
 if git diff --cached --quiet; then
     echo "  git: ingen nye data å pushe" >> "$LOG"
