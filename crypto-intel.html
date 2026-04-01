@@ -192,66 +192,99 @@ function sparkline(hist,w,h){
   return'<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:inline-block;vertical-align:middle;margin-left:6px"><polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round"/></svg>';
 }
 
-function corrColor(v){
-  if(v===null||v===undefined)return'background:var(--s2)';
-  var a=Math.abs(v);
-  var col=v>0?'63,185,80':'248,81,73';
-  return'background:rgba('+col+','+(a*0.55).toFixed(2)+')';
+// ── Hjelpefunksjoner ─────────────────────────────────────────────
+function fgInfo(s){
+  if(s<=25) return{emoji:'😨',txt:'Ekstrem frykt',sub:'Mange investorer er redde og selger. Historisk sett kan dette være et kjøpssignal.',col:'var(--bear)',bg:'var(--rbg)'};
+  if(s<=45) return{emoji:'😟',txt:'Frykt',sub:'Markedet er nervøst. Investorer er forsiktige og nølende.',col:'#d29922',bg:'var(--wbg)'};
+  if(s<=55) return{emoji:'😐',txt:'Nøytral',sub:'Ingen klar retning. Markedet venter på neste signal.',col:'var(--m)',bg:'var(--s2)'};
+  if(s<=75) return{emoji:'😊',txt:'Grådighet',sub:'Investorer er optimistiske og kjøper aktivt. Kan varsel om korreksjoner.',col:'var(--bull)',bg:'var(--bbg)'};
+  return      {emoji:'🤑',txt:'Ekstrem grådighet',sub:'Markedet er overopphetet. Historisk sett øker risikoen for nedgang.',col:'var(--bull)',bg:'var(--bbg)'};
 }
-
-function corrLabel(v){
-  if(v===null||v===undefined)return'Ingen data';
+function domInfo(btcD){
+  if(btcD>60) return{txt:'Bitcoin dominerer totalt',sub:'Altcoins (andre kryptoer) er svake nå.',badge:'BTC DOMINERER'};
+  if(btcD>50) return{txt:'Bitcoin er ledende',sub:'Altcoins henger etter, men noe aktivitet der.',badge:'BTC FORAN'};
+  if(btcD>40) return{txt:'Balansert marked',sub:'Både Bitcoin og altcoins er aktive.',badge:'BALANSERT'};
+  return       {txt:'Altseason mulig',sub:'Andre kryptoer overgår Bitcoin nå.',badge:'ALTSEASON'};
+}
+function moodInfo(fgScore, btcChg1d){
+  if(fgScore>=60 && btcChg1d>0)  return{emoji:'🟢',txt:'Optimistisk',sub:'Markedet er positivt. Investorer kjøper.',col:'var(--bull)',bg:'rgba(63,185,80,.15)',border:'var(--bull)'};
+  if(fgScore<=30 || btcChg1d<-3) return{emoji:'🔴',txt:'Nervøst / Redd',sub:'Markedet er usikkert. Investorer selger eller venter.',col:'var(--bear)',bg:'var(--rbg)',border:'var(--bear)'};
+  return {emoji:'🟡',txt:'Usikkert',sub:'Ingen klar retning akkurat nå. Markedet avventer.',col:'var(--warn)',bg:'var(--wbg)',border:'var(--warn)'};
+}
+function cotInfo(pct){
+  if(pct>15)  return{emoji:'🐂',txt:'Kjøper aktivt',col:'var(--bull)',bg:'var(--bbg)',sub:'De store investorene har satset tungt på at prisen går OPP.'};
+  if(pct>5)   return{emoji:'📈',txt:'Forsiktig positive',col:'var(--bull)',bg:'var(--bbg)',sub:'De store investorene lener seg svakt mot oppgang.'};
+  if(pct>-5)  return{emoji:'➡️',txt:'Nøytrale',col:'var(--m)',bg:'var(--s2)',sub:'De store investorene har ikke tatt en tydelig side.'};
+  if(pct>-15) return{emoji:'📉',txt:'Forsiktig negative',col:'var(--bear)',bg:'var(--rbg)',sub:'De store investorene lener seg svakt mot nedgang.'};
+  return       {emoji:'🐻',txt:'Selger / shorter',col:'var(--bear)',bg:'var(--rbg)',sub:'De store investorene satser aktivt på at prisen går NED.'};
+}
+function corrText(v){
+  if(v===null||v===undefined) return'Ingen data';
   var a=Math.abs(v);
-  var dir=v>0?'positiv':'negativ';
-  return a>=0.7?'Sterk '+dir:a>=0.4?'Moderat '+dir:a>=0.2?'Svak '+dir:'Ingen korrelasjon';
+  if(a<0.2) return'Nesten ingen sammenheng';
+  if(a<0.4) return(v>0?'Svak positiv':'Svak negativ')+' sammenheng';
+  if(a<0.7) return(v>0?'Moderat positiv':'Moderat negativ')+' sammenheng';
+  return(v>0?'Sterk positiv':'Sterk negativ')+' sammenheng';
 }
 
 function renderAll(d){
   document.getElementById('upd').textContent='Oppdatert: '+d.updated;
-
-  // ── MARKEDSOVERSIKT ──
-  var mkt=d.market||{};
-  var fg=d.fear_greed||{};
-  var fgScore=fg.score||0;
-  var fgCol=fgScore<=25?'bear':fgScore<=45?'warn':fgScore<=55?'neutral':fgScore<=75?'bull':'bull';
-  var fgLbl=fg.label||'-';
-
-  document.getElementById('mktDate').textContent=d.updated||'-';
   document.getElementById('newsDate').textContent=d.updated||'-';
+  document.getElementById('cotDate').textContent='Data per '+(d.cot_btc&&d.cot_btc.date||'-');
 
-  // Stats
-  var mcap=mkt.total_mcap;
-  var mcapChg=mkt.total_mcap_chg24h||0;
-  document.getElementById('mktStats').innerHTML=
-    '<div class="card"><div class="ct">Total Market Cap</div><div class="snum '+(mcapChg>=0?'bull':'bear')+'" style="font-size:20px">'+(mcap?'$'+fm(mcap):'-')+'</div><div class="slabel '+(mcapChg>=0?'up':'dn')+'">'+fp(mcapChg)+' (24t)</div></div>'+
-    '<div class="card"><div class="ct">BTC Dominans</div><div class="snum warn" style="font-size:24px">'+(mkt.btc_dominance||'-')+'%</div><div class="slabel">ETH: '+(mkt.eth_dominance||'-')+'%</div></div>'+
-    '<div class="card"><div class="ct">Fear &amp; Greed</div><div class="snum '+fgCol+'" style="font-size:24px">'+fgScore+'</div><div class="slabel">'+fgLbl+'</div></div>'+
-    '<div class="card"><div class="ct">Aktive mynter</div><div class="snum" style="font-size:20px">'+(mkt.active_coins?mkt.active_coins.toLocaleString('no-NO'):'-')+'</div><div class="slabel">CoinGecko</div></div>';
+  var mkt=d.market||{}, fg=d.fear_greed||{}, prices=d.prices||{};
+  var fgScore=fg.score||0, btc=prices.BTC||{};
+  var btcChg1d=btc.chg1d||0;
+  var COLORS={BTC:'#F7931A',ETH:'#627EEA',SOL:'#9945FF',XRP:'#346AA9',BNB:'#F3BA2F',ADA:'#0033AD',DOGE:'#C2A633',AVAX:'#E84142'};
 
-  // Pris-kort
-  var prices=d.prices||{};
-  var ORDER=['BTC','ETH','SOL','XRP','BNB','ADA','DOGE','AVAX'];
+  // ── Mood-banner ──
+  var mood=moodInfo(fgScore,btcChg1d);
+  document.getElementById('moodBanner').innerHTML=
+    '<div class="mood-banner" style="background:'+mood.bg+';border:1px solid '+mood.border+'">'+
+    '<div class="mood-emoji">'+mood.emoji+'</div>'+
+    '<div><div class="mood-title" style="color:'+mood.col+'">Kryptomarkedet er: '+mood.txt+'</div>'+
+    '<div class="mood-sub">'+mood.sub+'</div></div></div>';
+
+  // ── 3 signalkort ──
+  var mcap=mkt.total_mcap, mcapChg=mkt.total_mcap_chg24h||0;
+  var fgi=fgInfo(fgScore), domi=domInfo(mkt.btc_dominance||0);
+  document.getElementById('sigGrid').innerHTML=
+    '<div class="sig-card">'+
+      '<div class="sig-label">Samlet markedsverdi</div>'+
+      '<div class="sig-val '+(mcapChg>=0?'up':'dn')+'">'+(mcap?'$'+fm(mcap):'-')+'</div>'+
+      '<div class="sig-desc">'+(mcapChg>=0?'Opp':'Ned')+' '+Math.abs(mcapChg).toFixed(1)+'% i dag &nbsp;·&nbsp; Totalt alle kryptovalutaer</div>'+
+    '</div>'+
+    '<div class="sig-card">'+
+      '<div class="sig-label">Bitcoin sin markedsandel</div>'+
+      '<div class="sig-val" style="color:var(--btc)">'+(mkt.btc_dominance||'-')+'%</div>'+
+      '<div class="sig-desc">'+domi.txt+'. '+domi.sub+'</div>'+
+    '</div>'+
+    '<div class="sig-card">'+
+      '<div class="sig-label">Markedsstemning</div>'+
+      '<div class="sig-val" style="color:'+fgi.col+'">'+fgi.emoji+' '+fgi.txt+'</div>'+
+      '<div class="sig-desc">Stemningsindeks: '+fgScore+'/100. '+fgi.sub+'</div>'+
+    '</div>';
+
+  // ── Priskort ──
   var ph='';
-  ORDER.forEach(function(k){
-    var v=prices[k];if(!v)return;
-    var c1=v.chg1d||0,c7=v.chg7d||0,c30=v.chg30d||0;
-    var COLORS={BTC:'#F7931A',ETH:'#627EEA',SOL:'#9945FF',XRP:'#346AA9',BNB:'#F3BA2F',ADA:'#0033AD',DOGE:'#C2A633',AVAX:'#E84142'};
+  ['BTC','ETH','SOL','XRP','BNB','ADA','DOGE','AVAX'].forEach(function(k){
+    var v=prices[k]; if(!v)return;
+    var c1=v.chg1d||0, c7=v.chg7d||0;
     var col=COLORS[k]||'var(--blue)';
+    var arrow=c1>0?'▲':'▼', arCol=c1>=0?'var(--bull)':'var(--bear)';
     ph+='<div class="pc" style="border-top:3px solid '+col+'">'+
-      '<div class="pc-icon">'+k+'</div>'+
+      '<div class="pc-ticker">'+k+'</div>'+
       '<div class="pc-name">'+v.name+'</div>'+
       '<div class="pc-price">$'+fmtPrice(v.price)+'</div>'+
-      '<div class="pc-chg">'+
-        '<span class="'+(c1>=0?'up':'dn')+'">'+fp(c1)+' (1d)</span>'+
-        '<span class="'+(c7>=0?'up':'dn')+'">'+fp(c7)+' (7d)</span>'+
-        '<span class="'+(c30>=0?'up':'dn')+'">'+fp(c30)+' (30d)</span>'+
-      '</div>'+
+      '<div class="pc-today" style="color:'+arCol+'">'+arrow+' '+(c1>=0?'+':'')+c1.toFixed(2)+'% i dag</div>'+
+      '<div class="pc-sub">'+(c7>=0?'▲':'▼')+' '+(c7>=0?'+':'')+c7.toFixed(1)+'% siste 7 dager</div>'+
     '</div>';
   });
   document.getElementById('priceGrid').innerHTML=ph||'<div class="loading">Ingen prisdata</div>';
 
-  // Dominans-bar
-  var btcD=mkt.btc_dominance||0,ethD=mkt.eth_dominance||0,otherD=Math.max(0,100-btcD-ethD);
+  // ── Dominans-bar ──
+  var btcD=mkt.btc_dominance||0, ethD=mkt.eth_dominance||0, otherD=Math.max(0,100-btcD-ethD);
+  var dinfo=domInfo(btcD);
   document.getElementById('domBar').innerHTML=
     '<div class="dom-bar">'+
       '<div class="dom-seg" style="width:'+btcD+'%;background:#F7931A"></div>'+
@@ -259,27 +292,32 @@ function renderAll(d){
       '<div class="dom-seg" style="width:'+otherD+'%;background:var(--b2)"></div>'+
     '</div>'+
     '<div class="dom-legend">'+
-      '<span><span class="dom-dot" style="background:#F7931A"></span>BTC '+btcD+'%</span>'+
-      '<span><span class="dom-dot" style="background:#627EEA"></span>ETH '+ethD+'%</span>'+
+      '<span><span class="dom-dot" style="background:#F7931A"></span>Bitcoin '+btcD+'%</span>'+
+      '<span><span class="dom-dot" style="background:#627EEA"></span>Ethereum '+ethD+'%</span>'+
       '<span><span class="dom-dot" style="background:var(--b2)"></span>Andre '+otherD.toFixed(1)+'%</span>'+
     '</div>'+
-    '<div style="font-size:11px;color:var(--m);margin-top:8px">BTC dom &gt;55% = altcoins svake. &lt;45% = altseason mulig.</div>';
+    '<div class="explain"><strong>Hva betyr dette?</strong> '+dinfo.txt+'. '+dinfo.sub+
+    (btcD>50?' Over 50% betyr Bitcoin «leder an» og andre kryptoer henger etter.':' Under 50% kan bety at andre kryptoer tar over – kalt «altseason».')+
+    '</div>';
 
-  // Fear & Greed widget
-  var hist=fg.history||[];
-  var pct=fgScore;
-  var fgH='<div class="fg-num '+fgCol+'">'+fgScore+'</div><div class="fg-label '+fgCol+'">'+fgLbl+'</div>'+
-    '<div class="fg-bar"><div class="fg-needle" style="left:'+pct+'%"></div></div>'+
-    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m)"><span>Ekstrem frykt</span><span>Nøytral</span><span>Ekstrem grådighet</span></div>';
+  // ── Fear & Greed ──
+  var fgi2=fgInfo(fgScore), hist=fg.history||[];
+  var fgH=
+    '<div style="text-align:center;padding:6px 0">'+
+    '<div style="font-size:36px;margin-bottom:4px">'+fgi2.emoji+'</div>'+
+    '<div class="fg-num" style="color:'+fgi2.col+'">'+fgScore+'</div>'+
+    '<div style="font-size:14px;font-weight:600;color:'+fgi2.col+';margin-top:4px">'+fgi2.txt+'</div>'+
+    '</div>'+
+    '<div class="fg-bar"><div class="fg-needle" style="left:'+fgScore+'%"></div></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m);margin-bottom:8px"><span>😨 Frykt</span><span>➡️ Nøytral</span><span>🤑 Grådighet</span></div>';
   if(hist.length){
-    fgH+='<div class="fg-history">';
+    fgH+='<div class="fg-hist">';
     hist.forEach(function(v){
-      var hcol=v<=25?'var(--bear)':v<=50?'var(--warn)':'var(--bull)';
-      var hh=Math.max(4,Math.round(v/100*30));
-      fgH+='<div class="fg-bar2" style="height:'+hh+'px;background:'+hcol+'"></div>';
+      fgH+='<div class="fg-b" style="height:'+Math.max(4,Math.round(v/100*32))+'px;background:'+(v<=25?'var(--bear)':v<=50?'var(--warn)':'var(--bull)')+'"></div>';
     });
-    fgH+='</div><div style="font-size:10px;color:var(--m);margin-top:2px">Siste 7 dager</div>';
+    fgH+='</div><div style="font-size:10px;color:var(--m);margin-top:3px">Siste 7 dager</div>';
   }
+  fgH+='<div class="explain"><strong>Hva betyr dette?</strong> '+fgi2.sub+'</div>';
   document.getElementById('fgWrap').innerHTML=fgH;
 
   // ── KORRELASJONER ──
