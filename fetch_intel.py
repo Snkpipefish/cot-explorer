@@ -42,7 +42,25 @@ CATEGORIES = [
         "id":    "geopolitics",
         "label": "Geopolitikk",
         "color": "red",
-        "query": "mining conflict chokepoint shipping disruption metals",
+        "query": "mining conflict chokepoint shipping disruption oil supply",
+    },
+    {
+        "id":    "grains",
+        "label": "Korn",
+        "color": "wheat",
+        "query": "wheat corn soybeans crop harvest drought flood supply",
+    },
+    {
+        "id":    "softs",
+        "label": "Bløte råvarer",
+        "color": "green",
+        "query": "coffee cocoa sugar cotton canola palm oil crop price",
+    },
+    {
+        "id":    "agri_weather",
+        "label": "Landbruk & Vær",
+        "color": "blue",
+        "query": "crop weather drought flood La Nina El Nino agriculture supply",
     },
 ]
 
@@ -105,7 +123,7 @@ all_articles.sort(key=lambda x: x["time"], reverse=True)
 
 result = {
     "updated":    datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-    "articles":   all_articles[:40],
+    "articles":   all_articles[:60],
     "categories": [{"id": c["id"], "label": c["label"], "color": c["color"]} for c in CATEGORIES],
 }
 
