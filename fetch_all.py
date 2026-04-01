@@ -155,12 +155,14 @@ def fetch_twelvedata(symbol, interval="1d", outputsize=365):
 
 def fetch_stooq(symbol, range_="1y"):
     """Henter daglig OHLC fra Stooq (ingen API-nøkkel, nær sanntid).
-    Returnerer [(h,l,c), ...] eldst→nyest, eller [] ved feil."""
+    Returnerer [(h,l,c), ...] eldst→nyest, eller [] ved feil.
+    Siste element kan være dagens intradag-bar (Stooq oppdaterer live)."""
     from datetime import timedelta
     stooq_sym = STOOQ_MAP.get(symbol)
     if not stooq_sym:
         return []
     days = STOOQ_DAYS.get(range_, 400)
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     d2 = datetime.now(timezone.utc).strftime("%Y%m%d")
     d1 = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y%m%d")
     url = f"https://stooq.com/q/d/l/?s={stooq_sym}&i=d&d1={d1}&d2={d2}"
@@ -170,6 +172,7 @@ def fetch_stooq(symbol, range_="1y"):
             text = r.read().decode(errors="replace")
         lines = text.strip().split("\n")
         rows = []
+        last_is_today = False
         for line in lines[1:]:   # hopp over header
             parts = line.strip().split(",")
             if len(parts) < 5:
@@ -178,8 +181,12 @@ def fetch_stooq(symbol, range_="1y"):
                 h, l, c = float(parts[2]), float(parts[3]), float(parts[4])
                 if h and l and c:
                     rows.append((h, l, c))
+                    last_is_today = (parts[0].strip() == today)
             except:
                 continue
+        # Fjern dagens intradag-bar — bruker 15m-data for dagens pris i stedet
+        if last_is_today and len(rows) > 1:
+            rows = rows[:-1]
         return rows
     except Exception as e:
         print(f"  Stooq FEIL {stooq_sym}: {e}")
@@ -768,17 +775,13 @@ for inst in INSTRUMENTS:
 
     curr     = daily[-1][2]
     # Bruk siste 15m close hvis tilgjengelig (mer oppdatert)
-    # Når 15m-pris brukes som curr, bruk daily[-1] som c1 (gårsdagens sluttkurs)
-    # slik at chg1d = endring fra gårsdagens daglige close → i dag
+    # Stooq's daglige data har nå TODAY's bar fjernet (se fetch_stooq).
+    # daily[-1] = gårsdagens close alltid. 15m gir dagens live-pris.
     if rows_15m and len(rows_15m) > 0:
         curr = rows_15m[-1][2]
-        c1  = daily[-1][2] if len(daily)>=1  else curr
-        c5  = daily[-5][2] if len(daily)>=5  else curr
-        c20 = daily[-20][2] if len(daily)>=20 else curr
-    else:
-        c1  = daily[-2][2] if len(daily)>=2  else curr
-        c5  = daily[-6][2] if len(daily)>=6  else curr
-        c20 = daily[-21][2] if len(daily)>=21 else curr
+    c1  = daily[-2][2] if len(daily)>=2  else curr
+    c5  = daily[-6][2] if len(daily)>=6  else curr
+    c20 = daily[-21][2] if len(daily)>=21 else curr
 
     atr_d    = calc_atr(daily, 14)
     atr_15m  = calc_atr(rows_15m, 14) if len(rows_15m) >= 15 else None
