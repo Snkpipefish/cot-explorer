@@ -710,7 +710,7 @@ function buildExplain(lv){
   if(cot.bias){
     var cotDir=cot.bias.toLowerCase().includes('bull')||cot.bias.toLowerCase().includes('long');
     var agrees=(cotDir&&dir==='bull')||(!cotDir&&dir==='bear');
-    cotLine='Store profesjonelle tradere (CFTC) '+(agrees?'<strong style="color:var(--bull)">støtter</strong>':'<strong style="color:var(--bear)">motarbeider</strong>')+' denne retningen akkurat nå.';
+    cotLine='Store profesjonelle tradere ('+(cot.source||'CFTC')+') '+(agrees?'<strong style="color:var(--bull)">støtter</strong>':'<strong style="color:var(--bear)">motarbeider</strong>')+' denne retningen akkurat nå.';
   }
 
   // Warning
@@ -847,7 +847,7 @@ function renderIdeer(m){
             '<div><div class="ml">Volatilitetsjustering</div><div class="mv">'+(lv.vix_spread_factor||'-')+'x</div></div>'+
           '</div>'+
           '<div class="tcotbar">'+
-            '<div class="ct">Profesjonelle tradere — posisjoner ('+(cot.report||'-')+' per '+(cot.date||'-')+')</div>'+
+            '<div class="ct">Profesjonelle tradere — '+(cot.source||'CFTC')+' ('+(cot.report||'-')+' per '+(cot.date||'-')+')</div>'+
             '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">'+
               '<span>Netto: <strong class="'+(cot.color||'neutral')+'" style="font-family:monospace">'+(specNet>0?'+':'')+fm(specNet)+'</strong></span>'+
               '<span>Uke: <strong class="'+cc(cot.chg||0)+'" style="font-family:monospace">'+(cot.chg>0?'+':'')+fm(cot.chg||0)+'</strong></span>'+

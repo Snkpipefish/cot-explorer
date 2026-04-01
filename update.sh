@@ -31,6 +31,12 @@ echo "=== $(date '+%Y-%m-%d %H:%M %Z') ===" >> "$LOG"
 python3 fetch_calendar.py >> "$LOG" 2>&1 && echo "  kalender OK" >> "$LOG"
 python3 fetch_cot.py      >> "$LOG" 2>&1 && echo "  COT OK"      >> "$LOG"
 python3 build_combined.py >> "$LOG" 2>&1 && echo "  combined OK" >> "$LOG"
+python3 fetch_ice_cot.py      >> "$LOG" 2>&1 \
+    && echo "  ICE COT OK"      >> "$LOG" \
+    || echo "  ICE COT FEIL (faller tilbake på CFTC)" >> "$LOG"
+python3 fetch_euronext_cot.py >> "$LOG" 2>&1 \
+    && echo "  Euronext COT OK" >> "$LOG" \
+    || echo "  Euronext COT FEIL (faller tilbake på CFTC)" >> "$LOG"
 
 # Fundamentals: kjøres kun én gang per 12 timer (FRED-data oppdateres månedlig/ukentlig)
 FUND_FILE="$HOME/cot-explorer/data/fundamentals/latest.json"

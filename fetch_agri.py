@@ -15,8 +15,12 @@ BASE = os.path.expanduser("~/cot-explorer/data")
 OUT  = os.path.join(BASE, "agri", "latest.json")
 os.makedirs(os.path.join(BASE, "agri"), exist_ok=True)
 
-REGIONS_FILE  = os.path.join(BASE, "geointel", "agri_regions.json")
-COMBINED_FILE = os.path.join(BASE, "combined", "latest.json")
+REGIONS_FILE      = os.path.join(BASE, "geointel", "agri_regions.json")
+COMBINED_FILE     = os.path.join(BASE, "combined", "latest.json")
+EURONEXT_COT_FILE = os.path.join(BASE, "euronext_cot", "latest.json")
+
+# Avlinger der Euronext er primær COT-kilde (europeisk hjemmebørs)
+EURONEXT_PRIMARY = {"wheat", "canola", "corn"}
 
 # ── Sesong: kritiske måneder per avling og hemisfære ──────────────
 # score-multiplikator for værpåvirkning (1.0 = normal, 1.5 = kritisk sesong)
@@ -172,59 +176,176 @@ def score_weather(w, crop_key, lat):
         "summary":     summary,
     }
 
-def get_cot_for_crop(crop_key, cot_data):
-    """Henter aggregert COT-info for en avling (slår sammen relaterte markeder)."""
+def load_euronext_cot():
+    """Last inn Euronext COT-data. Returnerer dict crop_key → data, eller {}."""
+    if not os.path.exists(EURONEXT_COT_FILE):
+        return {}
+    try:
+        with open(EURONEXT_COT_FILE) as f:
+            raw = json.load(f)
+        markets = raw.get("markets", {})
+        # Sjekk at dataene ikke er for gamle (maks 14 dager — Euronext publiserer ukentlig)
+        result = {}
+        today = datetime.now(timezone.utc).date()
+        for crop, d in markets.items():
+            date_str = d.get("date", "")
+            try:
+                age = (today - datetime.strptime(date_str, "%Y-%m-%d").date()).days
+                if age > 14:
+                    print(f"  Euronext {crop}: data er {age} dager gammel — bruker CFTC fallback")
+                    continue
+            except Exception:
+                pass
+            result[crop] = d
+        return result
+    except Exception as e:
+        print(f"  Euronext COT FEIL ved lasting: {e}")
+        return {}
+
+
+def get_cot_for_crop(crop_key, cot_data, euronext_data=None):
+    """
+    Henter COT-info for en avling.
+
+    For hvete/raps/mais: kombinerer Euronext + CFTC med OI-vekting.
+    Euronext dekker europeiske futures (Paris), CFTC dekker amerikanske (Chicago).
+    Begge er reelle signaler om global spekulant-sentiment — OI-vektet snitt
+    gir et mer komplett bilde enn å velge én kilde.
+
+    For andre avlinger: kun CFTC.
+    Fallback til det som finnes hvis bare én kilde er tilgjengelig.
+    """
+    euronext_data = euronext_data or {}
+
+    # ── Hent CFTC-data ───────────────────────────────────────────
+    cftc_net = cftc_oi = cftc_chg = 0
+    cftc_hist = []
+    cftc_market = crop_key
+    cftc_date   = ""
+    has_cftc    = False
+
     markets = COT_MAP.get(crop_key, [])
     matches = [e for e in cot_data
                if any(m.lower() in e.get("market","").lower() for m in markets)]
-    if not matches:
+    if matches:
+        main     = max(matches, key=lambda e: e.get("open_interest", 0) or 0)
+        sp       = main.get("spekulanter") or {}
+        cftc_net  = sp.get("net", 0) or 0
+        cftc_chg  = main.get("change_spec_net", 0) or 0
+        cftc_oi   = main.get("open_interest", 1) or 1
+        cftc_hist = main.get("spec_net_history", []) or []
+        cftc_market = main.get("market", crop_key)
+        cftc_date   = main.get("date", "")
+        has_cftc    = True
+
+    # ── Hent Euronext-data (kun for EU-primær-avlinger) ──────────
+    eu_net = eu_oi = eu_chg = 0
+    eu_hist = []
+    eu_market = ""
+    eu_date   = ""
+    has_eu    = False
+
+    if crop_key in EURONEXT_PRIMARY and crop_key in euronext_data:
+        eu        = euronext_data[crop_key]
+        sp_eu     = eu.get("spekulanter") or {}
+        eu_net    = sp_eu.get("net", 0) or 0
+        eu_chg    = eu.get("change_spec_net", 0) or 0
+        eu_oi     = eu.get("open_interest", 1) or 1
+        eu_hist   = eu.get("spec_net_history", []) or []
+        eu_market = eu.get("display", f"Euronext {crop_key.title()}")
+        eu_date   = eu.get("date", "")
+        has_eu    = True
+
+    if not has_cftc and not has_eu:
         return None
 
-    # Bruk det markedet med høyest open interest
-    main = max(matches, key=lambda e: e.get("open_interest", 0) or 0)
-    sp   = main.get("spekulanter") or {}
-    net  = sp.get("net", 0) or 0
-    chg  = main.get("change_spec_net", 0) or 0
-    oi   = main.get("open_interest", 1) or 1
-    hist = main.get("spec_net_history", []) or []
+    # ── Kombiner med OI-vekting ───────────────────────────────────
+    if has_cftc and has_eu:
+        total_oi  = cftc_oi + eu_oi
+        # OI-vektet netto-% er det meningsfulle målet på global posisjonering
+        net_pct   = ((cftc_net / cftc_oi * cftc_oi) + (eu_net / eu_oi * eu_oi)) / total_oi * 100
+        # Absolutt netto for visning (summer begge markeder)
+        net       = cftc_net + eu_net
+        chg       = cftc_chg + eu_chg
+        oi        = total_oi
+        # Historikk: kombiner hvis begge finnes (summer per uke)
+        hist_len  = min(len(cftc_hist), len(eu_hist))
+        hist      = [cftc_hist[-(hist_len-i)] + eu_hist[-(hist_len-i)]
+                     for i in range(hist_len, 0, -1)] if hist_len > 1 else cftc_hist or eu_hist
+        source    = "Euronext+CFTC"
+        market_label = f"{eu_market} + {cftc_market}"
+        date_val  = eu_date or cftc_date
+        # Enighet mellom kildene
+        agrees    = (eu_net > 0) == (cftc_net > 0)
+    elif has_eu:
+        net_pct   = eu_net / eu_oi * 100
+        net, chg, oi, hist = eu_net, eu_chg, eu_oi, eu_hist
+        source    = "Euronext"
+        market_label = eu_market
+        date_val  = eu_date
+        agrees    = None
+    else:
+        net_pct   = cftc_net / cftc_oi * 100
+        net, chg, oi, hist = cftc_net, cftc_chg, cftc_oi, cftc_hist
+        source    = "CFTC"
+        market_label = cftc_market
+        date_val  = cftc_date
+        agrees    = None
 
-    # Bias
-    bias = "bull" if net > 0 else "bear"
+    # ── Bias ─────────────────────────────────────────────────────
+    bias = "bull" if net_pct > 0 else "bear"
 
-    # Momentum: siste 3 ukers trend
+    # ── Momentum: siste 3 ukers trend ────────────────────────────
     if len(hist) >= 3:
         recent = hist[-3:]
-        if all(x > 0 for x in recent):
-            momentum = "ØKER"
-        elif all(x < 0 for x in recent):
-            momentum = "FALLER"
-        else:
-            momentum = "BLANDET"
+        if all(x > 0 for x in recent):    momentum = "ØKER"
+        elif all(x < 0 for x in recent):  momentum = "FALLER"
+        else:                              momentum = "BLANDET"
     else:
         momentum = "ØKER" if chg > 0 else "FALLER"
 
-    # COT-score: -2 til +2
-    net_pct = (net / oi * 100) if oi else 0
-    if net_pct > 15:   cot_score = 2
-    elif net_pct > 5:  cot_score = 1
-    elif net_pct > -5: cot_score = 0
-    elif net_pct > -15:cot_score = -1
-    else:              cot_score = -2
+    # Hvis kildene er uenige: signal er svakere
+    if agrees is False:
+        momentum = "BLANDET"
+
+    # ── COT-score: -2 til +2 (basert på vektet net_pct) ──────────
+    if net_pct > 15:    cot_score = 2
+    elif net_pct > 5:   cot_score = 1
+    elif net_pct > -5:  cot_score = 0
+    elif net_pct > -15: cot_score = -1
+    else:               cot_score = -2
 
     # Juster for momentum
     if chg > 0 and cot_score >= 0:   cot_score = min(cot_score + 1, 2)
     elif chg < 0 and cot_score <= 0: cot_score = max(cot_score - 1, -2)
 
-    return {
-        "market":    main.get("market", crop_key),
+    # Hvis kildene er uenige: reduser score ett steg (usikkerhet)
+    if agrees is False:
+        cot_score = max(-2, min(2, cot_score - 1 if cot_score > 0 else cot_score + 1))
+
+    result = {
+        "market":    market_label,
         "net":       net,
         "net_pct":   round(net_pct, 1),
         "change":    chg,
         "bias":      bias,
         "momentum":  momentum,
         "cot_score": cot_score,
-        "date":      main.get("date"),
+        "date":      date_val,
+        "source":    source,
     }
+
+    # Legg ved per-kilde-detaljer når begge er tilgjengelige
+    if has_cftc and has_eu:
+        result["sources_detail"] = {
+            "euronext": {"net": eu_net, "net_pct": round(eu_net/eu_oi*100,1),
+                         "oi": eu_oi, "date": eu_date, "agrees": agrees},
+            "cftc":     {"net": cftc_net, "net_pct": round(cftc_net/cftc_oi*100,1),
+                         "oi": cftc_oi, "date": cftc_date, "agrees": agrees},
+        }
+        result["agrees"] = agrees
+
+    return result
 
 def combine_outlook(weather_score, cot_score, crop_key, lat):
     """
@@ -255,6 +376,12 @@ with open(REGIONS_FILE) as f:
 
 with open(COMBINED_FILE) as f:
     cot_data = json.load(f)
+
+euronext_data = load_euronext_cot()
+if euronext_data:
+    print(f"  Euronext COT lastet: {', '.join(euronext_data.keys())}")
+else:
+    print("  Euronext COT: ikke tilgjengelig — bruker CFTC for alle avlinger")
 
 # Per-avling aggregering
 crop_region_data  = {}   # crop_key → liste med region-scores
@@ -296,7 +423,7 @@ for region in regions:
         wx    = score_weather(weather_raw, crop_key, lat)
         cot   = crop_cot_cache.get(crop_key)
         if cot is None:
-            cot = get_cot_for_crop(crop_key, cot_data)
+            cot = get_cot_for_crop(crop_key, cot_data, euronext_data)
             crop_cot_cache[crop_key] = cot
 
         cot_score = cot["cot_score"] if cot else 0
