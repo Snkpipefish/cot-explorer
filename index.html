@@ -350,6 +350,20 @@ function toNO(str){if(!str||str==='-')return str||'-';var m=str.match(/(\d{4}-\d
 function fp(n){return(n>0?'+':'')+n.toFixed(2)+'%';}
 function cc(n){return n>0?'bull':n<0?'bear':'neutral';}
 function fmtP(v){if(!v)return'-';return v>100?v.toFixed(2):v.toFixed(5);}
+
+// Filtrer ut utløpte binære risikoer i sanntid
+function filterRisk(risks){
+  if(!risks||!risks.length)return[];
+  var now=Date.now();
+  return risks.filter(function(r){
+    if(!r.date)return true; // ingen dato → vis alltid (tryggere)
+    try{
+      var t=new Date(r.date).getTime();
+      var expMin=r.is_speech?60:30;
+      return now < t+(expMin*60*1000);
+    }catch(e){return true;}
+  });
+}
 function sig(net,oi){if(!oi)return'neutral';var p=net/oi;if(p>.15)return'bull-strong';if(p>.04)return'bull-mild';if(p<-.15)return'bear-strong';if(p<-.04)return'bear-mild';return'neutral';}
 
 function goTab(tab){
@@ -641,8 +655,8 @@ function renderIdeer(m){
 
   var aplus=arr.filter(function(l){return l.grade==='A+';}).length;
   var bgrade=arr.filter(function(l){return l.grade==='B';}).length;
-  var active=arr.filter(function(l){return l.session&&l.session.active&&!l.binary_risk.length&&l.grade!=='C';}).length;
-  var risk=arr.filter(function(l){return l.binary_risk&&l.binary_risk.length>0;}).length;
+  var active=arr.filter(function(l){return l.session&&l.session.active&&!filterRisk(l.binary_risk).length&&l.grade!=='C';}).length;
+  var risk=arr.filter(function(l){return filterRisk(l.binary_risk).length>0;}).length;
   var makro=arr.filter(function(l){return l.timeframe_bias==='MAKRO';}).length;
 
   document.getElementById('ideStats').innerHTML=
@@ -668,7 +682,7 @@ function renderIdeer(m){
     var cot=lv.cot||{};
     var gc=lv.grade_color||'neutral';
     var sess=lv.session||{};
-    var brisk=lv.binary_risk||[];
+    var brisk=filterRisk(lv.binary_risk||[]);
     var clsLv=lv.class||'A';
     var curr=lv.current||0;
     var specNet=cot.net||0;

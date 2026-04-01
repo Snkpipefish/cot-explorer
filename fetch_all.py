@@ -738,10 +738,12 @@ def get_binary_risk(instrument_key, hours=4):
         berorte = ev.get('berorte', [])
         if instrument_key in berorte or not berorte:
             risks.append({
-                'title':   ev['title'],
-                'cet':     ev['cet'],
-                'country': ev['country'],
-                'past':    ha < 0,          # True = hendelsen har skjedd, er i avkjølingsperiode
+                'title':     ev['title'],
+                'cet':       ev['cet'],
+                'country':   ev['country'],
+                'date':      ev.get('date', ''),   # UTC ISO — for sanntidssjekk i nettleser
+                'is_speech': is_speech,
+                'past':      ha < 0,
             })
     return risks
 
