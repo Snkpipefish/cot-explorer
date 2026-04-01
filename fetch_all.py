@@ -747,13 +747,32 @@ def get_binary_risk(instrument_key, hours=4):
             })
     return risks
 
-# ── Last COT ──────────────────────────────────────────────
+# ── Last COT (CFTC) ───────────────────────────────────────
 cot_data = {}
 cot_file = os.path.join(BASE, "combined", "latest.json")
 if os.path.exists(cot_file):
     with open(cot_file) as f:
         for d in json.load(f):
             cot_data[d["market"].lower()] = d
+
+# ── Last ICE COT (primær for Brent/Gasoil/TTF) ────────────
+ice_cot_data = {}
+ice_cot_file = os.path.join(BASE, "ice_cot", "latest.json")
+if os.path.exists(ice_cot_file):
+    try:
+        with open(ice_cot_file) as f:
+            ice_json = json.load(f)
+        for d in ice_json.get("markets", []):
+            ice_cot_data[d["market"].lower()] = d
+        print(f"  ICE COT lastet: {len(ice_cot_data)} markeder")
+    except Exception as e:
+        print(f"  ICE COT FEIL ved lasting: {e}")
+
+# Instrumenter som bruker ICE COT som primær kilde
+# (ICE er hjemmebørsen for disse — mer representativt enn CFTC)
+ICE_COT_MAP = {
+    "Brent": "ice brent crude",
+}
 
 # ── Fear & Greed ──────────────────────────────────────────
 print("Henter Fear & Greed...")
@@ -934,8 +953,27 @@ for inst in INSTRUMENTS:
     session_now = get_session_status()
 
     # ── COT ───────────────────────────────────────────────
-    cot_key   = COT_MAP.get(inst["key"],"")
-    cot_entry = cot_data.get(cot_key, {})
+    # ICE brukes som primær for Brent (og ev. andre ICE-markeder).
+    # Fallback til CFTC hvis ICE-data mangler eller er utdatert.
+    ice_key    = ICE_COT_MAP.get(inst["key"], "")
+    ice_entry  = ice_cot_data.get(ice_key, {}) if ice_key else {}
+    cot_key    = COT_MAP.get(inst["key"], "")
+    cftc_entry = cot_data.get(cot_key, {})
+
+    # Velg kilde: ICE hvis tilgjengelig og nyere enn 14 dager, ellers CFTC
+    use_ice = False
+    if ice_entry:
+        ice_date = ice_entry.get("date", "")
+        try:
+            ice_age = (datetime.now(timezone.utc).date() -
+                       datetime.strptime(ice_date, "%Y-%m-%d").date()).days
+            use_ice = ice_age <= 14
+        except Exception:
+            use_ice = bool(ice_date)
+
+    cot_entry  = ice_entry if use_ice else cftc_entry
+    cot_source = "ICE" if use_ice else "CFTC"
+
     spec_net  = (cot_entry.get("spekulanter") or {}).get("net", 0) or 0
     oi        = cot_entry.get("open_interest", 1) or 1
     cot_pct   = spec_net / oi * 100
@@ -1173,7 +1211,8 @@ for inst in INSTRUMENTS:
         "cot":           {"bias": cot_bias, "color": cot_color, "net": spec_net,
                           "chg": cot_entry.get("change_spec_net",0), "pct": round(abs(cot_pct),1),
                           "momentum": cot_momentum,
-                          "date": cot_entry.get("date",""), "report": cot_entry.get("report","")},
+                          "date": cot_entry.get("date",""), "report": cot_entry.get("report",""),
+                          "source": cot_source},
         "combined_bias":  "LONG" if dir_color=="bull" else "SHORT",
         "timeframe_bias": timeframe_bias,
         "sentiment":      {"fear_greed": fg},
