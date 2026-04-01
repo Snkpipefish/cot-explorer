@@ -74,6 +74,7 @@ candidates = [
     if d.get("score", 0) >= MIN_SCORE
     and d.get("dir_color") in ("bull", "bear")
     and active_setup(d) is not None
+    and key not in ("DXY",)   # ikke-tradeable indekser
 ]
 candidates.sort(key=score_key, reverse=True)
 top = candidates[:MAX_SIGNALS]
