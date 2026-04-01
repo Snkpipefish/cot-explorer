@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
-"""Henter live priser fra Yahoo Finance og bygger data/macro/latest.json"""
-import urllib.request, json, os
+"""
+fetch_prices.py — Henter live priser og bygger data/macro/latest.json
+
+Prioritet per symbol:
+  1. data/prices/live_prices.json  (fra trading-boten via Skilling — oppdateres hvert 4. time)
+  2. Yahoo Finance                 (fallback for symboler boten ikke har)
+"""
+import urllib.request, urllib.parse, json, os
 from datetime import datetime, timezone
+from pathlib import Path
 
-BASE = os.path.expanduser("~/cot-explorer/data")
-OUT  = os.path.join(BASE, "macro", "latest.json")
-os.makedirs(os.path.join(BASE, "macro"), exist_ok=True)
+BASE         = Path(os.path.expanduser("~/cot-explorer/data"))
+OUT          = BASE / "macro" / "latest.json"
+BOT_PRICES   = BASE / "prices" / "live_prices.json"
+OUT.parent.mkdir(parents=True, exist_ok=True)
 
+# Alle symboler vi trenger i macro/latest.json
+# nøkkel → Yahoo-ticker (brukes kun som fallback)
 SYMBOLS = {
     "VIX":    "^VIX",
     "SPX":    "^GSPC",
@@ -26,81 +36,152 @@ SYMBOLS = {
     "TIP":    "TIP",
 }
 
+# Symboler boten sender — disse trenger ikke Yahoo som fallback
+# (nøkkel i live_prices.json → nøkkel i macro prices)
+BOT_KEY_MAP = {
+    "EURUSD":  "EURUSD",
+    "GBPUSD":  "GBPUSD",
+    "USDJPY":  "USDJPY",
+    "AUDUSD":  "AUDUSD",
+    "USDCHF":  "USDCHF",
+    "USDNOK":  "USDNOK",
+    "DXY":     "DXY",
+    "Brent":   "Brent",
+    "WTI":     "WTI",
+    "Gold":    "Gold",
+    "Silver":  "Silver",
+    "NatGas":  None,       # ikke i macro/prices — brukes kun av fetch_oilgas
+    "SPX":     "SPX",
+    "NAS100":  "NAS100",
+    "BTC":     "BTC",
+    "ETH":     "ETH",
+    "SOL":     "SOL",
+    "XRP":     "XRP",
+}
+
+
+def load_bot_prices():
+    """Les live_prices.json fra boten. Returnerer dict med macro-nøkkel → pris-objekt."""
+    if not BOT_PRICES.exists():
+        return {}
+    try:
+        raw = json.loads(BOT_PRICES.read_text())
+        bot = raw.get("prices", {})
+        result = {}
+        for bot_key, macro_key in BOT_KEY_MAP.items():
+            if macro_key is None:
+                continue
+            p = bot.get(bot_key)
+            if not p or p.get("value") is None:
+                continue
+            val = p["value"]
+            chg1d  = p.get("chg1d", 0.0) or 0.0
+            chg5d  = p.get("chg5d", 0.0) or 0.0
+            chg20d = p.get("chg20d", 0.0) or 0.0
+            result[macro_key] = {
+                "price":  round(float(val), 6),
+                "chg1d":  round(float(chg1d), 3),
+                "chg5d":  round(float(chg5d), 3),
+                "chg20d": round(float(chg20d), 3),
+            }
+        return result
+    except Exception as e:
+        print(f"  live_prices.json FEIL: {e}")
+        return {}
+
+
 def fetch_yahoo(symbol):
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(symbol)}?interval=1d&range=1mo"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0","Accept":"application/json"})
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
         with urllib.request.urlopen(req, timeout=10) as r:
             d = json.loads(r.read())
-        res = d["chart"]["result"][0]
+        res    = d["chart"]["result"][0]
         closes = res["indicators"]["quote"][0]["close"]
         closes = [c for c in closes if c is not None]
         if len(closes) < 6:
             return None
         now   = closes[-1]
         day1  = closes[-2]
-        day5  = closes[-6] if len(closes) >= 6 else closes[0]
+        day5  = closes[-6]  if len(closes) >= 6  else closes[0]
         day20 = closes[-21] if len(closes) >= 21 else closes[0]
         return {
             "price":  round(now, 4),
-            "chg1d":  round((now/day1 - 1)*100, 2),
-            "chg5d":  round((now/day5 - 1)*100, 2),
-            "chg20d": round((now/day20 - 1)*100, 2),
+            "chg1d":  round((now / day1  - 1) * 100, 2),
+            "chg5d":  round((now / day5  - 1) * 100, 2),
+            "chg20d": round((now / day20 - 1) * 100, 2),
         }
     except Exception as e:
         print(f"  FEIL {symbol}: {e}")
         return None
 
-import urllib.parse
+
+# ── Hent bot-priser først ─────────────────────────────────────────
+bot_prices = load_bot_prices()
+if bot_prices:
+    print(f"  Bot-priser (Skilling): {len(bot_prices)} symboler lastet fra live_prices.json")
+
+# ── Hent resten fra Yahoo (kun symboler boten ikke dekker) ────────
 prices = {}
 for key, sym in SYMBOLS.items():
-    print(f"Henter {key} ({sym})...")
+    if key in bot_prices:
+        prices[key] = bot_prices[key]
+        print(f"  {key:10} → {bot_prices[key]['price']} (bot)")
+        continue
+    print(f"Henter {key} ({sym}) fra Yahoo...")
     v = fetch_yahoo(sym)
     if v:
         prices[key] = v
         print(f"  → {v['price']} ({v['chg1d']:+.2f}%)")
 
-vix = (prices.get("VIX") or {}).get("price", 20)
-dxy_5d = (prices.get("DXY") or {}).get("chg5d", 0)
-brent = (prices.get("Brent") or {}).get("price", 80)
-hyg = (prices.get("HYG") or {}).get("chg5d", 0)
-tip_5d = (prices.get("TIP") or {}).get("chg5d", 0)
+# Legg til krypto fra bot (ikke i SYMBOLS, men vi vil ha dem i macro)
+for crypto_key in ("BTC", "ETH", "SOL", "XRP"):
+    if crypto_key in bot_prices and crypto_key not in prices:
+        prices[crypto_key] = bot_prices[crypto_key]
+        print(f"  {crypto_key:10} → {bot_prices[crypto_key]['price']} (bot)")
+
+# ── Bygg macro-objekt ─────────────────────────────────────────────
+vix    = (prices.get("VIX")   or {}).get("price", 20)
+dxy_5d = (prices.get("DXY")   or {}).get("chg5d", 0)
+brent  = (prices.get("Brent") or {}).get("price", 80)
+hyg    = (prices.get("HYG")   or {}).get("chg5d", 0)
+tip_5d = (prices.get("TIP")   or {}).get("chg5d", 0)
 
 hy_stress = hyg < -1.0
 if vix > 30:
-    smile_pos, usd_bias, usd_color, smile_desc = "venstre", "STERKT", "bull", "Risk-off – USD etterspurt som trygg havn"
+    smile_pos, usd_bias, usd_color, smile_desc = "venstre", "STERKT",   "bull", "Risk-off – USD etterspurt som trygg havn"
 elif vix < 18 and brent < 85:
-    smile_pos, usd_bias, usd_color, smile_desc = "midten", "SVAKT", "bear", "Goldilocks – svak USD, risikoappetitt god"
+    smile_pos, usd_bias, usd_color, smile_desc = "midten",  "SVAKT",    "bear", "Goldilocks – svak USD, risikoappetitt god"
 else:
-    smile_pos, usd_bias, usd_color, smile_desc = "hoyre", "MODERAT", "bull", "Vekst/inflasjon driver USD"
+    smile_pos, usd_bias, usd_color, smile_desc = "hoyre",   "MODERAT",  "bull", "Vekst/inflasjon driver USD"
 
 if vix > 30:
-    vix_regime = {"value": vix, "label": "Ekstrem frykt – kvart størrelse", "color": "bear", "regime": "extreme"}
+    vix_regime = {"value": vix, "label": "Ekstrem frykt – kvart størrelse",  "color": "bear", "regime": "extreme"}
 elif vix > 20:
-    vix_regime = {"value": vix, "label": "Forhøyet – halv størrelse", "color": "warn", "regime": "elevated"}
+    vix_regime = {"value": vix, "label": "Forhøyet – halv størrelse",         "color": "warn", "regime": "elevated"}
 else:
-    vix_regime = {"value": vix, "label": "Normalt – full størrelse", "color": "bull", "regime": "normal"}
+    vix_regime = {"value": vix, "label": "Normalt – full størrelse",           "color": "bull", "regime": "normal"}
 
 macro = {
-    "date": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    "date":     datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     "cot_date": "2025-12-30",
-    "prices": prices,
+    "prices":   prices,
     "vix_regime": vix_regime,
     "dollar_smile": {
-        "position": smile_pos,
-        "usd_bias": usd_bias,
+        "position":  smile_pos,
+        "usd_bias":  usd_bias,
         "usd_color": usd_color,
-        "desc": smile_desc,
+        "desc":      smile_desc,
         "inputs": {
-            "vix": vix,
-            "hy_stress": hy_stress,
-            "brent": brent,
+            "vix":          vix,
+            "hy_stress":    hy_stress,
+            "brent":        brent,
             "tip_trend_5d": tip_5d,
             "dxy_trend_5d": dxy_5d,
-        }
+        },
     },
     "trading_levels": {},
-    "calendar": [],
+    "calendar":       [],
 }
 
 with open(OUT, "w") as f:

@@ -19,16 +19,14 @@ OUT  = BASE / "data" / "oilgas" / "latest.json"
 OUT.parent.mkdir(parents=True, exist_ok=True)
 COMBINED_FILE  = BASE / "data" / "combined" / "latest.json"
 MACRO_FILE     = BASE / "data" / "macro" / "latest.json"
-BOT_PRICES_FILE = BASE / "data" / "prices" / "bot_prices.json"
+BOT_PRICES_FILE = BASE / "data" / "prices" / "live_prices.json"
 
-# Mapping fra instrument-id → nøkkel i bot_prices.json / macro "prices"
-# Boten sender disse nøklene i /push-prices body
+# Mapping fra instrument-id → nøkkel boten sender i /push-prices
 BOT_PRICE_MAP = {
-    "brent":   "Brent",
-    "wti":     "WTI",
-    "natgas":  "NatGas",
-    "rbob":    "RBOB",
-    "heatoil": "HeatingOil",
+    "brent":  "Brent",
+    "wti":    "WTI",
+    "natgas": "NatGas",
+    # rbob og heatoil ikke tilgjengelig i Skilling
 }
 MACRO_PRICE_MAP = {
     "brent": "Brent",

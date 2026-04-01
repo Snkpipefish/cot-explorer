@@ -22,7 +22,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 BASE          = Path(__file__).parent.parent          # ~/cot-explorer/
-BOT_PRICES    = BASE / "data" / "prices" / "bot_prices.json"
+BOT_PRICES    = BASE / "data" / "prices" / "live_prices.json"
 ALERTS_LOG    = BASE / "data" / "prices" / "alerts.json"
 SCALP_API_KEY = os.environ.get("SCALP_API_KEY", "")
 
