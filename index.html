@@ -934,6 +934,7 @@ function renderSignallogg(log){
 }
 
 async function loadAll(){
+  var signalsData=null, logData=null;
   try{
     var r=await fetch('data/macro/latest.json');
     M=await r.json();
@@ -954,12 +955,17 @@ async function loadAll(){
   }catch(e){console.error(e);}
   try{
     var r3=await fetch('data/signal_log.json');
-    var logData=await r3.json();
+    logData=await r3.json();
     renderSignallogg(logData);
   }catch(e){
     document.getElementById('logGrid').innerHTML='<div class="loading">Ingen logg ennå — kjøres etter neste fetch_all.py</div>';
     console.error(e);
   }
+  try{
+    var r4=await fetch('data/signals.json');
+    signalsData=await r4.json();
+  }catch(e){console.error(e);}
+  renderDashboard(M, signalsData, logData, COT);
 }
 loadAll();
 
