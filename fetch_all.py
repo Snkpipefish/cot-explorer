@@ -953,39 +953,73 @@ for inst in INSTRUMENTS:
     session_now = get_session_status()
 
     # ── COT ───────────────────────────────────────────────
-    # ICE brukes som primær for Brent (og ev. andre ICE-markeder).
-    # Fallback til CFTC hvis ICE-data mangler eller er utdatert.
+    # For Brent: kombiner ICE + CFTC med OI-vekting (samme logikk som
+    # Euronext+CFTC for landbruk). ICE er hjemmebørsen, CFTC dekker
+    # amerikanske WTI-relaterte Brent-kontrakter — begge er reelle signaler.
     ice_key    = ICE_COT_MAP.get(inst["key"], "")
     ice_entry  = ice_cot_data.get(ice_key, {}) if ice_key else {}
     cot_key    = COT_MAP.get(inst["key"], "")
     cftc_entry = cot_data.get(cot_key, {})
 
-    # Velg kilde: ICE hvis tilgjengelig og nyere enn 14 dager, ellers CFTC
-    use_ice = False
-    if ice_entry:
-        ice_date = ice_entry.get("date", "")
+    def _fresh(entry):
+        """Returner True hvis COT-data er nyere enn 14 dager."""
+        d = entry.get("date", "")
+        if not d:
+            return False
         try:
-            ice_age = (datetime.now(timezone.utc).date() -
-                       datetime.strptime(ice_date, "%Y-%m-%d").date()).days
-            use_ice = ice_age <= 14
+            age = (datetime.now(timezone.utc).date() -
+                   datetime.strptime(d, "%Y-%m-%d").date()).days
+            return age <= 14
         except Exception:
-            use_ice = bool(ice_date)
+            return bool(d)
 
-    cot_entry  = ice_entry if use_ice else cftc_entry
-    cot_source = "ICE" if use_ice else "CFTC"
+    has_ice  = bool(ice_entry) and _fresh(ice_entry)
+    has_cftc = bool(cftc_entry)
 
-    spec_net  = (cot_entry.get("spekulanter") or {}).get("net", 0) or 0
-    oi        = cot_entry.get("open_interest", 1) or 1
-    cot_pct   = spec_net / oi * 100
+    if has_ice and has_cftc:
+        # OI-vektet kombinasjon
+        ice_net  = (ice_entry.get("spekulanter") or {}).get("net", 0) or 0
+        ice_oi   = ice_entry.get("open_interest", 1) or 1
+        ice_chg  = ice_entry.get("change_spec_net", 0) or 0
+        cftc_net = (cftc_entry.get("spekulanter") or {}).get("net", 0) or 0
+        cftc_oi  = cftc_entry.get("open_interest", 1) or 1
+        cftc_chg = cftc_entry.get("change_spec_net", 0) or 0
+        total_oi = ice_oi + cftc_oi
+        cot_pct  = ((ice_net / ice_oi * ice_oi) + (cftc_net / cftc_oi * cftc_oi)) / total_oi * 100
+        spec_net = ice_net + cftc_net
+        oi       = total_oi
+        _cot_chg = ice_chg + cftc_chg
+        cot_source = "ICE+CFTC"
+        cot_agrees = (ice_net > 0) == (cftc_net > 0)
+    elif has_ice:
+        sp       = ice_entry.get("spekulanter") or {}
+        spec_net = sp.get("net", 0) or 0
+        oi       = ice_entry.get("open_interest", 1) or 1
+        cot_pct  = spec_net / oi * 100
+        _cot_chg = ice_entry.get("change_spec_net", 0) or 0
+        cot_source = "ICE"
+        cot_agrees = None
+    else:
+        sp       = cftc_entry.get("spekulanter") or {}
+        spec_net = sp.get("net", 0) or 0
+        oi       = cftc_entry.get("open_interest", 1) or 1
+        cot_pct  = spec_net / oi * 100
+        _cot_chg = cftc_entry.get("change_spec_net", 0) or 0
+        cot_source = "CFTC"
+        cot_agrees = None
+
     cot_bias  = "LONG" if cot_pct>4 else "SHORT" if cot_pct<-4 else "NØYTRAL"
     cot_color = "bull"  if cot_pct>4 else "bear"  if cot_pct<-4 else "neutral"
-    _cot_chg  = cot_entry.get("change_spec_net", 0) or 0
+
+    # Hvis kildene er uenige: svakere momentum-signal
     if _cot_chg == 0:
         cot_momentum = "STABIL"
     elif (_cot_chg > 0 and spec_net >= 0) or (_cot_chg < 0 and spec_net <= 0):
-        cot_momentum = "ØKER"   # Legger til i eksisterende posisjon
+        cot_momentum = "ØKER"
     else:
-        cot_momentum = "SNUR"   # Reduserer / snur posisjon
+        cot_momentum = "SNUR"
+    if cot_agrees is False:
+        cot_momentum = "BLANDET"
 
     # ── Score ─────────────────────────────────────────────
     above_sma = curr > sma200
@@ -1019,9 +1053,10 @@ for inst in INSTRUMENTS:
     )
 
     dir_color    = "bull" if (above_sma and chg5>0) else "bear" if (not above_sma and chg5<0) else ("bull" if above_sma else "bear")
-    cot_confirms = (cot_bias == "LONG" and dir_color == "bull") or \
-                   (cot_bias == "SHORT" and dir_color == "bear")
-    cot_strong   = abs(cot_pct) > 10   # >10% av OI = signifikant makro-posisjonering
+    cot_confirms = ((cot_bias == "LONG" and dir_color == "bull") or \
+                    (cot_bias == "SHORT" and dir_color == "bear")) \
+                   and cot_agrees is not False   # Uenige kilder teller ikke
+    cot_strong   = abs(cot_pct) > 10 and cot_agrees is not False
     no_event_risk = len(get_binary_risk(inst["key"], hours=4)) == 0
 
     # BOS fra 1H/4H bekrefter retning (Break of Structure)
@@ -1211,8 +1246,10 @@ for inst in INSTRUMENTS:
         "cot":           {"bias": cot_bias, "color": cot_color, "net": spec_net,
                           "chg": cot_entry.get("change_spec_net",0), "pct": round(abs(cot_pct),1),
                           "momentum": cot_momentum,
-                          "date": cot_entry.get("date",""), "report": cot_entry.get("report",""),
-                          "source": cot_source},
+                          "date": (ice_entry if has_ice else cftc_entry).get("date",""),
+                          "report": cot_source.lower(),
+                          "source": cot_source,
+                          "agrees": cot_agrees},
         "combined_bias":  "LONG" if dir_color=="bull" else "SHORT",
         "timeframe_bias": timeframe_bias,
         "sentiment":      {"fear_greed": fg},
