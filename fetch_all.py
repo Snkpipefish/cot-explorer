@@ -1244,7 +1244,7 @@ for inst in INSTRUMENTS:
         "pos_size":      pos_size,
         "vix_spread_factor": 1.0 if vix_price<20 else 1.5 if vix_price<30 else 2.0,
         "cot":           {"bias": cot_bias, "color": cot_color, "net": spec_net,
-                          "chg": cot_entry.get("change_spec_net",0), "pct": round(abs(cot_pct),1),
+                          "chg": _cot_chg, "pct": round(abs(cot_pct),1),
                           "momentum": cot_momentum,
                           "date": (ice_entry if has_ice else cftc_entry).get("date",""),
                           "report": cot_source.lower(),
