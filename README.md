@@ -24,7 +24,7 @@ En statisk nettside (GitHub Pages) som viser daglige trading-ideer basert på:
 - **Økonomisk kalender** med binær risiko-varsling
 - **Timeframe bias** — MAKRO / SWING / SCALP / WATCHLIST per instrument
 - **Signal-logg** — historikk over bot-utførte trades med resultat (win/loss/managed)
-- **Råvare Intel** — Geo-Intel kart (MapLibre GL), landbruksregioner med værvarsling, COMEX lager, nyhetsstrøm, Råvare COT
+- **Råvare Intel** — Geo-Intel kart (MapLibre GL), landbruksregioner med værvarsling, COMEX lager, nyhetsstrøm, Råvare COT, Avlings-analyse
 - **Krypto Intel** — Priser, markedsdominans, Fear & Greed, Bitcoin COT, makrokorrelasjoner og nyheter
 
 Alt drives av JSON-filer i `data/` som genereres lokalt og pushes til GitHub.
@@ -64,8 +64,9 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 6. `fetch_comex.py` — henter COMEX lagerbeholdning (gull/sølv/kobber)
 7. `fetch_seismic.py` — henter USGS seismiske data for gruveregioner
 8. `fetch_intel.py` — henter nyheter fra Google News RSS (gull, sølv, kobber, geopolitikk)
-9. `fetch_crypto.py` — henter krypto-priser, markedsdata, Fear & Greed, Bitcoin COT, korrelasjoner og nyheter
-10. `push_signals.py` — genererer `data/signals.json`, oil war-spread sjekk, DXY-eksklusjon
+9. `fetch_agri.py` — henter Open-Meteo værvarsling for 14 landbruksregioner, beregner tørkestress/flomrisiko, kombinerer med COT → `data/agri/latest.json`
+10. `fetch_crypto.py` — henter krypto-priser, markedsdata, Fear & Greed, Bitcoin COT, korrelasjoner og nyheter
+11. `push_signals.py` — genererer `data/signals.json`, oil war-spread sjekk, DXY-eksklusjon
 11. `git push` — oppdaterer GitHub Pages med nye JSON-filer
 
 `logs/update.log` er ikke tracket av git (lagt til `.gitignore`).
@@ -155,6 +156,15 @@ Eget panel med fire faner:
 ### Råvare COT
 - COT-posisjoner filtrert på råvarer og landbruk fra `data/combined/latest.json`
 
+### Avlings-analyse
+- **10 avlinger**: Mais, Hvete, Soyabønner, Canola/Raps, Bomull, Sukker, Kaffe, Kakao, Palmeolje, Ris
+- **14 regioner**: USA Corn Belt, Great Plains, Brazil Mato Grosso, Argentina Pampas, Ukraina, EU, Canada, Australia, India, Sørøst-Asia, Vest-Afrika, m.fl.
+- **Vær-scoring**: tørke (< 8mm / > 25°C) → +2, flom (> 70mm) → +2, frost i plantetid → +2, normalt → 0
+- **Sesongvekting**: kritisk sesong (planting/vekst) gir 1.5× vekting på vær-score
+- **COT-score**: spekulant-netto som % av open interest + momentum → −2 til +2
+- **Prisretning**: vær-score + COT-score → STERKT BULLISH / BULLISH / NØYTRAL / BEARISH / STERKT BEARISH
+- Oppdateres fra `data/agri/latest.json` (6× daglig)
+
 ### Datafiler
 
 | Fil | Innhold | Oppdatering |
@@ -168,6 +178,7 @@ Eget panel med fire faner:
 | `data/geointel/seismic.json` | USGS seismiske hendelser | 6× daglig |
 | `data/geointel/intel.json` | Google News RSS feed | 6× daglig |
 | `data/comex/latest.json` | COMEX lagerbeholdning + stress-indeks | 6× daglig |
+| `data/agri/latest.json` | Avlings-analyse: vær, COT, prisretning per avling | 6× daglig |
 
 ---
 
