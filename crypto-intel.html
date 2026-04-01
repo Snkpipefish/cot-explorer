@@ -320,78 +320,84 @@ function renderAll(d){
   fgH+='<div class="explain"><strong>Hva betyr dette?</strong> '+fgi2.sub+'</div>';
   document.getElementById('fgWrap').innerHTML=fgH;
 
-  // ── KORRELASJONER ──
+  // ── SIGNALER (korrelasjoner som innsikt-kort) ──
   var corr=d.correlations||{};
-  var corrRows=[
-    ['BTC vs S&P 500','btc_spx','Høy = krypto følger risikoappetitten (risk-on/off)'],
-    ['BTC vs Gull','btc_gold','Positiv = begge safe-haven. Negativ = konkurrenter.'],
-    ['ETH vs BTC','eth_btc','Over 0.85 = ingen altseason. Under 0.7 = ETH outperformer.'],
-    ['SOL vs BTC','sol_btc','Høy beta = SOL beveger seg mer enn BTC i begge retninger.'],
-    ['XRP vs BTC','xrp_btc','Lav = XRP drives mer av regulering enn markedssyklus.'],
-  ];
-  var ch='<table class="corr-table"><thead><tr><th>Par</th><th>Korrelasjon (30d)</th><th>Tolkning</th></tr></thead><tbody>';
-  corrRows.forEach(function(row){
-    var v=corr[row[1]];
-    var f=v!==null&&v!==undefined?v.toFixed(2):'–';
-    ch+='<tr><td><strong>'+row[0]+'</strong></td>'+
-      '<td><span class="corr-val" style="'+corrColor(v)+'">'+f+'</span>'+
-      (v!==null&&v!==undefined?'<div class="corr-desc">'+corrLabel(v)+'</div>':'')+'</td>'+
-      '<td style="font-size:12px;color:var(--m)">'+row[2]+'</td></tr>';
-  });
-  ch+='</tbody></table>';
-  document.getElementById('corrGrid').innerHTML=ch;
+  var spx=corr.btc_spx, gold=corr.btc_gold, ethBtc=corr.eth_btc;
+  function insightCard(icon,title,badge,badgeCol,badgeBg,body){
+    return '<div class="insight-card">'+
+      '<div class="insight-icon">'+icon+'</div>'+
+      '<div><div class="insight-title">'+title+'</div>'+
+      '<div class="insight-body">'+body+'</div>'+
+      '<span class="insight-badge" style="color:'+badgeCol+';border-color:'+badgeCol+';background:'+badgeBg+'">'+badge+'</span>'+
+      '</div></div>';
+  }
+  var spxTxt, spxBadge, spxCol, spxBg;
+  if(spx===null||spx===undefined){spxTxt='Ingen data';spxBadge='UKJENT';spxCol='var(--m)';spxBg='var(--s2)';}
+  else if(spx>0.6){spxTxt='Krypto svinger mye <strong>i takt med aksjemarkedet</strong> nå. Når aksjer faller, faller krypto også.';spxBadge='FØLGER AKSJER';spxCol='var(--warn)';spxBg='var(--wbg)';}
+  else if(spx>0.3){spxTxt='Krypto påvirkes <strong>noe</strong> av aksjemarkedet, men ikke alltid.';spxBadge='SVAK SAMMENHENG';spxCol='var(--m)';spxBg='var(--s2)';}
+  else{spxTxt='Krypto beveger seg <strong>uavhengig av aksjer</strong> akkurat nå. Andre faktorer driver markedet.';spxBadge='SELVSTENDIG';spxCol='var(--bull)';spxBg='var(--bbg)';}
 
-  // ── COT ──
+  var goldTxt, goldBadge, goldCol, goldBg;
+  if(gold===null||gold===undefined){goldTxt='Ingen data';goldBadge='UKJENT';goldCol='var(--m)';goldBg='var(--s2)';}
+  else if(gold>0.5){goldTxt='Bitcoin oppfører seg <strong>litt som gull</strong> nå – begge stiger og faller omtrent samtidig.';goldBadge='SOM GULL';goldCol='#F7931A';goldBg='rgba(247,147,26,.12)';}
+  else if(gold<-0.3){goldTxt='Bitcoin og gull beveger seg <strong>i motsatt retning</strong>. Investorer velger mellom dem.';goldBadge='MOT GULL';goldCol='var(--bear)';goldBg='var(--rbg)';}
+  else{goldTxt='Bitcoin og gull har <strong>ingen klar sammenheng</strong> akkurat nå.';goldBadge='INGEN SAMMENHENG';goldCol='var(--m)';goldBg='var(--s2)';}
+
+  var altTxt, altBadge, altCol, altBg;
+  if(ethBtc===null||ethBtc===undefined){altTxt='Ingen data';altBadge='UKJENT';altCol='var(--m)';altBg='var(--s2)';}
+  else if(ethBtc>0.85){altTxt='<strong>Alt beveger seg med Bitcoin</strong> nå. Liten sjanse for at enkeltmynter skiller seg ut positivt.';altBadge='BITCOIN STYRER ALT';altCol='#F7931A';altBg='rgba(247,147,26,.12)';}
+  else{altTxt='Ethereum og andre kryptoer begynner å <strong>bevege seg uavhengig</strong> av Bitcoin. «Altseason» kan være på vei.';altBadge='ALTCOINS FRIGJØR SEG';altCol='#627EEA';altBg='rgba(98,126,234,.12)';}
+
+  document.getElementById('corrGrid').innerHTML=
+    '<p style="font-size:12px;color:var(--m);margin-bottom:16px">Her ser du om kryptovalutaer henger sammen med andre markeder, og hva det betyr for deg.</p>'+
+    insightCard('📈','Henger krypto sammen med aksjemarkedet?',spxBadge,spxCol,spxBg,spxTxt)+
+    insightCard('🥇','Oppfører Bitcoin seg som gull?',goldBadge,goldCol,goldBg,goldTxt)+
+    insightCard('🔀','Kan altcoins gjøre det bedre enn Bitcoin nå?',altBadge,altCol,altBg,altTxt);
+
+  // ── STORE INVESTORER (COT) ──
   var cot=d.cot_btc||{};
-  var cotDate=cot.date||'-';
-  document.getElementById('cotDate').textContent='CFTC per '+cotDate;
-  if(!cot.net&&cot.net!==0){
-    document.getElementById('cotGrid').innerHTML='<div class="loading">Ingen COT-data</div>';
+  if(cot.net===undefined&&cot.net!==0){
+    document.getElementById('cotGrid').innerHTML='<div class="loading">Ingen data</div>';
   } else {
-    var net=cot.net||0,oi=cot.oi||1,chg=cot.chg||0,pct=cot.pct||0;
-    var barPct=Math.min(100,Math.max(0,50+pct*3));
-    var netCol=net>0?'bull':'bear';
-    var chgCol=chg>0?'bull':'bear';
-    var cotH=
-      '<div class="g3">'+
-        '<div class="card"><div class="ct">Spekulanter netto</div><div class="snum '+netCol+'" style="font-size:22px">'+(net>0?'+':'')+fm(net)+'</div><div class="slabel">kontrakter</div></div>'+
-        '<div class="card"><div class="ct">Ukeendring</div><div class="snum '+chgCol+'" style="font-size:22px">'+(chg>0?'+':'')+fm(chg)+'</div><div class="slabel">'+(chg>0?'Øker long':'Reduserer/snur')+'</div></div>'+
-        '<div class="card"><div class="ct">% av Open Interest</div><div class="snum '+netCol+'" style="font-size:22px">'+(pct>0?'+':'')+pct+'%</div><div class="slabel">OI: '+fm(oi)+' kontrakter</div></div>'+
+    var net=cot.net||0, oi=cot.oi||1, chg=cot.chg||0, pct=cot.pct||0;
+    var ci=cotInfo(pct);
+    var barPct=Math.min(100,Math.max(0,50+pct*1.2));
+    var chgDir=chg>0?'Økt med '+fm(Math.abs(chg))+' kontrakter siden forrige uke – trenden styrker seg.':'Redusert med '+fm(Math.abs(chg))+' kontrakter siden forrige uke.';
+    document.getElementById('cotGrid').innerHTML=
+      '<div class="cot-verdict" style="background:'+ci.bg+';border:1px solid '+ci.col+'">'+
+        '<div class="cot-verdict-emoji">'+ci.emoji+'</div>'+
+        '<div class="cot-verdict-title" style="color:'+ci.col+'">De store investorene: '+ci.txt+'</div>'+
+        '<div class="cot-verdict-sub">'+ci.sub+'</div>'+
       '</div>'+
-      '<div class="card">'+
-        '<div class="ct">Posisjonering</div>'+
-        '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">'+
-          '<span style="color:var(--bear)">SHORT</span>'+
-          '<span style="color:var(--m);font-size:11px">Netto '+pct+'% av OI</span>'+
-          '<span style="color:var(--bull)">LONG</span>'+
+      '<div class="card" style="margin-bottom:12px">'+
+        '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--m);margin-bottom:6px">'+
+          '<span>⬅️ Selger (short)</span><span>Kjøper (long) ➡️</span>'+
         '</div>'+
-        '<div class="cbt"><div class="cbf" style="width:'+barPct+'%;background:'+(net>0?'var(--bull)':'var(--bear)')+'"></div></div>'+
-        (cot.history&&cot.history.length>1?'<div style="margin-top:12px"><div class="ct">8-ukers utvikling</div>'+sparkline(cot.history,300,40)+'</div>':'')+
+        '<div class="cbt"><div class="cbf" style="width:'+barPct+'%;background:'+ci.col+'"></div></div>'+
+        '<div style="text-align:center;font-size:11px;color:var(--m);margin-top:4px">Netto-posisjon: '+(pct>0?'+':'')+pct+'% av alle aktive kontrakter</div>'+
+        (cot.history&&cot.history.length>1?
+          '<div style="margin-top:14px"><div class="ct">Utvikling siste 8 uker</div>'+sparkline(cot.history,280,40)+'</div>':'')+
       '</div>'+
-      '<div style="margin-top:12px;font-size:12px;color:var(--m);background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px">'+
-        '<strong>Tolkning:</strong> CME Bitcoin-futures er institusjonelle kontrakter (hedge funds, asset managers). '+
-        'Netto-long &gt;15% av OI = sterk institusjonell etterspørsel. '+
-        'Netto-short = institusjonene er skeptiske eller hedger eksponering.'+
+      '<div class="explain">'+
+        '<strong>Hvem er disse investorene?</strong> Dette er store profesjonelle fond og institusjoner som handler Bitcoin-futures på den regulerte børsen CME i Chicago. '+
+        'De er pålagt å rapportere posisjonene sine til myndighetene hver uke.<br><br>'+
+        '<strong>Ukeendring:</strong> '+chgDir+
       '</div>';
-    document.getElementById('cotGrid').innerHTML=cotH;
   }
 
   // ── NYHETER ──
   var news=d.news||[];
+  var CAT_NO={'bitcoin':'Bitcoin','ethereum':'Ethereum','regulation':'Regulering','macro':'Makro','altcoins':'Altcoins'};
   if(!news.length){
     document.getElementById('newsGrid').innerHTML='<div class="loading">Ingen nyheter tilgjengelig</div>';
   } else {
-    var nh='';
-    news.forEach(function(n){
-      nh+='<div class="news-item">'+
-        '<div class="news-meta">'+
-          '<span class="news-cat">'+n.cat+'</span>'+
-          '<span>'+n.source+'</span>'+
-          '<span>'+n.time+'</span>'+
-        '</div>'+
+    var nh=news.map(function(n){
+      var catLabel=CAT_NO[n.cat]||n.cat;
+      return '<div class="news-item">'+
+        '<div class="news-meta"><span class="news-cat">'+catLabel+'</span><span>'+n.source+'</span><span>'+n.time+'</span></div>'+
         '<div class="news-title"><a href="'+n.url+'" target="_blank" rel="noopener">'+n.title+'</a></div>'+
       '</div>';
-    });
+    }).join('');
     document.getElementById('newsGrid').innerHTML='<div class="card">'+nh+'</div>';
   }
 }
