@@ -104,8 +104,26 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .news-meta{font-size:11px;color:var(--m);display:flex;gap:8px;flex-wrap:wrap}
 .news-cat{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:var(--blbg);color:var(--blue)}
 
+svg{max-width:100%;height:auto}
+.news-title a{word-break:break-word;overflow-wrap:break-word}
+.insight-body{word-break:break-word;overflow-wrap:break-word}
 @media(max-width:900px){.g3,.sig-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.g3,.g2,.sig-grid{grid-template-columns:1fr}.pcg{grid-template-columns:1fr 1fr}.mood-emoji{font-size:30px}.fg-num{font-size:40px}}
+@media(max-width:600px){
+  .g3,.g2,.sig-grid{grid-template-columns:1fr}
+  .pcg{grid-template-columns:1fr 1fr}
+  .mood-emoji{font-size:30px}
+  .fg-num{font-size:36px}
+  .mood-title{font-size:16px}
+  .mood-banner{padding:14px}
+  .cot-verdict{padding:14px 12px}
+  .cot-verdict-title{font-size:16px}
+  .cot-verdict-emoji{font-size:32px}
+  .main{padding:12px 12px}
+  .card{padding:12px 14px}
+  .insight-card{flex-direction:column;gap:6px}
+  .insight-icon{font-size:20px}
+  .sig-val{font-size:18px}
+}
 
 /* DASHBOARD */
 .dash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:20px}
@@ -235,7 +253,7 @@ function sparkline(hist,w,h){
   var step=w/(hist.length-1);
   var pts=hist.map(function(v,i){return(i*step).toFixed(1)+','+(h-((v-min)/rng)*h*0.8-1).toFixed(1);}).join(' ');
   var col=hist[hist.length-1]>=hist[hist.length-2]?'var(--bull)':'var(--bear)';
-  return'<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="display:inline-block;vertical-align:middle;margin-left:6px"><polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+  return'<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="display:block;margin-top:6px"><polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round"/></svg>';
 }
 
 // ── Hjelpefunksjoner ─────────────────────────────────────────────
