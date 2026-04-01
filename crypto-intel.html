@@ -22,74 +22,86 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .panel{display:none}.panel.active{display:block}
 .main{padding:18px 20px;max-width:1600px;margin:0 auto}
 .card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:16px 18px}
-.ct{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:12px}
+.ct{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:10px}
 .sh{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .sh-t{font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
 .sh-b{font-size:10px;font-family:'DM Mono',monospace;color:var(--m);background:var(--s2);padding:2px 7px;border-radius:4px;border:1px solid var(--b)}
 .sh-b.bull{color:var(--bull);background:var(--bbg);border-color:var(--bull)}
 .sh-b.bear{color:var(--bear);background:var(--rbg);border-color:var(--bear)}
 .sh-b.warn{color:var(--warn);background:var(--wbg);border-color:var(--warn)}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
-.snum{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;margin:6px 0 2px}
-.snum.bull{color:var(--bull)}.snum.bear{color:var(--bear)}.snum.warn{color:var(--warn)}
-.slabel{font-size:11px;color:var(--m)}
 .loading{padding:40px;text-align:center;color:var(--m);font-size:13px}
 .spinner{width:26px;height:26px;border:2px solid var(--b);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
+.up{color:var(--bull)}.dn{color:var(--bear)}
+
+/* MOOD BANNER */
+.mood-banner{border-radius:10px;padding:18px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.mood-emoji{font-size:40px;flex-shrink:0}
+.mood-title{font-size:20px;font-weight:700;margin-bottom:3px}
+.mood-sub{font-size:13px;opacity:.85;line-height:1.5}
+.mood-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.mbadge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;border:1px solid}
+
+/* SIGNAL CARDS (3-grid on overview) */
+.sig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.sig-card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px 16px}
+.sig-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:6px}
+.sig-val{font-size:22px;font-weight:700;margin-bottom:4px}
+.sig-desc{font-size:12px;color:var(--m);line-height:1.4}
 
 /* PRICE CARDS */
 .pcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
-.pc{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px 16px;position:relative}
-.pc-icon{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:var(--m);margin-bottom:4px}
+.pc{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px 16px}
+.pc-ticker{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:var(--m);margin-bottom:3px}
 .pc-name{font-size:12px;font-weight:600;margin-bottom:6px}
-.pc-price{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;margin-bottom:4px}
-.pc-chg{font-family:'DM Mono',monospace;font-size:11px;display:flex;gap:8px;flex-wrap:wrap}
-.up{color:var(--bull)}.dn{color:var(--bear)}
+.pc-price{font-family:'DM Mono',monospace;font-size:17px;font-weight:600;margin-bottom:6px}
+.pc-today{font-size:13px;font-weight:600;margin-bottom:4px}
+.pc-sub{font-size:11px;color:var(--m)}
 
-/* DOMINANCE BAR */
-.dom-bar{height:12px;background:var(--b2);border-radius:6px;overflow:hidden;display:flex;margin:8px 0 4px}
-.dom-seg{height:100%;transition:width .3s}
-.dom-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--m);margin-top:4px}
-.dom-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
+/* DOMINANCE */
+.dom-bar{height:14px;background:var(--b2);border-radius:7px;overflow:hidden;display:flex;margin:10px 0 6px}
+.dom-seg{height:100%}
+.dom-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--m)}
+.dom-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
 
-/* FEAR GREED */
-.fg-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0}
-.fg-num{font-family:'DM Mono',monospace;font-size:48px;font-weight:500}
-.fg-label{font-size:13px;margin-top:4px}
-.fg-bar{width:100%;height:8px;border-radius:4px;background:linear-gradient(to right,#f85149,#d29922,#3fb950);margin:10px 0 4px;position:relative}
-.fg-needle{position:absolute;top:-4px;width:4px;height:16px;background:var(--t);border-radius:2px;transform:translateX(-50%)}
-.fg-history{display:flex;gap:3px;align-items:flex-end;height:30px;margin-top:8px}
-.fg-bar2{width:14px;border-radius:2px 2px 0 0;min-height:4px}
+/* FEAR & GREED */
+.fg-num{font-family:'DM Mono',monospace;font-size:52px;font-weight:500;line-height:1}
+.fg-bar{width:100%;height:10px;border-radius:5px;background:linear-gradient(to right,#f85149 0%,#d29922 40%,#3fb950 100%);margin:12px 0 5px;position:relative}
+.fg-needle{position:absolute;top:-5px;width:4px;height:20px;background:var(--t);border-radius:2px;transform:translateX(-50%)}
+.fg-hist{display:flex;gap:4px;align-items:flex-end;height:32px;margin-top:10px}
+.fg-b{border-radius:2px 2px 0 0;min-height:4px;width:16px}
 
-/* CORRELATION */
-.corr-table{width:100%;border-collapse:collapse;font-size:13px}
-.corr-table th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);padding:8px 12px;text-align:left}
-.corr-table td{padding:10px 12px;border-top:1px solid var(--b)}
-.corr-val{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;padding:4px 10px;border-radius:4px}
-.corr-bar{height:4px;border-radius:2px;margin-top:4px}
-.corr-desc{font-size:11px;color:var(--m);margin-top:2px}
+/* EXPLANATION BOX */
+.explain{background:var(--s2);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;padding:10px 14px;font-size:12px;color:var(--m);line-height:1.6;margin-top:10px}
+.explain strong{color:var(--t)}
 
-/* COT */
-.cot-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
-.cbt{height:8px;background:var(--b2);border-radius:4px;overflow:hidden;margin-top:8px}
-.cbf{height:100%;border-radius:4px;transition:width .3s}
+/* INSIGHT CARDS (correlations) */
+.insight-card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px}
+.insight-icon{font-size:24px;flex-shrink:0;margin-top:2px}
+.insight-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.insight-body{font-size:12px;color:var(--m);line-height:1.5}
+.insight-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid;margin-top:6px}
+
+/* COT SIMPLIFIED */
+.cot-verdict{border-radius:10px;padding:20px;text-align:center;margin-bottom:16px}
+.cot-verdict-emoji{font-size:44px;margin-bottom:8px}
+.cot-verdict-title{font-size:20px;font-weight:700;margin-bottom:6px}
+.cot-verdict-sub{font-size:13px;opacity:.85}
+.cbt{height:10px;background:var(--b2);border-radius:5px;overflow:hidden;margin:6px 0}
+.cbf{height:100%;border-radius:5px}
 
 /* NEWS */
 .news-item{padding:12px 0;border-bottom:1px solid var(--b);display:flex;flex-direction:column;gap:4px}
 .news-item:last-child{border-bottom:none}
-.news-title{font-size:13px;font-weight:500;line-height:1.4}
-.news-title a{color:var(--t);text-decoration:none}
-.news-title a:hover{color:var(--blue);text-decoration:underline}
+.news-title a{color:var(--t);text-decoration:none;font-size:13px;font-weight:500;line-height:1.4}
+.news-title a:hover{color:var(--blue)}
 .news-meta{font-size:11px;color:var(--m);display:flex;gap:8px;flex-wrap:wrap}
-.news-cat{font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;background:var(--blbg);color:var(--blue)}
+.news-cat{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;background:var(--blbg);color:var(--blue)}
 
-/* SPARKLINE */
-.spark{display:inline-block;vertical-align:middle}
-
-@media(max-width:900px){.g4,.g3{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.g4,.g3,.g2{grid-template-columns:1fr}.pcg{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.g3,.sig-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.g3,.g2,.sig-grid{grid-template-columns:1fr}.pcg{grid-template-columns:1fr 1fr}.mood-emoji{font-size:30px}.fg-num{font-size:40px}}
 </style>
 </head>
 <body>
@@ -99,42 +111,40 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   <div class="upd" id="upd">-</div>
 </header>
 <nav class="nav">
-  <button class="nt active" data-tab="marked">💰 Markedsoversikt</button>
-  <button class="nt" data-tab="korr">🔗 Korrelasjoner</button>
-  <button class="nt" data-tab="cot">📊 COT Futures</button>
+  <button class="nt active" data-tab="marked">💡 Markedsbildet</button>
+  <button class="nt" data-tab="korr">🔍 Signaler</button>
+  <button class="nt" data-tab="cot">🏦 Store investorer</button>
   <button class="nt" data-tab="nyheter">📰 Nyheter</button>
 </nav>
 <div class="main">
 
-  <!-- MARKEDSOVERSIKT -->
+  <!-- MARKEDSBILDET -->
   <div class="panel active" id="panel-marked">
-    <div class="sh"><div class="sh-t">Krypto Markedsoversikt</div><div class="sh-b" id="mktDate">-</div></div>
-    <div class="g4" id="mktStats"></div>
-    <div class="sh" style="margin-top:4px"><div class="sh-t" style="font-size:14px">Priser</div></div>
+    <div id="moodBanner"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+    <div class="sig-grid" id="sigGrid"></div>
+    <div class="ct" style="margin-bottom:8px">Priser akkurat nå</div>
     <div class="pcg" id="priceGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
-    <div class="g2" style="margin-top:8px">
+    <div class="g2">
       <div class="card">
-        <div class="ct">Markedsdominans</div>
-        <div id="domBar"><div class="loading" style="padding:20px">Laster...</div></div>
+        <div class="ct">Hvem er størst?</div>
+        <div id="domBar"></div>
       </div>
       <div class="card">
-        <div class="ct">Krypto Fear &amp; Greed</div>
-        <div class="fg-wrap" id="fgWrap"><div class="loading" style="padding:20px">Laster...</div></div>
+        <div class="ct">Stemningsindeks (0–100)</div>
+        <div id="fgWrap"></div>
       </div>
     </div>
   </div>
 
-  <!-- KORRELASJONER -->
+  <!-- SIGNALER -->
   <div class="panel" id="panel-korr">
-    <div class="sh"><div class="sh-t">Makro-korrelasjoner</div><div class="sh-b">30-dagers Pearson</div></div>
-    <p style="font-size:12px;color:var(--m);margin-bottom:16px">Positiv korrelasjon mot SPX = krypto følger risikoappetitten. Negativ mot DXY = BTC svekkes når dollar styrkes. Høy ETH/BTC-korrelasjon = altseason lite sannsynlig.</p>
+    <div class="sh"><div class="sh-t">Signaler & Sammenhenger</div></div>
     <div id="corrGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
   </div>
 
-  <!-- COT FUTURES -->
+  <!-- STORE INVESTORER -->
   <div class="panel" id="panel-cot">
-    <div class="sh"><div class="sh-t">Bitcoin CME Futures – COT</div><div class="sh-b" id="cotDate">-</div></div>
-    <p style="font-size:12px;color:var(--m);margin-bottom:16px">CFTC Commitments of Traders for Bitcoin-futures på CME. Viser institusjonelle spekulanters netto-posisjon. Høy netto-long = institusjonell etterspørsel.</p>
+    <div class="sh"><div class="sh-t">Hva gjør de store investorene?</div><div class="sh-b" id="cotDate">-</div></div>
     <div id="cotGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
   </div>
 
