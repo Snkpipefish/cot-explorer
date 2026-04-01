@@ -125,6 +125,21 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   .ship-route-grid{grid-template-columns:1fr!important}
   .ship-route-impact{display:none}
 }
+/* ── Dashboard Oversikt ───────────────────────────────────────── */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:6px}
+.dash-card{background:var(--s);border:1px solid var(--b);border-radius:10px;padding:18px 20px;cursor:pointer;transition:border-color .15s,transform .1s;display:flex;flex-direction:column;gap:0}
+.dash-card:hover{border-color:var(--blue);transform:translateY(-1px)}
+.dash-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dash-icon{font-size:22px}
+.dash-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid;white-space:nowrap}
+.dash-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.dash-metric{font-size:26px;font-weight:700;font-family:'DM Mono',monospace;margin-bottom:4px;line-height:1}
+.dash-sub{font-size:12px;color:var(--m);line-height:1.4;margin-bottom:10px}
+.dash-bullets{list-style:none;padding:0;margin-bottom:12px}
+.dash-bullets li{font-size:12px;color:var(--m);padding:2px 0;padding-left:14px;position:relative}
+.dash-bullets li::before{content:'·';position:absolute;left:0;color:var(--blue)}
+.dash-link{font-size:11px;color:var(--blue);font-weight:600;margin-top:auto;align-self:flex-start}
+@media(max-width:600px){.dash-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -136,7 +151,8 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 </div>
 
 <nav class="nav">
-  <button class="nt active" data-tab="map">🗺️ Geo-Intel Kart</button>
+  <button class="nt active" data-tab="oversikt">🏠 Oversikt</button>
+  <button class="nt" data-tab="map">🗺️ Geo-Intel Kart</button>
   <button class="nt" data-tab="comex">🏦 COMEX Lager</button>
   <button class="nt" data-tab="intel">📰 Intel Feed</button>
   <button class="nt" data-tab="cot">📊 Råvare COT</button>
@@ -147,8 +163,19 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 
 <div class="main">
 
+  <!-- OVERSIKT DASHBOARD -->
+  <div class="panel active" id="panel-oversikt">
+    <div class="sh">
+      <div class="sh-t">Råvare Dashboard</div>
+      <div class="sh-b" id="dashDate">-</div>
+    </div>
+    <div class="dash-grid" id="dashGrid">
+      <div class="loading">Laster dashboard...</div>
+    </div>
+  </div>
+
   <!-- MAP PANEL -->
-  <div class="panel active" id="panel-map">
+  <div class="panel" id="panel-map">
     <div class="map-wrap">
       <div style="position:relative;height:100%">
         <div id="map" style="height:100%;border-radius:8px"></div>
