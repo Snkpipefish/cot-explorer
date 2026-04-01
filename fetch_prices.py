@@ -196,6 +196,17 @@ macro = {
     "calendar":       [],
 }
 
+# Bevar eksisterende data som fetch_all.py har beregnet (trading_levels, calendar, etc.)
+try:
+    with open(OUT) as f:
+        existing = json.load(f)
+    for key in ("trading_levels", "calendar", "cot_date", "macro_indicators",
+                "vix_term_structure", "correlations", "session_ranges", "sentiment"):
+        if existing.get(key):
+            macro[key] = existing[key]
+except Exception:
+    pass
+
 with open(OUT, "w") as f:
     json.dump(macro, f, ensure_ascii=False, indent=2)
 print(f"\nOK → {OUT}")
