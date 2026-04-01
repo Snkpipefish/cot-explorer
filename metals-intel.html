@@ -377,22 +377,19 @@ function loadDashboard(){
 
     // 2. COMEX Lager
     if(comex){
-      var metals=['gold','silver','copper'];
-      var worst=null, worstStress=0;
-      metals.forEach(function(m){
-        var s=(comex[m]||{}).stress||0;
-        if(s>worstStress){worstStress=s;worst=m;}
-      });
+      var si=comex.stress_index||{};
+      var gS=si.gold||0, svS=si.silver||0, cuS=si.copper||0;
+      var worstStress=Math.max(gS,svS,cuS);
       var cxCol=worstStress>=70?'var(--bear)':worstStress>=40?'var(--warn)':'var(--bull)';
       var cxBg=worstStress>=70?'var(--rbg)':worstStress>=40?'var(--wbg)':'var(--bbg)';
       var cxBadge=worstStress>=70?'HØY STRESS':worstStress>=40?'MODERAT':'NORMAL';
       cards+=dashCard('🏦','COMEX Lager','comex',
         cxBadge, cxCol, cxBg,
-        worstStress+'', cxCol,
+        worstStress.toFixed(1)+'', cxCol,
         'Høyeste stress-indeks (0=trygg · 100=kritisk)',
-        ['Gull stress: '+((comex.gold||{}).stress||'?'),
-         'Sølv stress: '+((comex.silver||{}).stress||'?'),
-         'Kobber stress: '+((comex.copper||{}).stress||'?')]);
+        ['Gull stress: '+gS.toFixed(1),
+         'Sølv stress: '+svS.toFixed(1),
+         'Kobber stress: '+cuS.toFixed(1)]);
     }
 
     // 3. Intel Feed
