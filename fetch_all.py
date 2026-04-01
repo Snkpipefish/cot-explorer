@@ -67,6 +67,8 @@ STOOQ_MAP = {
     "^VIX":      "^vix",
     "DX-Y.NYB":  "dxy.f",
     "HG=F":      "hg.f",       # Kobber
+    "CHF=X":     "usdchf",     # USD/CHF
+    "NOK=X":     "usdnok",     # USD/NOK
     "HYG":       "hyg.us",
     "TIP":       "tip.us",
     "EEM":       "eem.us",
@@ -650,17 +652,19 @@ def fetch_macro_indicators():
     # ETF og råvarer via Twelvedata (fallback Yahoo)
     for key in ["HYG", "TIP", "Copper", "EEM"]:
         sym = MACRO_SYMBOLS[key]
-        daily = fetch_prices(sym, "1d", "30d")
+        daily = fetch_prices(sym, "1d", "1y")
         if not daily or len(daily) < 6:
             out[key] = None
             continue
         curr = daily[-1][2]
-        c5   = daily[-6][2] if len(daily) >= 6 else curr
-        c1   = daily[-2][2] if len(daily) >= 2 else curr
+        c1   = daily[-2][2]  if len(daily) >= 2  else curr
+        c5   = daily[-6][2]  if len(daily) >= 6  else curr
+        c20  = daily[-21][2] if len(daily) >= 21 else curr
         out[key] = {
             "price":  round(curr, 4 if curr < 10 else 2),
-            "chg1d":  round((curr / c1 - 1) * 100, 2),
-            "chg5d":  round((curr / c5 - 1) * 100, 2),
+            "chg1d":  round((curr / c1  - 1) * 100, 2),
+            "chg5d":  round((curr / c5  - 1) * 100, 2),
+            "chg20d": round((curr / c20 - 1) * 100, 2),
         }
     return out
 
@@ -764,17 +768,22 @@ for inst in INSTRUMENTS:
 
     curr     = daily[-1][2]
     # Bruk siste 15m close hvis tilgjengelig (mer oppdatert)
+    # Når 15m-pris brukes som curr, bruk daily[-1] som c1 (gårsdagens sluttkurs)
+    # slik at chg1d = endring fra gårsdagens daglige close → i dag
     if rows_15m and len(rows_15m) > 0:
         curr = rows_15m[-1][2]
+        c1  = daily[-1][2] if len(daily)>=1  else curr
+        c5  = daily[-5][2] if len(daily)>=5  else curr
+        c20 = daily[-20][2] if len(daily)>=20 else curr
+    else:
+        c1  = daily[-2][2] if len(daily)>=2  else curr
+        c5  = daily[-6][2] if len(daily)>=6  else curr
+        c20 = daily[-21][2] if len(daily)>=21 else curr
 
     atr_d    = calc_atr(daily, 14)
     atr_15m  = calc_atr(rows_15m, 14) if len(rows_15m) >= 15 else None
     atr_4h   = calc_atr(h4, 14) if len(h4) >= 15 else None
     sma200   = sum(r[2] for r in daily[-200:]) / min(200, len(daily))
-
-    c1  = daily[-2][2] if len(daily)>=2  else curr
-    c5  = daily[-6][2] if len(daily)>=6  else curr
-    c20 = daily[-21][2] if len(daily)>=21 else curr
     prices[inst["key"]] = {
         "price":  round(curr, 4 if curr<100 else 2),
         "chg1d":  round((curr/c1-1)*100,  2),
