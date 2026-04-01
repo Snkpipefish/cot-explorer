@@ -24,11 +24,6 @@ python3 fetch_prices.py >> "$LOG" 2>&1 \
     && echo "  priser OK" >> "$LOG" \
     || echo "  priser FEIL" >> "$LOG"
 
-# Kjør analyse på nytt med oppdaterte priser
-python3 fetch_all.py >> "$LOG" 2>&1 \
-    && echo "  analyse OK" >> "$LOG" \
-    || echo "  analyse FEIL" >> "$LOG"
-
 # Oppdater olje & gass med bot-priser
 python3 fetch_oilgas.py >> "$LOG" 2>&1 \
     && echo "  oilgas OK" >> "$LOG" \
