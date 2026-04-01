@@ -5,6 +5,19 @@
 set -e
 cd "$(dirname "$0")"
 
+# Last inn miljøvariabler (FRED_API_KEY, TWELVEDATA_API_KEY, FINNHUB_API_KEY, osv.)
+# systemd laster ikke ~/.bashrc automatisk, så vi gjør det eksplisitt her
+if [ -f "$HOME/.cot-env" ]; then
+    set -a
+    source "$HOME/.cot-env"
+    set +a
+elif [ -f "$HOME/.bashrc" ]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$HOME/.bashrc" 2>/dev/null || true
+    set +a
+fi
+
 # Synk med origin før vi begynner
 git fetch origin main 2>/dev/null && git rebase origin/main 2>/dev/null || true
 
