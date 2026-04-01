@@ -1432,8 +1432,19 @@ macro = {
     "session_ranges":      session_ranges,
 }
 
+if len(levels) == 0:
+    try:
+        with open(OUT) as f:
+            existing = json.load(f)
+        old_levels = existing.get("trading_levels", {})
+        if old_levels:
+            macro["trading_levels"] = old_levels
+            print(f"\nADVARSEL: 0 instrumenter hentet — beholder eksisterende trading_levels ({len(old_levels)} stk)")
+    except Exception:
+        pass
+
 with open(OUT,"w") as f:
     json.dump(macro, f, ensure_ascii=False, indent=2)
-print(f"\nOK → {OUT}  ({len(levels)} instruments)")
+print(f"\nOK → {OUT}  ({len(macro['trading_levels'])} instruments)")
 if conflicts:
     print("Konflikter:"); [print(f"  ⚠️  {c}") for c in conflicts]
