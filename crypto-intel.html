@@ -219,6 +219,7 @@ function fp(n){return(n>0?'+':'')+n.toFixed(2)+'%';}
 function fm(n){if(!n&&n!==0)return'-';var a=Math.abs(n);if(a>=1e12)return(n/1e12).toFixed(2)+'T';if(a>=1e9)return(n/1e9).toFixed(1)+'B';if(a>=1e6)return(n/1e6).toFixed(1)+'M';return String(Math.round(n));}
 function cc(n){return n>0?'bull':n<0?'bear':'neutral';}
 
+function toNO(str){if(!str||str==='-')return str||'-';var m=str.match(/(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);if(!m)return str;try{var dt=new Date(m[1]+'T'+m[2]+':00Z');return dt.toLocaleString('nb-NO',{timeZone:'Europe/Oslo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return str;}}
 function fmtPrice(v){
   if(!v&&v!==0)return'-';
   if(v>=1000)return v.toLocaleString('no-NO',{maximumFractionDigits:0});
@@ -273,8 +274,8 @@ function corrText(v){
 }
 
 function renderAll(d){
-  document.getElementById('upd').textContent='Oppdatert: '+d.updated;
-  document.getElementById('newsDate').textContent=d.updated||'-';
+  document.getElementById('upd').textContent='Oppdatert: '+toNO(d.updated);
+  document.getElementById('newsDate').textContent=toNO(d.updated)||'-';
   document.getElementById('cotDate').textContent='Data per '+(d.cot_btc&&d.cot_btc.date||'-');
 
   var mkt=d.market||{}, fg=d.fear_greed||{}, prices=d.prices||{};
@@ -448,7 +449,7 @@ function renderAll(d){
 }
 
 function renderDashboard(d){
-  document.getElementById('dashDate').textContent=d.updated||'-';
+  document.getElementById('dashDate').textContent=toNO(d.updated)||'-';
   var mkt=d.market||{}, fg=d.fear_greed||{}, prices=d.prices||{};
   var fgScore=fg.score||0, btc=prices.BTC||{};
   var btcChg1d=btc.chg1d||0;

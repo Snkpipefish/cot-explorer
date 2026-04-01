@@ -346,6 +346,7 @@ var cotOpen={aksjer:true};
 var SIG_LABEL={'bull-strong':'Kjøper sterkt','bull-mild':'Svakt bullish','neutral':'Nøytral','bear-mild':'Svakt bearish','bear-strong':'Selger sterkt'};
 
 function fm(n){if(n==null)return'-';var a=Math.abs(n);if(a>=1e6)return(n>0?'':'-')+(a/1e6).toFixed(2)+'M';if(a>=1e3)return(n>0?'':'-')+(a/1e3).toFixed(1)+'K';return String(Math.round(n));}
+function toNO(str){if(!str||str==='-')return str||'-';var m=str.match(/(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);if(!m)return str;try{var dt=new Date(m[1]+'T'+m[2]+':00Z');return dt.toLocaleString('nb-NO',{timeZone:'Europe/Oslo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return str;}}
 function fp(n){return(n>0?'+':'')+n.toFixed(2)+'%';}
 function cc(n){return n>0?'bull':n<0?'bear':'neutral';}
 function fmtP(v){if(!v)return'-';return v>100?v.toFixed(2):v.toFixed(5);}
@@ -488,7 +489,7 @@ function renderDashboard(macro,signals,logData,cotData){
       }));
   }
 
-  document.getElementById('dashDate').textContent=macro?macro.date||'-':'-';
+  document.getElementById('dashDate').textContent=macro?toNO(macro.date)||'-':'-';
   document.getElementById('dashGrid').innerHTML=cards||'<div class="loading">Ingen data</div>';
 }
 
@@ -558,7 +559,7 @@ function renderMakro(m){
   var rch='';
   rc.forEach(function(x){rch+='<div class="card"><div class="ct">'+x[0]+'</div><div class="snum" style="font-size:20px">'+x[1]+'</div><div class="slabel" style="margin-top:4px;color:var(--'+x[2]+')">'+x[2].toUpperCase()+'</div></div>';});
   document.getElementById('macroRente').innerHTML=rch;
-  document.getElementById('upd').textContent='Oppdatert: '+m.date;
+  document.getElementById('upd').textContent='Oppdatert: '+toNO(m.date);
 
   // VIX term-struktur
   var vts=m.vix_term_structure;
