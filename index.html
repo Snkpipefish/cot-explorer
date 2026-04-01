@@ -471,7 +471,7 @@ function renderDashboard(macro,signals,logData,cotData){
       high.length+' HIGH IMPACT', 'var(--bear)', 'var(--rbg)',
       high.length+'', 'var(--bear)',
       'Viktige hendelser denne uken',
-      high.slice(0,3).map(function(e){return e.date+' – '+e.name+' ('+e.currency+')';}));
+      high.slice(0,3).map(function(e){return (e.cet||e.date)+' – '+e.title+' ('+e.country+')';}));
   }
 
   // 6. Priser
