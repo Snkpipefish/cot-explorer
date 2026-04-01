@@ -197,6 +197,16 @@ canvas#cotChart{width:100%!important;height:300px!important}
 .loading{padding:40px;text-align:center;color:var(--m);font-size:13px}
 .spinner{width:26px;height:26px;border:2px solid var(--b);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* FORKLARING-BOKS */
+.why-box{background:var(--s2);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0 0}
+.why-dir{font-size:15px;font-weight:700;margin-bottom:6px}
+.why-line{font-size:13px;line-height:1.6;color:var(--t);margin-bottom:8px}
+.why-warn{font-size:12px;color:var(--warn);margin-bottom:8px;line-height:1.5}
+.why-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.why-tag{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;border:1px solid}
+.why-tag.bull{background:var(--bbg);color:var(--bull);border-color:var(--bull)}
+.why-tag.bear{background:var(--rbg);color:var(--bear);border-color:var(--bear)}
+.why-tag.info{background:var(--blbg);color:var(--blue);border-color:var(--blue)}
 footer{border-top:1px solid var(--b);padding:12px 20px;font-size:11px;color:var(--m);display:flex;gap:16px;flex-wrap:wrap;margin-top:28px}
 footer a{color:var(--blue);text-decoration:none}
 @media(max-width:900px){.g4,.g3{grid-template-columns:1fr 1fr}.g21{grid-template-columns:1fr}.setup-grid{grid-template-columns:1fr}.levels-section{grid-template-columns:1fr 1fr}.tmeta{grid-template-columns:1fr 1fr}}
@@ -651,6 +661,73 @@ function renderSetupSide(setup, type, nearLevels){
     '<div style="font-size:11px;color:var(--m);margin-top:8px">'+setup.note+'</div>';
 }
 
+// ── Plain-language forklaring per setup ─────────────────────────────
+var SCORE_NO = {
+  'Over SMA200 (D1 trend)':                    {t:'Over 200-dagers trend',        c:'bull'},
+  'Momentum 20d bekrefter retning':            {t:'Momentum peker riktig vei',     c:'bull'},
+  'COT bekrefter retning':                     {t:'Store tradere enige',           c:'bull'},
+  'COT sterk posisjonering (>10% av OI)':      {t:'Sterk institusjonell kjøp/salg',c:'bull'},
+  'Pris VED HTF-nivå nå':                      {t:'Pris på viktig nivå akkurat nå',c:'info'},
+  'HTF-nivå D1/Ukentlig i nærheten':           {t:'Sterkt ukentlig/daglig nivå',   c:'info'},
+  'D1 + 4H trend kongruent (EMA9)':            {t:'Daglig og 4H-trend peker likt', c:'bull'},
+  'Ingen event-risiko (4t)':                   {t:'Ingen store nyheter',           c:'info'},
+  'Nyhetssentiment bekrefter retning':         {t:'Nyheter støtter retningen',     c:'bull'},
+  'Fundamental (FRED) bekrefter retning':      {t:'Makrotall støtter retningen',   c:'bull'},
+  'BOS 1H/4H bekrefter retning':               {t:'Markedsstruktur brutt riktig',  c:'bull'},
+  'SMC 1H markedsstruktur bekrefter retning':  {t:'Aktiv kjøps/salgsone',          c:'info'},
+};
+
+function buildExplain(lv){
+  var dir=lv.dir_color, cot=lv.cot||{}, tf=lv.timeframe_bias||'SWING';
+  var sd=lv.score_details||[], brisk=filterRisk(lv.binary_risk||[]);
+  if(!dir||dir==='neutral')return'';
+
+  var dirNorsk=dir==='bull'?'stige':'falle';
+  var dirEmoji=dir==='bull'?'📈':'📉';
+  var dirLabel=dir==='bull'?'KJØP':'SALG';
+  var dirCol=dir==='bull'?'var(--bull)':'var(--bear)';
+  var tfWord={MAKRO:'over uker til måneder',SWING:'de neste dagene til uker',SCALP:'intradag (timer til dager)',WATCHLIST:'på sikt (ikke aktiv nå)'}[tf]||'snart';
+  var grade=lv.grade||'?', score=lv.score||0;
+  var gradeWord={A+':'veldig sterk signal',A:'sterk signal',B:'middels signal',C:'svakt signal'}[grade]||'signal';
+
+  // Main sentence
+  var main=lv.name+' ser ut til å <strong>'+dirNorsk+'</strong> '+tfWord+'. Samlet styrke: <strong>'+score+'/12</strong> — '+gradeWord+'.';
+
+  // Top 3 true criteria as tags
+  var trueTags=sd.filter(function(s){return s.verdi;}).slice(0,4).map(function(s){
+    var info=SCORE_NO[s.kryss]||{t:s.kryss,c:'info'};
+    return'<span class="why-tag '+info.c+'">✓ '+info.t+'</span>';
+  }).join('');
+
+  // False (missing) criteria — show top 2 so user knows what's lacking
+  var falseTags=sd.filter(function(s){return !s.verdi;}).slice(0,2).map(function(s){
+    var info=SCORE_NO[s.kryss]||{t:s.kryss,c:'info'};
+    return'<span class="why-tag" style="background:var(--s);color:var(--m);border-color:var(--b2);opacity:.7">✗ '+info.t+'</span>';
+  }).join('');
+
+  // COT sentence
+  var cotLine='';
+  if(cot.bias){
+    var cotDir=cot.bias.toLowerCase().includes('bull')||cot.bias.toLowerCase().includes('long');
+    var agrees=(cotDir&&dir==='bull')||(!cotDir&&dir==='bear');
+    cotLine='Store profesjonelle tradere (CFTC) '+(agrees?'<strong style="color:var(--bull)">støtter</strong>':'<strong style="color:var(--bear)">motarbeider</strong>')+' denne retningen akkurat nå.';
+  }
+
+  // Warning
+  var warnLine='';
+  if(brisk.length){
+    warnLine='<div class="why-warn">⚠️ <strong>Nyhetsvarsling:</strong> '+brisk[0].title+' ('+brisk[0].cet+') — kan gi plutselige bevegelser. Vurder å vente eller redusere størrelse.</div>';
+  }
+
+  return '<div class="why-box">'+
+    '<div class="why-dir" style="color:'+dirCol+'">'+dirEmoji+' '+dirLabel+'</div>'+
+    '<div class="why-line">'+main+'</div>'+
+    (cotLine?'<div class="why-line" style="font-size:12px;color:var(--m)">'+cotLine+'</div>':'')+
+    warnLine+
+    '<div class="why-tags">'+trueTags+falseTags+'</div>'+
+  '</div>';
+}
+
 function renderIdeer(m){
   var lvs=m.trading_levels||{};
   var arr=Object.values(lvs);
@@ -667,10 +744,10 @@ function renderIdeer(m){
   var makro=arr.filter(function(l){return l.timeframe_bias==='MAKRO';}).length;
 
   document.getElementById('ideStats').innerHTML=
-    '<div class="card"><div class="ct">A+ Setups</div><div class="snum bull">'+aplus+'</div><div class="slabel">Score 11-12/12</div></div>'+
-    '<div class="card"><div class="ct">B Setups</div><div class="snum warn">'+bgrade+'</div><div class="slabel">Score 6-8/12</div></div>'+
-    '<div class="card"><div class="ct">MAKRO Setups</div><div class="snum bull">'+makro+'</div><div class="slabel">COT + HTF struktur</div></div>'+
-    '<div class="card"><div class="ct">Binar risiko</div><div class="snum bear">'+risk+'</div><div class="slabel">High impact neste 4t</div></div>';
+    '<div class="card"><div class="ct">Sterke signaler (A+)</div><div class="snum bull">'+aplus+'</div><div class="slabel">11–12 av 12 kriterier</div></div>'+
+    '<div class="card"><div class="ct">Moderate signaler (B)</div><div class="snum warn">'+bgrade+'</div><div class="slabel">6–8 av 12 kriterier</div></div>'+
+    '<div class="card"><div class="ct">Langsiktige signaler</div><div class="snum bull">'+makro+'</div><div class="slabel">Uker til måneder</div></div>'+
+    '<div class="card"><div class="ct">Nyhetsvarsling aktiv</div><div class="snum bear">'+risk+'</div><div class="slabel">Viktige nyheter snart</div></div>';
 
   if(!arr.length){document.getElementById('ideGrid').innerHTML='<div class="loading">Ingen data – kjor fetch_all.py</div>';return;}
 
@@ -738,13 +815,14 @@ function renderIdeer(m){
           (brisk.length?'<span class="trisk">⚠️ BINAR RISIKO</span>':'')+
         '</div>'+
         '<div id="tdet'+i+'" class="tdet">'+
-          briskHtml+
+          buildExplain(lv)+
+          (brisk.length?'':'')+ // briskHtml already in buildExplain
           '<div class="setup-grid">'+
             '<div class="setup-side">'+renderSetupSide(lv.setup_long,'LONG',lv.supports)+'</div>'+
             '<div class="setup-side">'+renderSetupSide(lv.setup_short,'SHORT',lv.resistances)+'</div>'+
           '</div>'+
           '<div class="score-section">'+
-            '<div class="ct">Konfluens-score ('+lv.score_pct+'%)</div>'+
+            '<div class="ct">Styrkeindikator — '+score+' av 12 kriterier oppfylt ('+lv.score_pct+'%)</div>'+
             '<div class="score-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:'+lv.score_pct+'%;background:'+(gc==='bull'?'var(--bull)':gc==='warn'?'var(--warn)':'var(--bear)')+'"></div></div></div>'+
             '<div class="score-items">'+scoreDots+'</div>'+
           '</div>'+
@@ -762,14 +840,14 @@ function renderIdeer(m){
             '</div>'+
           '</div>'+
           '<div class="tmeta">'+
-            '<div><div class="ml">COT Bias</div><div class="mv '+(cot.color||'neutral')+'">'+(cot.bias||'-')+'</div></div>'+
-            '<div><div class="ml">COT Trend</div><div class="mv '+(cot.momentum==='ØKER'?'bull':cot.momentum==='SNUR'?'warn':'neutral')+'">'+(cot.momentum||'-')+'</div></div>'+
-            '<div><div class="ml">DXY</div><div class="mv '+(lv.dxy_conf==='medvind'?'bull':'bear')+'">'+(lv.dxy_conf||'-')+'</div></div>'+
-            '<div><div class="ml">Posisjon</div><div class="mv warn">'+(lv.pos_size||'-')+'</div></div>'+
-            '<div><div class="ml">Spread-faktor</div><div class="mv">'+(lv.vix_spread_factor||'-')+'x</div></div>'+
+            '<div><div class="ml">Store tradere</div><div class="mv '+(cot.color||'neutral')+'">'+(cot.bias||'-')+'</div></div>'+
+            '<div><div class="ml">Trend i COT</div><div class="mv '+(cot.momentum==='ØKER'?'bull':cot.momentum==='SNUR'?'warn':'neutral')+'">'+(cot.momentum||'-')+'</div></div>'+
+            '<div><div class="ml">Dollar-effekt</div><div class="mv '+(lv.dxy_conf==='medvind'?'bull':'bear')+'">'+(lv.dxy_conf||'-')+'</div></div>'+
+            '<div><div class="ml">Anbefalt størrelse</div><div class="mv warn">'+(lv.pos_size||'-')+'</div></div>'+
+            '<div><div class="ml">Volatilitetsjustering</div><div class="mv">'+(lv.vix_spread_factor||'-')+'x</div></div>'+
           '</div>'+
           '<div class="tcotbar">'+
-            '<div class="ct">COT Spekulanter ('+(cot.report||'-')+' per '+(cot.date||'-')+')</div>'+
+            '<div class="ct">Profesjonelle tradere — posisjoner ('+(cot.report||'-')+' per '+(cot.date||'-')+')</div>'+
             '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">'+
               '<span>Netto: <strong class="'+(cot.color||'neutral')+'" style="font-family:monospace">'+(specNet>0?'+':'')+fm(specNet)+'</strong></span>'+
               '<span>Uke: <strong class="'+cc(cot.chg||0)+'" style="font-family:monospace">'+(cot.chg>0?'+':'')+fm(cot.chg||0)+'</strong></span>'+
