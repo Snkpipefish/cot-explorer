@@ -142,6 +142,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   <button class="nt" data-tab="cot">📊 Råvare COT</button>
   <button class="nt" data-tab="agri">🌾 Avlings-analyse</button>
   <button class="nt" data-tab="shipping">🚢 Shipping</button>
+  <button class="nt" data-tab="oilgas">⛽ Olje & Gass</button>
 </nav>
 
 <div class="main">
@@ -224,6 +225,15 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
     <div id="agriContent"><div class="loading">Laster avlingsdata...</div></div>
   </div>
 
+  <!-- OLJE & GASS PANEL -->
+  <div class="panel" id="panel-oilgas">
+    <div class="sh">
+      <div class="sh-t">⛽ Olje & Gass – Priser, COT og Markedssignal</div>
+      <div class="sh-b" id="oilgasDate">-</div>
+    </div>
+    <div id="oilgasContent"><div class="loading">Laster energidata...</div></div>
+  </div>
+
   <!-- SHIPPING PANEL -->
   <div class="panel" id="panel-shipping">
     <div class="sh">
@@ -263,7 +273,7 @@ function renderSeismicList(events){
 }
 
 // ── Tab navigation ──────────────────────────────────────────
-var cotLoaded = false, agriLoaded = false, shippingLoaded = false;
+var cotLoaded = false, agriLoaded = false, shippingLoaded = false, oilgasLoaded = false;
 document.querySelectorAll('.nt').forEach(function(btn){
   btn.addEventListener('click', function(){
     document.querySelectorAll('.nt').forEach(function(b){b.classList.remove('active');});
@@ -274,6 +284,7 @@ document.querySelectorAll('.nt').forEach(function(btn){
     if(btn.dataset.tab==='cot'      && !cotLoaded)      { cotLoaded=true;      loadCotTab();      }
     if(btn.dataset.tab==='agri'     && !agriLoaded)     { agriLoaded=true;     loadAgriTab();     }
     if(btn.dataset.tab==='shipping' && !shippingLoaded) { shippingLoaded=true; loadShippingTab(); }
+    if(btn.dataset.tab==='oilgas'   && !oilgasLoaded)  { oilgasLoaded=true;  loadOilgasTab();  }
   });
 });
 
@@ -874,6 +885,154 @@ function renderShipping(d){
     var CAT_COL = {
       'container':'#4fc3f7','tanker':'#e8a838','bulk':'var(--copper)',
       'chokepoint':'var(--bear)','port':'var(--warn)'
+    };
+    d.news.forEach(function(a){
+      var cc = CAT_COL[a.cat] || 'var(--m)';
+      h += '<div class="intel-item">';
+      h += '<div class="intel-title"><a href="'+a.url+'" target="_blank" rel="noopener">'+a.title+'</a></div>';
+      h += '<div class="intel-meta">';
+      h += '<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;border:1px solid '+cc+';color:'+cc+'">'+a.label.toUpperCase()+'</span>';
+      h += '<span>'+a.source+'</span><span>'+a.time+'</span>';
+      h += '</div></div>';
+    });
+  }
+
+  return h;
+}
+
+// ── Olje & Gass tab ───────────────────────────────────────────────
+function loadOilgasTab(){
+  loadJSON('data/oilgas/latest.json').then(function(d){
+    if(!d||!d.instruments){
+      document.getElementById('oilgasContent').innerHTML='<div class="loading">Ingen energidata – kjør update.sh</div>';
+      return;
+    }
+    document.getElementById('oilgasDate').textContent = d.generated || '-';
+    document.getElementById('oilgasContent').innerHTML = renderOilgas(d);
+  }).catch(function(){
+    document.getElementById('oilgasContent').innerHTML='<div class="loading">Feil ved lasting av energidata</div>';
+  });
+}
+
+function renderOilgas(d){
+  var RISK_COL  = {'HIGH':'var(--bear)','MEDIUM':'var(--warn)','LOW':'var(--bull)'};
+  var RISK_BG   = {'HIGH':'var(--rbg)', 'MEDIUM':'var(--wbg)', 'LOW':'var(--bbg)'};
+  var SIG_COL   = {
+    'STERKT BULLISH':'var(--bull)','BULLISH':'var(--bull)',
+    'NØYTRAL':'var(--m)',
+    'BEARISH':'var(--bear)','STERKT BEARISH':'var(--bear)'
+  };
+  var PSIG_COL  = {'bull':'var(--bull)','bull-mild':'var(--bull)','neutral':'var(--m)','bear-mild':'var(--bear)','bear':'var(--bear)'};
+  var h = '';
+
+  // ── Samlet status-banner ──
+  var sigCol  = SIG_COL[d.overall_signal]  || 'var(--m)';
+  var riskCol = RISK_COL[d.overall_risk]   || 'var(--m)';
+  var riskBg  = RISK_BG[d.overall_risk]    || 'var(--s2)';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">';
+  // Signal
+  h += '<div style="padding:12px 16px;background:var(--s2);border-radius:8px;border:1px solid '+sigCol+'">';
+  h += '<div style="font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Markedssignal</div>';
+  h += '<div style="font-size:16px;font-weight:700;color:'+sigCol+'">'+d.overall_signal+'</div>';
+  if(d.brent_wti_spread !== null && d.brent_wti_spread !== undefined){
+    h += '<div style="font-size:11px;color:var(--m);margin-top:4px">Brent–WTI spread: '+(d.brent_wti_spread>0?'+':'')+d.brent_wti_spread+' USD</div>';
+  }
+  h += '</div>';
+  // Risiko
+  h += '<div style="padding:12px 16px;background:'+riskBg+';border-radius:8px;border:1px solid '+riskCol+'">';
+  h += '<div style="font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Forstyrrelsesrisiko</div>';
+  h += '<div style="font-size:16px;font-weight:700;color:'+riskCol+'">'+d.overall_risk+'</div>';
+  var hN = d.segments.filter(function(s){return s.risk==='HIGH';}).length;
+  h += '<div style="font-size:11px;color:var(--m);margin-top:4px">'+hN+' HIGH av '+d.segments.length+' segmenter</div>';
+  h += '</div>';
+  h += '</div>';
+
+  // ── Instrumentkort: pris + COT ──
+  h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px">Energipriser & COT-posisjonering</div>';
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px">';
+  d.instruments.forEach(function(inst){
+    var p    = inst.price;
+    var cot  = inst.cot;
+    var sCol = SIG_COL[inst.signal] || 'var(--m)';
+    h += '<div class="card" style="border-top:3px solid '+sCol+'">';
+    // Label + signal
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    h += '<div style="font-size:11px;color:var(--m)">'+inst.label+'</div>';
+    h += '<div style="font-size:10px;font-weight:700;color:'+sCol+'">'+inst.signal+'</div>';
+    h += '</div>';
+    if(p){
+      var chgCol = p.chg1d >= 0 ? 'var(--bull)' : 'var(--bear)';
+      h += '<div style="font-size:22px;font-weight:700;font-family:\'DM Mono\',monospace">'+p.value+'</div>';
+      h += '<div style="font-size:11px;color:var(--m)">'+inst.unit+'</div>';
+      h += '<div style="font-size:12px;margin-top:5px">';
+      h += '<span style="color:'+chgCol+'">'+(p.chg1d>=0?'+':'')+p.chg1d+'%</span>';
+      h += '<span style="color:var(--m)"> 1d · </span>';
+      var devCol = PSIG_COL[p.signal] || 'var(--m)';
+      h += '<span style="color:'+devCol+'">'+(p.dev_ma>=0?'+':'')+p.dev_ma+'% MA20</span>';
+      h += '</div>';
+      h += '<div style="font-size:10px;color:var(--m);margin-top:2px">'+p.trend+'</div>';
+      // Sparkline
+      if(p.history && p.history.length > 2){
+        var mn=Math.min.apply(null,p.history), mx=Math.max.apply(null,p.history);
+        var rng=mx-mn||1, w2=90, h2=20;
+        var pts=p.history.map(function(v,i){
+          return (i/(p.history.length-1)*w2).toFixed(1)+','+(h2-(v-mn)/rng*h2).toFixed(1);
+        }).join(' ');
+        h += '<svg width="'+w2+'" height="'+h2+'" style="display:block;margin-top:6px;overflow:visible">';
+        h += '<polyline points="'+pts+'" fill="none" stroke="'+devCol+'" stroke-width="1.5" stroke-linejoin="round"/>';
+        h += '</svg>';
+      }
+    } else {
+      h += '<div style="font-size:13px;color:var(--m);margin-top:8px">Ikke tilgjengelig</div>';
+    }
+    // COT
+    if(cot){
+      var cotCol = cot.bias==='bull' ? 'var(--bull)' : 'var(--bear)';
+      h += '<div style="border-top:1px solid var(--b);margin-top:8px;padding-top:6px;font-size:11px">';
+      h += '<span style="color:var(--m)">COT: </span>';
+      h += '<span style="color:'+cotCol+';font-weight:600">'+(cot.bias==='bull'?'▲ LONG':'▼ SHORT')+'</span>';
+      h += ' <span style="color:var(--m)">'+(cot.net_pct>=0?'+':'')+cot.net_pct+'% av OI</span>';
+      h += ' <span style="color:'+cotCol+'">'+cot.momentum+'</span>';
+      h += '</div>';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // ── Segmentrisiko ──
+  h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px">Segment-risiko</div>';
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:24px">';
+  d.segments.forEach(function(s){
+    var rCol = RISK_COL[s.risk] || 'var(--m)';
+    var rBg  = RISK_BG[s.risk]  || 'var(--s2)';
+    h += '<div class="card" style="border-left:3px solid '+rCol+'">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">';
+    h += '<div style="font-weight:600;min-width:0;flex:1 1 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+s.ikon+' '+s.name+'</div>';
+    h += '<span style="flex-shrink:0;white-space:nowrap;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid '+rCol+';color:'+rCol+';background:'+rBg+'">'+s.risk+'</span>';
+    h += '</div>';
+    h += '<div style="font-size:11px;color:var(--blue);margin-bottom:6px">📈 '+s.impact+'</div>';
+    if(s.articles && s.articles.length){
+      h += '<div style="border-top:1px solid var(--b);padding-top:6px">';
+      s.articles.slice(0,2).forEach(function(art){
+        h += '<div style="font-size:11px;padding:3px 0">';
+        h += '<a href="'+art.url+'" target="_blank" rel="noopener" style="color:var(--t);text-decoration:none">'+art.title+'</a>';
+        h += ' <span style="color:var(--m);font-size:10px">'+art.time.substring(0,10)+'</span>';
+        h += '</div>';
+      });
+      h += '</div>';
+    } else {
+      h += '<div style="font-size:11px;color:var(--m)">Ingen relevante nyheter</div>';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // ── Nyhetsfeed ──
+  if(d.news && d.news.length){
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:10px">Energi-nyheter ('+d.news.length+')</div>';
+    var CAT_COL = {
+      'opec':'var(--gold)','prices':'var(--bull)','natgas':'#4fc3f7',
+      'geopolit':'var(--bear)','inventory':'var(--copper)'
     };
     d.news.forEach(function(a){
       var cc = CAT_COL[a.cat] || 'var(--m)';
