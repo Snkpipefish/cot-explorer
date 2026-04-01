@@ -722,15 +722,27 @@ if os.path.exists(cal_file):
     except:
         pass
 
+SPEECH_KEYWORDS = ('speak', 'speech', 'press conf', 'testim', 'statement', 'minutes', 'outlook', 'remarks')
+
 def get_binary_risk(instrument_key, hours=4):
     risks = []
     for ev in calendar_events:
         if ev.get('impact') != 'High': continue
         ha = ev.get('hours_away', 99)
-        if ha < 0 or ha > hours: continue
+        if ha > hours: continue  # for langt frem i tid
+        # Etter hendelsen: hold risiko aktiv i 60 min for taler/pressekonf, 30 min for resten
+        title_low = ev.get('title', '').lower()
+        is_speech = any(w in title_low for w in SPEECH_KEYWORDS)
+        expiry = -1.0 if is_speech else -0.5
+        if ha < expiry: continue  # hendelsen er utløpt
         berorte = ev.get('berorte', [])
         if instrument_key in berorte or not berorte:
-            risks.append({'title': ev['title'], 'cet': ev['cet'], 'country': ev['country']})
+            risks.append({
+                'title':   ev['title'],
+                'cet':     ev['cet'],
+                'country': ev['country'],
+                'past':    ha < 0,          # True = hendelsen har skjedd, er i avkjølingsperiode
+            })
     return risks
 
 # ── Last COT ──────────────────────────────────────────────
