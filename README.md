@@ -140,21 +140,19 @@ Dashboard med 4 kort som lenker til under-fanene:
 
 ## Workflow — automatisk oppdatering (systemd timer)
 
-`update.sh` kjøres 6× daglig via systemd timer:
+To timers kjører på serveren:
 
-| Tid (CET) |
-|-----------|
-| 00:00 |
-| 04:00 |
-| 08:00 |
-| 12:00 |
-| 16:00 |
-| 20:00 |
+**`cot-prices.timer`** — hvert hele time (XX:00)
+Kjører `update_prices.sh`: henter bot-priser → bygger `macro/latest.json` → kjører `fetch_all.py` → git push
+
+**`cot-explorer.timer`** — 6× daglig hverdager (00/04/08/12/16/20 CET)
+Kjører `update.sh`: full pipeline (se tabell under)
 
 `Persistent=true` sikrer at missede kjøringer kjøres automatisk ved oppstart.
 
 > Kjør manuelt: `bash ~/cot-explorer/update.sh`
 > Logg: `tail -f ~/cot-explorer/logs/update.log`
+> Prislogg: `tail -f ~/cot-explorer/logs/prices.log`
 
 ### Hva update.sh gjør (i rekkefølge)
 
@@ -164,17 +162,19 @@ Dashboard med 4 kort som lenker til under-fanene:
 | 1 | `fetch_calendar.py` | ForexFactory-kalender |
 | 2 | `fetch_cot.py` | CFTC COT-data |
 | 3 | `build_combined.py` | Kombinert COT-datasett |
-| 4 | `fetch_fundamentals.py` | FRED makrodata (maks 1× per 12t) |
-| 5 | `fetch_all.py` | Full analyse: priser, SMC, nivåer, score, setups, VIX, korrelasjoner, ADR |
-| 6 | `fetch_comex.py` | COMEX lagerbeholdning |
-| 7 | `fetch_seismic.py` | USGS seismiske data |
-| 8 | `fetch_intel.py` | Google News RSS for metaller |
-| 9 | `fetch_agri.py` | Vær + COT for 10 avlinger / 14 regioner |
-| 10 | `fetch_shipping.py` | Baltic-indekser + rute-scoring |
-| 11 | `fetch_oilgas.py` | Energipriser + segment-scoring |
-| 12 | `fetch_crypto.py` | Krypto-priser, Fear & Greed, COT, korrelasjoner |
-| 13 | `push_signals.py` | Genererer `signals.json`, pusher varsler |
-| 14 | git push | Oppdaterer GitHub Pages |
+| 4 | `fetch_ice_cot.py` | ICE Futures Europe COT (Brent, Gasoil, TTF) |
+| 5 | `fetch_euronext_cot.py` | Euronext MiFID II COT (hvete, raps, mais) |
+| 6 | `fetch_fundamentals.py` | FRED makrodata (maks 1× per 12t) |
+| 7 | `fetch_all.py` | Full analyse: priser, SMC, nivåer, score, setups, VIX, korrelasjoner, ADR |
+| 8 | `fetch_comex.py` | COMEX lagerbeholdning |
+| 9 | `fetch_seismic.py` | USGS seismiske data |
+| 10 | `fetch_intel.py` | Google News RSS for metaller |
+| 11 | `fetch_agri.py` | Vær + COT for 10 avlinger / 14 regioner |
+| 12 | `fetch_shipping.py` | Baltic-indekser + rute-scoring |
+| 13 | `fetch_oilgas.py` | Energipriser + segment-scoring |
+| 14 | `fetch_crypto.py` | Krypto-priser, Fear & Greed, COT, korrelasjoner |
+| 15 | `push_signals.py` | Genererer `signals.json`, pusher varsler |
+| 16 | git push | Oppdaterer GitHub Pages |
 
 ---
 
@@ -225,10 +225,12 @@ Dashboard med 4 kort som lenker til under-fanene:
 | `PUSH_MIN_SCORE` | Minimum konfluens-score (standard: 7) |
 | `PUSH_MAX_SIGNALS` | Maks antall signaler per kjøring (standard: 5) |
 | `FLASK_URL` | URL til signal_server.py |
-| `SCALP_API_KEY` | API-nøkkel til Flask `/push-alert` |
-| `FRED_API_KEY` | FRED makrodata |
+| `SCALP_API_KEY` | API-nøkkel til Flask `/push-alert` og `/push-prices` |
+| `FRED_API_KEY` | FRED makrodata (**påkrevd** — sett i `~/.cot-env`) |
 | `TWELVEDATA_API_KEY` | Forex + gull OHLC |
 | `FINNHUB_API_KEY` | Sanntidspris for indekser/råvarer |
+
+> Miljøvariabler lagres i `~/.cot-env` (chmod 600). `update.sh` sourcer denne filen automatisk slik at systemd-tjenesten får tilgang uten å laste `~/.bashrc`.
 
 ---
 
@@ -275,20 +277,25 @@ Dashboard med 4 kort som lenker til under-fanene:
 
 ## Instruments
 
-| Key | Stooq | COT-marked | Klasse |
-|-----|-------|------------|--------|
-| EURUSD | eurusd | euro fx | A |
-| USDJPY | usdjpy | japanese yen | A |
-| GBPUSD | gbpusd | british pound | A |
-| AUDUSD | audusd | — | A |
-| Gold | xauusd | gold | B |
-| Silver | xagusd | silver | B |
-| Brent | co.f | crude oil | B |
-| WTI | cl.f | crude oil | B |
-| SPX | ^spx | s&p 500 | C |
-| NAS100 | ^ndx | nasdaq mini | C |
-| DXY | dxy.f | usd index | A (kun display) |
-| VIX | ^vix | — | C (kun posisjonsstørrelse) |
+| Key | Priskilde | COT-marked | Klasse |
+|-----|-----------|------------|--------|
+| EURUSD | Bot (Skilling) | CFTC euro fx | A |
+| USDJPY | Bot (Skilling) | CFTC japanese yen | A |
+| GBPUSD | Bot (Skilling) | CFTC british pound | A |
+| AUDUSD | Bot (Skilling) | — | A |
+| USDCHF | Bot (Skilling) | — | A |
+| USDNOK | Bot (Skilling) | — | A |
+| USDCAD | Bot (Skilling) | — | A |
+| NZDUSD | Bot (Skilling) | — | A |
+| Gold | Bot (Skilling) | CFTC gold | B |
+| Silver | Bot (Skilling) | CFTC silver | B |
+| Brent | Bot (Skilling) | ICE+CFTC (OI-vektet) | B |
+| WTI | Bot (Skilling) | CFTC crude oil | B |
+| SPX | Bot (Skilling) | CFTC s&p 500 | C |
+| NAS100 | Bot (Skilling) | CFTC nasdaq mini | C |
+| DXY | Bot (Skilling) | CFTC usd index | A (kun display) |
+| VIX | Yahoo Finance | — | C (kun posisjonsstørrelse) |
+| BTC/ETH/SOL/XRP | Bot (Skilling) | — | — |
 
 ---
 
@@ -296,9 +303,12 @@ Dashboard med 4 kort som lenker til under-fanene:
 
 | Data | Kilde | API-nøkkel |
 |------|-------|------------|
-| COT | CFTC.gov | Nei |
-| Daglige OHLC | Stooq | Nei |
-| Intradag 15m/1H | Yahoo Finance | Nei |
+| Live priser (primær) | Trading-bot via Skilling → `~/scalp_edge/live_prices.json` | Nei |
+| COT (aksjer/forex/råvarer) | CFTC.gov | Nei |
+| COT Brent/Gasoil/TTF | ICE Futures Europe | Nei |
+| COT hvete/raps/mais | Euronext (MiFID II) | Nei |
+| Daglige OHLC | Stooq (fallback) | Nei |
+| Intradag 15m/1H | Yahoo Finance (fallback) | Nei |
 | Forex + gull | Twelvedata | Ja |
 | Sanntidspris (indekser/råvarer) | Finnhub | Ja |
 | Fundamentals | FRED | Ja |
@@ -308,10 +318,8 @@ Dashboard med 4 kort som lenker til under-fanene:
 | Landbruksvær | Open-Meteo API | Nei |
 | COMEX lager | CME Group | Nei |
 | Seismisk aktivitet | USGS Earthquake API | Nei |
-| Baltic shipping-indekser | Stooq (^bdi, ^bci, ^bpi, ^bsi) | Nei |
+| Baltic shipping-indekser | Stooq | Nei |
 | Shipping-nyheter | Google News RSS | Nei |
-| Energipriser (WTI, Brent, NatGas) | Stooq | Nei |
-| Krypto-priser | Yahoo Finance | Nei |
 | Krypto markedsdata | CoinGecko API | Nei |
 
 ---
@@ -320,9 +328,15 @@ Dashboard med 4 kort som lenker til under-fanene:
 
 | Fil | Innhold | Oppdatering |
 |-----|---------|-------------|
-| `data/macro/latest.json` | Priser, SMC, nivåer, score, kalender | 6× daglig |
-| `data/combined/latest.json` | Kombinert COT-datasett | 6× daglig |
-| `data/signals.json` | Aktive signaler + global state | 6× daglig |
+| Fil | Innhold | Oppdatering |
+|-----|---------|-------------|
+| `data/macro/latest.json` | Priser, SMC, nivåer, score, kalender | Hver time + 6× daglig |
+| `data/signals.json` | Aktive signaler + global state | Hver time + 6× daglig |
+| `data/combined/latest.json` | Kombinert CFTC COT-datasett | 6× daglig |
+| `data/ice_cot/latest.json` | ICE Futures Europe COT (Brent, Gasoil, TTF) | 6× daglig |
+| `data/ice_cot/history.json` | ICE COT 26-ukers historikk | 6× daglig |
+| `data/euronext_cot/latest.json` | Euronext MiFID II COT (hvete, raps, mais) | 6× daglig |
+| `data/euronext_cot/history.json` | Euronext COT 26-ukers historikk | 6× daglig |
 | `data/signal_log.json` | Bot-trade historikk | Ved trade |
 | `data/fundamentals/latest.json` | FRED makrodata | 2× daglig |
 | `data/comex/latest.json` | COMEX lagerbeholdning + stress-indeks | 6× daglig |
@@ -336,6 +350,7 @@ Dashboard med 4 kort som lenker til under-fanene:
 | `data/geointel/pipelines.json` | Oljeledninger | Statisk |
 | `data/geointel/chokepoints.json` | 6 chokepoints | Statisk |
 | `data/geointel/mines.json` | 26 gruver | Statisk |
+| `~/scalp_edge/live_prices.json` | Live priser fra bot (20 symboler) | Hvert 58. min |
 
 ---
 
@@ -348,9 +363,20 @@ Dashboard med 4 kort som lenker til under-fanene:
 | Tidssoner | `toNO()` helper konverterer UTC-timestamps til norsk tid (Europe/Oslo) i alle sider |
 | Kart | MapLibre GL v4 med CartoDB Dark Matter tiles |
 | Grafer | Chart.js (COT-historikk modal) |
-| Backend | Python 3, ingen dependencies utover stdlib |
+| Backend | Python 3 + `requests` + `openpyxl` |
 | Hosting | GitHub Pages (statisk) |
-| Automatisering | systemd timer 6× daglig |
+| Automatisering | `cot-prices.timer` (hvert hele time) + `cot-explorer.timer` (6× daglig) |
+| Prisintegrasjon | `signal_server.py` Flask-server — `POST /push-prices`, `GET /prices` |
 | Varsling | Telegram / Discord webhook / Flask REST API |
-| Trading bot | `scalp_edge/trading_bot.py` — cTrader Open API |
+| Trading bot | `scalp_edge/trading_bot.py` — cTrader Open API, pusher priser hvert 58. min |
 | SMC-motor | `smc.py` — Python-port av FluidTrades SMC Lite |
+
+### COT-kildelogikk
+
+| Instrument | Primær | Fallback | Kombinering |
+|---|---|---|---|
+| Brent | ICE Futures Europe | CFTC | OI-vektet snitt når begge ferske |
+| Hvete / Raps / Mais | Euronext (MiFID II) | CFTC | OI-vektet snitt når begge ferske |
+| Alle andre | CFTC | — | — |
+
+Uenighet mellom to kilder → `momentum=BLANDET`, `cot_confirms=False`, `cot_strong=False`
