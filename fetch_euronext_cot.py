@@ -126,27 +126,44 @@ def find_excel_url():
     return None
 
 
+def _try_download(session, url):
+    """Forsøk å laste ned én URL. Returnerer bytes eller None."""
+    try:
+        print(f"  Prøver: {url}")
+        r = session.get(url, headers=HEADERS_XLSX, timeout=30, allow_redirects=True)
+        r.raise_for_status()
+        ctype = r.headers.get("Content-Type", "")
+        if len(r.content) < 500:
+            return None
+        if "html" in ctype.lower() and b"<!DOCTYPE" in r.content[:200]:
+            return None
+        print(f"    OK — {len(r.content)//1024} KB")
+        return r.content
+    except Exception as e:
+        print(f"    FEIL: {e}")
+        return None
+
+
 def download_excel():
     """Last ned Euronext agri COT Excel. Returnerer bytes eller None."""
+    sess = requests.Session()
+    # Besøk hovedside for å sette session-cookies (Drupal krever dette)
+    for page in EURONEXT_PAGES:
+        try:
+            sess.get(page, headers=HEADERS, timeout=15)
+            break
+        except Exception:
+            continue
+
     scraped = find_excel_url()
     candidates = ([scraped] if scraped else []) + _candidate_urls()
 
     for url in candidates:
         if not url:
             continue
-        try:
-            print(f"  Prøver: {url}")
-            r = requests.get(url, headers=HEADERS_XLSX, timeout=30, allow_redirects=True)
-            r.raise_for_status()
-            ctype = r.headers.get("Content-Type", "")
-            if len(r.content) < 500:
-                continue
-            if "html" in ctype.lower() and b"<!DOCTYPE" in r.content[:200]:
-                continue
-            print(f"    OK — {len(r.content)//1024} KB")
-            return r.content
-        except Exception as e:
-            print(f"    FEIL: {e}")
+        data = _try_download(sess, url)
+        if data:
+            return data
     return None
 
 
