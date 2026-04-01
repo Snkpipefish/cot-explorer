@@ -204,6 +204,9 @@ try:
                 "vix_term_structure", "correlations", "session_ranges", "sentiment"):
         if existing.get(key):
             macro[key] = existing[key]
+    # Bevar vix_regime hvis VIX ikke ble hentet nå
+    if not prices.get("VIX") and existing.get("vix_regime"):
+        macro["vix_regime"] = existing["vix_regime"]
 except Exception:
     pass
 
