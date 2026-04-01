@@ -952,7 +952,7 @@ function renderAgri(d){
 
     // COT
     if(cot){
-      h += '<div style="font-size:11px;color:var(--m);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">COT (' + cot.date + ')</div>';
+      h += '<div style="font-size:11px;color:var(--m);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">'+(cot.source||'CFTC')+' COT (' + cot.date + ')</div>';
       var cotBiasCol = cot.bias === 'bull' ? 'var(--bull)' : 'var(--bear)';
       h += '<div style="font-size:13px;display:flex;gap:12px;flex-wrap:wrap">';
       h += '<span style="color:' + cotBiasCol + '">' + (cot.bias === 'bull' ? '▲' : '▼') + ' ' + cotNet + '</span>';

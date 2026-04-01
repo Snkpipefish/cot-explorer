@@ -15,8 +15,12 @@ BASE = os.path.expanduser("~/cot-explorer/data")
 OUT  = os.path.join(BASE, "agri", "latest.json")
 os.makedirs(os.path.join(BASE, "agri"), exist_ok=True)
 
-REGIONS_FILE  = os.path.join(BASE, "geointel", "agri_regions.json")
-COMBINED_FILE = os.path.join(BASE, "combined", "latest.json")
+REGIONS_FILE      = os.path.join(BASE, "geointel", "agri_regions.json")
+COMBINED_FILE     = os.path.join(BASE, "combined", "latest.json")
+EURONEXT_COT_FILE = os.path.join(BASE, "euronext_cot", "latest.json")
+
+# Avlinger der Euronext er primær COT-kilde (europeisk hjemmebørs)
+EURONEXT_PRIMARY = {"wheat", "canola", "corn"}
 
 # ── Sesong: kritiske måneder per avling og hemisfære ──────────────
 # score-multiplikator for værpåvirkning (1.0 = normal, 1.5 = kritisk sesong)
@@ -172,21 +176,64 @@ def score_weather(w, crop_key, lat):
         "summary":     summary,
     }
 
-def get_cot_for_crop(crop_key, cot_data):
-    """Henter aggregert COT-info for en avling (slår sammen relaterte markeder)."""
-    markets = COT_MAP.get(crop_key, [])
-    matches = [e for e in cot_data
-               if any(m.lower() in e.get("market","").lower() for m in markets)]
-    if not matches:
-        return None
+def load_euronext_cot():
+    """Last inn Euronext COT-data. Returnerer dict crop_key → data, eller {}."""
+    if not os.path.exists(EURONEXT_COT_FILE):
+        return {}
+    try:
+        with open(EURONEXT_COT_FILE) as f:
+            raw = json.load(f)
+        markets = raw.get("markets", {})
+        # Sjekk at dataene ikke er for gamle (maks 14 dager — Euronext publiserer ukentlig)
+        result = {}
+        today = datetime.now(timezone.utc).date()
+        for crop, d in markets.items():
+            date_str = d.get("date", "")
+            try:
+                age = (today - datetime.strptime(date_str, "%Y-%m-%d").date()).days
+                if age > 14:
+                    print(f"  Euronext {crop}: data er {age} dager gammel — bruker CFTC fallback")
+                    continue
+            except Exception:
+                pass
+            result[crop] = d
+        return result
+    except Exception as e:
+        print(f"  Euronext COT FEIL ved lasting: {e}")
+        return {}
 
-    # Bruk det markedet med høyest open interest
-    main = max(matches, key=lambda e: e.get("open_interest", 0) or 0)
-    sp   = main.get("spekulanter") or {}
-    net  = sp.get("net", 0) or 0
-    chg  = main.get("change_spec_net", 0) or 0
-    oi   = main.get("open_interest", 1) or 1
-    hist = main.get("spec_net_history", []) or []
+
+def get_cot_for_crop(crop_key, cot_data, euronext_data=None):
+    """
+    Henter COT-info for en avling.
+    Euronext brukes som primær for hvete/raps/mais (europeisk hjemmebørs),
+    med CFTC som fallback. Andre avlinger bruker alltid CFTC.
+    """
+    euronext_data = euronext_data or {}
+
+    # Prøv Euronext først for EU-avlinger
+    if crop_key in EURONEXT_PRIMARY and crop_key in euronext_data:
+        eu = euronext_data[crop_key]
+        sp  = eu.get("spekulanter") or {}
+        net = sp.get("net", 0) or 0
+        chg = eu.get("change_spec_net", 0) or 0
+        oi  = eu.get("open_interest", 1) or 1
+        hist = eu.get("spec_net_history", []) or []
+        source = "Euronext"
+    else:
+        # CFTC-data
+        markets = COT_MAP.get(crop_key, [])
+        matches = [e for e in cot_data
+                   if any(m.lower() in e.get("market","").lower() for m in markets)]
+        if not matches:
+            return None
+        main = max(matches, key=lambda e: e.get("open_interest", 0) or 0)
+        sp   = main.get("spekulanter") or {}
+        net  = sp.get("net", 0) or 0
+        chg  = main.get("change_spec_net", 0) or 0
+        oi   = main.get("open_interest", 1) or 1
+        hist = main.get("spec_net_history", []) or []
+        source = "CFTC"
 
     # Bias
     bias = "bull" if net > 0 else "bear"
@@ -215,15 +262,24 @@ def get_cot_for_crop(crop_key, cot_data):
     if chg > 0 and cot_score >= 0:   cot_score = min(cot_score + 1, 2)
     elif chg < 0 and cot_score <= 0: cot_score = max(cot_score - 1, -2)
 
+    # market-etikett avhenger av kilde
+    if source == "Euronext":
+        market_label = euronext_data[crop_key].get("display", f"Euronext {crop_key.title()}")
+        date_val     = euronext_data[crop_key].get("date")
+    else:
+        market_label = main.get("market", crop_key)
+        date_val     = main.get("date")
+
     return {
-        "market":    main.get("market", crop_key),
+        "market":    market_label,
         "net":       net,
         "net_pct":   round(net_pct, 1),
         "change":    chg,
         "bias":      bias,
         "momentum":  momentum,
         "cot_score": cot_score,
-        "date":      main.get("date"),
+        "date":      date_val,
+        "source":    source,
     }
 
 def combine_outlook(weather_score, cot_score, crop_key, lat):
@@ -255,6 +311,12 @@ with open(REGIONS_FILE) as f:
 
 with open(COMBINED_FILE) as f:
     cot_data = json.load(f)
+
+euronext_data = load_euronext_cot()
+if euronext_data:
+    print(f"  Euronext COT lastet: {', '.join(euronext_data.keys())}")
+else:
+    print("  Euronext COT: ikke tilgjengelig — bruker CFTC for alle avlinger")
 
 # Per-avling aggregering
 crop_region_data  = {}   # crop_key → liste med region-scores
@@ -296,7 +358,7 @@ for region in regions:
         wx    = score_weather(weather_raw, crop_key, lat)
         cot   = crop_cot_cache.get(crop_key)
         if cot is None:
-            cot = get_cot_for_crop(crop_key, cot_data)
+            cot = get_cot_for_crop(crop_key, cot_data, euronext_data)
             crop_cot_cache[crop_key] = cot
 
         cot_score = cot["cot_score"] if cot else 0
