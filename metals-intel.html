@@ -315,6 +315,167 @@ document.querySelectorAll('.nt').forEach(function(btn){
   });
 });
 
+// ── Dashboard Oversikt ───────────────────────────────────────
+function goTab(tab){
+  document.querySelectorAll('.nt').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  var btn=document.querySelector('.nt[data-tab="'+tab+'"]');
+  if(btn) btn.classList.add('active');
+  var panel=document.getElementById('panel-'+tab);
+  if(panel) panel.classList.add('active');
+  if(tab==='map' && window.mlMap) setTimeout(function(){window.mlMap.resize();},50);
+  if(tab==='cot'      && !cotLoaded)      { cotLoaded=true;      loadCotTab();      }
+  if(tab==='agri'     && !agriLoaded)     { agriLoaded=true;     loadAgriTab();     }
+  if(tab==='shipping' && !shippingLoaded) { shippingLoaded=true; loadShippingTab(); }
+  if(tab==='oilgas'   && !oilgasLoaded)  { oilgasLoaded=true;  loadOilgasTab();  }
+}
+
+function dashCard(icon, title, tab, badgeTxt, badgeCol, badgeBg, metric, metricCol, sub, bullets){
+  var blist = bullets.map(function(b){return '<li>'+b+'</li>';}).join('');
+  return '<div class="dash-card" onclick="goTab(\''+tab+'\')">'+
+    '<div class="dash-card-top">'+
+      '<span class="dash-icon">'+icon+'</span>'+
+      '<span class="dash-badge" style="color:'+badgeCol+';border-color:'+badgeCol+';background:'+badgeBg+'">'+badgeTxt+'</span>'+
+    '</div>'+
+    '<div class="dash-title">'+title+'</div>'+
+    '<div class="dash-metric" style="color:'+metricCol+'">'+metric+'</div>'+
+    '<div class="dash-sub">'+sub+'</div>'+
+    '<ul class="dash-bullets">'+blist+'</ul>'+
+    '<span class="dash-link">Åpne →</span>'+
+  '</div>';
+}
+
+function loadDashboard(){
+  Promise.all([
+    loadJSON('data/geointel/chokepoints.json'),
+    loadJSON('data/comex/latest.json'),
+    loadJSON('data/geointel/intel.json'),
+    loadJSON('data/combined/latest.json'),
+    loadJSON('data/agri/latest.json'),
+    loadJSON('data/shipping/latest.json'),
+    loadJSON('data/oilgas/latest.json'),
+  ]).then(function(res){
+    var cps=res[0], comex=res[1], intel=res[2], cot=res[3], agri=res[4], ship=res[5], og=res[6];
+    var cards='';
+    var RISK_COL={'HIGH':'var(--bear)','MEDIUM':'var(--warn)','LOW':'var(--bull)'};
+    var RISK_BG={'HIGH':'var(--rbg)','MEDIUM':'var(--wbg)','LOW':'var(--bbg)'};
+    var SIG_COL={'STERKT BULLISH':'var(--bull)','BULLISH':'var(--bull)','NØYTRAL':'var(--m)','BEARISH':'var(--bear)','STERKT BEARISH':'var(--bear)'};
+
+    // 1. Geo-Intel Kart
+    if(cps){
+      var highCp=(cps||[]).filter(function(c){return c.risk==='high';}).length;
+      var medCp=(cps||[]).filter(function(c){return c.risk==='medium';}).length;
+      var cpRisk=highCp>=2?'HIGH':highCp>=1?'MEDIUM':'LOW';
+      cards+=dashCard('🗺️','Geo-Intel Kart','map',
+        cpRisk, RISK_COL[cpRisk], RISK_BG[cpRisk],
+        highCp+' HIGH', RISK_COL[cpRisk],
+        'Chokepoints med høy forstyrrelsesrisiko',
+        [medCp+' medium-risiko chokepoints',
+         'Interaktivt kart med rørledninger, gruver og infrastruktur',
+         'Siste 7 dagers jordskjelvaktivitet']);
+    }
+
+    // 2. COMEX Lager
+    if(comex){
+      var metals=['gold','silver','copper'];
+      var worst=null, worstStress=0;
+      metals.forEach(function(m){
+        var s=(comex[m]||{}).stress||0;
+        if(s>worstStress){worstStress=s;worst=m;}
+      });
+      var cxCol=worstStress>=70?'var(--bear)':worstStress>=40?'var(--warn)':'var(--bull)';
+      var cxBg=worstStress>=70?'var(--rbg)':worstStress>=40?'var(--wbg)':'var(--bbg)';
+      var cxBadge=worstStress>=70?'HØY STRESS':worstStress>=40?'MODERAT':'NORMAL';
+      cards+=dashCard('🏦','COMEX Lager','comex',
+        cxBadge, cxCol, cxBg,
+        worstStress+'', cxCol,
+        'Høyeste stress-indeks (0=trygg · 100=kritisk)',
+        ['Gull stress: '+((comex.gold||{}).stress||'?'),
+         'Sølv stress: '+((comex.silver||{}).stress||'?'),
+         'Kobber stress: '+((comex.copper||{}).stress||'?')]);
+    }
+
+    // 3. Intel Feed
+    if(intel && intel.articles && intel.articles.length){
+      var latest=intel.articles[0];
+      cards+=dashCard('📰','Intel Feed','intel',
+        'OPPDATERT', 'var(--blue)', 'var(--blbg)',
+        intel.articles.length+'', 'var(--blue)',
+        'Siste nyhetsartikler',
+        [latest.title.substring(0,60)+(latest.title.length>60?'…':''),
+         'Kategorier: gull, sølv, kobber, energi, korn',
+         'Oppdatert: '+(intel.updated||'-')]);
+    }
+
+    // 4. Råvare COT
+    if(cot && Array.isArray(cot)){
+      var bulls=0,bears=0;
+      cot.forEach(function(e){
+        var net=(e.spekulanter||{}).net||0, oi=e.open_interest||1;
+        var pct=net/oi*100;
+        if(pct>5) bulls++; else if(pct<-5) bears++;
+      });
+      var cotCol=bulls>bears?'var(--bull)':bears>bulls?'var(--bear)':'var(--m)';
+      var cotBadge=bulls>bears?'BULLISH':bears>bulls?'BEARISH':'NØYTRAL';
+      var cotBg=bulls>bears?'var(--bbg)':bears>bulls?'var(--rbg)':'var(--s2)';
+      cards+=dashCard('📊','Råvare COT','cot',
+        cotBadge, cotCol, cotBg,
+        bulls+'▲ / '+bears+'▼', cotCol,
+        'Bull vs Bear – spekulantposisjonering',
+        [bulls+' markeder der fond kjøper (long)',
+         bears+' markeder der fond selger (short)',
+         'Basert på '+cot.length+' CFTC-rapporter']);
+    }
+
+    // 5. Avlings-analyse
+    if(agri && agri.crop_summary){
+      var topCrop=agri.crop_summary[0];
+      var agriBulls=(agri.crop_summary||[]).filter(function(c){return c.outlook.signal.indexOf('BULLISH')>=0;}).length;
+      var agriSig=topCrop?topCrop.outlook.signal:'NØYTRAL';
+      var agriCol=SIG_COL[agriSig]||'var(--m)';
+      cards+=dashCard('🌾','Avlings-analyse','agri',
+        agriBulls>0?agriBulls+' BULLISH':'NØYTRAL', agriCol, agriCol==='var(--bull)'?'var(--bbg)':'var(--s2)',
+        topCrop?topCrop.ikon+' '+topCrop.navn:'—', agriCol,
+        'Sterkeste signal akkurat nå',
+        ['Vær + COT kombinert for '+agri.crop_summary.length+' avlinger',
+         topCrop?'Signal: '+agriSig:'Ingen data',
+         'Oppdatert: '+(agri.generated||'-')]);
+    }
+
+    // 6. Shipping
+    if(ship){
+      var shRisk=ship.overall_risk||'LOW';
+      var shHigh=(ship.routes||[]).filter(function(r){return r.risk==='HIGH';});
+      cards+=dashCard('🚢','Shipping','shipping',
+        shRisk, RISK_COL[shRisk], RISK_BG[shRisk],
+        shHigh.length+' HIGH', RISK_COL[shRisk],
+        'Ruter med høy forstyrrelsesrisiko',
+        [shHigh.length>0?'HIGH: '+shHigh.map(function(r){return r.name;}).join(', '):'Ingen HIGH-ruter',
+         'BDI-signal: '+(ship.bdi_signal||'—'),
+         (ship.news||[]).length+' shipping-nyheter hentet']);
+    }
+
+    // 7. Olje & Gass
+    if(og){
+      var ogSig=og.overall_signal||'NØYTRAL';
+      var ogRisk=og.overall_risk||'LOW';
+      var ogCol=SIG_COL[ogSig]||'var(--m)';
+      var ogHigh=(og.segments||[]).filter(function(s){return s.risk==='HIGH';});
+      cards+=dashCard('⛽','Olje & Gass','oilgas',
+        ogSig, ogCol, ogCol==='var(--bull)'?'var(--bbg)':ogCol==='var(--bear)'?'var(--rbg)':'var(--s2)',
+        ogRisk, RISK_COL[ogRisk],
+        'Forstyrrelsesrisiko (pris+COT signal: '+ogSig+')',
+        [ogHigh.length>0?'HIGH: '+ogHigh.map(function(s){return s.name;}).join(', '):'Ingen HIGH-segmenter',
+         og.brent_wti_spread!=null?'Brent–WTI spread: '+(og.brent_wti_spread>0?'+':'')+og.brent_wti_spread+' USD':'Spread: ingen data',
+         (og.news||[]).length+' energi-nyheter hentet']);
+    }
+
+    document.getElementById('dashDate').textContent='Oppdatert: '+(og&&og.generated||ship&&ship.generated||'-');
+    document.getElementById('dashGrid').innerHTML=cards||'<div class="loading">Ingen data tilgjengelig</div>';
+  });
+}
+loadDashboard();
+
 // ── Helpers ─────────────────────────────────────────────────
 function fmtOz(n){if(!n)return '0';if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+' Moz';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(0)+'K oz';return n.toLocaleString()+' oz';}
 function fmtSt(n){if(!n)return '0';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(1)+'K st';return n.toLocaleString()+' st';}
