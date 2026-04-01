@@ -19,7 +19,7 @@ OUT  = BASE / "data" / "oilgas" / "latest.json"
 OUT.parent.mkdir(parents=True, exist_ok=True)
 COMBINED_FILE  = BASE / "data" / "combined" / "latest.json"
 MACRO_FILE     = BASE / "data" / "macro" / "latest.json"
-BOT_PRICES_FILE = BASE / "data" / "prices" / "live_prices.json"
+BOT_PRICES_FILE = Path.home() / "scalp_edge" / "live_prices.json"
 
 # Mapping fra instrument-id → nøkkel boten sender i /push-prices
 BOT_PRICE_MAP = {
@@ -182,16 +182,18 @@ def fetch_stooq(symbol):
 
 
 def fetch_from_bot(instrument_id):
-    """Hent pris fra data/prices/bot_prices.json (sendt av trading-boten fra Skilling)."""
+    """Hent pris fra ~/scalp_edge/live_prices.json (sendt av trading-boten fra Skilling)."""
     try:
         if not BOT_PRICES_FILE.exists():
             return None
         with open(BOT_PRICES_FILE) as f:
-            data = json.load(f)
+            raw = json.load(f)
         key = BOT_PRICE_MAP.get(instrument_id)
         if not key:
             return None
-        p = data.get("prices", {}).get(key)
+        # Støtter flatt format {KEY: {...}} og nestet {"prices": {KEY: {...}}}
+        bot = raw if "prices" not in raw else raw.get("prices", {})
+        p = bot.get(key)
         if not p or p.get("value") is None:
             return None
         val = p["value"]

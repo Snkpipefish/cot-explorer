@@ -12,7 +12,7 @@ from pathlib import Path
 
 BASE         = Path(os.path.expanduser("~/cot-explorer/data"))
 OUT          = BASE / "macro" / "latest.json"
-BOT_PRICES   = BASE / "prices" / "live_prices.json"
+BOT_PRICES   = Path.home() / "scalp_edge" / "live_prices.json"
 OUT.parent.mkdir(parents=True, exist_ok=True)
 
 # Alle symboler vi trenger i macro/latest.json
@@ -36,8 +36,8 @@ SYMBOLS = {
     "TIP":    "TIP",
 }
 
-# Symboler boten sender — disse trenger ikke Yahoo som fallback
-# (nøkkel i live_prices.json → nøkkel i macro prices)
+# Alle nøkler boten sender i live_prices.json → nøkkel i macro prices
+# None = boten har den men den brukes ikke i macro (f.eks. bare i oilgas/crypto)
 BOT_KEY_MAP = {
     "EURUSD":  "EURUSD",
     "GBPUSD":  "GBPUSD",
@@ -45,28 +45,40 @@ BOT_KEY_MAP = {
     "AUDUSD":  "AUDUSD",
     "USDCHF":  "USDCHF",
     "USDNOK":  "USDNOK",
+    "USDCAD":  "USDCAD",
+    "NZDUSD":  "NZDUSD",
+    "EURGBP":  "EURGBP",
     "DXY":     "DXY",
     "Brent":   "Brent",
     "WTI":     "WTI",
     "Gold":    "Gold",
     "Silver":  "Silver",
-    "NatGas":  None,       # ikke i macro/prices — brukes kun av fetch_oilgas
+    "NatGas":  None,       # brukes kun av fetch_oilgas
     "SPX":     "SPX",
     "NAS100":  "NAS100",
     "BTC":     "BTC",
     "ETH":     "ETH",
     "SOL":     "SOL",
     "XRP":     "XRP",
+    "ADA":     "ADA",
+    "DOGE":    "DOGE",
 }
 
 
 def load_bot_prices():
-    """Les live_prices.json fra boten. Returnerer dict med macro-nøkkel → pris-objekt."""
+    """Les live_prices.json fra boten. Returnerer dict med macro-nøkkel → pris-objekt.
+
+    Støtter to formater:
+      Flatt:  {KEY: {"value": 1.085, "updated": "..."}, ...}
+      Nestet: {"prices": {KEY: {"value": ..., "chg1d": ...}}}
+    """
     if not BOT_PRICES.exists():
         return {}
     try:
         raw = json.loads(BOT_PRICES.read_text())
-        bot = raw.get("prices", {})
+        # Flatt format (bot sender direkte) eller nestet (via signal_server)
+        bot = raw if isinstance(raw, dict) and "value" not in raw and "prices" not in raw \
+              else raw.get("prices", raw)
         result = {}
         for bot_key, macro_key in BOT_KEY_MAP.items():
             if macro_key is None:
@@ -74,15 +86,15 @@ def load_bot_prices():
             p = bot.get(bot_key)
             if not p or p.get("value") is None:
                 continue
-            val = p["value"]
-            chg1d  = p.get("chg1d", 0.0) or 0.0
-            chg5d  = p.get("chg5d", 0.0) or 0.0
-            chg20d = p.get("chg20d", 0.0) or 0.0
+            val    = float(p["value"])
+            chg1d  = float(p.get("chg1d",  0.0) or 0.0)
+            chg5d  = float(p.get("chg5d",  0.0) or 0.0)
+            chg20d = float(p.get("chg20d", 0.0) or 0.0)
             result[macro_key] = {
-                "price":  round(float(val), 6),
-                "chg1d":  round(float(chg1d), 3),
-                "chg5d":  round(float(chg5d), 3),
-                "chg20d": round(float(chg20d), 3),
+                "price":  round(val, 6),
+                "chg1d":  round(chg1d, 3),
+                "chg5d":  round(chg5d, 3),
+                "chg20d": round(chg20d, 3),
             }
         return result
     except Exception as e:
