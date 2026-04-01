@@ -438,18 +438,20 @@ function renderDashboard(macro,signals,logData,cotData){
   // 4. Signal-logg
   if(logData){
     var entries=logData.entries||[];
-    var stats=logData.hit_stats||{};
+    var wins=entries.filter(function(e){return e.result==='win';}).length;
+    var losses=entries.filter(function(e){return e.result==='loss';}).length;
+    var open=entries.filter(function(e){return !e.result;}).length;
+    var winRate=wins+losses>0?Math.round(wins/(wins+losses)*100):null;
     var recent=entries.slice(-3).reverse();
-    var winRate=stats.win_rate||0;
     var wrCol=winRate>=60?'var(--bull)':winRate>=45?'var(--warn)':'var(--bear)';
     var wrBg=winRate>=60?'var(--bbg)':winRate>=45?'var(--wbg)':'var(--rbg)';
     cards+=dashCard('📋','Signal-logg','signallogg',
-      stats.total>0?(winRate+'% WIN RATE'):'INGEN DATA', wrCol, wrBg,
-      stats.total+' handler', wrCol,
-      (stats.wins||0)+' ✅ wins · '+(stats.losses||0)+' ❌ tap · '+(stats.open||0)+' åpne',
+      entries.length>0?(winRate!=null?winRate+'% WIN RATE':'ÅPNE'):'INGEN DATA', wrCol, wrBg,
+      entries.length+' handler', wrCol,
+      wins+' ✅ wins · '+losses+' ❌ tap · '+open+' åpne',
       recent.map(function(e){
         var s=e.signal||{};
-        return (e.result==='win'?'✅':'❌')+' '+s.name+' '+s.action+' – '+(e.exit_reason||'');
+        return (e.result==='win'?'✅':e.result==='loss'?'❌':'🔵')+' '+(s.instrument||s.name||'–')+' '+(s.direction||s.action||'')+' – '+(e.exit_reason||'åpen');
       }).concat(recent.length===0?['Ingen logger enda']:[]));
   }
 
