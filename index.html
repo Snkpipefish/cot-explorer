@@ -22,6 +22,10 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .vb.stress{background:var(--wbg);border-color:var(--warn);color:var(--warn)}
 .vb.krise{background:var(--rbg);border-color:var(--bear);color:var(--bear)}
 .upd{font-size:10px;color:var(--m)}
+.nav-main{background:var(--bg);border-bottom:1px solid var(--b2);padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none}
+.nav-main::-webkit-scrollbar{display:none}
+.nt-main{background:none;border:none;border-bottom:2px solid transparent;padding:9px 16px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--m);cursor:pointer;white-space:nowrap;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center}
+.nt-main:hover{color:var(--t)}.nt-main.active{color:var(--t);border-bottom-color:var(--b2)}
 .nav{background:var(--s);border-bottom:1px solid var(--b);padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none}
 .nav::-webkit-scrollbar{display:none}
 .nt{background:none;border:none;border-bottom:2px solid transparent;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--m);cursor:pointer;white-space:nowrap;transition:all .15s}
@@ -217,6 +221,11 @@ footer a{color:var(--blue);text-decoration:none}
     <span class="upd" id="upd">-</span>
   </div>
 </header>
+<nav class="nav-main">
+  <a href="index.html" class="nt-main active">🏠 Markedspuls</a>
+  <a href="metals-intel.html" class="nt-main">🛢️ Råvare Intel</a>
+  <a href="crypto-intel.html" class="nt-main">₿ Krypto Intel</a>
+</nav>
 <nav class="nav">
   <button class="nt active" data-tab="oversikt">🏠 Oversikt</button>
   <button class="nt" data-tab="ideer">💡 Setups</button>
@@ -226,8 +235,6 @@ footer a{color:var(--blue);text-decoration:none}
   <button class="nt" data-tab="signallogg">📋 Signal-logg</button>
   <button class="nt" data-tab="kalender">📅 Kalender</button>
   <button class="nt" data-tab="priser">💹 Priser</button>
-  <a href="metals-intel.html" class="nt" style="text-decoration:none">🛢️ Råvare Intel</a>
-  <a href="crypto-intel.html" class="nt" style="text-decoration:none">₿ Krypto Intel</a>
 </nav>
 <div class="main">
 
