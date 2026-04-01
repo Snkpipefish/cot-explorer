@@ -126,28 +126,85 @@ def find_excel_url():
     return None
 
 
-def _try_download(session, url):
-    """Forsøk å laste ned én URL. Returnerer bytes eller None."""
+def download_with_playwright():
+    """Bruk Playwright (headless Chrome) for å laste ned Excel via ekte nettleserøkt."""
     try:
-        print(f"  Prøver: {url}")
-        r = session.get(url, headers=HEADERS_XLSX, timeout=30, allow_redirects=True)
-        r.raise_for_status()
-        ctype = r.headers.get("Content-Type", "")
-        if len(r.content) < 500:
-            return None
-        if "html" in ctype.lower() and b"<!DOCTYPE" in r.content[:200]:
-            return None
-        print(f"    OK — {len(r.content)//1024} KB")
-        return r.content
-    except Exception as e:
-        print(f"    FEIL: {e}")
+        from playwright.sync_api import sync_playwright
+    except ImportError:
         return None
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
+        ctx = browser.new_context(accept_downloads=True)
+        page = ctx.new_page()
+        try:
+            # Besøk COT-siden for å sette cookies
+            print("  Playwright: åpner Euronext COT-side...")
+            page.goto(EURONEXT_PAGES[0], wait_until="domcontentloaded", timeout=30000)
+
+            # Let etter nedlastingslenke for agri-xlsx
+            xlsx_url = None
+            for a in page.query_selector_all("a[href]"):
+                href = a.get_attribute("href") or ""
+                if "agri" in href.lower() and ".xls" in href.lower():
+                    xlsx_url = href if href.startswith("http") else "https://live.euronext.com" + href
+                    break
+
+            # Prøv kandidat-URLer hvis ingen lenke ble funnet
+            candidates = ([xlsx_url] if xlsx_url else []) + _candidate_urls()
+            for url in candidates:
+                if not url:
+                    continue
+                try:
+                    print(f"  Playwright laster ned: {url}")
+                    with page.expect_download(timeout=20000) as dl_info:
+                        page.evaluate(f"window.location.href = '{url}'")
+                    dl = dl_info.value
+                    data = Path(dl.path()).read_bytes()
+                    if len(data) > 500:
+                        print(f"    OK — {len(data)//1024} KB")
+                        browser.close()
+                        return data
+                except Exception as e:
+                    # Fallback: hent via fetch() i nettleseren (omgår CORS)
+                    try:
+                        b64 = page.evaluate(f"""
+                            async () => {{
+                                const r = await fetch('{url}');
+                                if (!r.ok) return null;
+                                const buf = await r.arrayBuffer();
+                                const bytes = new Uint8Array(buf);
+                                let b = '';
+                                bytes.forEach(b2 => b += String.fromCharCode(b2));
+                                return btoa(b);
+                            }}
+                        """)
+                        if b64:
+                            import base64
+                            data = base64.b64decode(b64)
+                            if len(data) > 500:
+                                print(f"    OK via fetch() — {len(data)//1024} KB")
+                                browser.close()
+                                return data
+                    except Exception:
+                        print(f"    FEIL: {e}")
+        except Exception as e:
+            print(f"  Playwright FEIL: {e}")
+        finally:
+            browser.close()
+    return None
 
 
 def download_excel():
     """Last ned Euronext agri COT Excel. Returnerer bytes eller None."""
+    # Prøv Playwright først (ekte nettleser, omgår Cloudflare)
+    data = download_with_playwright()
+    if data:
+        return data
+
+    # Fallback: vanlig requests med session
+    print("  Playwright ikke tilgjengelig/feilet — prøver requests...")
     sess = requests.Session()
-    # Besøk hovedside for å sette session-cookies (Drupal krever dette)
     for page in EURONEXT_PAGES:
         try:
             sess.get(page, headers=HEADERS, timeout=15)
@@ -155,15 +212,20 @@ def download_excel():
         except Exception:
             continue
 
-    scraped = find_excel_url()
-    candidates = ([scraped] if scraped else []) + _candidate_urls()
-
-    for url in candidates:
-        if not url:
-            continue
-        data = _try_download(sess, url)
-        if data:
-            return data
+    for url in _candidate_urls():
+        try:
+            print(f"  Prøver: {url}")
+            r = sess.get(url, headers=HEADERS_XLSX, timeout=30, allow_redirects=True)
+            r.raise_for_status()
+            ctype = r.headers.get("Content-Type", "")
+            if len(r.content) < 500:
+                continue
+            if "html" in ctype.lower() and b"<!DOCTYPE" in r.content[:200]:
+                continue
+            print(f"    OK — {len(r.content)//1024} KB")
+            return r.content
+        except Exception as e:
+            print(f"    FEIL: {e}")
     return None
 
 
