@@ -1161,11 +1161,14 @@ function renderOilgas(d){
       h += '<div style="font-size:11px;color:var(--m)">'+inst.unit+'</div>';
       h += '<div style="font-size:12px;margin-top:5px">';
       h += '<span style="color:'+chgCol+'">'+(p.chg1d>=0?'+':'')+p.chg1d+'%</span>';
-      h += '<span style="color:var(--m)"> 1d · </span>';
       var devCol = PSIG_COL[p.signal] || 'var(--m)';
-      h += '<span style="color:'+devCol+'">'+(p.dev_ma>=0?'+':'')+p.dev_ma+'% MA20</span>';
+      if(p.dev_ma!=null){
+        h += '<span style="color:var(--m)"> 1d · </span>';
+        h += '<span style="color:'+devCol+'">'+(p.dev_ma>=0?'+':'')+p.dev_ma+'% MA20</span>';
+      }
       h += '</div>';
-      h += '<div style="font-size:10px;color:var(--m);margin-top:2px">'+p.trend+'</div>';
+      if(p.trend){h += '<div style="font-size:10px;color:var(--m);margin-top:2px">'+p.trend+'</div>';}
+      if(p.source==='macro'){h += '<div style="font-size:10px;color:var(--m);margin-top:2px;opacity:0.6">Kilde: makrodata</div>';}
       // Sparkline
       if(p.history && p.history.length > 2){
         var mn=Math.min.apply(null,p.history), mx=Math.max.apply(null,p.history);

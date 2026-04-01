@@ -18,6 +18,14 @@ BASE = Path(__file__).parent
 OUT  = BASE / "data" / "oilgas" / "latest.json"
 OUT.parent.mkdir(parents=True, exist_ok=True)
 COMBINED_FILE = BASE / "data" / "combined" / "latest.json"
+MACRO_FILE    = BASE / "data" / "macro" / "latest.json"
+
+# Mapping fra instrument-id til nøkkel i macro/latest.json "prices"
+MACRO_PRICE_MAP = {
+    "brent":   "Brent",
+    "wti":     "WTI",
+    # natgas/rbob/heatoil finnes ikke i macro — forblir null
+}
 
 # ── Priser via stooq ─────────────────────────────────────────────
 PRICE_INDICES = [
@@ -167,6 +175,37 @@ def fetch_stooq(symbol):
         return None
 
 
+def fetch_from_macro(instrument_id):
+    """Hent pris fra macro/latest.json som fallback når stooq ikke er tilgjengelig."""
+    try:
+        with open(MACRO_FILE) as f:
+            macro = json.load(f)
+        key = MACRO_PRICE_MAP.get(instrument_id)
+        if not key:
+            return None
+        p = macro.get("prices", {}).get(key)
+        if not p or p.get("price") is None:
+            return None
+        val = p["price"]
+        chg1d = p.get("chg1d", 0.0) or 0.0
+        prev = round(val / (1 + chg1d / 100), 2) if chg1d != -100 else val
+        return {
+            "value":   round(val, 2),
+            "prev":    prev,
+            "chg1d":   round(chg1d, 2),
+            "ma20":    None,
+            "dev_ma":  None,
+            "trend":   None,
+            "signal":  "neutral",
+            "date":    macro.get("date", ""),
+            "history": [],
+            "source":  "macro",
+        }
+    except Exception as e:
+        print(f"  Macro-fallback FEIL ({instrument_id}): {e}")
+        return None
+
+
 def get_cot(cot_key, cot_data):
     markets = COT_MAP.get(cot_key, [])
     matches = [e for e in cot_data
@@ -287,12 +326,16 @@ except Exception as e:
     cot_data = []
 
 # 1. Priser + COT per instrument
-print("  Henter priser (stooq)...")
+print("  Henter priser (stooq → macro fallback)...")
 instruments = []
 for i, inst in enumerate(PRICE_INDICES):
     if i > 0:
         time.sleep(1)
     price = fetch_stooq(inst["symbol"])
+    if price is None:
+        price = fetch_from_macro(inst["id"])
+        if price:
+            print(f"    {inst['label']:20} → bruker macro-data som fallback")
     cot   = get_cot(inst["cot_key"], cot_data) if inst["cot_key"] else None
     signal = combine_signal(price, cot)
     status = f"{price['value']} ({price['chg1d']:+.2f}%)" if price else "ikke tilgjengelig"
