@@ -29,8 +29,14 @@ python3 fetch_all.py >> "$LOG" 2>&1 \
     && echo "  analyse OK" >> "$LOG" \
     || echo "  analyse FEIL" >> "$LOG"
 
+# Oppdater olje & gass med bot-priser
+python3 fetch_oilgas.py >> "$LOG" 2>&1 \
+    && echo "  oilgas OK" >> "$LOG" \
+    || echo "  oilgas FEIL" >> "$LOG"
+
 # Push oppdatert data til GitHub Pages
-git add data/macro/latest.json data/signals.json data/signal_log.json 2>/dev/null || true
+git add data/macro/latest.json data/signals.json data/signal_log.json \
+        data/oilgas/latest.json 2>/dev/null || true
 if git diff --cached --quiet; then
     echo "  git: ingen prisendring å pushe" >> "$LOG"
 else
