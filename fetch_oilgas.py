@@ -17,14 +17,22 @@ from pathlib import Path
 BASE = Path(__file__).parent
 OUT  = BASE / "data" / "oilgas" / "latest.json"
 OUT.parent.mkdir(parents=True, exist_ok=True)
-COMBINED_FILE = BASE / "data" / "combined" / "latest.json"
-MACRO_FILE    = BASE / "data" / "macro" / "latest.json"
+COMBINED_FILE  = BASE / "data" / "combined" / "latest.json"
+MACRO_FILE     = BASE / "data" / "macro" / "latest.json"
+BOT_PRICES_FILE = BASE / "data" / "prices" / "bot_prices.json"
 
-# Mapping fra instrument-id til nøkkel i macro/latest.json "prices"
-MACRO_PRICE_MAP = {
+# Mapping fra instrument-id → nøkkel i bot_prices.json / macro "prices"
+# Boten sender disse nøklene i /push-prices body
+BOT_PRICE_MAP = {
     "brent":   "Brent",
     "wti":     "WTI",
-    # natgas/rbob/heatoil finnes ikke i macro — forblir null
+    "natgas":  "NatGas",
+    "rbob":    "RBOB",
+    "heatoil": "HeatingOil",
+}
+MACRO_PRICE_MAP = {
+    "brent": "Brent",
+    "wti":   "WTI",
 }
 
 # ── Priser via stooq ─────────────────────────────────────────────
@@ -172,6 +180,40 @@ def fetch_stooq(symbol):
         }
     except Exception as e:
         print(f"  Stooq FEIL ({symbol}): {e}")
+        return None
+
+
+def fetch_from_bot(instrument_id):
+    """Hent pris fra data/prices/bot_prices.json (sendt av trading-boten fra Skilling)."""
+    try:
+        if not BOT_PRICES_FILE.exists():
+            return None
+        with open(BOT_PRICES_FILE) as f:
+            data = json.load(f)
+        key = BOT_PRICE_MAP.get(instrument_id)
+        if not key:
+            return None
+        p = data.get("prices", {}).get(key)
+        if not p or p.get("value") is None:
+            return None
+        val = p["value"]
+        chg1d = p.get("chg1d", 0.0) or 0.0
+        prev = round(val / (1 + chg1d / 100), 4) if chg1d != -100 else val
+        return {
+            "value":  round(val, 4),
+            "prev":   prev,
+            "chg1d":  round(chg1d, 3),
+            "chg5d":  round(p.get("chg5d", 0.0) or 0.0, 3),
+            "ma20":   None,
+            "dev_ma": None,
+            "trend":  None,
+            "signal": "neutral",
+            "date":   p.get("updated", ""),
+            "history": [],
+            "source": "bot",
+        }
+    except Exception as e:
+        print(f"  Bot-priser FEIL ({instrument_id}): {e}")
         return None
 
 
@@ -332,6 +374,10 @@ for i, inst in enumerate(PRICE_INDICES):
     if i > 0:
         time.sleep(1)
     price = fetch_stooq(inst["symbol"])
+    if price is None:
+        price = fetch_from_bot(inst["id"])
+        if price:
+            print(f"    {inst['label']:20} → bruker bot-priser (Skilling)")
     if price is None:
         price = fetch_from_macro(inst["id"])
         if price:
