@@ -7,33 +7,140 @@ Repo: https://github.com/Snkpipefish/cot-explorer
 
 ## Hva er dette?
 
-En statisk nettside (GitHub Pages) som viser daglige trading-ideer basert på:
+En statisk nettside (GitHub Pages) med tre dashboards som viser daglige trading-ideer og markedsintelligens:
 
-- **Level-til-level setups** — entry ved faktisk strukturnivå, T1/T2 er neste reelle nivå
+- **🏠 Markedspuls** (`index.html`) — Setups, COT, Makro, Kalender, Signal-logg, Priser
+- **🛢️ Råvare Intel** (`metals-intel.html`) — Geo-Intel Kart, COMEX Lager, Intel Feed, Råvare COT, Avlings-analyse, Shipping, Olje & Gass
+- **₿ Krypto Intel** (`crypto-intel.html`) — Markedsbildet, Signaler, Store investorer, Nyheter
+
+Alle tre sider har en **to-nivås navigasjon**: øverste rad bytter mellom de tre dashboardene, nederste rad viser under-faner for gjeldende side.
+
+---
+
+## Markedspuls (`index.html`)
+
+### 🏠 Oversikt (standard)
+Dashboard-visning med 6 kort som lenker til under-fanene:
+- **Setups** — antall aktive signaler, VIX-regime, geo-varsler
+- **Makro** — Fear & Greed score, nyhetssentiment, dollar-fase
+- **COT** — bull/bear-fordeling på tvers av alle COT-markeder
+- **Signal-logg** — wins/losses/åpne trades fra bot-historikk
+- **Kalender** — antall high-impact hendelser denne uken
+- **Priser** — EURUSD, Gold, Brent, USDJPY med daglig endring
+
+### 💡 Setups
+- **Level-til-level setups** med entry ved faktisk strukturnivå, T1/T2 er neste reelle nivå
 - **Konfluens-score (12 punkter)** inkl. SMA200, momentum, COT, HTF-nivå, sesjon, BOS, SMC-struktur, nyheter, fundamentals
 - **SMC-analyse på tre tidshorisonter** — 15m, 1H og 4H: supply/demand soner, BOS, HH/LH/HL/LL
-- **Makro-panel** med Dollar Smile-modell, VIX-regime, yield curve og konflikt-flagging
-- **VIX term-struktur** — spot vs. 9D vs. 3M, contango/backwardation-regime
-- **Korrelasjonstabell** — 20-dagers Pearson-korrelasjon mellom EUR/USD, XAU/USD, US100 og Brent
-- **COT-posisjoner** for 600+ markeder fra CFTC (siste uke) med 8-ukers sparkline, gruppert i accordion-kategorier
-- **COT-historikk** med prisgraf (klikk på marked i COT-fanen)
-- **Fundamentals-panel** — FRED-data: GDP, CPI, PPI, PCE, NFP, jobbtall (USD-bias-score)
-- **Nyhetssentiment** — RSS fra Google News + BBC, risk-on/risk-off-scoring
-- **Makroindikatorer** — HYG, TIP, TNX (10Y), IRX (3M), Kobber, EEM (alle inkl. chg20d)
-- **Gjennomsnittlig daglig range (ADR)** — 20-dagers snitt per instrument
-- **Økonomisk kalender** med binær risiko-varsling
-- **Timeframe bias** — MAKRO / SWING / SCALP / WATCHLIST per instrument
-- **Signal-logg** — historikk over bot-utførte trades med resultat (win/loss/managed)
-- **Råvare Intel** — Geo-Intel kart (MapLibre GL), landbruksregioner med værvarsling, COMEX lager, nyhetsstrøm, Råvare COT, Avlings-analyse
-- **Krypto Intel** — Priser, markedsdominans, Fear & Greed, Bitcoin COT, makrokorrelasjoner og nyheter
+- **Binær risiko-varsling** — High-impact kalender-events innen 4 timer vises som ⚠️ på setup-kortet
+  - Vanlige nøkkeltall (CPI, NFP, renter): risiko utløper **30 min** etter hendelsen
+  - Taler, pressekonferanser, FOMC Minutes: risiko utløper **60 min** etter hendelsen
+  - Utløp sjekkes i **sanntid i nettleseren** mot UTC-tidspunktet fra kalenderen
 
-Alt drives av JSON-filer i `data/` som genereres lokalt og pushes til GitHub.
+### 🌐 Makro
+- Dollar Smile-modell, VIX-regime, yield curve og konflikt-flagging
+- VIX term-struktur — spot vs. 9D vs. 3M, contango/backwardation-regime
+- Makroindikatorer — HYG, TIP, TNX (10Y), IRX (3M), Kobber, EEM (alle inkl. chg20d)
+- Fundamentals-panel — FRED-data: GDP, CPI, PPI, PCE, NFP, jobbtall (USD-bias-score)
+- Nyhetssentiment — RSS fra Google News + BBC, risk-on/risk-off-scoring
+
+### 📊 COT
+- COT-posisjoner for 600+ markeder fra CFTC (siste uke) med 8-ukers sparkline, gruppert i accordion-kategorier
+- COT-historikk med prisgraf (klikk på marked)
+
+### 🔗 Korrelasjoner
+- 20-dagers Pearson-korrelasjon mellom EUR/USD, XAU/USD, US100 og Brent
+
+### 📋 Signal-logg
+- Historikk over bot-utførte trades med resultat (win/loss/managed)
+
+### 📅 Kalender
+- Økonomisk kalender med high-impact hendelser
+
+### 💹 Priser
+- Live-priser med daglig og 20-dagers endring
+
+---
+
+## Råvare Intel (`metals-intel.html`)
+
+### 🏠 Oversikt (standard)
+Dashboard med 7 kort som lenker til under-fanene:
+- Geo-Intel Kart, COMEX Lager, Intel Feed, Råvare COT, Avlings-analyse, Shipping, Olje & Gass
+
+### 🗺️ Geo-Intel Kart
+- **MapLibre GL v4** — WebGL-basert kart med CartoDB Dark Matter tiles
+- 9 lag: shipping lanes, pipelines (aktiv/stiplet), infrastruktur, seismisk, landbruksregioner, chokepoints, gruver
+- **26 gruver** (gull/sølv/kobber) med status, selskap, produksjon og risikoflagg
+- **6 chokepoints** med HIGH/MEDIUM/LOW risiko-badge
+- **Landbruksregioner** med Open-Meteo 7-dagers værvarsling ved klikk
+- **Seismisk aktivitet** — USGS M≥4.5 nær gruveregioner
+
+### 🏦 COMEX Lager
+- Registrert vs. eligible lagerbeholdning for gull, sølv og kobber
+- Stress-indeks per metall (0–100)
+
+### 📰 Intel Feed
+- Nyhetsstrøm fra Google News RSS (gull, sølv, kobber, geopolitikk)
+
+### 📊 Råvare COT
+- COT-posisjoner filtrert på råvarer og landbruk
+
+### 🌾 Avlings-analyse
+- **10 avlinger**: Mais, Hvete, Soyabønner, Canola, Bomull, Sukker, Kaffe, Kakao, Palmeolje, Ris
+- **14 regioner** med Open-Meteo vær-scoring og COT-kombinasjon
+- Prisretning: STERKT BULLISH → STERKT BEARISH
+
+### 🚢 Shipping
+- **Baltic-indekser**: BDI, BCI, BPI, BSI fra Stooq
+- **8 ruter** scoret med keyword-basert disrupsjonsvarsling: trans-Pacific, Asia-Europa, Hormuz, Svartehavet, Panama, Sør-Amerika, Australia bulk, Malacca
+- **Nyheter** fra 5 Google RSS-strømmer (container, tanker, bulk, chokepoints, havner)
+- Overall risiko: HIGH / MEDIUM / LOW
+- Datafil: `data/shipping/latest.json`
+
+### ⛽ Olje & Gass
+- **Priser og COT** for WTI, Brent, NatGas, RBOB, Heating Oil
+- **Brent-WTI spread** beregnet løpende
+- **8 segmenter** scoret: OPEC, US supply, Russland, Midtøsten, LNG, raffineri, etterspørsel, fornybar
+- **Kombinert signal** per instrument: STERKT BULLISH → STERKT BEARISH (pris + COT)
+- Datafil: `data/oilgas/latest.json`
+
+---
+
+## Krypto Intel (`crypto-intel.html`)
+
+Designet for brukere uten kryptoerfaring — alt forklares på norsk i klartekst.
+
+### 🏠 Oversikt (standard)
+Dashboard med 4 kort som lenker til under-fanene:
+- **Markedsbildet** — stemningsemoji, F&G score og BTC/ETH/SOL priser
+- **Signaler** — om krypto følger aksjer eller er selvstendig, BTC-dominans
+- **Store investorer** — COT retning og netto-posisjon prosent
+- **Nyheter** — antall artikler og 3 siste overskrifter
+
+### 💡 Markedsbildet
+- Stemningsbanner (🟢 Optimistisk / 🟡 Usikkert / 🔴 Nervøst) med klarspråklig forklaring
+- 3 signalkort: samlet markedsverdi, Bitcoin-dominans, Fear & Greed
+- Prisoversikt: BTC, ETH, SOL, XRP, BNB, ADA, DOGE, AVAX
+- BTC-dominans-bar og Fear & Greed gauge med historikk
+
+### 🔍 Signaler
+- 3 innsiktkort: "Henger krypto med aksjer?", "Er Bitcoin som gull?", "Kan altcoins gjøre det bedre?"
+- Korrelasjon mot S&P 500 og gull forklart i dagligspråk
+
+### 🏦 Store investorer
+- Bitcoin COT fra CME futures
+- Stort emoji-kort: "De store investorene: Kjøper aktivt / Selger / Nøytrale"
+- Posisjonsbar og 8-ukers sparkline
+
+### 📰 Nyheter
+- Krypto-nyheter kategorisert: Bitcoin, Ethereum, Regulering, Makro, Altcoins
 
 ---
 
 ## Workflow — automatisk oppdatering (systemd timer)
 
-Scriptet `update.sh` kjøres automatisk via systemd timer hvert 4. time hele døgnet:
+`update.sh` kjøres 6× daglig via systemd timer:
 
 | Tid (CET) |
 |-----------|
@@ -44,45 +151,42 @@ Scriptet `update.sh` kjøres automatisk via systemd timer hvert 4. time hele dø
 | 16:00 |
 | 20:00 |
 
-Timer-oppsett: `/etc/systemd/system/cot-explorer.timer`
-Service-oppsett: `/etc/systemd/system/cot-explorer.service`
+`Persistent=true` sikrer at missede kjøringer kjøres automatisk ved oppstart.
 
-`Persistent=true` sikrer at missede kjøringer (f.eks. server i dvale) kjøres automatisk når maskinen våkner.
-
-> Kjør manuelt ved behov: `bash ~/cot-explorer/update.sh`
-
-For å se logg: `tail -f ~/cot-explorer/logs/update.log`
+> Kjør manuelt: `bash ~/cot-explorer/update.sh`
+> Logg: `tail -f ~/cot-explorer/logs/update.log`
 
 ### Hva update.sh gjør (i rekkefølge)
 
-0. `git fetch origin main && git rebase origin/main` — synkroniserer med GitHub før kjøring for å unngå divergens ved push
-1. `fetch_calendar.py` — henter ForexFactory-kalender (binær risiko per instrument)
-2. `fetch_cot.py` — henter CFTC COT-data
-3. `build_combined.py` — bygger kombinert COT-datasett (legacy + TFF + disaggregated)
-4. `fetch_fundamentals.py` — henter FRED makrodata (kun hvis > 12 timer siden sist)
-5. `fetch_all.py` — full analyse: priser, SMC (15m/1H/4H), nivåer, score, setup-generering, VIX term-struktur, korrelasjonmatrise, ADR
-6. `fetch_comex.py` — henter COMEX lagerbeholdning (gull/sølv/kobber)
-7. `fetch_seismic.py` — henter USGS seismiske data for gruveregioner
-8. `fetch_intel.py` — henter nyheter fra Google News RSS (gull, sølv, kobber, geopolitikk)
-9. `fetch_agri.py` — henter Open-Meteo værvarsling for 14 landbruksregioner, beregner tørkestress/flomrisiko, kombinerer med COT → `data/agri/latest.json`
-10. `fetch_crypto.py` — henter krypto-priser, markedsdata, Fear & Greed, Bitcoin COT, korrelasjoner og nyheter
-11. `push_signals.py` — genererer `data/signals.json`, oil war-spread sjekk, DXY-eksklusjon
-11. `git push` — oppdaterer GitHub Pages med nye JSON-filer
-
-`logs/update.log` er ikke tracket av git (lagt til `.gitignore`).
+| # | Script | Beskrivelse |
+|---|--------|-------------|
+| 0 | git fetch/rebase | Synkroniser med GitHub |
+| 1 | `fetch_calendar.py` | ForexFactory-kalender |
+| 2 | `fetch_cot.py` | CFTC COT-data |
+| 3 | `build_combined.py` | Kombinert COT-datasett |
+| 4 | `fetch_fundamentals.py` | FRED makrodata (maks 1× per 12t) |
+| 5 | `fetch_all.py` | Full analyse: priser, SMC, nivåer, score, setups, VIX, korrelasjoner, ADR |
+| 6 | `fetch_comex.py` | COMEX lagerbeholdning |
+| 7 | `fetch_seismic.py` | USGS seismiske data |
+| 8 | `fetch_intel.py` | Google News RSS for metaller |
+| 9 | `fetch_agri.py` | Vær + COT for 10 avlinger / 14 regioner |
+| 10 | `fetch_shipping.py` | Baltic-indekser + rute-scoring |
+| 11 | `fetch_oilgas.py` | Energipriser + segment-scoring |
+| 12 | `fetch_crypto.py` | Krypto-priser, Fear & Greed, COT, korrelasjoner |
+| 13 | `push_signals.py` | Genererer `signals.json`, pusher varsler |
+| 14 | git push | Oppdaterer GitHub Pages |
 
 ---
 
 ## Signal-varsling og trading bot
 
-`push_signals.py` sender de beste tradingideene til Telegram, Discord og/eller en lokal Flask-server etter hver analyse.
+`push_signals.py` sender de beste tradingideene til Telegram, Discord og/eller Flask-server.
 
 ### Filtrering
-
-- Kun setups med score ≥ `PUSH_MIN_SCORE` (standard: **7** av 12)
+- Score ≥ `PUSH_MIN_SCORE` (standard: **7** av 12)
 - Kun klare retninger: `dir_color` er `bull` eller `bear`
 - **DXY ekskludert** (ikke-tradeable indeks)
-- **Oil war-spread beskyttelse**: hvis Brent +15% siste 20 dager ELLER krig/Iran-nøkkelord i nyheter → `oil_geo_warning=true` i `signals.json`. Boten øker minimum SL og krever bredere spread-kontroll for oljeinstrumenter.
+- **Oil war-spread beskyttelse**: Brent +15% 20d ELLER krig-nøkkelord → `oil_geo_warning=true`
 
 ### signals.json — global_state og rules
 
@@ -107,17 +211,9 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 }
 ```
 
-### Signal-logg (bot → JSON)
+### Signal-logg
 
-`trading_bot.py` skriver direkte til `~/cot-explorer/data/signal_log.json` ved hver trade-hendelse:
-
-- `_log_trade_opened(state)` — kalles i `_on_execution` etter ordrebekreftelse
-- `_log_trade_closed(state, reason, close_price)` — kalles ved GEO-SPIKE, KILL, EMA9, 8-CANDLE
-- `_git_push_log()` — kalles etter hver skriving, committer og pusher `signal_log.json` til GitHub umiddelbart
-
-`push_signals.py` skriver **ikke** til `signal_log.json` — kun `trading_bot.py` gjør det. Signal-loggen viser kun bot-utførte trades, ikke auto-genererte signaler.
-
-Kolonner i loggen: Åpnet, Instrument, Retning, Entry, SL, T1, Størrelse, Exit-grunn, Resultat.
+`trading_bot.py` skriver direkte til `data/signal_log.json` ved trade-hendelser. `push_signals.py` skriver ikke til loggen.
 
 ### Miljøvariabler
 
@@ -126,82 +222,17 @@ Kolonner i loggen: Åpnet, Instrument, Retning, Entry, SL, T1, Størrelse, Exit-
 | `TELEGRAM_TOKEN` | Bot-token fra @BotFather |
 | `TELEGRAM_CHAT_ID` | Chat-ID som skal motta meldinger |
 | `DISCORD_WEBHOOK` | Discord webhook-URL |
-| `PUSH_MIN_SCORE` | Minimum konfluens-score (standard: **7**) |
+| `PUSH_MIN_SCORE` | Minimum konfluens-score (standard: 7) |
 | `PUSH_MAX_SIGNALS` | Maks antall signaler per kjøring (standard: 5) |
-| `FLASK_URL` | URL til signal_server.py (standard: `http://localhost:5000`) |
-| `SCALP_API_KEY` | API-nøkkel til Flask-endepunktet `/push-alert` |
-
----
-
-## Råvare Intel (`metals-intel.html`)
-
-Eget panel med fire faner:
-
-### Geo-Intel Kart
-- **MapLibre GL v4** — WebGL-basert kart med CartoDB Dark Matter tiles og smooth zoom
-- 9 lag: shipping lanes, pipelines (aktiv/stiplet), infrastruktur, seismisk, landbruksregioner, chokepoints, gruver
-- Hvert lag kan skrus av/på via checkbox-panel
-- **26 gruver** (gull/sølv/kobber) med status, selskap, produksjon og risikoflagg
-- **6 chokepoints** (Hormuz, Malacca, Suez, Bab-el-Mandeb, Panama, Kapp det gode håp)
-- **Landbruksregioner** — klikk for popup med Open-Meteo 7-dagers værvarsling (temperatur, nedbør, vind) for kornbelte, Amazonas m.fl.
-- **Seismisk aktivitet** — USGS M≥4.5 nær gruveregioner
-
-### COMEX Dashboard
-- Registrert vs. eligible lagerbeholdning for gull, sølv og kobber
-- Stress-indeks per metall (0–100)
-
-### Intel Feed
-- Nyhetsstrøm fra Google News RSS (4 kategorier: gull, sølv, kobber, geopolitikk)
-
-### Råvare COT
-- COT-posisjoner filtrert på råvarer og landbruk fra `data/combined/latest.json`
-
-### Avlings-analyse
-- **10 avlinger**: Mais, Hvete, Soyabønner, Canola/Raps, Bomull, Sukker, Kaffe, Kakao, Palmeolje, Ris
-- **14 regioner**: USA Corn Belt, Great Plains, Brazil Mato Grosso, Argentina Pampas, Ukraina, EU, Canada, Australia, India, Sørøst-Asia, Vest-Afrika, m.fl.
-- **Vær-scoring**: tørke (< 8mm / > 25°C) → +2, flom (> 70mm) → +2, frost i plantetid → +2, normalt → 0
-- **Sesongvekting**: kritisk sesong (planting/vekst) gir 1.5× vekting på vær-score
-- **COT-score**: spekulant-netto som % av open interest + momentum → −2 til +2
-- **Prisretning**: vær-score + COT-score → STERKT BULLISH / BULLISH / NØYTRAL / BEARISH / STERKT BEARISH
-- Oppdateres fra `data/agri/latest.json` (6× daglig)
-
-### Datafiler
-
-| Fil | Innhold | Oppdatering |
-|-----|---------|-------------|
-| `data/geointel/shipping_lanes.json` | Globale shippingruter | Statisk |
-| `data/geointel/pipelines.json` | Oljeledninger | Statisk |
-| `data/geointel/infrastructure.json` | Terminals og raffineri | Statisk |
-| `data/geointel/agri_regions.json` | Landbruksregioner med koordinater | Statisk |
-| `data/geointel/chokepoints.json` | 6 chokepoints | Statisk |
-| `data/geointel/mines.json` | 26 gruver | Statisk |
-| `data/geointel/seismic.json` | USGS seismiske hendelser | 6× daglig |
-| `data/geointel/intel.json` | Google News RSS feed | 6× daglig |
-| `data/comex/latest.json` | COMEX lagerbeholdning + stress-indeks | 6× daglig |
-| `data/agri/latest.json` | Avlings-analyse: vær, COT, prisretning per avling | 6× daglig |
+| `FLASK_URL` | URL til signal_server.py |
+| `SCALP_API_KEY` | API-nøkkel til Flask `/push-alert` |
+| `FRED_API_KEY` | FRED makrodata |
+| `TWELVEDATA_API_KEY` | Forex + gull OHLC |
+| `FINNHUB_API_KEY` | Sanntidspris for indekser/råvarer |
 
 ---
 
 ## Slik beregnes trading-ideer
-
-### Nivåhierarki (weight-skala)
-
-| Weight | Nivå | Beskrivelse |
-|--------|------|-------------|
-| 5 | PWH / PWL | Forrige ukes høy/lav (sterkest) |
-| 4 | PDH / PDL | Forrige dags høy/lav |
-| 3 | D1 swing / PDC / SMC 1H | Daglige swing-nivåer, forrige close, SMC supply/demand 1H |
-| 2 | 4H swing / SMC 4H | 4H swing-nivåer, SMC supply/demand 4H |
-| 1 | 15m pivot / SMC 15m | Lokale intradag-nivåer (svakest) |
-
-Nivåer innen 0.5×ATR av hverandre slås sammen — høyest weight beholder posisjonen.
-
-### Level-til-Level setup (L2L)
-
-- Entry = faktisk strukturnivå (MÅ være innen 0.3–1.0×ATR(D1) avhengig av weight)
-- SL = strukturell stop loss (zone_bottom/top ± buffer, eller nivå ± 0.3–0.5×ATR)
-- T1 = neste faktiske nivå med høyest HTF-weight (R:R ≥ 1.5 kreves)
-- T2 = neste nivå etter T1, eller T1 + 1×risk
 
 ### Konfluens-score (12 punkter)
 
@@ -230,65 +261,81 @@ Nivåer innen 0.5×ATR av hverandre slås sammen — høyest weight beholder pos
 | 20–30 | Halv |
 | > 30 | Kvart |
 
+### Nivåhierarki
+
+| Weight | Nivå |
+|--------|------|
+| 5 | PWH / PWL |
+| 4 | PDH / PDL |
+| 3 | D1 swing / PDC / SMC 1H |
+| 2 | 4H swing / SMC 4H |
+| 1 | 15m pivot / SMC 15m |
+
 ---
 
 ## Instruments
 
-| Key | Stooq | COT-marked | Klasse | Sesjon |
-|-----|-------|------------|--------|--------|
-| EURUSD | eurusd | euro fx | A | London 08:00–12:00 CET |
-| USDJPY | usdjpy | japanese yen | A | London 08:00–12:00 CET |
-| GBPUSD | gbpusd | british pound | A | London 08:00–12:00 CET |
-| AUDUSD | audusd | — | A | London 08:00–12:00 CET |
-| Gold | xauusd | gold | B | London Fix 10:30 / NY Fix 15:00 CET |
-| Silver | xagusd | silver | B | London Fix 10:30 / NY Fix 15:00 CET |
-| Brent | co.f | crude oil, light sweet | B | London Fix 10:30 / NY Fix 15:00 CET |
-| WTI | cl.f | crude oil, light sweet | B | London Fix 10:30 / NY Fix 15:00 CET |
-| SPX | ^spx | s&p 500 consolidated | C | NY Open 14:30–17:00 CET |
-| NAS100 | ^ndx | nasdaq mini | C | NY Open 14:30–17:00 CET |
-| DXY | dxy.f | usd index | A | — (kun display, ikke tradeable) |
-| VIX | ^vix | — | C | NY Open 14:30–17:00 CET |
-| USDCHF | usdchf | — | A | London 08:00–12:00 CET |
-| USDNOK | usdnok | — | A | London 08:00–12:00 CET |
-
-VIX brukes kun for posisjonsstørrelse. DXY vises men ekskluderes fra trade-setups (ikke-tradeable indeks). USDCHF og USDNOK er kun priser (ingen COT/SMC-analyse).
+| Key | Stooq | COT-marked | Klasse |
+|-----|-------|------------|--------|
+| EURUSD | eurusd | euro fx | A |
+| USDJPY | usdjpy | japanese yen | A |
+| GBPUSD | gbpusd | british pound | A |
+| AUDUSD | audusd | — | A |
+| Gold | xauusd | gold | B |
+| Silver | xagusd | silver | B |
+| Brent | co.f | crude oil | B |
+| WTI | cl.f | crude oil | B |
+| SPX | ^spx | s&p 500 | C |
+| NAS100 | ^ndx | nasdaq mini | C |
+| DXY | dxy.f | usd index | A (kun display) |
+| VIX | ^vix | — | C (kun posisjonsstørrelse) |
 
 ---
 
 ## Datakilder
 
-| Data | Kilde | API-nøkkel | Frekvens |
-|------|-------|------------|----------|
-| COT | CFTC.gov | Nei | Ukentlig fredag 21:30 CET |
-| Daglige OHLC (primær) | Stooq | Nei | Ved kjøring |
-| Intradag 15m / 1H | Yahoo Finance | Nei | Ved kjøring |
-| Forex + gull OHLC | Twelvedata | Ja (`TWELVEDATA_API_KEY`) | Ved kjøring, maks 800/dag |
-| Sanntidspris (indekser/råvarer) | Finnhub | Ja (`FINNHUB_API_KEY`) | Ved kjøring |
-| Renter (10Y, 3M T-bill) | FRED | Nei | Ved kjøring |
-| Fundamentals (GDP, CPI, NFP m.fl.) | FRED | Ja (`FRED_API_KEY`) | Maks 1× per 12 timer |
-| Fear & Greed | CNN dataviz API | Nei | Ved kjøring |
-| Nyhetssentiment | Google News RSS + BBC RSS | Nei | Ved kjøring |
-| Kalender | ForexFactory JSON | Nei | Ved kjøring |
-| Landbruksvær | Open-Meteo API | Nei | Ved klikk i kart |
-| SMC supply/demand/BOS | Beregnet lokalt (smc.py) | — | Ved kjøring |
-| Korrelasjoner + ADR | Beregnet fra daily-data | — | Ved kjøring |
-| COMEX lager | CME Group → fallback | Nei | 6× daglig |
-| Seismisk aktivitet | USGS Earthquake API | Nei | 6× daglig |
-| Krypto-priser | Yahoo Finance | Nei | 6× daglig |
-| Krypto markedsdata | CoinGecko API | Nei | 6× daglig |
-| Krypto Fear & Greed | alternative.me | Nei | 6× daglig |
+| Data | Kilde | API-nøkkel |
+|------|-------|------------|
+| COT | CFTC.gov | Nei |
+| Daglige OHLC | Stooq | Nei |
+| Intradag 15m/1H | Yahoo Finance | Nei |
+| Forex + gull | Twelvedata | Ja |
+| Sanntidspris (indekser/råvarer) | Finnhub | Ja |
+| Fundamentals | FRED | Ja |
+| Fear & Greed (krypto) | alternative.me | Nei |
+| Nyhetssentiment | Google News RSS + BBC RSS | Nei |
+| Kalender | ForexFactory JSON | Nei |
+| Landbruksvær | Open-Meteo API | Nei |
+| COMEX lager | CME Group | Nei |
+| Seismisk aktivitet | USGS Earthquake API | Nei |
+| Baltic shipping-indekser | Stooq (^bdi, ^bci, ^bpi, ^bsi) | Nei |
+| Shipping-nyheter | Google News RSS | Nei |
+| Energipriser (WTI, Brent, NatGas) | Stooq | Nei |
+| Krypto-priser | Yahoo Finance | Nei |
+| Krypto markedsdata | CoinGecko API | Nei |
 
-### Pris-fallback-kjede
+---
 
-```
-Twelvedata (forex/gull, hvis API-nøkkel + gratis-symbol)
-    → Stooq (daglig, alle symboler, ingen nøkkel)
-        → Yahoo Finance (intradag + alt Stooq ikke dekker)
+## Datafiler
 
-Finnhub: oppdaterer siste bar med sanntidspris (indekser, råvarer)
-```
-
-**NB:** Når intradag 15m-pris brukes som `curr`, sammenlignes den mot siste daglige Stooq-close (`daily[-1]`) — ikke `daily[-2]`. Dette sikrer at `chg1d` viser endring fra gårsdagens slutt, ikke to dager tilbake.
+| Fil | Innhold | Oppdatering |
+|-----|---------|-------------|
+| `data/macro/latest.json` | Priser, SMC, nivåer, score, kalender | 6× daglig |
+| `data/combined/latest.json` | Kombinert COT-datasett | 6× daglig |
+| `data/signals.json` | Aktive signaler + global state | 6× daglig |
+| `data/signal_log.json` | Bot-trade historikk | Ved trade |
+| `data/fundamentals/latest.json` | FRED makrodata | 2× daglig |
+| `data/comex/latest.json` | COMEX lagerbeholdning + stress-indeks | 6× daglig |
+| `data/agri/latest.json` | Avlings-analyse: vær, COT, signal | 6× daglig |
+| `data/shipping/latest.json` | Baltic-indekser, rute-scoring, nyheter | 6× daglig |
+| `data/oilgas/latest.json` | Energipriser, COT, segment-scoring | 6× daglig |
+| `data/crypto/latest.json` | Krypto-priser, Fear & Greed, COT, korrelasjoner | 6× daglig |
+| `data/geointel/seismic.json` | USGS seismiske hendelser | 6× daglig |
+| `data/geointel/intel.json` | Google News RSS metallnyheter | 6× daglig |
+| `data/geointel/shipping_lanes.json` | Globale shippingruter | Statisk |
+| `data/geointel/pipelines.json` | Oljeledninger | Statisk |
+| `data/geointel/chokepoints.json` | 6 chokepoints | Statisk |
+| `data/geointel/mines.json` | 26 gruver | Statisk |
 
 ---
 
@@ -296,12 +343,14 @@ Finnhub: oppdaterer siste bar med sanntidspris (indekser, råvarer)
 
 | Komponent | Teknologi |
 |-----------|-----------|
-| Frontend | Vanilla HTML/CSS/JS, `index.html` + `metals-intel.html` + `crypto-intel.html` |
-| Kart | MapLibre GL v4 med CartoDB Dark Matter tiles (WebGL, smooth zoom) |
+| Frontend | Vanilla HTML/CSS/JS — `index.html`, `metals-intel.html`, `crypto-intel.html` |
+| Navigasjon | To-nivås nav: `nav-main` (mellom dashboards) + `nav` (under-faner) |
+| Tidssoner | `toNO()` helper konverterer UTC-timestamps til norsk tid (Europe/Oslo) i alle sider |
+| Kart | MapLibre GL v4 med CartoDB Dark Matter tiles |
 | Grafer | Chart.js (COT-historikk modal) |
 | Backend | Python 3, ingen dependencies utover stdlib |
 | Hosting | GitHub Pages (statisk) |
-| Automatisering | systemd timer (6× daglig hvert 4. time) |
-| Varsling | Telegram bot / Discord webhook / Flask REST API (valgfritt) |
-| Trading bot | `scalp_edge/trading_bot.py` — cTrader Open API (Python/Linux) |
+| Automatisering | systemd timer 6× daglig |
+| Varsling | Telegram / Discord webhook / Flask REST API |
+| Trading bot | `scalp_edge/trading_bot.py` — cTrader Open API |
 | SMC-motor | `smc.py` — Python-port av FluidTrades SMC Lite |
