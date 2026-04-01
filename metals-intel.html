@@ -100,12 +100,17 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .loading{color:var(--m);font-size:12px;padding:16px;text-align:center}
 .sh{margin-bottom:18px}.sh-t{font-size:20px;font-weight:700}
 .sh-b{font-size:12px;color:var(--m);margin-top:2px}
+/* Kollaps-knapp — kun synlig på mobil */
+.layer-toggle-btn{display:none;position:absolute;bottom:10px;right:10px;z-index:11;background:rgba(22,27,34,.93);border:1px solid var(--b);border-radius:8px;color:var(--t);font-size:13px;padding:8px 12px;cursor:pointer}
 @media(max-width:900px){
   .map-wrap{grid-template-columns:1fr;grid-template-rows:60vh auto}
   .comex-grid{grid-template-columns:1fr}
-  .layer-ctrl{top:auto;bottom:10px;left:50%;transform:translateX(-50%);min-width:0;width:calc(100% - 20px);max-width:400px;padding:8px 10px}
-  .lyr-row{display:inline-flex;margin-right:10px;margin-bottom:2px}
-  .lc-ttl{display:none}
+  /* Desktop lag-kontroll skjules på mobil — erstattes av kollaps-panel */
+  .layer-ctrl{display:none;top:auto;bottom:50px;left:8px;right:8px;min-width:0;max-width:none;padding:10px 12px}
+  .layer-ctrl.open{display:block}
+  .lyr-row{display:flex;margin-bottom:6px}
+  .lc-ttl{font-size:11px}
+  .layer-toggle-btn{display:block}
 }
 @media(max-width:600px){
   .rcot-grid{grid-template-columns:1fr}
@@ -140,6 +145,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
       <div style="position:relative;height:100%">
         <div id="map" style="height:100%;border-radius:8px"></div>
         <div class="layer-ctrl" id="layerCtrl"></div>
+        <button class="layer-toggle-btn" id="layerToggleBtn" onclick="toggleLayerCtrl()">🗂️ Lag</button>
       </div>
       <div class="map-sidebar">
         <div class="legend card">
@@ -471,6 +477,13 @@ function buildLayerCtrl(map, avail){
   });
   document.getElementById('layerCtrl').innerHTML=html;
   window._layerMeta=meta;
+}
+
+function toggleLayerCtrl(){
+  var ctrl = document.getElementById('layerCtrl');
+  var btn  = document.getElementById('layerToggleBtn');
+  var open = ctrl.classList.toggle('open');
+  btn.textContent = open ? '✕ Lukk' : '🗂️ Lag';
 }
 
 function toggleLayers(key, vis){
