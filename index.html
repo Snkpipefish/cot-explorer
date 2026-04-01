@@ -163,6 +163,13 @@ canvas#cotChart{width:100%!important;height:300px!important}
 .cot-card-pct.bull{color:var(--bull)}.cot-card-pct.bear{color:var(--bear)}
 .tdbull{color:var(--bull);font-family:'DM Mono',monospace;font-weight:500}
 .tdbear{color:var(--bear);font-family:'DM Mono',monospace;font-weight:500}
+.cotw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;background:var(--s);border:1px solid var(--b)}
+.cott{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
+.cott th{padding:8px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--m);border-bottom:1px solid var(--b);white-space:nowrap}
+.cott td{padding:8px 10px;border-bottom:1px solid var(--b);vertical-align:middle;white-space:nowrap}
+.cott tr:last-child td{border-bottom:none}
+.tdr{text-align:right}
+@media(max-width:600px){.cott th,.cott td{padding:6px 8px;font-size:11px}.mob-hide{display:none}}
 .sp2{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase}
 .sp2.bull-strong{background:var(--bbg);color:var(--bull)}.sp2.bull-mild{background:rgba(63,185,80,.07);color:var(--bull)}
 .sp2.neutral{background:var(--s2);color:var(--m)}
@@ -946,14 +953,14 @@ function renderSignallogg(log){
       '<td class="tdr" style="font-family:monospace;font-size:11px">'+(sig.entry||'–')+'</td>'+
       '<td class="tdr" style="font-family:monospace;font-size:11px;color:var(--bear)">'+(sig.stop||'–')+'</td>'+
       '<td class="tdr" style="font-family:monospace;font-size:11px;color:var(--bull)">'+(sig.t1||'–')+'</td>'+
-      '<td style="font-size:11px">'+lots+' · '+riskPct+'</td>'+
-      (e.closed_at?'<td style="font-size:11px;color:var(--m)">'+(e.exit_reason||'–')+'</td>':'<td style="font-size:11px;color:var(--m)">–</td>')+
+      '<td class="mob-hide" style="font-size:11px">'+lots+' · '+riskPct+'</td>'+
+      (e.closed_at?'<td class="mob-hide" style="font-size:11px;color:var(--m)">'+(e.exit_reason||'–')+'</td>':'<td class="mob-hide" style="font-size:11px;color:var(--m)">–</td>')+
       '<td><span class="sh-b '+rCol+'" style="font-size:10px">'+rLbl+'</span></td>'+
       '</tr>';
   });
   document.getElementById('logGrid').innerHTML=
     '<div class="cotw"><table class="cott">'+
-    '<thead><tr><th>Åpnet</th><th>Instrument</th><th>Retning</th><th style="text-align:right">Entry</th><th style="text-align:right">SL</th><th style="text-align:right">T1</th><th>Størrelse</th><th>Exit-grunn</th><th>Resultat</th></tr></thead>'+
+    '<thead><tr><th>Åpnet</th><th>Instrument</th><th>Retning</th><th style="text-align:right">Entry</th><th style="text-align:right">SL</th><th style="text-align:right">T1</th><th class="mob-hide">Størrelse</th><th class="mob-hide">Exit-grunn</th><th>Resultat</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table></div>';
 }
 
