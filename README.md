@@ -55,6 +55,7 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 
 ### Hva update.sh gjør (i rekkefølge)
 
+0. `git fetch origin main && git rebase origin/main` — synkroniserer med GitHub før kjøring for å unngå divergens ved push
 1. `fetch_calendar.py` — henter ForexFactory-kalender (binær risiko per instrument)
 2. `fetch_cot.py` — henter CFTC COT-data
 3. `build_combined.py` — bygger kombinert COT-datasett (legacy + TFF + disaggregated)
@@ -66,6 +67,8 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 9. `fetch_crypto.py` — henter krypto-priser, markedsdata, Fear & Greed, Bitcoin COT, korrelasjoner og nyheter
 10. `push_signals.py` — genererer `data/signals.json`, oil war-spread sjekk, DXY-eksklusjon
 11. `git push` — oppdaterer GitHub Pages med nye JSON-filer
+
+`logs/update.log` er ikke tracket av git (lagt til `.gitignore`).
 
 ---
 
@@ -109,10 +112,11 @@ For å se logg: `tail -f ~/cot-explorer/logs/update.log`
 
 - `_log_trade_opened(state)` — kalles i `_on_execution` etter ordrebekreftelse
 - `_log_trade_closed(state, reason, close_price)` — kalles ved GEO-SPIKE, KILL, EMA9, 8-CANDLE
+- `_git_push_log()` — kalles etter hver skriving, committer og pusher `signal_log.json` til GitHub umiddelbart
 
-Etter hver skriving kjøres `_git_push_log()` som committer og pusher filen til GitHub automatisk.
+`push_signals.py` skriver **ikke** til `signal_log.json` — kun `trading_bot.py` gjør det. Signal-loggen viser kun bot-utførte trades, ikke auto-genererte signaler.
 
-Signal-loggen viser **kun bot-utførte trades** (ikke auto-genererte signaler), med kolonner: Åpnet, Instrument, Retning, Entry, SL, T1, Størrelse, Exit-grunn, Resultat.
+Kolonner i loggen: Åpnet, Instrument, Retning, Entry, SL, T1, Størrelse, Exit-grunn, Resultat.
 
 ### Miljøvariabler
 
