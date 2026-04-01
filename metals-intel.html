@@ -119,6 +119,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   <button class="nt" data-tab="comex">🏦 COMEX Lager</button>
   <button class="nt" data-tab="intel">📰 Intel Feed</button>
   <button class="nt" data-tab="cot">📊 Råvare COT</button>
+  <button class="nt" data-tab="agri">🌾 Avlings-analyse</button>
 </nav>
 
 <div class="main">
@@ -191,6 +192,15 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
     <div id="cotCards"><div class="loading">Laster COT-data...</div></div>
   </div>
 
+  <!-- AVLINGS-ANALYSE PANEL -->
+  <div class="panel" id="panel-agri" style="display:none">
+    <div class="sh">
+      <div class="sh-t">🌾 Avlings-analyse – Vær, COT og Prisretning</div>
+      <div class="sh-b" id="agriDate">-</div>
+    </div>
+    <div id="agriContent"><div class="loading">Laster avlingsdata...</div></div>
+  </div>
+
 </div><!-- /main -->
 
 <script>
@@ -221,7 +231,7 @@ function renderSeismicList(events){
 }
 
 // ── Tab navigation ──────────────────────────────────────────
-var cotLoaded = false;
+var cotLoaded = false, agriLoaded = false;
 document.querySelectorAll('.nt').forEach(function(btn){
   btn.addEventListener('click', function(){
     document.querySelectorAll('.nt').forEach(function(b){b.classList.remove('active');});
@@ -229,7 +239,8 @@ document.querySelectorAll('.nt').forEach(function(btn){
     btn.classList.add('active');
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     if(btn.dataset.tab==='map' && window.mlMap) setTimeout(function(){window.mlMap.resize();},50);
-    if(btn.dataset.tab==='cot' && !cotLoaded){ cotLoaded=true; loadCotTab(); }
+    if(btn.dataset.tab==='cot'  && !cotLoaded)  { cotLoaded=true;  loadCotTab();  }
+    if(btn.dataset.tab==='agri' && !agriLoaded) { agriLoaded=true; loadAgriTab(); }
   });
 });
 
@@ -597,6 +608,118 @@ function setupClickHandlers(map){
       })
       .catch(function(){var el=document.getElementById('wx-'+id);if(el)el.textContent='Vær utilgjengelig';});
   });
+}
+
+// ── Avlings-analyse tab ─────────────────────────────────────
+function loadAgriTab(){
+  loadJSON('data/agri/latest.json').then(function(d){
+    if(!d||!d.crop_summary){
+      document.getElementById('agriContent').innerHTML='<div class="loading">Ingen avlingsdata – kjør update.sh</div>';
+      return;
+    }
+    document.getElementById('agriDate').textContent = d.generated || '-';
+    document.getElementById('agriContent').innerHTML = renderAgri(d);
+  }).catch(function(){
+    document.getElementById('agriContent').innerHTML='<div class="loading">Feil ved lasting av avlingsdata</div>';
+  });
+}
+
+function renderAgri(d){
+  var SIGNAL_COL = {'STERKT BULLISH':'var(--bull)','BULLISH':'var(--bull)','NØYTRAL':'var(--m)','BEARISH':'var(--bear)','STERKT BEARISH':'var(--bear)'};
+  var WX_COL = {'tørke':'var(--bear)','tørt':'#e8a000','frost':'#5b9bd5','vått':'#5b9bd5','flom':'var(--bear)','normalt':'var(--bull)','utmerket':'var(--bull)','ukjent':'var(--m)'};
+  var WX_IKON = {'tørke':'🔥','tørt':'☀️','frost':'❄️','vått':'🌧️','flom':'🌊','normalt':'✅','utmerket':'✅','ukjent':'❓'};
+
+  // ── Sammendragstabell ──
+  var h = '<div style="margin-bottom:24px">';
+  h += '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+  h += '<thead><tr style="border-bottom:1px solid var(--b);color:var(--m);font-size:11px;text-transform:uppercase">';
+  h += '<th style="text-align:left;padding:6px 8px">Avling</th>';
+  h += '<th style="text-align:center;padding:6px 8px">Prisretning</th>';
+  h += '<th style="text-align:center;padding:6px 8px">Vær-risiko</th>';
+  h += '<th style="text-align:center;padding:6px 8px">COT-bias</th>';
+  h += '<th style="text-align:left;padding:6px 8px">Hoveddrivere</th>';
+  h += '</tr></thead><tbody>';
+
+  d.crop_summary.forEach(function(c){
+    var sig = c.outlook.signal;
+    var col = SIGNAL_COL[sig] || 'var(--m)';
+    var bold = sig.indexOf('STERKT') >= 0 ? 'font-weight:700' : '';
+    var cot  = c.cot;
+    var cotBias = cot ? (cot.bias === 'bull' ? '▲ LONG' : '▼ SHORT') : '—';
+    var cotCol  = cot ? (cot.bias === 'bull' ? 'var(--bull)' : 'var(--bear)') : 'var(--m)';
+    var cotMom  = cot ? ' ' + cot.momentum : '';
+
+    // Vær: ta worst region
+    var wxOut = 'normalt', wxScore = 0;
+    if(c.worst_region){
+      wxOut   = c.worst_region.weather_outlook || 'normalt';
+      wxScore = c.worst_region.weather_score   || 0;
+    }
+    var wxCol  = WX_COL[wxOut]  || 'var(--m)';
+    var wxIkon = WX_IKON[wxOut] || '❓';
+
+    var drivers = (c.drivers && c.drivers.length) ? c.drivers.join(' · ') : '—';
+
+    h += '<tr style="border-bottom:1px solid var(--b)">';
+    h += '<td style="padding:8px;font-weight:600">' + c.ikon + ' ' + c.navn + '</td>';
+    h += '<td style="padding:8px;text-align:center;color:' + col + ';' + bold + '">' + sig + '</td>';
+    h += '<td style="padding:8px;text-align:center;color:' + wxCol + '">' + wxIkon + ' ' + wxOut.toUpperCase();
+    if(c.risk_regions > 0) h += ' <span style="color:var(--m);font-size:11px">(' + c.risk_regions + '/' + c.total_regions + ' reg)</span>';
+    h += '</td>';
+    h += '<td style="padding:8px;text-align:center;color:' + cotCol + '">' + cotBias + cotMom + '</td>';
+    h += '<td style="padding:8px;color:var(--m);font-size:12px">' + drivers + '</td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+
+  // ── Per-avling detaljkort ──
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">';
+  d.crop_summary.forEach(function(c){
+    var sig = c.outlook.signal;
+    var col = SIGNAL_COL[sig] || 'var(--m)';
+    var cot = c.cot;
+    var cotNet = cot ? (cot.net > 0 ? '+' : '') + (cot.net/1000).toFixed(0) + 'K' : '—';
+    var cotChg = cot ? ((cot.change > 0 ? '+' : '') + (cot.change/1000).toFixed(0) + 'K uke') : '';
+    var cotPct  = cot ? (cot.net_pct > 0 ? '+' : '') + cot.net_pct + '% av OI' : '';
+
+    h += '<div class="card" style="border-top:3px solid ' + col + '">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+    h += '<div style="font-size:16px;font-weight:700">' + c.ikon + ' ' + c.navn + '</div>';
+    h += '<div style="font-size:12px;font-weight:700;color:' + col + '">' + sig + '</div>';
+    h += '</div>';
+
+    // Regioner med vær-risiko
+    if(c.worst_region){
+      h += '<div style="font-size:11px;color:var(--m);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Vær</div>';
+      var wxOut = c.worst_region.weather_outlook;
+      var wxIkon = WX_IKON[wxOut] || '❓';
+      var wxCol  = WX_COL[wxOut]  || 'var(--m)';
+      h += '<div style="font-size:13px;margin-bottom:4px;color:' + wxCol + '">';
+      h += wxIkon + ' ' + c.worst_region.region_name + ': ' + c.worst_region.weather_summary;
+      h += '</div>';
+      if(c.total_regions > 1){
+        h += '<div style="font-size:11px;color:var(--m);margin-bottom:8px">';
+        h += c.risk_regions + ' av ' + c.total_regions + ' regioner med vær-stress';
+        h += '</div>';
+      }
+    }
+
+    // COT
+    if(cot){
+      h += '<div style="font-size:11px;color:var(--m);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">COT (' + cot.date + ')</div>';
+      var cotBiasCol = cot.bias === 'bull' ? 'var(--bull)' : 'var(--bear)';
+      h += '<div style="font-size:13px;display:flex;gap:12px;flex-wrap:wrap">';
+      h += '<span style="color:' + cotBiasCol + '">' + (cot.bias === 'bull' ? '▲' : '▼') + ' ' + cotNet + '</span>';
+      h += '<span style="color:var(--m)">' + cotChg + '</span>';
+      h += '<span style="color:var(--m)">' + cotPct + '</span>';
+      h += '<span style="color:' + cotBiasCol + '">' + cot.momentum + '</span>';
+      h += '</div>';
+    }
+
+    h += '</div>';
+  });
+  h += '</div>';
+  return h;
 }
 </script>
 </body>
