@@ -121,6 +121,9 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   .agri-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .agri-col-drivers{display:none}
   .agri-col-wx{max-width:90px;font-size:11px}
+  .ship-idx-grid{grid-template-columns:repeat(2,1fr)!important}
+  .ship-route-grid{grid-template-columns:1fr!important}
+  .ship-route-impact{display:none}
 }
 </style>
 </head>
@@ -138,6 +141,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   <button class="nt" data-tab="intel">📰 Intel Feed</button>
   <button class="nt" data-tab="cot">📊 Råvare COT</button>
   <button class="nt" data-tab="agri">🌾 Avlings-analyse</button>
+  <button class="nt" data-tab="shipping">🚢 Shipping</button>
 </nav>
 
 <div class="main">
@@ -220,6 +224,15 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
     <div id="agriContent"><div class="loading">Laster avlingsdata...</div></div>
   </div>
 
+  <!-- SHIPPING PANEL -->
+  <div class="panel" id="panel-shipping">
+    <div class="sh">
+      <div class="sh-t">🚢 Shipping Intelligence – Indekser, Ruter og Risiko</div>
+      <div class="sh-b" id="shippingDate">-</div>
+    </div>
+    <div id="shippingContent"><div class="loading">Laster shipping-data...</div></div>
+  </div>
+
 </div><!-- /main -->
 
 <script>
@@ -250,7 +263,7 @@ function renderSeismicList(events){
 }
 
 // ── Tab navigation ──────────────────────────────────────────
-var cotLoaded = false, agriLoaded = false;
+var cotLoaded = false, agriLoaded = false, shippingLoaded = false;
 document.querySelectorAll('.nt').forEach(function(btn){
   btn.addEventListener('click', function(){
     document.querySelectorAll('.nt').forEach(function(b){b.classList.remove('active');});
@@ -258,8 +271,9 @@ document.querySelectorAll('.nt').forEach(function(btn){
     btn.classList.add('active');
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     if(btn.dataset.tab==='map' && window.mlMap) setTimeout(function(){window.mlMap.resize();},50);
-    if(btn.dataset.tab==='cot'  && !cotLoaded)  { cotLoaded=true;  loadCotTab();  }
-    if(btn.dataset.tab==='agri' && !agriLoaded) { agriLoaded=true; loadAgriTab(); }
+    if(btn.dataset.tab==='cot'      && !cotLoaded)      { cotLoaded=true;      loadCotTab();      }
+    if(btn.dataset.tab==='agri'     && !agriLoaded)     { agriLoaded=true;     loadAgriTab();     }
+    if(btn.dataset.tab==='shipping' && !shippingLoaded) { shippingLoaded=true; loadShippingTab(); }
   });
 });
 
@@ -745,6 +759,133 @@ function renderAgri(d){
     h += '</div>';
   });
   h += '</div>';
+  return h;
+}
+
+// ── Shipping tab ──────────────────────────────────────────────────
+function loadShippingTab(){
+  loadJSON('data/shipping/latest.json').then(function(d){
+    if(!d||!d.routes){
+      document.getElementById('shippingContent').innerHTML='<div class="loading">Ingen shipping-data – kjør update.sh</div>';
+      return;
+    }
+    document.getElementById('shippingDate').textContent = d.generated || '-';
+    document.getElementById('shippingContent').innerHTML = renderShipping(d);
+  }).catch(function(){
+    document.getElementById('shippingContent').innerHTML='<div class="loading">Feil ved lasting av shipping-data</div>';
+  });
+}
+
+function renderShipping(d){
+  var RISK_COL = {'HIGH':'var(--bear)','MEDIUM':'var(--warn)','LOW':'var(--bull)'};
+  var RISK_BG  = {'HIGH':'var(--rbg)', 'MEDIUM':'var(--wbg)', 'LOW':'var(--bbg)'};
+  var SIG_COL  = {'bull':'var(--bull)','bear':'var(--bear)','neutral':'var(--m)'};
+  var h = '';
+
+  // ── Samlet risikostatus ──
+  var orCol = RISK_COL[d.overall_risk] || 'var(--m)';
+  var orBg  = RISK_BG[d.overall_risk]  || 'var(--s2)';
+  h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:12px 16px;background:'+orBg+';border-radius:8px;border:1px solid '+orCol+'">';
+  h += '<div style="font-size:22px">🚢</div>';
+  h += '<div><div style="font-size:13px;font-weight:700;color:'+orCol+'">Samlet forstyrrelsesrisiko: '+d.overall_risk+'</div>';
+  var highN = d.routes.filter(function(r){return r.risk==='HIGH';}).length;
+  var medN  = d.routes.filter(function(r){return r.risk==='MEDIUM';}).length;
+  h += '<div style="font-size:11px;color:var(--m);margin-top:2px">'+highN+' HIGH · '+medN+' MEDIUM av '+d.routes.length+' ruter overvåket</div></div>';
+  if(d.bdi_signal && d.bdi_signal!=='neutral'){
+    var bdiCol = SIG_COL[d.bdi_signal];
+    h += '<div style="margin-left:auto;font-size:11px;color:'+bdiCol+';font-weight:700">BDI: '+(d.bdi_signal==='bull'?'▲ BULLISH':'▼ BEARISH')+'</div>';
+  }
+  h += '</div>';
+
+  // ── Indekser ──
+  var hasIndex = d.indices && d.indices.some(function(i){return i.data;});
+  if(hasIndex){
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px">Baltic-indekser</div>';
+    h += '<div class="ship-idx-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:24px">';
+    d.indices.forEach(function(idx){
+      var data = idx.data;
+      if(!data){
+        h += '<div class="card" style="opacity:.5"><div style="font-size:11px;color:var(--m)">'+(idx.label)+'</div><div style="font-size:13px;color:var(--m);margin-top:4px">Ikke tilgjengelig</div></div>';
+        return;
+      }
+      var sigCol = SIG_COL[data.signal] || 'var(--m)';
+      var chgCol = data.chg1d >= 0 ? 'var(--bull)' : 'var(--bear)';
+      var devStr = (data.dev_ma > 0 ? '+' : '') + data.dev_ma + '% vs MA20';
+      h += '<div class="card">';
+      h += '<div style="font-size:10px;color:var(--m);margin-bottom:3px">'+idx.label+'</div>';
+      h += '<div style="font-size:22px;font-weight:700;font-family:\'DM Mono\',monospace">'+data.value.toLocaleString()+'</div>';
+      h += '<div style="font-size:12px;margin-top:5px">';
+      h += '<span style="color:'+chgCol+'">'+(data.chg1d>=0?'+':'')+data.chg1d+'%</span>';
+      h += ' <span style="color:var(--m)">1d &nbsp;·&nbsp;</span>';
+      h += '<span style="color:'+sigCol+'">'+devStr+'</span>';
+      h += '</div>';
+      h += '<div style="font-size:10px;color:var(--m);margin-top:3px">'+idx.desc+' · '+data.trend+'</div>';
+      // Mini sparkline
+      if(data.history && data.history.length > 2){
+        var mn = Math.min.apply(null,data.history), mx = Math.max.apply(null,data.history);
+        var range = mx - mn || 1;
+        var w2=80, h2=20;
+        var pts = data.history.map(function(v,i){
+          return (i/(data.history.length-1)*w2).toFixed(1)+','+(h2-(v-mn)/range*h2).toFixed(1);
+        }).join(' ');
+        h += '<svg width="'+w2+'" height="'+h2+'" style="display:block;margin-top:6px;overflow:visible">';
+        h += '<polyline points="'+pts+'" fill="none" stroke="'+sigCol+'" stroke-width="1.5" stroke-linejoin="round"/>';
+        h += '</svg>';
+      }
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // ── Ruter ──
+  h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px">Rute-risiko</div>';
+  h += '<div class="ship-route-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:24px">';
+  d.routes.forEach(function(r){
+    var rCol = RISK_COL[r.risk] || 'var(--m)';
+    var rBg  = RISK_BG[r.risk]  || 'var(--s2)';
+    h += '<div class="card" style="border-left:3px solid '+rCol+'">';
+    // Header
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h += '<div style="font-weight:600;min-width:0;flex:1 1 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.ikon+' '+r.name+'</div>';
+    h += '<span style="flex-shrink:0;white-space:nowrap;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid '+rCol+';color:'+rCol+';background:'+rBg+'">'+r.risk+'</span>';
+    h += '</div>';
+    h += '<div style="font-size:11px;color:var(--m);margin-bottom:3px">'+r.from+' → '+r.to+' · '+r.cargo+'</div>';
+    h += '<div class="ship-route-impact" style="font-size:11px;color:var(--blue);margin-bottom:6px">📈 '+r.impact+'</div>';
+    // Artikler knyttet til ruten
+    if(r.articles && r.articles.length){
+      h += '<div style="border-top:1px solid var(--b);margin-top:6px;padding-top:6px">';
+      r.articles.slice(0,2).forEach(function(art){
+        h += '<div style="font-size:11px;padding:3px 0;color:var(--m)">';
+        h += '<a href="'+art.url+'" target="_blank" rel="noopener" style="color:var(--t);text-decoration:none">'+art.title+'</a>';
+        h += ' <span style="color:var(--m);font-size:10px">'+art.time.substring(0,10)+'</span>';
+        h += '</div>';
+      });
+      h += '</div>';
+    } else {
+      h += '<div style="font-size:11px;color:var(--m);margin-top:4px">Ingen relevante nyheter oppdaget</div>';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // ── Nyhetsfeed ──
+  if(d.news && d.news.length){
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:10px">Shipping-nyheter ('+d.news.length+')</div>';
+    var CAT_COL = {
+      'container':'#4fc3f7','tanker':'#e8a838','bulk':'var(--copper)',
+      'chokepoint':'var(--bear)','port':'var(--warn)'
+    };
+    d.news.forEach(function(a){
+      var cc = CAT_COL[a.cat] || 'var(--m)';
+      h += '<div class="intel-item">';
+      h += '<div class="intel-title"><a href="'+a.url+'" target="_blank" rel="noopener">'+a.title+'</a></div>';
+      h += '<div class="intel-meta">';
+      h += '<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;border:1px solid '+cc+';color:'+cc+'">'+a.label.toUpperCase()+'</span>';
+      h += '<span>'+a.source+'</span><span>'+a.time+'</span>';
+      h += '</div></div>';
+    });
+  }
+
   return h;
 }
 </script>
