@@ -64,39 +64,62 @@ COMMERCIAL_KEYWORDS = ["commercial undertaking", "entreprise commerciale", "comm
 
 HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-GB,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Referer": "https://live.euronext.com/",
+}
+HEADERS_XLSX = {**HEADERS,
     "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,"
               "application/vnd.ms-excel,*/*",
-    "Referer": "https://www.euronext.com/",
 }
 
-# Euronext COT rapport-URLer (prøves i rekkefølge)
-EURONEXT_URLS = [
-    # Sannsynlige direkte nedlastings-URLer (Euronext bruker ulike under ulike perioder)
-    "https://www.euronext.com/sites/default/files/2024-01/agri-commodities-cot.xlsx",
-    "https://www.euronext.com/en/markets/derivatives/commitment-of-traders/agri-commodities",
-    "https://www.euronext.com/sites/default/files/agri-commodities-cot.xlsx",
+from datetime import date as _date
+import itertools
+
+def _candidate_urls():
+    """Generer kandidat-URLer basert på dato (siste 8 uker)."""
+    today = _date.today()
+    urls = []
+    # live.euronext.com — prøv siste 8 uker med dato-prefix
+    for weeks_ago in range(0, 8):
+        from datetime import timedelta
+        d = today - timedelta(weeks=weeks_ago)
+        month_str = d.strftime("%Y-%m")
+        urls.append(
+            f"https://live.euronext.com/sites/default/files/{month_str}/agri-commodities-cot.xlsx"
+        )
+    # Fallback uten dato-prefix
+    urls += [
+        "https://live.euronext.com/sites/default/files/agri-commodities-cot.xlsx",
+        "https://live.euronext.com/sites/default/files/agri-cot.xlsx",
+    ]
+    return urls
+
+# Euronext COT rapport-sider (skrapes for Excel-lenke)
+EURONEXT_PAGES = [
+    "https://live.euronext.com/en/products/commodities/commitments_of_traders",
+    "https://www.euronext.com/en/markets/derivatives/commitment-of-traders",
 ]
-EURONEXT_PAGE = "https://www.euronext.com/en/markets/derivatives/commitment-of-traders"
 
 
 # ── Nedlasting ───────────────────────────────────────────────────────────────
 
 def find_excel_url():
     """Skrap Euronext COT-side for Excel-lenke med 'agri' i filnavnet."""
-    for page_url in [EURONEXT_PAGE,
-                     EURONEXT_PAGE + "/agri-commodities"]:
+    for page_url in EURONEXT_PAGES:
         try:
             r = requests.get(page_url, headers=HEADERS, timeout=20)
-            # Let etter .xlsx lenker som inneholder "agri"
             urls = re.findall(r'href=["\']([^"\']*agri[^"\']*\.xlsx?)["\']', r.text, re.I)
             if not urls:
-                # Bredere søk: alle xlsx
                 urls = re.findall(r'href=["\']([^"\']*\.xlsx?)["\']', r.text, re.I)
             for u in urls:
-                u = u if u.startswith("http") else "https://www.euronext.com" + u
+                if not u.startswith("http"):
+                    base = "https://live.euronext.com" if "live.euronext" in page_url else "https://www.euronext.com"
+                    u = base + u
                 return u
         except Exception as e:
             print(f"  Kunne ikke hente side {page_url}: {e}")
@@ -105,15 +128,15 @@ def find_excel_url():
 
 def download_excel():
     """Last ned Euronext agri COT Excel. Returnerer bytes eller None."""
-    page_url = find_excel_url()
-    candidates = ([page_url] if page_url else []) + EURONEXT_URLS
+    scraped = find_excel_url()
+    candidates = ([scraped] if scraped else []) + _candidate_urls()
 
     for url in candidates:
         if not url:
             continue
         try:
             print(f"  Prøver: {url}")
-            r = requests.get(url, headers=HEADERS, timeout=30, allow_redirects=True)
+            r = requests.get(url, headers=HEADERS_XLSX, timeout=30, allow_redirects=True)
             r.raise_for_status()
             ctype = r.headers.get("Content-Type", "")
             if len(r.content) < 500:
