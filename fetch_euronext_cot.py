@@ -199,66 +199,65 @@ def is_spec_row(text):
 
 def parse_html_report(html):
     """
-    Parser HTML-rapporten og returnerer dict med long/short/net/oi.
-    Tabellen har rader per MiFID II-kategori med long/short-kolonner.
+    Parser Euronext HTML COT-rapport.
+
+    Tabellstruktur (rowspan-celler mangler i vår enkle parser):
+    - Rad med kategori-overskrifter: '...', 'Investment Firms...', 'Investment Funds', ...
+    - Rad med Long/Short per kategori (13 kolonner)
+    - Data-rader type A (13 kol): 'Number of positions', 'LOTS', 'Risk Reducing...', verdier...
+    - Data-rader type B (11 kol): 'Other'/'Total', verdier... (rowspan fjerner 2 celler)
+    - Kolonneposisjon i type-B rader: InvFirms=1-2, InvFunds=3-4, OtherFin=5-6, Comm=7-8
     """
     parser = TableParser()
     parser.feed(html)
 
     for table in parser.tables:
-        if len(table) < 3:
+        if len(table) < 5:
             continue
 
-        # Finn header-rad med "long" og "short"
-        header_idx = None
+        # Finn kategori-overskrift-rad (inneholder "Investment Funds")
+        cat_row_idx = None
+        inv_funds_cat_col = None
         for i, row in enumerate(table[:10]):
-            r = " ".join(row).lower()
-            if "long" in r and "short" in r:
-                header_idx = i
+            for j, cell in enumerate(row):
+                if "investment fund" in cell.lower():
+                    cat_row_idx = i
+                    inv_funds_cat_col = j
+                    break
+            if cat_row_idx is not None:
                 break
 
-        if header_idx is None:
+        if cat_row_idx is None:
             continue
 
-        header = [c.lower() for c in table[header_idx]]
-
-        # Finn kolonner
-        def col(keywords):
-            for i, h in enumerate(header):
-                if all(k in h for k in keywords):
-                    return i
-            for i, h in enumerate(header):
-                if any(k in h for k in keywords):
-                    return i
-            return None
-
-        long_col  = col(["long"])
-        short_col = col(["short"])
-        oi_col    = col(["open interest", "oi", "open_interest"])
-        chg_col   = col(["change", "variation", "chg"])
-
-        if long_col is None:
-            continue
+        # Beregn Investment Funds-kolonne i "type B"-rader (11 kol, rowspan-offset)
+        # Kategori-header: [tom, Notation, tom, InvFirms, InvFunds, ...]
+        # Antall kategorier FØR InvFunds = inv_funds_cat_col - 3
+        cats_before   = max(0, inv_funds_cat_col - 3)
+        if_long_col   = 1 + cats_before * 2   # = 3 for standard layout
+        if_short_col  = 2 + cats_before * 2   # = 4 for standard layout
 
         mm_long = mm_short = oi = chg = 0
+        section = None  # "positions" eller "changes"
 
-        for row in table[header_idx + 1:]:
+        for row in table[cat_row_idx + 2:]:   # hopp over Long/Short-header-rad
             if not row:
                 continue
-            label = row[0] if row else ""
-            if not is_spec_row(label):
-                continue
+            label = row[0].strip().lower()
 
-            if long_col < len(row):
-                mm_long += safe_int(row[long_col])
-            if short_col and short_col < len(row):
-                mm_short += safe_int(row[short_col])
-            if oi_col and oi_col < len(row):
-                v = safe_int(row[oi_col])
-                if v > oi:
-                    oi = v
-            if chg_col and chg_col < len(row):
-                chg += safe_int(row[chg_col])
+            if "number of position" in label:
+                section = "positions"
+            elif "changes since" in label or "change since" in label:
+                section = "changes"
+
+            if label == "total" and len(row) >= if_short_col + 1:
+                if section == "positions":
+                    mm_long  = safe_int(row[if_long_col])
+                    mm_short = safe_int(row[if_short_col])
+                    # OI = sum av alle Long-kolonner (annenhver fra col 1)
+                    oi = sum(safe_int(row[c]) for c in range(1, len(row), 2))
+                elif section == "changes":
+                    chg = safe_int(row[if_long_col]) - safe_int(row[if_short_col])
 
         if mm_long == 0 and mm_short == 0:
             continue
@@ -368,17 +367,6 @@ def main():
 
     if not parsed:
         print("  FEIL: Ingen Euronext-markeder hentet")
-        # Debug: hent og vis første tabell fra EBM
-        result = fetch_report("EBM")
-        if result:
-            html, _ = result
-            p = TableParser()
-            p.feed(html)
-            print(f"  DEBUG: {len(p.tables)} tabeller funnet")
-            for ti, t in enumerate(p.tables[:3]):
-                print(f"  Tabell {ti}: {len(t)} rader")
-                for row in t[:8]:
-                    print(f"    {row}")
         return False
 
     history = load_history()
