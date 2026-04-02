@@ -725,10 +725,20 @@ if os.path.exists(cal_file):
 SPEECH_KEYWORDS = ('speak', 'speech', 'press conf', 'testim', 'statement', 'minutes', 'outlook', 'remarks')
 
 def get_binary_risk(instrument_key, hours=4):
+    now = datetime.now(timezone.utc)
     risks = []
     for ev in calendar_events:
         if ev.get('impact') != 'High': continue
-        ha = ev.get('hours_away', 99)
+        # Beregn hours_away dynamisk fra event-dato (ikke statisk verdi fra fil)
+        date_str = ev.get('date', '')
+        if date_str:
+            try:
+                ev_dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                ha = (ev_dt - now).total_seconds() / 3600.0
+            except Exception:
+                ha = ev.get('hours_away', 99)
+        else:
+            ha = ev.get('hours_away', 99)
         if ha > hours: continue  # for langt frem i tid
         # Etter hendelsen: hold risiko aktiv i 60 min for taler/pressekonf, 30 min for resten
         title_low = ev.get('title', '').lower()
@@ -741,7 +751,7 @@ def get_binary_risk(instrument_key, hours=4):
                 'title':     ev['title'],
                 'cet':       ev['cet'],
                 'country':   ev['country'],
-                'date':      ev.get('date', ''),   # UTC ISO — for sanntidssjekk i nettleser
+                'date':      date_str,   # UTC ISO — for sanntidssjekk i nettleser
                 'is_speech': is_speech,
                 'past':      ha < 0,
             })
