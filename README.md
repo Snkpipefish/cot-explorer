@@ -35,10 +35,10 @@ Dashboard-visning med 6 kort som lenker til under-fanene:
 - **Binær risiko-varsling** — High-impact kalender-events innen 4 timer vises som ⚠️ på setup-kortet
   - Vanlige nøkkeltall (CPI, NFP, renter): risiko utløper **30 min** etter hendelsen
   - Taler, pressekonferanser, FOMC Minutes: risiko utløper **60 min** etter hendelsen
-  - Utløp sjekkes i **sanntid i nettleseren** mot UTC-tidspunktet fra kalenderen
+  - `hours_away` beregnes dynamisk ved kjøretid fra UTC-tidspunktet — ikke som statisk verdi fra da kalenderen ble hentet
 
 ### 🌐 Makro
-- Dollar Smile-modell, VIX-regime, yield curve og konflikt-flagging
+- **Dollar Smile-modell** — beregnes av `fetch_all.py` (6× daglig) med konfliktsdeteksjon, HYG-stress, rentekurve og Fear & Greed. Bevares uendret mellom kjøringer siden VIX/DXY ikke er tilgjengelig fra boten
 - VIX term-struktur — spot vs. 9D vs. 3M, contango/backwardation-regime
 - Makroindikatorer — HYG, TIP, TNX (10Y), IRX (3M), Kobber, EEM (alle inkl. chg20d)
 - Fundamentals-panel — FRED-data: GDP, CPI, PPI, PCE, NFP, jobbtall (USD-bias-score)
@@ -143,7 +143,7 @@ Dashboard med 4 kort som lenker til under-fanene:
 To timers kjører på serveren:
 
 **`cot-prices.timer`** — hvert hele time (XX:00)
-Kjører `update_prices.sh`: henter bot-priser → bygger `macro/latest.json` → kjører `fetch_all.py` → git push
+Kjører `update_prices.sh`: henter bot-priser → bygger `macro/latest.json` → oppdaterer `oilgas/latest.json` → git push
 
 **`cot-explorer.timer`** — 6× daglig hverdager (00/04/08/12/16/20 CET)
 Kjører `update.sh`: full pipeline (se tabell under)
@@ -328,9 +328,8 @@ Kjører `update.sh`: full pipeline (se tabell under)
 
 | Fil | Innhold | Oppdatering |
 |-----|---------|-------------|
-| Fil | Innhold | Oppdatering |
-|-----|---------|-------------|
 | `data/macro/latest.json` | Priser, SMC, nivåer, score, kalender | Hver time + 6× daglig |
+| `data/prices/bot_history.json` | Rullerende prishistorikk (500 entries/symbol) for chg1d/5d/20d | Hver time |
 | `data/signals.json` | Aktive signaler + global state | Hver time + 6× daglig |
 | `data/combined/latest.json` | Kombinert CFTC COT-datasett | 6× daglig |
 | `data/ice_cot/latest.json` | ICE Futures Europe COT (Brent, Gasoil, TTF) | 6× daglig |
