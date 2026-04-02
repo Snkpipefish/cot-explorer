@@ -13,7 +13,52 @@ from pathlib import Path
 BASE         = Path(os.path.expanduser("~/cot-explorer/data"))
 OUT          = BASE / "macro" / "latest.json"
 BOT_PRICES   = Path.home() / "scalp_edge" / "live_prices.json"
+PRICE_HIST   = BASE / "prices" / "bot_history.json"
 OUT.parent.mkdir(parents=True, exist_ok=True)
+PRICE_HIST.parent.mkdir(parents=True, exist_ok=True)
+
+
+def load_price_history():
+    try:
+        return json.loads(PRICE_HIST.read_text())
+    except Exception:
+        return {}
+
+
+def save_price_history(hist):
+    PRICE_HIST.write_text(json.dumps(hist, ensure_ascii=False))
+
+
+def update_price_history(hist, key, price):
+    """Legg til nåværende pris i historikk. Behold maks 500 innslag (~20 dager timesvis)."""
+    now_ts = datetime.now(timezone.utc).isoformat()
+    entries = hist.setdefault(key, [])
+    entries.append({"price": price, "ts": now_ts})
+    hist[key] = entries[-500:]
+
+
+def chg_from_history(hist, key, current_price, hours_back):
+    """Beregn prosentendring fra pris X timer tilbake."""
+    entries = hist.get(key, [])
+    if not entries:
+        return 0.0
+    from datetime import timedelta
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_back)
+    # Finn innslag nærmest cutoff
+    best = None
+    best_diff = None
+    for e in entries:
+        try:
+            ts = datetime.fromisoformat(e["ts"].replace("Z", "+00:00"))
+            diff = abs((ts - cutoff).total_seconds())
+            if best_diff is None or diff < best_diff:
+                best_diff = diff
+                best = e
+        except Exception:
+            continue
+    if best is None or best["price"] == 0:
+        return 0.0
+    return round((current_price - best["price"]) / best["price"] * 100, 2)
 
 # Alle symboler vi trenger i macro/latest.json
 # nøkkel → Yahoo-ticker (brukes kun som fallback)
@@ -128,15 +173,8 @@ def fetch_yahoo(symbol):
         return None
 
 
-# ── Last inn eksisterende priser for å bevare chg1d/5d/20d ───────
-existing_prices = {}
-try:
-    with open(OUT) as f:
-        existing_prices = json.load(f).get("prices", {})
-except Exception:
-    pass
-
-# ── Hent bot-priser først ─────────────────────────────────────────
+# ── Last inn prishistorikk og bot-priser ─────────────────────────
+price_hist = load_price_history()
 bot_prices = load_bot_prices()
 if bot_prices:
     print(f"  Bot-priser (Skilling): {len(bot_prices)} symboler lastet fra live_prices.json")
@@ -146,15 +184,15 @@ prices = {}
 for key, sym in SYMBOLS.items():
     if key in bot_prices:
         new_price = bot_prices[key]["price"]
-        prev = existing_prices.get(key, {})
+        update_price_history(price_hist, key, new_price)
         prices[key] = {
             "price":  new_price,
-            "chg1d":  prev.get("chg1d",  0),
-            "chg5d":  prev.get("chg5d",  0),
-            "chg20d": prev.get("chg20d", 0),
+            "chg1d":  chg_from_history(price_hist, key, new_price, 24),
+            "chg5d":  chg_from_history(price_hist, key, new_price, 120),
+            "chg20d": chg_from_history(price_hist, key, new_price, 480),
             "source": "bot",
         }
-        print(f"  {key:10} → {new_price} (bot, chg1d={prices[key]['chg1d']:+.2f}%)")
+        print(f"  {key:10} → {new_price} (bot, 1d={prices[key]['chg1d']:+.2f}%)")
         continue
     print(f"Henter {key} ({sym}) fra Yahoo...")
     v = fetch_yahoo(sym)
@@ -162,19 +200,21 @@ for key, sym in SYMBOLS.items():
         prices[key] = v
         print(f"  → {v['price']} ({v['chg1d']:+.2f}%)")
 
-# Legg til krypto fra bot (ikke i SYMBOLS, men vi vil ha dem i macro)
+# Legg til krypto fra bot
 for crypto_key in ("BTC", "ETH", "SOL", "XRP"):
     if crypto_key in bot_prices and crypto_key not in prices:
         new_price = bot_prices[crypto_key]["price"]
-        prev = existing_prices.get(crypto_key, {})
+        update_price_history(price_hist, crypto_key, new_price)
         prices[crypto_key] = {
             "price":  new_price,
-            "chg1d":  prev.get("chg1d",  0),
-            "chg5d":  prev.get("chg5d",  0),
-            "chg20d": prev.get("chg20d", 0),
+            "chg1d":  chg_from_history(price_hist, crypto_key, new_price, 24),
+            "chg5d":  chg_from_history(price_hist, crypto_key, new_price, 120),
+            "chg20d": chg_from_history(price_hist, crypto_key, new_price, 480),
             "source": "bot",
         }
         print(f"  {crypto_key:10} → {new_price} (bot)")
+
+save_price_history(price_hist)
 
 # ── Bygg macro-objekt ─────────────────────────────────────────────
 vix    = (prices.get("VIX")   or {}).get("price", 20)
