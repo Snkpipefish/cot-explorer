@@ -356,8 +356,7 @@ def push_flask(signals):
 
     # Oppdater _signals_store i Flask så boten henter riktige signaler via /signals
     upload_url = f"{FLASK_URL}/upload"
-    store = {s["key"]: s for s in signals}
-    upload_payload = json.dumps(store).encode()
+    upload_payload = json.dumps(signals_json).encode()
     upload_req = urllib.request.Request(
         upload_url, data=upload_payload,
         headers={"Content-Type": "application/json", "X-API-Key": SCALP_API_KEY},
