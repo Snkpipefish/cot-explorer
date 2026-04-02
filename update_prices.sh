@@ -36,6 +36,7 @@ if git diff --cached --quiet; then
     echo "  git: ingen prisendring å pushe" >> "$LOG"
 else
     git commit -m "priser: $(date '+%H:%M')" >> "$LOG" 2>&1
+    git fetch origin main >> "$LOG" 2>&1 && git rebase origin/main >> "$LOG" 2>&1 || true
     git push origin main >> "$LOG" 2>&1 \
         && echo "  git push OK" >> "$LOG" \
         || echo "  git push FEIL" >> "$LOG"
