@@ -98,6 +98,15 @@ def download_csv():
 
 # ── Excel-parsing ────────────────────────────────────────────────────────────
 
+def match_market(name):
+    """Returner canonical market-nøkkel hvis name matcher ICE_MARKETS."""
+    n = str(name).lower()
+    for search_key, canonical in ICE_MARKETS.items():
+        if search_key in n:
+            return canonical
+    return None
+
+
 def normalize(s):
     """Normaliser celleinnhold til lowercase streng."""
     if s is None:
