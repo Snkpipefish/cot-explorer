@@ -138,24 +138,37 @@ def download_with_playwright():
         ctx = browser.new_context(accept_downloads=True)
         page = ctx.new_page()
         try:
+            # Fang opp nettverksforespørsler for å finne xlsx-URL
+            captured_xlsx = []
+            def on_request(req):
+                url = req.url
+                if ".xls" in url.lower() or "agri" in url.lower() and "cot" in url.lower():
+                    captured_xlsx.append(url)
+            def on_response(resp):
+                url = resp.url
+                ct = resp.headers.get("content-type", "")
+                if "spreadsheet" in ct or "excel" in ct or ".xls" in url.lower():
+                    captured_xlsx.append(url)
+            page.on("request", on_request)
+            page.on("response", on_response)
+
             print("  Playwright: åpner Euronext COT-side...")
             page.goto(EURONEXT_PAGES[0], wait_until="networkidle", timeout=45000)
-            page.wait_for_timeout(3000)  # vent på JS-rendering
+            page.wait_for_timeout(3000)
 
-            # Let etter xlsx-lenke direkte i DOM
+            # Sjekk også HTML-kilde for xlsx-referanser
+            html = page.content()
+            xlsx_in_html = re.findall(r'["\']([^"\']*agri[^"\']*\.xlsx?)["\']', html, re.I)
+            xlsx_in_html += re.findall(r'["\']([^"\']*cot[^"\']*\.xlsx?)["\']', html, re.I)
+            print(f"  xlsx i HTML: {xlsx_in_html[:3]}")
+            print(f"  xlsx fra nettverksforespørsler: {captured_xlsx[:3]}")
+
+            # Finn URL fra alle kilder
+            raw_url = (captured_xlsx + xlsx_in_html + [None])[0]
             xlsx_url = None
-            all_hrefs = [a.get_attribute("href") or "" for a in page.query_selector_all("a[href]")]
-            xls_hrefs = [h for h in all_hrefs if ".xls" in h.lower()]
-            print(f"  Fant {len(all_hrefs)} lenker totalt, {len(xls_hrefs)} xlsx-lenker")
-            for href in xls_hrefs:
-                print(f"    xlsx: {href}")
-                if "agri" in href.lower() or "cot" in href.lower():
-                    xlsx_url = href if href.startswith("http") else "https://live.euronext.com" + href
-                    print(f"  Bruker: {xlsx_url}")
-                    break
-            if not xlsx_url and xls_hrefs:
-                xlsx_url = xls_hrefs[0]
-                xlsx_url = xlsx_url if xlsx_url.startswith("http") else "https://live.euronext.com" + xlsx_url
+            if raw_url:
+                xlsx_url = raw_url if raw_url.startswith("http") else "https://live.euronext.com" + raw_url
+                print(f"  Fant xlsx-URL: {xlsx_url}")
 
             candidates = ([xlsx_url] if xlsx_url else []) + _candidate_urls()
 
