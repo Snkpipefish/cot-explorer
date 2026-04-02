@@ -163,12 +163,52 @@ def download_with_playwright():
             print(f"  xlsx i HTML: {xlsx_in_html[:3]}")
             print(f"  xlsx fra nettverksforespørsler: {captured_xlsx[:3]}")
 
-            # Finn URL fra alle kilder
+            # Finn URL fra nettverksforespørsler/HTML
             raw_url = (captured_xlsx + xlsx_in_html + [None])[0]
             xlsx_url = None
             if raw_url:
                 xlsx_url = raw_url if raw_url.startswith("http") else "https://live.euronext.com" + raw_url
                 print(f"  Fant xlsx-URL: {xlsx_url}")
+
+            # Prøv å klikke nedlastingsknapper og fange responsen
+            if not xlsx_url:
+                dl_response = [None]
+                def on_resp_body(resp):
+                    ct = resp.headers.get("content-type", "")
+                    if "spreadsheet" in ct or "excel" in ct or (resp.status == 200 and ".xls" in resp.url.lower()):
+                        try:
+                            dl_response[0] = resp.body()
+                        except Exception:
+                            pass
+                page.on("response", on_resp_body)
+
+                # Let etter knapper/lenker med "download", "excel", "cot", "agri" tekst
+                selectors = [
+                    "a[href*='xlsx']", "a[href*='xls']",
+                    "button:has-text('Download')", "button:has-text('Excel')",
+                    "a:has-text('Download')", "a:has-text('Excel')",
+                    "a:has-text('COT')", "a:has-text('agri')",
+                    "[data-file*='xlsx']", "[data-url*='xlsx']",
+                ]
+                for sel in selectors:
+                    try:
+                        el = page.query_selector(sel)
+                        if el:
+                            href = el.get_attribute("href") or el.get_attribute("data-url") or ""
+                            print(f"  Fant element ({sel}): {href[:80]}")
+                            with page.expect_download(timeout=8000) as dl_info:
+                                el.click()
+                            dl = dl_info.value
+                            data = Path(dl.path()).read_bytes()
+                            if len(data) > 500:
+                                print(f"    OK via klikk — {len(data)//1024} KB")
+                                browser.close()
+                                return data
+                    except Exception:
+                        if dl_response[0] and len(dl_response[0]) > 500:
+                            print(f"    OK via respons-fang — {len(dl_response[0])//1024} KB")
+                            browser.close()
+                            return dl_response[0]
 
             candidates = ([xlsx_url] if xlsx_url else []) + _candidate_urls()
 
