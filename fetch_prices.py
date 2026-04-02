@@ -268,12 +268,9 @@ try:
                 "vix_term_structure", "correlations", "session_ranges", "sentiment"):
         if existing.get(key):
             macro[key] = existing[key]
-    # Bevar dollar_smile fra fetch_all.py (bruker konfliktsdeteksjon, HYG, rentekurve m.m.)
-    # oppdater kun inputs med ferske priser
+    # Bevar dollar_smile fra fetch_all.py helt uendret — VIX/DXY ikke tilgjengelig fra boten
     if existing.get("dollar_smile"):
-        preserved = existing["dollar_smile"].copy()
-        preserved["inputs"] = macro["dollar_smile"]["inputs"]
-        macro["dollar_smile"] = preserved
+        macro["dollar_smile"] = existing["dollar_smile"]
     # Bevar vix_regime hvis VIX ikke ble hentet nå
     if not prices.get("VIX") and existing.get("vix_regime"):
         macro["vix_regime"] = existing["vix_regime"]
