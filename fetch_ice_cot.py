@@ -156,6 +156,7 @@ def parse_ice_csv(text):
         if existing is None or date_str >= existing.get("date", ""):
             rows_by_market[mkey] = {
                 "mm_long": mm_long, "mm_short": mm_short,
+                "mm_net": mm_long - mm_short,
                 "oi": oi, "chg": chg_long - chg_short,
                 "date": date_str,
             }
