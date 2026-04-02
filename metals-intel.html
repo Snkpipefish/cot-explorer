@@ -863,7 +863,7 @@ function loadAgriTab(){
       document.getElementById('agriContent').innerHTML='<div class="loading">Ingen avlingsdata – kjør update.sh</div>';
       return;
     }
-    document.getElementById('agriDate').textContent = d.generated || '-';
+    document.getElementById('agriDate').textContent = toNO(d.generated) || '-';
     document.getElementById('agriContent').innerHTML = renderAgri(d);
   }).catch(function(){
     document.getElementById('agriContent').innerHTML='<div class="loading">Feil ved lasting av avlingsdata</div>';
@@ -975,7 +975,7 @@ function loadShippingTab(){
       document.getElementById('shippingContent').innerHTML='<div class="loading">Ingen shipping-data – kjør update.sh</div>';
       return;
     }
-    document.getElementById('shippingDate').textContent = d.generated || '-';
+    document.getElementById('shippingDate').textContent = toNO(d.generated) || '-';
     document.getElementById('shippingContent').innerHTML = renderShipping(d);
   }).catch(function(){
     document.getElementById('shippingContent').innerHTML='<div class="loading">Feil ved lasting av shipping-data</div>';
@@ -1102,7 +1102,7 @@ function loadOilgasTab(){
       document.getElementById('oilgasContent').innerHTML='<div class="loading">Ingen energidata – kjør update.sh</div>';
       return;
     }
-    document.getElementById('oilgasDate').textContent = d.generated || '-';
+    document.getElementById('oilgasDate').textContent = toNO(d.generated) || '-';
     document.getElementById('oilgasContent').innerHTML = renderOilgas(d);
   }).catch(function(){
     document.getElementById('oilgasContent').innerHTML='<div class="loading">Feil ved lasting av energidata</div>';
