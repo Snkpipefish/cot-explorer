@@ -116,54 +116,56 @@ def normalize(s):
 
 def parse_ice_csv(text):
     """
-    Parse ICE COT CSV (CFTC-format).
-    Henter siste rad per marked (nyeste rapport øverst eller nederst).
-    Returnerer dict: {market_key → row_data}
+    Parse ICE COT CSV (CFTC disaggregated/legacy format).
+    Kolonner: M_Money_Positions_Long_All, M_Money_Positions_Short_All, Open_Interest_All
+    Dato: As_of_Date_Form_MM/DD/YYYY eller As_of_Date_In_Form_YYMMDD
     """
     import csv, io as _io
-    results = {}
+    # Fjern UTF-8 BOM
+    text = text.lstrip("\ufeff").lstrip("ï»¿")
     reader = csv.DictReader(_io.StringIO(text))
     rows_by_market = {}
 
     for row in reader:
-        name = row.get("Market_and_Exchange_Names", "") or row.get("market_and_exchange_names", "")
+        name = row.get("Market_and_Exchange_Names", "").strip()
         if not name:
-            # Prøv første kolonne uansett navn
-            name = next(iter(row.values()), "")
+            continue
+        # Kun rene Futures-rader (ikke "Futures and Options")
+        if "and options" in name.lower():
+            continue
 
         mkey = match_market(name)
         if mkey is None:
             continue
 
-        # Finn kolonnene (CFTC-format)
-        def g(keys):
-            for k in keys:
-                for col, val in row.items():
-                    if k.lower() in col.lower():
-                        return val
-            return "0"
+        mm_long  = safe_num(row.get("M_Money_Positions_Long_All", 0))
+        mm_short = safe_num(row.get("M_Money_Positions_Short_All", 0))
+        oi       = safe_num(row.get("Open_Interest_All", 0))
+        chg_long = safe_num(row.get("Change_in_M_Money_Long_All", row.get("Change_in_M_Money_Long", 0)))
+        chg_short= safe_num(row.get("Change_in_M_Money_Short_All", row.get("Change_in_M_Money_Short", 0)))
 
-        mm_long  = safe_num(g(["NonComm_Positions_Long", "Noncommercial_Long", "Managed_Money_Long", "Money_Manager_Long"]))
-        mm_short = safe_num(g(["NonComm_Positions_Short", "Noncommercial_Short", "Managed_Money_Short", "Money_Manager_Short"]))
-        oi       = safe_num(g(["Open_Interest", "open_interest"]))
-        chg_long = safe_num(g(["Change_in_NonComm_Long", "Change_NonComm_Long"]))
-        chg_short= safe_num(g(["Change_in_NonComm_Short", "Change_NonComm_Short"]))
+        # Konverter dato YYMMDD → YYYY-MM-DD
+        raw_date = row.get("As_of_Date_Form_MM/DD/YYYY", "") or row.get("As_of_Date_In_Form_YYMMDD", "")
+        try:
+            from datetime import datetime as _datetime
+            if "/" in raw_date:
+                d = _datetime.strptime(raw_date, "%m/%d/%Y")
+            else:
+                d = _datetime.strptime(raw_date, "%y%m%d")
+            date_str = d.strftime("%Y-%m-%d")
+        except Exception:
+            date_str = raw_date
 
-        date_str = row.get("Report_Date_as_YYYY-MM-DD", "") or row.get("As_of_Date_In_Form_YYMMDD", "")
-
-        # Behold siste (nyeste) rad per marked
         existing = rows_by_market.get(mkey)
         if existing is None or date_str >= existing.get("date", ""):
             rows_by_market[mkey] = {
                 "mm_long": mm_long, "mm_short": mm_short,
-                "mm_net": mm_long - mm_short,
+                "mm_net":  mm_long - mm_short,
                 "oi": oi, "chg": chg_long - chg_short,
                 "date": date_str,
             }
 
-    for mkey, d in rows_by_market.items():
-        results[mkey] = d
-    return results
+    return rows_by_market
 
 
 def safe_num(s):
