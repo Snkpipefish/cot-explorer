@@ -40,11 +40,12 @@ ICE_MARKETS = {
     "natural gas":        "ice ttf gas",
 }
 
-# ICE Excel-nedlastings-URLer (prøves i rekkefølge)
+# ICE COT CSV-URLer — én fil per år (oppdateres ukentlig)
+from datetime import datetime as _dt
+_THIS_YEAR = _dt.now().year
 ICE_URLS = [
-    "https://www.ice.com/publicdocs/futures/COTHist.xlsx",
-    "https://www.ice.com/publicdocs/futures/COT.xlsx",
-    "https://www.ice.com/publicdocs/futures/commitments_of_traders.xlsx",
+    f"https://www.ice.com/publicdocs/futures/COTHist{_THIS_YEAR}.csv",
+    f"https://www.ice.com/publicdocs/futures/COTHist{_THIS_YEAR - 1}.csv",
 ]
 ICE_REPORT_PAGE = "https://www.ice.com/report/122"
 
@@ -77,28 +78,19 @@ def find_excel_url():
     return None
 
 
-def download_excel():
-    """Last ned ICE COT Excel. Returnerer bytes eller None."""
-    # Prøv å finne URL fra rapport-siden
-    page_url = find_excel_url()
-    candidates = ([page_url] if page_url else []) + ICE_URLS
-
-    for url in candidates:
-        if not url:
-            continue
+def download_csv():
+    """Last ned ICE COT CSV. Returnerer tekst eller None."""
+    for url in ICE_URLS:
         try:
             print(f"  Prøver: {url}")
             r = requests.get(url, headers=HEADERS, timeout=30)
             r.raise_for_status()
-            ctype = r.headers.get("Content-Type", "")
             if len(r.content) < 1000:
-                print(f"    For lite data ({len(r.content)} bytes) — hopper over")
                 continue
-            if "html" in ctype.lower() and b"<!DOCTYPE" in r.content[:100]:
-                print(f"    Fikk HTML i stedet for Excel — hopper over")
+            if b"<!DOCTYPE" in r.content[:200]:
                 continue
             print(f"    OK — {len(r.content)//1024} KB")
-            return r.content
+            return r.content.decode("utf-8", errors="replace")
         except Exception as e:
             print(f"    FEIL: {e}")
     return None
@@ -113,15 +105,67 @@ def normalize(s):
     return str(s).strip().lower()
 
 
+def parse_ice_csv(text):
+    """
+    Parse ICE COT CSV (CFTC-format).
+    Henter siste rad per marked (nyeste rapport øverst eller nederst).
+    Returnerer dict: {market_key → row_data}
+    """
+    import csv, io as _io
+    results = {}
+    reader = csv.DictReader(_io.StringIO(text))
+    rows_by_market = {}
+
+    for row in reader:
+        name = row.get("Market_and_Exchange_Names", "") or row.get("market_and_exchange_names", "")
+        if not name:
+            # Prøv første kolonne uansett navn
+            name = next(iter(row.values()), "")
+
+        mkey = match_market(name)
+        if mkey is None:
+            continue
+
+        # Finn kolonnene (CFTC-format)
+        def g(keys):
+            for k in keys:
+                for col, val in row.items():
+                    if k.lower() in col.lower():
+                        return val
+            return "0"
+
+        mm_long  = safe_num(g(["NonComm_Positions_Long", "Noncommercial_Long", "Managed_Money_Long", "Money_Manager_Long"]))
+        mm_short = safe_num(g(["NonComm_Positions_Short", "Noncommercial_Short", "Managed_Money_Short", "Money_Manager_Short"]))
+        oi       = safe_num(g(["Open_Interest", "open_interest"]))
+        chg_long = safe_num(g(["Change_in_NonComm_Long", "Change_NonComm_Long"]))
+        chg_short= safe_num(g(["Change_in_NonComm_Short", "Change_NonComm_Short"]))
+
+        date_str = row.get("Report_Date_as_YYYY-MM-DD", "") or row.get("As_of_Date_In_Form_YYMMDD", "")
+
+        # Behold siste (nyeste) rad per marked
+        existing = rows_by_market.get(mkey)
+        if existing is None or date_str >= existing.get("date", ""):
+            rows_by_market[mkey] = {
+                "mm_long": mm_long, "mm_short": mm_short,
+                "oi": oi, "chg": chg_long - chg_short,
+                "date": date_str,
+            }
+
+    for mkey, d in rows_by_market.items():
+        results[mkey] = d
+    return results
+
+
+def safe_num(s):
+    try:
+        return int(float(str(s).replace(",", "").strip()))
+    except Exception:
+        return 0
+
+
 def parse_ice_excel(data):
     """
     Parse ICE COT Excel. Returnerer dict: {market_key → row_data}
-
-    ICE-rapporten bruker ett av to formater:
-    Format A (nyere): Én rad per markedsgruppe med kolonner per kategori
-    Format B (eldre): Én rad per marked×kategori-kombinasjon
-
-    Vi leter etter header-rad og identifiserer kolonner dynamisk.
     """
     wb = openpyxl.load_workbook(io.BytesIO(data), read_only=True, data_only=True)
     results = {}
@@ -425,15 +469,15 @@ def build_output(parsed, history):
 def main():
     print("Henter ICE Futures Europe COT-data...")
 
-    raw = download_excel()
+    raw = download_csv()
     if raw is None:
-        print("  FEIL: Kunne ikke laste ned ICE COT Excel — ingen data skrevet")
+        print("  FEIL: Kunne ikke laste ned ICE COT CSV — ingen data skrevet")
         return False
 
     try:
-        parsed = parse_ice_excel(raw)
+        parsed = parse_ice_csv(raw)
     except Exception as e:
-        print(f"  FEIL ved parsing av Excel: {e}")
+        print(f"  FEIL ved parsing av CSV: {e}")
         return False
 
     if not parsed:
