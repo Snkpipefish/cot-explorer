@@ -138,56 +138,38 @@ def download_with_playwright():
         ctx = browser.new_context(accept_downloads=True)
         page = ctx.new_page()
         try:
-            # Besøk COT-siden for å sette cookies
             print("  Playwright: åpner Euronext COT-side...")
             page.goto(EURONEXT_PAGES[0], wait_until="domcontentloaded", timeout=30000)
 
-            # Let etter nedlastingslenke for agri-xlsx
+            # Let etter xlsx-lenke direkte i DOM
             xlsx_url = None
             for a in page.query_selector_all("a[href]"):
                 href = a.get_attribute("href") or ""
-                if "agri" in href.lower() and ".xls" in href.lower():
+                if ".xls" in href.lower() and ("agri" in href.lower() or "cot" in href.lower()):
                     xlsx_url = href if href.startswith("http") else "https://live.euronext.com" + href
+                    print(f"  Fant lenke: {xlsx_url}")
                     break
 
-            # Prøv kandidat-URLer hvis ingen lenke ble funnet
             candidates = ([xlsx_url] if xlsx_url else []) + _candidate_urls()
+
+            # Bruk Playwright API-context (har nettleserens cookies/session)
+            api_ctx = ctx.request
             for url in candidates:
                 if not url:
                     continue
                 try:
-                    print(f"  Playwright laster ned: {url}")
-                    with page.expect_download(timeout=20000) as dl_info:
-                        page.evaluate(f"window.location.href = '{url}'")
-                    dl = dl_info.value
-                    data = Path(dl.path()).read_bytes()
-                    if len(data) > 500:
-                        print(f"    OK — {len(data)//1024} KB")
-                        browser.close()
-                        return data
+                    print(f"  Playwright API: {url}")
+                    resp = api_ctx.get(url, headers={"Accept": "*/*"}, timeout=20000)
+                    if resp.ok:
+                        data = resp.body()
+                        if len(data) > 500 and not data[:5].startswith(b"<!DOC"):
+                            print(f"    OK — {len(data)//1024} KB")
+                            browser.close()
+                            return data
+                    else:
+                        print(f"    HTTP {resp.status}")
                 except Exception as e:
-                    # Fallback: hent via fetch() i nettleseren (omgår CORS)
-                    try:
-                        b64 = page.evaluate(f"""
-                            async () => {{
-                                const r = await fetch('{url}');
-                                if (!r.ok) return null;
-                                const buf = await r.arrayBuffer();
-                                const bytes = new Uint8Array(buf);
-                                let b = '';
-                                bytes.forEach(b2 => b += String.fromCharCode(b2));
-                                return btoa(b);
-                            }}
-                        """)
-                        if b64:
-                            import base64
-                            data = base64.b64decode(b64)
-                            if len(data) > 500:
-                                print(f"    OK via fetch() — {len(data)//1024} KB")
-                                browser.close()
-                                return data
-                    except Exception:
-                        print(f"    FEIL: {e}")
+                    print(f"    FEIL: {e}")
         except Exception as e:
             print(f"  Playwright FEIL: {e}")
         finally:
