@@ -368,6 +368,17 @@ def main():
 
     if not parsed:
         print("  FEIL: Ingen Euronext-markeder hentet")
+        # Debug: hent og vis første tabell fra EBM
+        result = fetch_report("EBM")
+        if result:
+            html, _ = result
+            p = TableParser()
+            p.feed(html)
+            print(f"  DEBUG: {len(p.tables)} tabeller funnet")
+            for ti, t in enumerate(p.tables[:3]):
+                print(f"  Tabell {ti}: {len(t)} rader")
+                for row in t[:8]:
+                    print(f"    {row}")
         return False
 
     history = load_history()
