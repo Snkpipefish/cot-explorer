@@ -139,16 +139,23 @@ def download_with_playwright():
         page = ctx.new_page()
         try:
             print("  Playwright: åpner Euronext COT-side...")
-            page.goto(EURONEXT_PAGES[0], wait_until="domcontentloaded", timeout=30000)
+            page.goto(EURONEXT_PAGES[0], wait_until="networkidle", timeout=45000)
+            page.wait_for_timeout(3000)  # vent på JS-rendering
 
             # Let etter xlsx-lenke direkte i DOM
             xlsx_url = None
-            for a in page.query_selector_all("a[href]"):
-                href = a.get_attribute("href") or ""
-                if ".xls" in href.lower() and ("agri" in href.lower() or "cot" in href.lower()):
+            all_hrefs = [a.get_attribute("href") or "" for a in page.query_selector_all("a[href]")]
+            xls_hrefs = [h for h in all_hrefs if ".xls" in h.lower()]
+            print(f"  Fant {len(all_hrefs)} lenker totalt, {len(xls_hrefs)} xlsx-lenker")
+            for href in xls_hrefs:
+                print(f"    xlsx: {href}")
+                if "agri" in href.lower() or "cot" in href.lower():
                     xlsx_url = href if href.startswith("http") else "https://live.euronext.com" + href
-                    print(f"  Fant lenke: {xlsx_url}")
+                    print(f"  Bruker: {xlsx_url}")
                     break
+            if not xlsx_url and xls_hrefs:
+                xlsx_url = xls_hrefs[0]
+                xlsx_url = xlsx_url if xlsx_url.startswith("http") else "https://live.euronext.com" + xlsx_url
 
             candidates = ([xlsx_url] if xlsx_url else []) + _candidate_urls()
 
