@@ -354,6 +354,20 @@ def push_flask(signals):
     except urllib.error.URLError as e:
         print(f"Flask FEIL: {e}")
 
+    # Oppdater _signals_store i Flask så boten henter riktige signaler via /signals
+    upload_url = f"{FLASK_URL}/upload"
+    store = {s["key"]: s for s in signals}
+    upload_payload = json.dumps(store).encode()
+    upload_req = urllib.request.Request(
+        upload_url, data=upload_payload,
+        headers={"Content-Type": "application/json", "X-API-Key": SCALP_API_KEY},
+    )
+    try:
+        with urllib.request.urlopen(upload_req, timeout=10) as resp:
+            print(f"Flask /upload OK ({resp.status})")
+    except urllib.error.URLError as e:
+        print(f"Flask /upload FEIL: {e}")
+
 
 # ── Kjør pushes ───────────────────────────────────────────
 push_telegram(message)
