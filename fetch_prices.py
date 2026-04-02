@@ -128,6 +128,14 @@ def fetch_yahoo(symbol):
         return None
 
 
+# ── Last inn eksisterende priser for å bevare chg1d/5d/20d ───────
+existing_prices = {}
+try:
+    with open(OUT) as f:
+        existing_prices = json.load(f).get("prices", {})
+except Exception:
+    pass
+
 # ── Hent bot-priser først ─────────────────────────────────────────
 bot_prices = load_bot_prices()
 if bot_prices:
@@ -137,8 +145,16 @@ if bot_prices:
 prices = {}
 for key, sym in SYMBOLS.items():
     if key in bot_prices:
-        prices[key] = bot_prices[key]
-        print(f"  {key:10} → {bot_prices[key]['price']} (bot)")
+        new_price = bot_prices[key]["price"]
+        prev = existing_prices.get(key, {})
+        prices[key] = {
+            "price":  new_price,
+            "chg1d":  prev.get("chg1d",  0),
+            "chg5d":  prev.get("chg5d",  0),
+            "chg20d": prev.get("chg20d", 0),
+            "source": "bot",
+        }
+        print(f"  {key:10} → {new_price} (bot, chg1d={prices[key]['chg1d']:+.2f}%)")
         continue
     print(f"Henter {key} ({sym}) fra Yahoo...")
     v = fetch_yahoo(sym)
@@ -149,8 +165,16 @@ for key, sym in SYMBOLS.items():
 # Legg til krypto fra bot (ikke i SYMBOLS, men vi vil ha dem i macro)
 for crypto_key in ("BTC", "ETH", "SOL", "XRP"):
     if crypto_key in bot_prices and crypto_key not in prices:
-        prices[crypto_key] = bot_prices[crypto_key]
-        print(f"  {crypto_key:10} → {bot_prices[crypto_key]['price']} (bot)")
+        new_price = bot_prices[crypto_key]["price"]
+        prev = existing_prices.get(crypto_key, {})
+        prices[crypto_key] = {
+            "price":  new_price,
+            "chg1d":  prev.get("chg1d",  0),
+            "chg5d":  prev.get("chg5d",  0),
+            "chg20d": prev.get("chg20d", 0),
+            "source": "bot",
+        }
+        print(f"  {crypto_key:10} → {new_price} (bot)")
 
 # ── Bygg macro-objekt ─────────────────────────────────────────────
 vix    = (prices.get("VIX")   or {}).get("price", 20)
