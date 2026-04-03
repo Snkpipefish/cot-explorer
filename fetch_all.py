@@ -285,9 +285,17 @@ def get_pwh_pwl(daily):
     return max(r[0] for r in week), min(r[1] for r in week)
 
 def get_session_status():
-    h = datetime.now(timezone.utc).hour
-    m = datetime.now(timezone.utc).minute
-    cet = (h*60 + m + 60) % (24*60)  # UTC+1
+    now_utc = datetime.now(timezone.utc)
+    h = now_utc.hour
+    m = now_utc.minute
+    # UTC+2 (CEST) mars–oktober, UTC+1 (CET) resten av året
+    year = now_utc.year
+    _lsm = 31 - (datetime(year, 3, 31).weekday() + 1) % 7
+    _lso = 31 - (datetime(year, 10, 31).weekday() + 1) % 7
+    _dst_start = datetime(year, 3, _lsm, 1, tzinfo=timezone.utc)
+    _dst_end   = datetime(year, 10, _lso, 1, tzinfo=timezone.utc)
+    _tz_offset = 2 if _dst_start <= now_utc < _dst_end else 1
+    cet = (h*60 + m + _tz_offset*60) % (24*60)
     ch  = cet // 60
     sessions = []
     if 7*60 <= cet < 12*60:  sessions.append("London")

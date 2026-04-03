@@ -240,7 +240,7 @@ else:
 
 macro = {
     "date":     datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-    "cot_date": "2025-12-30",
+    "cot_date": "",
     "prices":   prices,
     "vix_regime": vix_regime,
     "dollar_smile": {

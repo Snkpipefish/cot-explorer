@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 import urllib.request, json, os
 from datetime import datetime, timezone, timedelta
+try:
+    from zoneinfo import ZoneInfo
+    _OSLO = ZoneInfo("Europe/Oslo")
+    def _to_oslo(dt_utc): return dt_utc.astimezone(_OSLO)
+except Exception:
+    def _to_oslo(dt_utc):
+        # Fallback: beregn CET/CEST manuelt (siste søndag i mars/oktober)
+        year = dt_utc.year
+        last_sun_mar = 31 - (datetime(year, 3, 31).weekday() + 1) % 7
+        last_sun_oct = 31 - (datetime(year, 10, 31).weekday() + 1) % 7
+        dst_start = datetime(year, 3, last_sun_mar, 1, tzinfo=timezone.utc)
+        dst_end   = datetime(year, 10, last_sun_oct, 1, tzinfo=timezone.utc)
+        offset = 2 if dst_start <= dt_utc < dst_end else 1
+        return dt_utc + timedelta(hours=offset)
 
 BASE = os.path.expanduser("~/cot-explorer/data/calendar")
 os.makedirs(BASE, exist_ok=True)
@@ -42,7 +56,7 @@ for ev in raw:
         dt_utc = dt.astimezone(timezone.utc)
     except:
         continue
-    cet = dt_utc + timedelta(hours=1)
+    cet = _to_oslo(dt_utc)
     events.append({
         "date":       dt_utc.isoformat(),
         "cet":        cet.strftime("%a %d.%m %H:%M"),
