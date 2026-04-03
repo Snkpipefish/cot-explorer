@@ -99,6 +99,9 @@ try:
             elig = totals.get("eligible", 0)
             prev = m.get("previous_registered", reg)
             date = m.get("report_date") or m.get("activity_date", "")
+            # Rydd opp dato ($D-prefix fra RSC) og avrund til heltall
+            date = re.sub(r'^\$D', '', str(date))[:10]
+            reg, elig, prev = round(reg), round(elig), round(prev)
             if reg > 0 or elig > 0:
                 fetched[out_key] = {"registered": reg, "eligible": elig, "prev": prev, "date": date}
                 print(f"  heavymetalstats {out_key}: registered={reg:,} eligible={elig:,} dato={date}")
