@@ -98,7 +98,11 @@ python3 fetch_crypto.py  >> "$LOG" 2>&1 && echo "  krypto OK"   >> "$LOG" || ech
 python3 push_signals.py >> "$LOG" 2>&1 && echo "  signals OK" >> "$LOG" || echo "  signals FEIL" >> "$LOG"
 
 # Push data-filer til GitHub (oppdaterer GitHub Pages)
-git add data/macro/latest.json data/signals.json data/signal_log.json data/calendar/ data/combined/ data/fundamentals/ data/comex/ data/geointel/ data/agri/ data/shipping/ data/oilgas/ data/crypto/ 2>/dev/null || true
+git add data/macro/latest.json data/signals.json data/signal_log.json \
+        data/calendar/ data/combined/ data/fundamentals/ data/comex/ \
+        data/geointel/ data/agri/ data/shipping/ data/oilgas/ data/crypto/ \
+        data/tff/ data/disaggregated/ data/legacy/ data/supplemental/ \
+        data/euronext_cot/ data/ice_cot/ data/prices/ 2>/dev/null || true
 if git diff --cached --quiet; then
     echo "  git: ingen nye data å pushe" >> "$LOG"
 else
