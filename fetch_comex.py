@@ -3,9 +3,9 @@
 fetch_comex.py — Henter COMEX lagerdata
 
 Kilder (i prioritert rekkefølge):
-  1. heavymetalstats.com — gull, sølv, kobber (Next.js RSC payload)
-  2. goldsilver.ai       — sølv (Next.js RSC payload, fallback for sølv)
-  3. Eksisterende latest.json (ved total feil)
+  1. heavymetalstats.com — gull, sølv, kobber (Next.js RSC push #12)
+  2. goldsilver.ai       — sølv (fallback / historikk)
+  3. Eksisterende latest.json
 
 Stress-indeks 0–100:
   - Basert på andel registered av total (lav = mer stress)
@@ -25,7 +25,6 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.9",
 }
 
-# Les eksisterende verdier som fallback
 existing = {}
 if OUT.exists():
     try:
@@ -54,57 +53,86 @@ def fetch_html(url):
     with urllib.request.urlopen(req, timeout=15) as r:
         return r.read().decode("utf-8", errors="ignore")
 
-def extract_rsc_arrays(html):
-    """Trekk ut alle numeriske arrays og dato-arrays fra Next.js RSC payload."""
-    dates, numbers = [], []
-    for chunk in re.findall(r'self\.__next_f\.push\(\[1,"(.*?)"\]\)', html):
-        chunk = chunk.replace("\\n", "\n").replace('\\"', '"').replace("\\\\", "\\")
-        for m in re.finditer(r'\[("202\d-\d{2}-\d{2}"(?:,"202\d-\d{2}-\d{2}")+)\]', chunk):
-            arr = [d.strip('"') for d in m.group(1).split(",")]
-            if len(arr) >= 10:
-                dates.append(arr)
-        for m in re.finditer(r'\[(\d+(?:,\d+){9,})\]', chunk):
-            arr = [int(x) for x in m.group(1).split(",")]
-            if len(arr) >= 10:
-                numbers.append(arr)
-    return dates, numbers
+def extract_json_object(text, start_pattern):
+    """Finn og ekstraher et komplett JSON-objekt fra en streng via brace-matching."""
+    idx = text.find(start_pattern)
+    if idx == -1:
+        return None
+    depth, start = 0, idx
+    for i, ch in enumerate(text[idx:], idx):
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                try:
+                    return json.loads(text[start:i+1])
+                except Exception:
+                    return None
+    return None
+
+def get_rsc_pushes(html):
+    """Hent alle RSC push-blokker fra Next.js HTML."""
+    return re.findall(r'self\.__next_f\.push\(\[1,"(.*?)"\]\)', html, re.DOTALL)
 
 # ── 1. heavymetalstats.com ────────────────────────────────────────────
-HMS_URLS = {
-    "gold":   "https://www.heavymetalstats.com/charts/comex-gold-warehouse-stocks",
-    "silver": "https://www.heavymetalstats.com/charts/comex-silver-warehouse-stocks",
-    "copper": "https://www.heavymetalstats.com/charts/comex-copper-warehouse-stocks",
-}
-
 fetched = {}
 source_used = "fallback"
+hms_date = None
 
-for metal, url in HMS_URLS.items():
-    try:
-        html = fetch_html(url)
-        dates, numbers = extract_rsc_arrays(html)
-        if not dates or len(numbers) < 2:
-            print(f"  heavymetalstats {metal}: ikke nok data å parse")
-            continue
-        # Siste element = nyeste verdi
-        reg  = numbers[0][-1]
-        elig = numbers[1][-1] if len(numbers) > 1 else 0
-        fetched[metal] = {"registered": reg, "eligible": elig, "date": dates[0][-1]}
-        print(f"  heavymetalstats {metal}: registered={reg:,} eligible={elig:,} dato={dates[0][-1]}")
-        source_used = "heavymetalstats.com"
-    except Exception as e:
-        print(f"  heavymetalstats {metal} FEIL: {e}")
+try:
+    html = fetch_html("https://www.heavymetalstats.com/")
+    pushes = get_rsc_pushes(html)
+    print(f"  heavymetalstats: {len(pushes)} RSC-blokker funnet")
 
-# ── 2. goldsilver.ai — kun sølv hvis mangler ──────────────────────────
+    # Finn den største push-blokken (inneholder all data)
+    biggest = max(pushes, key=len) if pushes else ""
+    raw = biggest.replace('\\"', '"').replace('\\n', '\n').replace('\\\\', '\\')
+
+    data_obj = extract_json_object(raw, '{"data":{"Aluminum":')
+    if data_obj:
+        metals = data_obj.get("data", {})
+        for metal_key, out_key in [("Gold", "gold"), ("Silver", "silver"), ("Copper", "copper")]:
+            m = metals.get(metal_key, {})
+            totals = m.get("totals", {})
+            reg  = totals.get("registered", 0)
+            elig = totals.get("eligible", 0)
+            prev = m.get("previous_registered", reg)
+            date = m.get("report_date") or m.get("activity_date", "")
+            if reg > 0 or elig > 0:
+                fetched[out_key] = {"registered": reg, "eligible": elig, "prev": prev, "date": date}
+                print(f"  heavymetalstats {out_key}: registered={reg:,} eligible={elig:,} dato={date}")
+                source_used = "heavymetalstats.com"
+                hms_date = date
+        if not fetched:
+            print("  heavymetalstats: JSON funnet men ingen metalldata")
+    else:
+        print("  heavymetalstats: fant ikke {'data':{'Aluminum':...}} i RSC-payload")
+except Exception as e:
+    print(f"  heavymetalstats FEIL: {e}")
+
+# ── 2. goldsilver.ai — sølv (fallback eller supplement) ───────────────
 if "silver" not in fetched:
     try:
         html = fetch_html("https://goldsilver.ai/metal-prices/comex-silver")
-        dates, numbers = extract_rsc_arrays(html)
+        pushes = get_rsc_pushes(html)
+        dates, numbers = [], []
+        for chunk in pushes:
+            chunk = chunk.replace('\\"', '"').replace('\\n', '\n')
+            for m in re.finditer(r'\[("202\d-\d{2}-\d{2}"(?:,"202\d-\d{2}-\d{2}")+)\]', chunk):
+                arr = [d.strip('"') for d in m.group(1).split(",")]
+                if len(arr) >= 10:
+                    dates.append(arr)
+            for m in re.finditer(r'\[(\d+(?:,\d+){9,})\]', chunk):
+                arr = [int(x) for x in m.group(1).split(",")]
+                if len(arr) >= 10:
+                    numbers.append(arr)
         if dates and len(numbers) >= 2:
             reg  = numbers[0][-1]
             elig = numbers[1][-1]
-            fetched["silver"] = {"registered": reg, "eligible": elig, "date": dates[0][-1]}
-            print(f"  goldsilver.ai silver: registered={reg:,} eligible={elig:,} dato={dates[0][-1]}")
+            date = dates[0][-1]
+            fetched["silver"] = {"registered": reg, "eligible": elig, "prev": reg, "date": date}
+            print(f"  goldsilver.ai silver: registered={reg:,} eligible={elig:,} dato={date}")
             if source_used == "fallback":
                 source_used = "goldsilver.ai"
         else:
@@ -119,11 +147,12 @@ def oz_block(metal_key, fetched_data, existing_data, unit_key, unit_label):
         f    = fetched_data[metal_key]
         reg  = f["registered"]
         elig = f["eligible"]
+        prev = f.get("prev", ex.get(f"registered_{unit_key}", reg))
     else:
         reg  = ex.get(f"registered_{unit_key}", 0)
         elig = ex.get(f"eligible_{unit_key}", 0)
+        prev = ex.get(f"registered_prev_{unit_key}", reg)
     total = reg + elig
-    prev  = ex.get(f"registered_{unit_key}", reg)
     cov   = round((reg / total * 100) if total else 0, 1)
     return {
         f"registered_{unit_key}":      reg,
@@ -142,6 +171,7 @@ copper_block = oz_block("copper", fetched, existing, "st", "short tons")
 result = {
     "updated":      datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     "source":       source_used,
+    "report_date":  hms_date or fetched.get("silver", {}).get("date", ""),
     "gold":         gold_block,
     "silver":       silver_block,
     "copper":       copper_block,
