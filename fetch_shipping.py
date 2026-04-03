@@ -361,6 +361,7 @@ bdi_signal = bdi_data["signal"] if bdi_data else "neutral"
 
 output = {
     "generated":    datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    "source":       "tradingeconomics.com · Google News RSS",
     "overall_risk": overall,
     "bdi_signal":   bdi_signal,
     "indices":      indices_result,

@@ -150,6 +150,7 @@ if combined_file.exists():
                     "oi":      oi,
                     "pct":     round(net / oi * 100, 1),
                     "date":    entry.get("date", ""),
+                    "source":  "CFTC",
                     "history": entry.get("spec_net_history", []),
                 }
                 break
@@ -200,6 +201,7 @@ for n in sorted(news, key=lambda x: x["time"], reverse=True):
 
 result = {
     "updated":      datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    "source":       "CFTC · CoinGecko · alternative.me · Google News RSS",
     "prices":       prices,
     "market":       market,
     "fear_greed":   fear_greed,

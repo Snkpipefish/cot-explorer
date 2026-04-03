@@ -299,7 +299,7 @@ function corrText(v){
 function renderAll(d){
   document.getElementById('upd').textContent='Oppdatert: '+toNO(d.updated);
   document.getElementById('newsDate').textContent=toNO(d.updated)||'-';
-  document.getElementById('cotDate').textContent='Data per '+(d.cot_btc&&d.cot_btc.date||'-');
+  document.getElementById('cotDate').textContent='Data per '+(d.cot_btc&&d.cot_btc.date||'-')+' · Kilde: '+((d.cot_btc&&d.cot_btc.source)||'CFTC');
 
   var mkt=d.market||{}, fg=d.fear_greed||{}, prices=d.prices||{};
   var fgScore=fg.score||0, btc=prices.BTC||{};

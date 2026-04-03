@@ -432,6 +432,7 @@ else:
 
 output = {
     "generated":      datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    "source":         "CFTC · Skilling bot · Yahoo Finance · Google News RSS",
     "overall_risk":   overall_risk,
     "overall_signal": overall_signal,
     "brent_wti_spread": brent_wti_spread,

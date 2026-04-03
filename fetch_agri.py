@@ -508,6 +508,7 @@ crop_summary.sort(key=lambda x: order.get(x["outlook"]["signal"], 2))
 
 output = {
     "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    "source":    "CFTC · Euronext · Open-Meteo",
     "month":     MONTH,
     "crop_summary": crop_summary,
     "regions":   result_regions,

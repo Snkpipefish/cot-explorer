@@ -330,14 +330,14 @@ footer a{color:var(--blue);text-decoration:none}
     <div id="logGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
   </div>
   <div class="panel" id="panel-kalender">
-    <div class="sh"><div class="sh-t">Okonomisk kalender</div><div class="sh-b">Denne uken</div></div>
+    <div class="sh"><div class="sh-t">Okonomisk kalender</div><div class="sh-b" id="calDate">Denne uken · Kilde: ForexFactory</div></div>
     <div class="g2">
       <div class="card"><div class="ct">High Impact</div><div id="calH"></div></div>
       <div class="card"><div class="ct">Medium Impact</div><div id="calM"></div></div>
     </div>
   </div>
   <div class="panel" id="panel-priser">
-    <div class="sh"><div class="sh-t">Markedspriser</div><div class="sh-b">Yahoo Finance</div></div>
+    <div class="sh"><div class="sh-t">Markedspriser</div><div class="sh-b" id="priserDate">Kilde: Skilling bot · Yahoo Finance</div></div>
     <div class="ct">Indekser</div><div class="pcg" id="pInd"></div>
     <div class="ct" style="margin-top:16px">Valuta</div><div class="pcg" id="pVal"></div>
     <div class="ct" style="margin-top:16px">Ravarer</div><div class="pcg" id="pRav"></div>
@@ -970,7 +970,7 @@ function renderPrices(p){
 function renderKorrelasjoner(corr){
   var el=document.getElementById('corrGrid');
   if(!corr||!corr.matrix){el.innerHTML='<div class="loading">Ingen korrelasjonsdata</div>';return;}
-  document.getElementById('corrPeriod').textContent=corr.period+' Pearson';
+  document.getElementById('corrPeriod').textContent=(corr.period||'20-dager')+' Pearson'+(M&&M.date?' · Oppdatert: '+toNO(M.date):'');
   var labels=corr.labels;
   // Heatmap-farge: -1=rød, 0=nøytral, +1=grønn
   function corrColor(v){
@@ -1051,6 +1051,11 @@ async function loadAll(){
     renderMakro(M);
     renderIdeer(M);
     renderCal(M.calendar||[]);
+    if(M.date){
+      var d=toNO(M.date);
+      document.getElementById('calDate').textContent='Oppdatert: '+d+' · Kilde: ForexFactory';
+      document.getElementById('priserDate').textContent='Oppdatert: '+d+' · Kilde: Skilling bot · Yahoo Finance';
+    }
     renderPrices(M.prices||{});
     renderKorrelasjoner(M.correlations||null);
   }catch(e){
