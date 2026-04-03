@@ -1018,27 +1018,32 @@ function renderSignallogg(log){
   var rows='';
   entries.slice(0,200).forEach(function(e){
     var sig=e.signal||{};
+    var pnl=e.pnl||{};
     var res=e.result;
     var rCol=res==='win'?'bull':res==='loss'?'bear':res==='managed'?'warn':'blue';
     var rLbl=res==='win'?'✅ Win':res==='loss'?'❌ Loss':res==='managed'?'⚡ Managed':'🔵 Åpen';
     var dir=sig.direction||'';
     var lots=sig.lots?sig.lots+' lot':'–';
-    var riskPct=sig.risk_pct?sig.risk_pct+'%':'–';
+    var pnlTxt=pnl.pips!=null?(pnl.pips>0?'+':'')+pnl.pips+'p'+(pnl.pnl_usd!=null?' / '+(pnl.pnl_usd>0?'+':'')+pnl.pnl_usd+'$':''):'–';
+    var pnlCol=pnl.pips>0?'var(--bull)':pnl.pips<0?'var(--bear)':'var(--m)';
+    var exitCell=e.closed_at
+      ?'<td class="mob-hide" style="font-size:11px;color:var(--m)">'+(e.exit_reason||'–')+'</td>'
+      :'<td class="mob-hide" style="font-size:11px;color:var(--m)">–</td>';
     rows+='<tr>'+
       '<td style="font-size:11px;color:var(--m)">'+((e.timestamp||'').slice(0,16))+'</td>'+
       '<td><strong>'+(sig.instrument||'–')+'</strong></td>'+
       '<td><span class="sp2 '+(dir==='BUY'?'bull-mild':'bear-mild')+'">'+dir+'</span></td>'+
       '<td class="tdr" style="font-family:monospace;font-size:11px">'+(sig.entry||'–')+'</td>'+
       '<td class="tdr" style="font-family:monospace;font-size:11px;color:var(--bear)">'+(sig.stop||'–')+'</td>'+
-      '<td class="tdr" style="font-family:monospace;font-size:11px;color:var(--bull)">'+(sig.t1||'–')+'</td>'+
-      '<td class="mob-hide" style="font-size:11px">'+lots+' · '+riskPct+'</td>'+
-      (e.closed_at?'<td class="mob-hide" style="font-size:11px;color:var(--m)">'+(e.exit_reason||'–')+'</td>':'<td class="mob-hide" style="font-size:11px;color:var(--m)">–</td>')+
+      '<td class="tdr" style="font-family:monospace;font-size:11px;color:'+pnlCol+'">'+pnlTxt+'</td>'+
+      '<td class="mob-hide" style="font-size:11px">'+lots+'</td>'+
+      exitCell+
       '<td><span class="sh-b '+rCol+'" style="font-size:10px">'+rLbl+'</span></td>'+
       '</tr>';
   });
   document.getElementById('logGrid').innerHTML=
     '<div class="cotw"><table class="cott">'+
-    '<thead><tr><th>Åpnet</th><th>Instrument</th><th>Retning</th><th style="text-align:right">Entry</th><th style="text-align:right">SL</th><th style="text-align:right">T1</th><th class="mob-hide">Størrelse</th><th class="mob-hide">Exit-grunn</th><th>Resultat</th></tr></thead>'+
+    '<thead><tr><th>Åpnet</th><th>Instrument</th><th>Retning</th><th style="text-align:right">Entry</th><th style="text-align:right">SL</th><th class="tdr">PnL</th><th class="mob-hide">Størrelse</th><th class="mob-hide">Exit-grunn</th><th>Resultat</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table></div>';
 }
 
