@@ -41,12 +41,12 @@ else
     echo "  ICE COT: hopper over (kun fre >= 20:00)" >> "$LOG"
 fi
 
-# ── CFTC COT: mandag 00:00 (slippes fre 21:30, helger er av) ────────────────
-if [ "$DOW" -eq 1 ] && [ "$HOUR" -le 4 ]; then
+# ── CFTC COT: lørdag 00:00 (slippes fre 21:30) ──────────────────────────────
+if [ "$DOW" -eq 6 ] && [ "$HOUR" -le 4 ]; then
     python3 fetch_cot.py >> "$LOG" 2>&1 && echo "  COT OK" >> "$LOG" || echo "  COT FEIL" >> "$LOG"
     python3 build_combined.py >> "$LOG" 2>&1 && echo "  combined OK" >> "$LOG" || echo "  combined FEIL" >> "$LOG"
 else
-    echo "  COT: hopper over (kun man <= 04:00)" >> "$LOG"
+    echo "  COT: hopper over (kun lør 00:00)" >> "$LOG"
 fi
 
 # ── Euronext COT: kun onsdag ettermiddag (data per foregående fredagsbørslutt) ──
