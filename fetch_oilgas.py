@@ -430,8 +430,12 @@ if key_instruments:
 else:
     overall_signal = "NØYTRAL"
 
+_og_cot_dates = [i.get("cot", {}).get("date") for i in instruments if i.get("cot", {}).get("date")]
+_og_cot_date  = max(_og_cot_dates) if _og_cot_dates else None
+
 output = {
     "generated":      datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    "cot_date":       _og_cot_date,
     "source":         "CFTC · Skilling bot · Yahoo Finance · Google News RSS",
     "overall_risk":   overall_risk,
     "overall_signal": overall_signal,

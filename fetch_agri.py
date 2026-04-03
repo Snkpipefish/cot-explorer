@@ -506,8 +506,12 @@ for crop_key, meta in CROP_META.items():
 order = {"STERKT BULLISH": 0, "BULLISH": 1, "NØYTRAL": 2, "BEARISH": 3, "STERKT BEARISH": 4}
 crop_summary.sort(key=lambda x: order.get(x["outlook"]["signal"], 2))
 
+_cot_dates = [c.get("cot", {}).get("date") for c in crop_summary if c.get("cot", {}).get("date")]
+_cot_date  = max(_cot_dates) if _cot_dates else None
+
 output = {
     "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    "cot_date":  _cot_date,
     "source":    "CFTC · Euronext · Open-Meteo",
     "month":     MONTH,
     "crop_summary": crop_summary,

@@ -358,9 +358,11 @@ else:
 # 5. BDI-signal (brukes i samlet vurdering)
 bdi_data = next((i["data"] for i in indices_result if i["id"] == "bdi"), None)
 bdi_signal = bdi_data["signal"] if bdi_data else "neutral"
+bdi_date   = bdi_data["date"]   if bdi_data else None
 
 output = {
     "generated":    datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    "bdi_date":     bdi_date,
     "source":       "tradingeconomics.com · Google News RSS",
     "overall_risk": overall,
     "bdi_signal":   bdi_signal,

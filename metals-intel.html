@@ -497,7 +497,7 @@ function loadJSON(url){
 // ── COMEX ───────────────────────────────────────────────────
 loadJSON('data/comex/latest.json').then(function(d){
   if(!d){document.getElementById('comexCards').innerHTML='<div class="loading">Ingen COMEX-data – kjør fetch_comex.py</div>';return;}
-  document.getElementById('comexDate').textContent='Oppdatert: '+toNO(d.updated||'-')+' · Kilde: '+(d.source||'-');
+  document.getElementById('comexDate').textContent='Rapport per '+(d.report_date||'?')+' · Hentet: '+toNO(d.updated||'-')+' · Kilde: '+(d.source||'-');
   function makeCard(metal,label,reg,elig,total,change,unit,isOz){
     var cov=total?Math.round(reg/total*100):0;
     var fmt=isOz?fmtOz:fmtSt;
@@ -863,7 +863,7 @@ function loadAgriTab(){
       document.getElementById('agriContent').innerHTML='<div class="loading">Ingen avlingsdata – kjør update.sh</div>';
       return;
     }
-    document.getElementById('agriDate').textContent = 'Oppdatert: '+toNO(d.generated)+' · Kilde: '+(d.source||'CFTC · Euronext · Open-Meteo');
+    document.getElementById('agriDate').textContent = 'COT per '+(d.cot_date||'?')+' · Hentet: '+toNO(d.generated)+' · Kilde: '+(d.source||'CFTC · Euronext · Open-Meteo');
     document.getElementById('agriContent').innerHTML = renderAgri(d);
   }).catch(function(){
     document.getElementById('agriContent').innerHTML='<div class="loading">Feil ved lasting av avlingsdata</div>';
@@ -975,7 +975,7 @@ function loadShippingTab(){
       document.getElementById('shippingContent').innerHTML='<div class="loading">Ingen shipping-data – kjør update.sh</div>';
       return;
     }
-    document.getElementById('shippingDate').textContent = 'Oppdatert: '+toNO(d.generated)+' · Kilde: '+(d.source||'tradingeconomics.com · Google News RSS');
+    document.getElementById('shippingDate').textContent = 'BDI per '+(d.bdi_date||'?')+' · Hentet: '+toNO(d.generated)+' · Kilde: '+(d.source||'tradingeconomics.com · Google News RSS');
     document.getElementById('shippingContent').innerHTML = renderShipping(d);
   }).catch(function(){
     document.getElementById('shippingContent').innerHTML='<div class="loading">Feil ved lasting av shipping-data</div>';
@@ -1102,7 +1102,7 @@ function loadOilgasTab(){
       document.getElementById('oilgasContent').innerHTML='<div class="loading">Ingen energidata – kjør update.sh</div>';
       return;
     }
-    document.getElementById('oilgasDate').textContent = 'Oppdatert: '+toNO(d.generated)+' · Kilde: '+(d.source||'CFTC · Skilling bot · Yahoo Finance');
+    document.getElementById('oilgasDate').textContent = 'COT per '+(d.cot_date||'?')+' · Hentet: '+toNO(d.generated)+' · Kilde: '+(d.source||'CFTC · Skilling bot · Yahoo Finance');
     document.getElementById('oilgasContent').innerHTML = renderOilgas(d);
   }).catch(function(){
     document.getElementById('oilgasContent').innerHTML='<div class="loading">Feil ved lasting av energidata</div>';
