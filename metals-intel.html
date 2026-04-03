@@ -1187,7 +1187,7 @@ function renderOilgas(d){
     if(cot){
       var cotCol = cot.bias==='bull' ? 'var(--bull)' : 'var(--bear)';
       h += '<div style="border-top:1px solid var(--b);margin-top:8px;padding-top:6px;font-size:11px">';
-      h += '<span style="color:var(--m)">COT: </span>';
+      h += '<div style="color:var(--m);margin-bottom:3px;font-size:10px;text-transform:uppercase;letter-spacing:.5px">'+(cot.source||'CFTC')+' COT'+(cot.date?' · per '+cot.date:'')+'</div>';
       h += '<span style="color:'+cotCol+';font-weight:600">'+(cot.bias==='bull'?'▲ LONG':'▼ SHORT')+'</span>';
       h += ' <span style="color:var(--m)">'+(cot.net_pct>=0?'+':'')+cot.net_pct+'% av OI</span>';
       h += ' <span style="color:'+cotCol+'">'+cot.momentum+'</span>';
