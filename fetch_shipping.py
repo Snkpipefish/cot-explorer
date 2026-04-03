@@ -111,6 +111,7 @@ NEWS_QUERIES = [
 
 GNEWS_BASE  = "https://news.google.com/rss/search"
 STOOQ_BASE  = "https://stooq.com/q/d/l/"
+BDI_HIST    = BASE / "data" / "shipping" / "bdi_history.json"
 
 # Ord som tyder på forstyrrelser/risiko
 DISRUPTION_WORDS = [
@@ -119,6 +120,77 @@ DISRUPTION_WORDS = [
     "reroute","avoid","warning","alert","risk","suspend","halt","tension",
     "threat","incident","explosion","fire","collision","aground","grounded",
 ]
+
+# ── BDI fra tradingeconomics (selvbyggende historikk) ─────────────
+def fetch_bdi_te():
+    """Hent BDI nåverdi fra tradingeconomics og bygg lokal historikk."""
+    import re
+    url = "https://tradingeconomics.com/commodity/baltic"
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            html = r.read().decode("utf-8", errors="ignore")
+        m = re.search(r'"last":([\d.]+).*?"name":"Baltic Dry"', html)
+        if not m:
+            m = re.search(r'"name":"Baltic Dry".*?"last":([\d.]+)', html)
+        if not m:
+            return None
+        curr = round(float(m.group(1)))
+    except Exception as e:
+        print(f"  BDI tradingeconomics FEIL: {e}")
+        return None
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # Last og oppdater lokal historikk
+    hist = []
+    if BDI_HIST.exists():
+        try:
+            hist = json.loads(BDI_HIST.read_text())
+        except Exception:
+            pass
+    # Legg til dagens verdi (én per dag)
+    if not hist or hist[-1]["date"] != today:
+        hist.append({"date": today, "close": curr})
+    else:
+        hist[-1]["close"] = curr  # oppdater hvis allerede hentet i dag
+    hist = hist[-60:]  # behold maks 60 dager
+    BDI_HIST.write_text(json.dumps(hist, ensure_ascii=False))
+
+    closes = [h["close"] for h in hist]
+    if len(closes) < 2:
+        # Ikke nok historikk — bruk absolutte terskler
+        signal = "bull" if curr > 2000 else "bear" if curr < 1000 else "neutral"
+        return {
+            "value": curr, "prev": curr, "chg1d": 0.0,
+            "ma20": curr, "dev_ma": 0.0,
+            "trend": "UKJENT", "signal": signal,
+            "date": today, "history": [curr],
+        }
+
+    prev   = closes[-2]
+    ma20   = sum(closes[-20:]) / min(len(closes), 20)
+    chg1d  = round((curr - prev) / prev * 100, 1)
+    dev_ma = round((curr - ma20) / ma20 * 100, 1)
+    trend_v = curr - closes[max(0, len(closes) - 6)]
+    trend   = "STIGENDE" if trend_v > 0 else "FALLENDE"
+    if len(closes) >= 5:
+        signal = "bull" if dev_ma > 15 else "bear" if dev_ma < -15 else "neutral"
+    else:
+        signal = "bull" if curr > 2000 else "bear" if curr < 1000 else "neutral"
+
+    return {
+        "value":   curr,
+        "prev":    round(prev),
+        "chg1d":   chg1d,
+        "ma20":    round(ma20),
+        "dev_ma":  dev_ma,
+        "trend":   trend,
+        "signal":  signal,
+        "date":    today,
+        "history": [round(c) for c in closes[-15:]],
+    }
+
 
 # ── Hjelpe-funksjoner ─────────────────────────────────────────────
 def fetch_stooq(symbol):
@@ -246,21 +318,17 @@ def score_routes(all_news):
 # ── Hoved-logikk ─────────────────────────────────────────────────
 print("Henter shipping-data...")
 
-# 1. Indekser
+# 1. Indekser — BDI fra tradingeconomics, BCI/BPI/BSI ikke tilgjengelig
 print("  Henter Baltic-indekser...")
-indices_result = []
-for i, idx in enumerate(INDICES):
-    if i > 0:
-        time.sleep(1)
-    data = fetch_stooq(idx["symbol"])
-    status = f"{data['value']} ({data['chg1d']:+.1f}%)" if data else "ikke tilgjengelig"
-    print(f"    {idx['label']:25} → {status}")
-    indices_result.append({
-        "id":    idx["id"],
-        "label": idx["label"],
-        "desc":  idx["desc"],
-        "data":  data,
-    })
+bdi_data_fresh = fetch_bdi_te()
+status = f"{bdi_data_fresh['value']} ({bdi_data_fresh['chg1d']:+.1f}%)" if bdi_data_fresh else "ikke tilgjengelig"
+print(f"    {'Baltic Dry Index':25} → {status}")
+indices_result = [
+    {"id": "bdi", "label": "Baltic Dry Index", "desc": "Tørrbulk totalt", "data": bdi_data_fresh},
+    {"id": "bci", "label": "Baltic Capesize",  "desc": "Kull & jernmalm", "data": None},
+    {"id": "bpi", "label": "Baltic Panamax",   "desc": "Korn & kull",     "data": None},
+    {"id": "bsi", "label": "Baltic Supramax",  "desc": "Korn, stål, fosfat", "data": None},
+]
 
 # 2. Nyheter
 print("  Henter shipping-nyheter...")
