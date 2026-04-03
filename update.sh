@@ -50,8 +50,13 @@ fi
 
 python3 fetch_all.py      >> "$LOG" 2>&1 && echo "  analyse OK"  >> "$LOG"
 
-# Metals Intel: COMEX lagerdata, jordskjelv, intel-feed
-python3 fetch_comex.py   >> "$LOG" 2>&1 && echo "  COMEX OK"    >> "$LOG" || echo "  COMEX FEIL"   >> "$LOG"
+# Metals Intel: COMEX lagerdata (maks 1× per 23t — data oppdateres kun 1× daglig)
+COMEX_FILE="$HOME/cot-explorer/data/comex/latest.json"
+if [ ! -f "$COMEX_FILE" ] || [ "$(find "$COMEX_FILE" -mmin +1380 2>/dev/null | wc -l)" -gt 0 ]; then
+    python3 fetch_comex.py >> "$LOG" 2>&1 && echo "  COMEX OK" >> "$LOG" || echo "  COMEX FEIL" >> "$LOG"
+else
+    echo "  COMEX: nylig oppdatert, hopper over" >> "$LOG"
+fi
 python3 fetch_seismic.py >> "$LOG" 2>&1 && echo "  seismikk OK" >> "$LOG" || echo "  seismikk FEIL" >> "$LOG"
 python3 fetch_intel.py   >> "$LOG" 2>&1 && echo "  intel OK"    >> "$LOG" || echo "  intel FEIL"    >> "$LOG"
 python3 fetch_agri.py     >> "$LOG" 2>&1 && echo "  agri OK"     >> "$LOG" || echo "  agri FEIL"     >> "$LOG"
