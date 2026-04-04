@@ -88,8 +88,14 @@ Dashboard med 7 kort som lenker til under-fanene:
 
 ### 🌾 Avlings-analyse
 - **10 avlinger**: Mais, Hvete, Soyabønner, Canola, Bomull, Sukker, Kaffe, Kakao, Palmeolje, Ris
-- **14 regioner** med Open-Meteo vær-scoring og COT-kombinasjon
-- Prisretning: STERKT BULLISH → STERKT BEARISH
+- **14 regioner** med Open-Meteo vær-scoring og COT-kombinasjon (CFTC + Euronext)
+- **ENSO-indikator** (El Niño/La Niña) fra NOAA CPC med impakt-mapping per region
+- **Vekstsyklus-deteksjon**: visuell tidslinje fra Såing → Vekst → Blomstring → Modning → Høsting med % progresjon
+- **Historisk sesongvær**: Open-Meteo Archive API henter daglig vær fra sesongstart — beregner GDD (Growing Degree Days) og nedbør-akkumulering
+- **Yield-kvalitetsestimat**: Utmerket/God/Middels/Svak/Kritisk basert på GDD-progresjon, nedbør og stressdager
+- **Integrert outlook**: vekter vær (7d varsel) + COT + yield + ENSO → STERKT BULLISH → STERKT BEARISH
+- **Daglig cache** (`season_cache.json`): arkivvær + ENSO hentes maks 1× per dag, resten gjenbrukes
+- UI med forklarende tekst for ikke-eksperter (hva GDD er, hva ENSO betyr, prisimplikasjon)
 
 ### 🚢 Shipping
 - **Baltic-indekser**: BDI, BCI, BPI, BSI fra Stooq
@@ -99,12 +105,15 @@ Dashboard med 7 kort som lenker til under-fanene:
 - Datafil: `data/shipping/latest.json`
 
 ### ⛽ Olje & Gass
-- **Priser og COT** for WTI, Brent, NatGas, RBOB, Heating Oil
-- **Brent**: OI-vektet kombinasjon av ICE Futures Europe + CFTC COT
+- **Sammendragstabell** øverst: alle 5 instrumenter med pris, 1d endring, COT bias, momentum og signal
+- **Priser og COT** for WTI, Brent, NatGas, RBOB, Heating Oil med kildebadges (bot/stooq/macro, CFTC/ICE)
+- **Doble sparklines**: pris (15d) og COT net-posisjon (8 uker) side om side i instrumentkort
+- **Brent**: OI-vektet kombinasjon av ICE Futures Europe + CFTC COT (med kombinert historikk)
 - **Heating Oil**: bruker ICE Gasoil COT direkte
 - **Brent-WTI spread** beregnet løpende
 - **8 segmenter** scoret: OPEC, US supply, Russland, Midtøsten, LNG, raffineri, etterspørsel, fornybar
 - **Kombinert signal** per instrument: STERKT BULLISH → STERKT BEARISH (pris + COT)
+- **Datakilde-footer** med COT-dato, priskilde og genereringstidspunkt
 - Datafil: `data/oilgas/latest.json`
 
 ---
@@ -319,7 +328,9 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | Fear & Greed (krypto) | alternative.me | Nei |
 | Nyhetssentiment | Google News RSS + BBC RSS | Nei |
 | Kalender | ForexFactory JSON | Nei |
-| Landbruksvær | Open-Meteo API | Nei |
+| Landbruksvær (7d varsel) | Open-Meteo Forecast API | Nei |
+| Landbruksvær (sesong-historikk) | Open-Meteo Archive API | Nei |
+| ENSO-fase (El Niño/La Niña) | NOAA CPC ONI | Nei |
 | COMEX lager | CME Group | Nei |
 | Seismisk aktivitet | USGS Earthquake API | Nei |
 | Baltic shipping-indekser | Stooq | Nei |
@@ -343,7 +354,8 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | `data/signal_log.json` | Bot-trade historikk | Ved trade |
 | `data/fundamentals/latest.json` | FRED makrodata | 2× daglig |
 | `data/comex/latest.json` | COMEX lagerbeholdning + stress-indeks | 6× daglig |
-| `data/agri/latest.json` | Avlings-analyse: vær, COT, signal | 6× daglig |
+| `data/agri/latest.json` | Avlings-analyse: vær, COT, ENSO, vekstsyklus, yield | 6× daglig |
+| `data/agri/season_cache.json` | Cache for arkivvær + ENSO (maks 1× per dag) | 1× daglig |
 | `data/shipping/latest.json` | Baltic-indekser, rute-scoring, nyheter | 6× daglig |
 | `data/oilgas/latest.json` | Energipriser, COT, segment-scoring | 6× daglig |
 | `data/crypto/latest.json` | Krypto-priser, Fear & Greed, COT, korrelasjoner | 6× daglig |
