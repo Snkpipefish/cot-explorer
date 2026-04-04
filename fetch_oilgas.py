@@ -492,7 +492,7 @@ if key_instruments:
 else:
     overall_signal = "NØYTRAL"
 
-_og_cot_dates = [i.get("cot", {}).get("date") for i in instruments if i.get("cot", {}).get("date")]
+_og_cot_dates = [(i.get("cot") or {}).get("date") for i in instruments if (i.get("cot") or {}).get("date")]
 _og_cot_date  = max(_og_cot_dates) if _og_cot_dates else None
 
 output = {
