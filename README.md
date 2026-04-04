@@ -152,7 +152,7 @@ Kjører `update.sh`: full pipeline (se tabell under)
 
 `Persistent=true` sikrer at missede kjøringer kjøres automatisk ved oppstart.
 
-> **COT-publiseringstider:** CFTC slipper kl. 21:30 EST (ca. 03:30 CEST) på fredager. ICE slipper kl. 19:30 EST (ca. 01:30 CEST) på fredager. Lørdag 00:00-kjøringen henter begge garantert etter publisering.
+> **COT-publiseringstider:** CFTC slipper kl. 21:30 EDT (ca. 03:30 CEST) på fredager. ICE slipper kl. 19:30 EDT (ca. 01:30 CEST) på fredager. Lørdag 00:00-kjøringen henter begge garantert etter publisering.
 
 > Kjør manuelt: `bash ~/cot-explorer/update.sh`
 > Logg: `tail -f ~/cot-explorer/logs/update.log`
@@ -164,8 +164,8 @@ Kjører `update.sh`: full pipeline (se tabell under)
 |---|--------|-------------|
 | 0 | git fetch/rebase | Synkroniser med GitHub |
 | 1 | `fetch_calendar.py` | ForexFactory-kalender |
-| 2 | `fetch_cot.py` | CFTC COT-data |
-| 3 | `build_combined.py` | Kombinert COT-datasett |
+| 2 | `fetch_cot.py` | CFTC COT-data — kun lørdag 00:00–04:00 |
+| 3 | `build_combined.py` | Kombinert COT-datasett — kun lørdag 00:00–04:00 (og onsdag etter Euronext) |
 | 4 | `fetch_ice_cot.py` | ICE Futures Europe COT (Brent, Gasoil, TTF) — kun fredag ≥20:00 og lørdag 00:00 |
 | 5 | `fetch_euronext_cot.py` | Euronext MiFID II COT (hvete, raps, mais) — kun onsdag ≥12:00 |
 | 6 | `fetch_fundamentals.py` | FRED makrodata (maks 1× per 12t) |
