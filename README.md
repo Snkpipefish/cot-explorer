@@ -100,6 +100,8 @@ Dashboard med 7 kort som lenker til under-fanene:
 
 ### ⛽ Olje & Gass
 - **Priser og COT** for WTI, Brent, NatGas, RBOB, Heating Oil
+- **Brent**: OI-vektet kombinasjon av ICE Futures Europe + CFTC COT
+- **Heating Oil**: bruker ICE Gasoil COT direkte
 - **Brent-WTI spread** beregnet løpende
 - **8 segmenter** scoret: OPEC, US supply, Russland, Midtøsten, LNG, raffineri, etterspørsel, fornybar
 - **Kombinert signal** per instrument: STERKT BULLISH → STERKT BEARISH (pris + COT)
@@ -145,10 +147,12 @@ To timers kjører på serveren:
 **`cot-prices.timer`** — hvert hele time (XX:00)
 Kjører `update_prices.sh`: henter bot-priser → bygger `macro/latest.json` → oppdaterer `oilgas/latest.json` → git push
 
-**`cot-explorer.timer`** — 6× daglig hverdager (00/04/08/12/16/20 CET)
+**`cot-explorer.timer`** — 6× daglig hverdager (00/04/08/12/16/20 CET) + **lørdag 00:00**
 Kjører `update.sh`: full pipeline (se tabell under)
 
 `Persistent=true` sikrer at missede kjøringer kjøres automatisk ved oppstart.
+
+> **COT-publiseringstider:** CFTC slipper kl. 21:30 EST (ca. 03:30 CEST) på fredager. ICE slipper kl. 19:30 EST (ca. 01:30 CEST) på fredager. Lørdag 00:00-kjøringen henter begge garantert etter publisering.
 
 > Kjør manuelt: `bash ~/cot-explorer/update.sh`
 > Logg: `tail -f ~/cot-explorer/logs/update.log`
@@ -162,8 +166,8 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | 1 | `fetch_calendar.py` | ForexFactory-kalender |
 | 2 | `fetch_cot.py` | CFTC COT-data |
 | 3 | `build_combined.py` | Kombinert COT-datasett |
-| 4 | `fetch_ice_cot.py` | ICE Futures Europe COT (Brent, Gasoil, TTF) |
-| 5 | `fetch_euronext_cot.py` | Euronext MiFID II COT (hvete, raps, mais) |
+| 4 | `fetch_ice_cot.py` | ICE Futures Europe COT (Brent, Gasoil, TTF) — kun fredag ≥20:00 og lørdag 00:00 |
+| 5 | `fetch_euronext_cot.py` | Euronext MiFID II COT (hvete, raps, mais) — kun onsdag ≥12:00 |
 | 6 | `fetch_fundamentals.py` | FRED makrodata (maks 1× per 12t) |
 | 7 | `fetch_all.py` | Full analyse: priser, SMC, nivåer, score, setups, VIX, korrelasjoner, ADR |
 | 8 | `fetch_comex.py` | COMEX lagerbeholdning |
@@ -350,6 +354,14 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | `data/geointel/chokepoints.json` | 6 chokepoints | Statisk |
 | `data/geointel/mines.json` | 26 gruver | Statisk |
 | `~/scalp_edge/live_prices.json` | Live priser fra bot (20 symboler) | Hvert 58. min |
+
+---
+
+## Kjente begrensninger / gotchas
+
+- `data/euronext_cot/` opprettes kun etter at `fetch_euronext_cot.py` har kjørt (onsdag). `git add -u data/` brukes i stedet for eksplisitte mapper for å unngå `fatal: pathspec`-feil.
+- `trading_bot.py` pusher `signal_log.json` direkte til git ved trade-lukking. Bot-push bør alltid inkludere `git fetch + git rebase` før `git push` for å unngå konflikter med `update.sh`.
+- `fetch_agri.py` og `fetch_oilgas.py` bruker `(x.get("cot") or {})` i stedet for `.get("cot", {})` for å håndtere `cot: null` i COT-data.
 
 ---
 
