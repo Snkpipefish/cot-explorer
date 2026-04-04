@@ -8,11 +8,12 @@ en samlet prisretning per avling.
 Output: data/agri/latest.json
 """
 
-import json, os, urllib.request, urllib.parse
-from datetime import datetime, timezone
+import json, os, time, urllib.request, urllib.parse
+from datetime import datetime, timezone, timedelta
 
 BASE = os.path.expanduser("~/cot-explorer/data")
 OUT  = os.path.join(BASE, "agri", "latest.json")
+CACHE_FILE = os.path.join(BASE, "agri", "season_cache.json")
 os.makedirs(os.path.join(BASE, "agri"), exist_ok=True)
 
 REGIONS_FILE      = os.path.join(BASE, "geointel", "agri_regions.json")
@@ -75,6 +76,74 @@ CROP_META = {
     "rice":     {"navn": "Ris",         "ikon": "🍚"},
 }
 
+# ── Fenologi-data per avling (GDD, nedbør, temperaturbase) ──────
+CROP_PHENOLOGY = {
+    "corn":     {"tbase": 10, "gdd_maturity": 2700, "ideal_precip_mm": 500},
+    "wheat":    {"tbase": 0,  "gdd_maturity": 2000, "ideal_precip_mm": 450},
+    "soybeans": {"tbase": 10, "gdd_maturity": 2500, "ideal_precip_mm": 500},
+    "canola":   {"tbase": 5,  "gdd_maturity": 1500, "ideal_precip_mm": 400},
+    "cotton":   {"tbase": 15, "gdd_maturity": 2200, "ideal_precip_mm": 600},
+    "sugar":    {"tbase": 15, "gdd_maturity": 3500, "ideal_precip_mm": 1500},
+    "coffee":   {"tbase": 10, "gdd_maturity": 3000, "ideal_precip_mm": 1400},
+    "cocoa":    {"tbase": 18, "gdd_maturity": 2500, "ideal_precip_mm": 1500},
+    "rice":     {"tbase": 10, "gdd_maturity": 2500, "ideal_precip_mm": 1000},
+    "palm":     {"tbase": 18, "gdd_maturity": None, "ideal_precip_mm": 2000},
+}
+
+# Norsk avlingsnavn → crop_key mapping
+CROP_NAME_MAP = {
+    "Mais": "corn", "Soyabønner": "soybeans", "Hvete": "wheat",
+    "Vinterhvete": "wheat", "Myk hvete": "wheat", "Bomull": "cotton",
+    "Raps": "canola", "Canola": "canola", "Sukker": "sugar",
+    "Kaffe": "coffee", "Kakao": "cocoa", "Ris": "rice",
+    "Palmeolje": "palm", "Sorghum": "corn", "Solsikke": "soybeans",
+    "Bygg": "wheat",  # bruker hvete-parametere som tilnærming
+}
+
+# Kanoniske stadienavn og norsk oversettelse
+STAGE_LABELS = {
+    "dormancy": "Hvilefase", "dormancy-end": "Hvilefase",
+    "pre-plant": "Forberedelse", "sowing": "Såing", "planting": "Såing",
+    "emergence": "Spiring", "early-growth": "Tidlig vekst",
+    "growing": "Vegetativ vekst", "flowering": "Blomstring",
+    "heading": "Aksing", "ripening": "Modning",
+    "harvest": "Høsting", "post-harvest": "Etter høst",
+    "low-prod": "Lav produksjon", "recovering": "Oppgang",
+    "moderate": "Moderat", "peak": "Topp-produksjon",
+}
+STAGE_ICONS = {
+    "Hvilefase": "💤", "Forberedelse": "🔧", "Såing": "🌱",
+    "Spiring": "🌱", "Tidlig vekst": "🌱", "Vegetativ vekst": "🌿",
+    "Blomstring": "🌸", "Aksing": "🌾", "Modning": "🌾",
+    "Høsting": "🚜", "Etter høst": "📦",
+    "Lav produksjon": "📉", "Oppgang": "📈",
+    "Moderat": "🌴", "Topp-produksjon": "🌴",
+}
+
+# Aktive stadier (de som teller som "i sesong" for arkiv-henting)
+ACTIVE_STAGES = {"pre-plant", "sowing", "planting", "emergence", "early-growth",
+                 "growing", "flowering", "heading", "ripening", "harvest",
+                 "low-prod", "recovering", "moderate", "peak"}
+
+# ── ENSO-impakt per region ─────────────────────────────────────
+ENSO_IMPACTS = {
+    # El Niño-effekter
+    ("El Niño", "australia_wheat"):  {"impact": "Tørkerisiko", "adj": 0.5},
+    ("El Niño", "india_punjab"):     {"impact": "Tørkerisiko", "adj": 0.5},
+    ("El Niño", "sea_palm"):         {"impact": "Tørkerisiko", "adj": 0.5},
+    ("El Niño", "west_africa_cocoa"):{"impact": "Tørrere enn normalt", "adj": 0.3},
+    ("El Niño", "brazil_mato_grosso"):{"impact": "Gunstig regn", "adj": -0.3},
+    ("El Niño", "argentina_pampas"):  {"impact": "Gunstig regn", "adj": -0.3},
+    # La Niña-effekter
+    ("La Niña", "us_cornbelt"):      {"impact": "Tørkerisiko", "adj": 0.5},
+    ("La Niña", "us_great_plains"):  {"impact": "Tørkerisiko", "adj": 0.5},
+    ("La Niña", "us_delta_cotton"):  {"impact": "Tørkerisiko", "adj": 0.3},
+    ("La Niña", "argentina_pampas"): {"impact": "Tørkerisiko", "adj": 0.5},
+    ("La Niña", "brazil_mato_grosso"):{"impact": "Tørkerisiko", "adj": 0.3},
+    ("La Niña", "australia_wheat"):   {"impact": "Gunstig regn", "adj": -0.3},
+    ("La Niña", "india_punjab"):      {"impact": "Gunstig monsun", "adj": -0.3},
+}
+
 # Avlings-nøkkel per region ──────────────────────────────────────
 REGION_CROPS = {
     "us_cornbelt":       ["corn", "soybeans"],
@@ -111,6 +180,248 @@ def fetch_weather(lat, lon):
     except Exception as e:
         print(f"  Open-Meteo FEIL ({lat},{lon}): {e}")
         return None
+
+def fetch_archive_weather(lat, lon, start_date, end_date):
+    """Henter historisk daglig vær fra Open-Meteo Archive API."""
+    params = urllib.parse.urlencode({
+        "latitude": lat, "longitude": lon,
+        "start_date": start_date, "end_date": end_date,
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum",
+        "timezone": "auto",
+    })
+    url = f"https://archive-api.open-meteo.com/v1/archive?{params}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return json.loads(r.read())
+    except Exception as e:
+        print(f"    Arkiv FEIL ({lat},{lon}): {e}")
+        return None
+
+
+def detect_growth_stage(stages_array, month):
+    """
+    Returnerer vekststadium og % gjennom vekstsesong basert på stages-array.
+    stages_array: 12 elementer, index 0=jan, 11=des.
+    """
+    if not stages_array or month < 1 or month > 12:
+        return {"stage": "ukjent", "stage_no": "Ukjent", "icon": "❓",
+                "season_pct": 0, "in_season": False, "season_months": None}
+
+    raw_stage = stages_array[month - 1]
+    stage_no = STAGE_LABELS.get(raw_stage, raw_stage.replace("-", " ").title())
+    icon = STAGE_ICONS.get(stage_no, "🌱")
+    in_season = raw_stage in ACTIVE_STAGES
+
+    # Finn sesongvindu (start og slutt-måned)
+    season_start = None
+    season_end = None
+    for i in range(12):
+        if stages_array[i] in ACTIVE_STAGES:
+            if season_start is None:
+                season_start = i + 1
+            season_end = i + 1
+
+    # Håndter wrap-around (f.eks. sørlig halvkule: okt-mar)
+    if season_start is not None:
+        # Sjekk om sesongen wrapper rundt årsskiftet
+        first_inactive = None
+        for i in range(12):
+            if stages_array[i] not in ACTIVE_STAGES:
+                if first_inactive is None:
+                    first_inactive = i
+            elif first_inactive is not None:
+                # Fant aktiv etter inaktiv → mulig wrap
+                break
+
+        if season_start is not None and season_end is not None:
+            if season_end >= season_start:
+                total_months = season_end - season_start + 1
+                if in_season:
+                    elapsed = month - season_start
+                    season_pct = round(elapsed / total_months * 100)
+                else:
+                    season_pct = 0
+            else:
+                # Wrap-around
+                total_months = (12 - season_start + 1) + season_end
+                if in_season:
+                    if month >= season_start:
+                        elapsed = month - season_start
+                    else:
+                        elapsed = (12 - season_start) + month
+                    season_pct = round(elapsed / total_months * 100)
+                else:
+                    season_pct = 0
+        else:
+            total_months = 0
+            season_pct = 0
+
+        MND = ["jan","feb","mar","apr","mai","jun","jul","aug","sep","okt","nov","des"]
+        season_label = f"{MND[season_start-1]}–{MND[season_end-1]}" if season_start and season_end else None
+    else:
+        season_pct = 0
+        season_label = None
+
+    # Finn forventet høstmåned
+    harvest_months = [i+1 for i in range(12) if stages_array[i] in ("harvest", "ripening")]
+    harvest_label = None
+    if harvest_months:
+        MND = ["jan","feb","mar","apr","mai","jun","jul","aug","sep","okt","nov","des"]
+        harvest_label = f"{MND[harvest_months[0]-1]}–{MND[harvest_months[-1]-1]}" if len(harvest_months) > 1 else MND[harvest_months[0]-1]
+
+    return {
+        "stage": raw_stage,
+        "stage_no": stage_no,
+        "icon": icon,
+        "season_pct": max(0, min(100, season_pct)),
+        "in_season": in_season,
+        "season_months": season_label,
+        "harvest_window": harvest_label,
+        "season_start_month": season_start,
+        "season_end_month": season_end,
+    }
+
+
+def calculate_season_metrics(archive_data, crop_key):
+    """Beregner sesong-metrikker fra arkivdata: GDD, nedbør, stressdager."""
+    pheno = CROP_PHENOLOGY.get(crop_key, {})
+    tbase = pheno.get("tbase", 10)
+    gdd_maturity = pheno.get("gdd_maturity")
+    ideal_precip = pheno.get("ideal_precip_mm", 500)
+
+    if not archive_data or "daily" not in archive_data:
+        return None
+
+    daily = archive_data["daily"]
+    tmax_arr = daily.get("temperature_2m_max", [])
+    tmin_arr = daily.get("temperature_2m_min", [])
+    precip_arr = daily.get("precipitation_sum", [])
+    n = min(len(tmax_arr), len(tmin_arr), len(precip_arr))
+    if n == 0:
+        return None
+
+    gdd_total = 0
+    precip_total = 0
+    stress_days = 0
+    for i in range(n):
+        tx = tmax_arr[i] if tmax_arr[i] is not None else 20
+        tn = tmin_arr[i] if tmin_arr[i] is not None else 10
+        pr = precip_arr[i] if precip_arr[i] is not None else 0
+        gdd_total += max(0, (tx + tn) / 2 - tbase)
+        precip_total += pr
+        if tx > 35 or tn < (tbase - 5) or pr > 50:
+            stress_days += 1
+
+    gdd_pct = round(gdd_total / gdd_maturity * 100, 1) if gdd_maturity else None
+    precip_pct = round(precip_total / ideal_precip * 100, 1) if ideal_precip else None
+
+    return {
+        "gdd_accumulated": round(gdd_total),
+        "gdd_required": gdd_maturity,
+        "gdd_pct": gdd_pct,
+        "season_precip_mm": round(precip_total),
+        "ideal_precip_mm": ideal_precip,
+        "precip_pct": precip_pct,
+        "stress_days": stress_days,
+        "days_measured": n,
+    }
+
+
+def estimate_yield_quality(metrics, season_pct):
+    """
+    Estimerer yield-kvalitet basert på sesongmetrikker.
+    Returnerer score (0-100) og norsk rating-tekst.
+    """
+    if not metrics:
+        return None, None, None
+
+    score = 100
+    gdd_pct = metrics.get("gdd_pct")
+    precip_pct = metrics.get("precip_pct")
+    stress = metrics.get("stress_days", 0)
+
+    # Tidlig-i-sesong demping: GDD akkumuleres eksponentielt (lite om våren,
+    # mye om sommeren), så lineær sammenligning er misvisende tidlig.
+    early = season_pct < 40
+
+    # GDD-faktor: er vi på skjema?
+    # Bruk en ikke-lineær forventning: tidlig sesong → forvent mindre GDD
+    if gdd_pct is not None and season_pct > 10:
+        # Kvadratisk kurve: forventet GDD% ≈ (season_pct/100)^1.5 * 100
+        expected_gdd_pct = (season_pct / 100) ** 1.5 * 100
+        gdd_ratio = gdd_pct / max(expected_gdd_pct, 1)
+        if gdd_ratio < 0.4:
+            score -= 20 if not early else 5
+        elif gdd_ratio < 0.7:
+            score -= 10 if not early else 3
+        elif gdd_ratio > 1.3:
+            score += 5  # litt forsprang
+
+    # Nedbør-faktor: tidlig i sesong er lav nedbør normalt
+    if precip_pct is not None and season_pct > 10:
+        expected_precip_pct = season_pct  # lineær er OK for nedbør
+        precip_ratio = precip_pct / max(expected_precip_pct, 1)
+        if precip_ratio < 0.3:
+            score -= 20 if not early else 5
+        elif precip_ratio < 0.5:
+            score -= 10 if not early else 3
+        elif precip_ratio > 2.5:
+            score -= 15 if not early else 3
+        elif precip_ratio > 1.8:
+            score -= 8 if not early else 2
+
+    # Stress-faktor
+    score -= stress * (2 if not early else 1)
+
+    score = max(0, min(100, score))
+
+    if score >= 85:
+        rating, price_hint = "Utmerket", "H��y produksjon → stabilt prisnivå"
+    elif score >= 70:
+        rating, price_hint = "God", "Normal produksjon → moderate priser"
+    elif score >= 55:
+        rating, price_hint = "Middels", "Noen utfordringer → mulig prispress oppover"
+    elif score >= 40:
+        rating, price_hint = "Svak", "Dårlige forhold → potensielt høyere priser"
+    else:
+        rating, price_hint = "Kritisk", "Alvorlige problemer → forvent prisøkning"
+
+    if early:
+        rating = f"{rating} (tidlig)"
+        price_hint = f"Tidlig i sesongen — {price_hint.lower()}"
+
+    return score, rating, price_hint
+
+
+def fetch_enso():
+    """Henter ENSO-fase (El Niño/La Niña) fra NOAA CPC."""
+    url = "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            lines = r.read().decode("utf-8", errors="replace").strip().split("\n")
+        # Siste rad med data
+        for line in reversed(lines):
+            parts = line.split()
+            if len(parts) >= 4:
+                try:
+                    oni = float(parts[-1])
+                    period = parts[0] + " " + parts[1] if len(parts) >= 2 else "?"
+                    if oni > 0.5:
+                        phase = "El Niño"
+                    elif oni < -0.5:
+                        phase = "La Niña"
+                    else:
+                        phase = "Nøytral"
+                    return {"oni_value": oni, "phase": phase, "period": period}
+                except ValueError:
+                    continue
+        return None
+    except Exception as e:
+        print(f"  ENSO FEIL: {e}")
+        return None
+
 
 def score_weather(w, crop_key, lat):
     """
@@ -347,13 +658,29 @@ def get_cot_for_crop(crop_key, cot_data, euronext_data=None):
 
     return result
 
-def combine_outlook(weather_score, cot_score, crop_key, lat):
+def combine_outlook(weather_score, cot_score, crop_key, lat,
+                    yield_score=None, enso_adj=0):
     """
-    Kombinerer vær og COT til endelig prisretning.
+    Kombinerer vær, COT, yield og ENSO til endelig prisretning.
     Vær: positivt score = forstyrrelser = bullish for prisen
     COT: positivt score = spekulanter er long = bullish
+    Yield: lav yield = bullish for pris (knapphet)
+    ENSO: kjent negativ impakt = bullish for pris
     """
-    total = weather_score + cot_score
+    total = weather_score + cot_score + enso_adj
+
+    # Yield-justering: svak yield → bullish for pris
+    if yield_score is not None:
+        if yield_score < 40:
+            total += 1.5
+        elif yield_score < 55:
+            total += 1
+        elif yield_score < 70:
+            total += 0.5
+        elif yield_score >= 85:
+            total -= 0.5
+
+    total = round(total, 1)
 
     if total >= 3:
         signal, color = "STERKT BULLISH", "bull"
@@ -383,9 +710,41 @@ if euronext_data:
 else:
     print("  Euronext COT: ikke tilgjengelig — bruker CFTC for alle avlinger")
 
+today = datetime.now(timezone.utc)
+today_str = today.strftime("%Y-%m-%d")
+
+# ── Sesong-cache: arkivvær + ENSO hentes maks 1× per dag ─────────
+# Historisk vær og ENSO endres ikke i løpet av en dag, så vi cacher
+# resultatene og hopper over arkiv-kall hvis cachen er fra i dag.
+season_cache = {}
+cache_hit = False
+today_date = today.strftime("%Y-%m-%d")
+if os.path.exists(CACHE_FILE):
+    try:
+        with open(CACHE_FILE) as f:
+            season_cache = json.load(f)
+        if season_cache.get("date") == today_date:
+            cache_hit = True
+            print(f"  Sesong-cache: bruker dagens cache ({today_date})")
+    except Exception:
+        season_cache = {}
+
+# Hent ENSO-data (fra cache eller nett)
+if cache_hit and "enso" in season_cache:
+    enso_data = season_cache["enso"]
+    print(f"  ENSO (cache): {enso_data['phase']} (ONI={enso_data['oni_value']:+.2f})")
+else:
+    print("  Henter ENSO-data...")
+    enso_data = fetch_enso()
+    if enso_data:
+        print(f"  ENSO: {enso_data['phase']} (ONI={enso_data['oni_value']:+.2f}, {enso_data['period']})")
+    else:
+        print("  ENSO: ikke tilgjengelig")
+
 # Per-avling aggregering
 crop_region_data  = {}   # crop_key → liste med region-scores
 crop_cot_cache    = {}   # crop_key → COT-data (hent én gang)
+archive_cache     = {}   # region_id → arkiv-data (én gang per region)
 
 result_regions = []
 
@@ -394,9 +753,32 @@ for region in regions:
     lat   = region["lat"]
     lon   = region["lon"]
     crops = REGION_CROPS.get(rid, [])
+    stages_array = region.get("stages", [])
 
     print(f"  {region['name']} ({lat},{lon})...")
     weather_raw = fetch_weather(lat, lon)
+
+    # Sjekk om noen avling i regionen er i aktiv sesong
+    growth_info = detect_growth_stage(stages_array, MONTH)
+    any_active = growth_info["in_season"]
+
+    # Hent arkivvær for sesongen (kun hvis aktiv sesong)
+    # Bruker cache hvis tilgjengelig fra i dag
+    archive_data = None
+    if any_active and growth_info.get("season_start_month"):
+        if cache_hit and rid in season_cache.get("archives", {}):
+            archive_data = season_cache["archives"][rid]
+        else:
+            start_m = growth_info["season_start_month"]
+            year = today.year
+            if start_m > MONTH:
+                year -= 1  # Sesongen startet forrige år
+            start_date = f"{year}-{start_m:02d}-01"
+            end_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+            if start_date < end_date:
+                archive_data = fetch_archive_weather(lat, lon, start_date, end_date)
+                time.sleep(0.3)  # Rate-limiting
+        archive_cache[rid] = archive_data
 
     region_out = {
         "id":    rid,
@@ -404,8 +786,19 @@ for region in regions:
         "lat":   lat,
         "lon":   lon,
         "crops": crops,
+        "growth_stage": growth_info,
         "crops_outlook": {},
     }
+
+    # ENSO-impakt for denne regionen
+    enso_impact = None
+    enso_adj = 0
+    if enso_data and enso_data["phase"] != "Nøytral":
+        eff = ENSO_IMPACTS.get((enso_data["phase"], rid))
+        if eff:
+            enso_impact = f"{enso_data['phase']}: {eff['impact']}"
+            enso_adj = eff["adj"]
+    region_out["enso_impact"] = enso_impact
 
     # Lagre current weather summary (felles for alle avlinger i regionen)
     if weather_raw:
@@ -426,13 +819,29 @@ for region in regions:
             cot = get_cot_for_crop(crop_key, cot_data, euronext_data)
             crop_cot_cache[crop_key] = cot
 
+        # Sesongmetrikker og yield-estimat
+        season_metrics = None
+        yield_score_val = None
+        yield_rating = None
+        yield_hint = None
+        if archive_data and growth_info["in_season"]:
+            season_metrics = calculate_season_metrics(archive_data, crop_key)
+            if season_metrics:
+                yield_score_val, yield_rating, yield_hint = estimate_yield_quality(
+                    season_metrics, growth_info["season_pct"])
+
         cot_score = cot["cot_score"] if cot else 0
-        outlook   = combine_outlook(wx["score"], cot_score, crop_key, lat)
+        outlook = combine_outlook(wx["score"], cot_score, crop_key, lat,
+                                  yield_score=yield_score_val, enso_adj=enso_adj)
 
         region_out["crops_outlook"][crop_key] = {
             "weather":  wx,
             "cot":      cot,
             "outlook":  outlook,
+            "season_metrics": season_metrics,
+            "yield_quality": yield_rating,
+            "yield_score": yield_score_val,
+            "yield_hint": yield_hint,
         }
 
         # Legg til for aggregering
@@ -447,6 +856,13 @@ for region in regions:
             "precip_7d":     wx["precip_7d"],
             "temp_max_avg":  wx["temp_max_avg"],
             "season_mult":   wx["season_mult"],
+            "growth_stage":  growth_info,
+            "season_metrics": season_metrics,
+            "yield_score":   yield_score_val,
+            "yield_rating":  yield_rating,
+            "yield_hint":    yield_hint,
+            "enso_impact":   enso_impact,
+            "enso_adj":      enso_adj,
         })
 
     result_regions.append(region_out)
@@ -472,7 +888,47 @@ for crop_key, meta in CROP_META.items():
         worst_region = None
 
     cot_score = cot["cot_score"] if cot else 0
-    outlook   = combine_outlook(avg_wx_score, cot_score, crop_key, 45)  # lat=45 som default
+
+    # Aggreger vekststadium og yield på tvers av regioner (bruk verste/mest representative)
+    active_regions = [r for r in region_list if r.get("growth_stage", {}).get("in_season")]
+    best_growth = None
+    best_metrics = None
+    avg_yield = None
+    avg_enso_adj = 0
+
+    if active_regions:
+        # Bruk regionen med mest data som representativ
+        best_r = max(active_regions, key=lambda r: (r.get("season_metrics") or {}).get("days_measured", 0))
+        best_growth = best_r.get("growth_stage")
+        best_metrics = best_r.get("season_metrics")
+        # Snitt av yield-score og enso-adj
+        yield_scores = [r["yield_score"] for r in active_regions if r.get("yield_score") is not None]
+        avg_yield = round(sum(yield_scores) / len(yield_scores)) if yield_scores else None
+        enso_adjs = [r.get("enso_adj", 0) for r in active_regions]
+        avg_enso_adj = sum(enso_adjs) / len(enso_adjs) if enso_adjs else 0
+    elif region_list:
+        # Alle i av-sesong — bruk første region sin growth_stage
+        best_growth = region_list[0].get("growth_stage")
+
+    outlook = combine_outlook(avg_wx_score, cot_score, crop_key, 45,
+                              yield_score=avg_yield, enso_adj=avg_enso_adj)
+
+    # Yield-rating basert på gjennomsnittlig score
+    yield_rating = None
+    yield_hint = None
+    if avg_yield is not None:
+        if avg_yield >= 85:
+            yield_rating, yield_hint = "Utmerket", "Høy produksjon → stabilt prisnivå"
+        elif avg_yield >= 70:
+            yield_rating, yield_hint = "God", "Normal produksjon → moderate priser"
+        elif avg_yield >= 55:
+            yield_rating, yield_hint = "Middels", "Noen utfordringer → mulig prispress oppover"
+        elif avg_yield >= 40:
+            yield_rating, yield_hint = "Svak", "Dårlige forhold → potensielt høyere priser"
+        else:
+            yield_rating, yield_hint = "Kritisk", "Alvorlige problemer → forvent prisøkning"
+        if best_growth and best_growth.get("season_pct", 0) < 20:
+            yield_rating = f"{yield_rating} (tidlig)"
 
     # Bygg prisdriver-tekst
     drivers = []
@@ -486,6 +942,15 @@ for crop_key, meta in CROP_META.items():
         drivers.append(f"COT: spekulanter øker short (net {cot['net_pct']:+.0f}% av OI)")
     elif cot:
         drivers.append(f"COT: {cot['bias']} {cot['momentum']} (net {cot['net_pct']:+.0f}%)")
+    # Yield-driver
+    if yield_rating and "Svak" in yield_rating or yield_rating and "Kritisk" in yield_rating:
+        drivers.append(f"Yield {yield_rating.lower()} — risiko for lav produksjon")
+    elif yield_rating and "Utmerket" in yield_rating:
+        drivers.append(f"Yield {yield_rating.lower()} — god produksjon holder prisene nede")
+    # ENSO-driver
+    enso_impacts_crop = [r.get("enso_impact") for r in region_list if r.get("enso_impact")]
+    if enso_impacts_crop:
+        drivers.append(enso_impacts_crop[0])  # bruk første match
 
     crop_summary.append({
         "crop_key":       crop_key,
@@ -499,8 +964,25 @@ for crop_key, meta in CROP_META.items():
         "cot":            cot,
         "drivers":        drivers,
         "worst_region":   worst_region,
+        # Nye felter
+        "growth_stage":       best_growth.get("stage_no") if best_growth else None,
+        "growth_stage_icon":  best_growth.get("icon") if best_growth else None,
+        "growth_stage_pct":   best_growth.get("season_pct") if best_growth else None,
+        "in_season":          best_growth.get("in_season") if best_growth else False,
+        "season_months":      best_growth.get("season_months") if best_growth else None,
+        "harvest_window":     best_growth.get("harvest_window") if best_growth else None,
+        "gdd_accumulated":    best_metrics.get("gdd_accumulated") if best_metrics else None,
+        "gdd_required":       best_metrics.get("gdd_required") if best_metrics else None,
+        "gdd_pct":            best_metrics.get("gdd_pct") if best_metrics else None,
+        "season_precip_mm":   best_metrics.get("season_precip_mm") if best_metrics else None,
+        "ideal_precip_mm":    best_metrics.get("ideal_precip_mm") if best_metrics else None,
+        "precip_pct":         best_metrics.get("precip_pct") if best_metrics else None,
+        "stress_days":        best_metrics.get("stress_days") if best_metrics else None,
+        "yield_quality":      yield_rating,
+        "yield_score":        avg_yield,
+        "yield_hint":         yield_hint,
     })
-    print(f"  {meta['ikon']} {meta['navn']:15} → {outlook['signal']:16} (vær={avg_wx_score:+.1f} COT={cot_score:+d})")
+    print(f"  {meta['ikon']} {meta['navn']:15} → {outlook['signal']:16} (vær={avg_wx_score:+.1f} COT={cot_score:+d} yield={avg_yield or '?'})")
 
 # Sorter: sterkt bullish først, deretter bullish, nøytral, bearish
 order = {"STERKT BULLISH": 0, "BULLISH": 1, "NØYTRAL": 2, "BEARISH": 3, "STERKT BEARISH": 4}
@@ -512,13 +994,28 @@ _cot_date  = max(_cot_dates) if _cot_dates else None
 output = {
     "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     "cot_date":  _cot_date,
-    "source":    "CFTC · Euronext · Open-Meteo",
+    "source":    "CFTC · Euronext · Open-Meteo · NOAA ENSO",
     "month":     MONTH,
+    "enso":      enso_data,
     "crop_summary": crop_summary,
     "regions":   result_regions,
 }
 
 with open(OUT, "w") as f:
     json.dump(output, f, ensure_ascii=False, indent=2)
+
+# Lagre sesong-cache (arkivvær + ENSO) for gjenbruk resten av dagen
+if not cache_hit:
+    try:
+        cache_out = {
+            "date": today_date,
+            "enso": enso_data,
+            "archives": {rid: data for rid, data in archive_cache.items() if data},
+        }
+        with open(CACHE_FILE, "w") as f:
+            json.dump(cache_out, f, ensure_ascii=False)
+        print(f"  Sesong-cache lagret ({len(cache_out['archives'])} regioner)")
+    except Exception as e:
+        print(f"  Cache-lagring feilet: {e}")
 
 print(f"\nOK → {OUT}  ({len(crop_summary)} avlinger, {len(result_regions)} regioner)")
