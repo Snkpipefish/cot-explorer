@@ -32,21 +32,22 @@ HOUR=$(date +%H)  # 00–23
 
 python3 fetch_calendar.py >> "$LOG" 2>&1 && echo "  kalender OK" >> "$LOG"
 
-# ── ICE COT: fredag 20:00 (slippes 19:30) ───────────────────────────────────
+# ── ICE COT: fredag 20:00 (tidlig forsøk) + lørdag 00:00 (garantert ute) ────
 if [ "$DOW" -eq 5 ] && [ "$HOUR" -ge 20 ]; then
     python3 fetch_ice_cot.py >> "$LOG" 2>&1 \
         && echo "  ICE COT OK" >> "$LOG" \
         || echo "  ICE COT FEIL" >> "$LOG"
-else
-    echo "  ICE COT: hopper over (kun fre >= 20:00)" >> "$LOG"
 fi
 
-# ── CFTC COT: lørdag 00:00 (slippes fre 21:30) ──────────────────────────────
+# ── CFTC COT + ICE COT: lørdag 00:00 (begge garantert ute etter fre 21:30) ──
 if [ "$DOW" -eq 6 ] && [ "$HOUR" -le 4 ]; then
     python3 fetch_cot.py >> "$LOG" 2>&1 && echo "  COT OK" >> "$LOG" || echo "  COT FEIL" >> "$LOG"
+    python3 fetch_ice_cot.py >> "$LOG" 2>&1 \
+        && echo "  ICE COT OK (lørdag)" >> "$LOG" \
+        || echo "  ICE COT FEIL" >> "$LOG"
     python3 build_combined.py >> "$LOG" 2>&1 && echo "  combined OK" >> "$LOG" || echo "  combined FEIL" >> "$LOG"
 else
-    echo "  COT: hopper over (kun lør 00:00)" >> "$LOG"
+    [ "$DOW" -ne 5 ] && echo "  COT/CFTC: hopper over (kun lør 00:00)" >> "$LOG"
 fi
 
 # ── Euronext COT: kun onsdag ettermiddag (data per foregående fredagsbørslutt) ──

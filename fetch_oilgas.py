@@ -18,6 +18,7 @@ BASE = Path(__file__).parent
 OUT  = BASE / "data" / "oilgas" / "latest.json"
 OUT.parent.mkdir(parents=True, exist_ok=True)
 COMBINED_FILE  = BASE / "data" / "combined" / "latest.json"
+ICE_COT_FILE   = BASE / "data" / "ice_cot" / "latest.json"
 MACRO_FILE     = BASE / "data" / "macro" / "latest.json"
 BOT_PRICES_FILE = Path.home() / "scalp_edge" / "live_prices.json"
 
@@ -248,18 +249,13 @@ def fetch_from_macro(instrument_id):
         return None
 
 
-def get_cot(cot_key, cot_data):
-    markets = COT_MAP.get(cot_key, [])
-    matches = [e for e in cot_data
-               if any(m.lower() in e.get("market", "").lower() for m in markets)]
-    if not matches:
-        return None
-    main = max(matches, key=lambda e: e.get("open_interest", 0) or 0)
-    sp   = main.get("spekulanter") or {}
+def _cot_from_entry(entry, source="CFTC"):
+    """Beregn COT-signal fra ein enkelt markedsoppføring."""
+    sp   = entry.get("spekulanter") or {}
     net  = sp.get("net", 0) or 0
-    chg  = main.get("change_spec_net", 0) or 0
-    oi   = main.get("open_interest", 1) or 1
-    hist = main.get("spec_net_history", []) or []
+    chg  = entry.get("change_spec_net", 0) or 0
+    oi   = entry.get("open_interest", 1) or 1
+    hist = entry.get("spec_net_history", []) or []
     net_pct = net / oi * 100 if oi else 0
     bias = "bull" if net > 0 else "bear"
     if len(hist) >= 3:
@@ -275,14 +271,63 @@ def get_cot(cot_key, cot_data):
     if chg > 0 and cot_score >= 0:   cot_score = min(cot_score + 1, 2)
     elif chg < 0 and cot_score <= 0: cot_score = max(cot_score - 1, -2)
     return {
-        "market":    main.get("market", cot_key),
+        "market":    entry.get("display_name") or entry.get("market", ""),
         "net":       net,
         "net_pct":   round(net_pct, 1),
         "change":    chg,
         "bias":      bias,
         "momentum":  momentum,
         "cot_score": cot_score,
-        "date":      main.get("date"),
+        "date":      entry.get("date"),
+        "source":    source,
+    }
+
+
+def get_cot(cot_key, cot_data):
+    markets = COT_MAP.get(cot_key, [])
+    matches = [e for e in cot_data
+               if any(m.lower() in e.get("market", "").lower() for m in markets)]
+    if not matches:
+        return None
+    main = max(matches, key=lambda e: e.get("open_interest", 0) or 0)
+    return _cot_from_entry(main, source="CFTC")
+
+
+def get_ice_cot(market_name):
+    """Hent COT-signal frå ICE COT for eit spesifikt marked."""
+    entry = next((m for m in ice_cot_markets
+                  if market_name.lower() in m.get("market", "").lower()), None)
+    if not entry:
+        return None
+    return _cot_from_entry(entry, source="ICE")
+
+
+def get_combined_cot(cot_key, ice_market_name):
+    """OI-vekta kombinasjon av ICE + CFTC (same logikk som agri/Euronext)."""
+    cftc = get_cot(cot_key, cot_data)
+    ice  = get_ice_cot(ice_market_name)
+    if not ice:
+        return cftc
+    if not cftc:
+        return ice
+    # OI-vekta netto-%
+    total_oi = (cftc.get("net", 0) / (cftc.get("net_pct", 1) / 100) if cftc.get("net_pct") else 1)
+    ice_oi   = (ice.get("net", 0)  / (ice.get("net_pct", 1)  / 100) if ice.get("net_pct")  else 1)
+    combined_net = cftc.get("net", 0) + ice.get("net", 0)
+    combined_oi  = abs(total_oi) + abs(ice_oi)
+    net_pct = combined_net / combined_oi * 100 if combined_oi else 0
+    bias = "bull" if combined_net > 0 else "bear"
+    cot_score = cftc.get("cot_score", 0)  # bruk CFTC sin score som basis
+    return {
+        "market":    f"{ice.get('market','')} + {cftc.get('market','')}",
+        "net":       combined_net,
+        "net_pct":   round(net_pct, 1),
+        "change":    (cftc.get("change", 0) or 0) + (ice.get("change", 0) or 0),
+        "bias":      bias,
+        "momentum":  cftc.get("momentum", ice.get("momentum", "BLANDET")),
+        "cot_score": cot_score,
+        "date":      max(filter(None, [ice.get("date"), cftc.get("date")]), default=None),
+        "source":    "ICE+CFTC",
     }
 
 
@@ -359,13 +404,23 @@ def combine_signal(price_data, cot):
 # ── Hoved-logikk ─────────────────────────────────────────────────
 print("Henter olje & gass data...")
 
-# COT-data
+# CFTC COT-data
 try:
     with open(COMBINED_FILE) as f:
         cot_data = json.load(f)
 except Exception as e:
     print(f"  COT-data FEIL: {e}")
     cot_data = []
+
+# ICE COT-data (Brent + Gasoil)
+ice_cot_markets = []
+try:
+    if ICE_COT_FILE.exists():
+        d = json.loads(ICE_COT_FILE.read_text())
+        ice_cot_markets = d.get("markets", [])
+        print(f"  ICE COT lastet: {len(ice_cot_markets)} markeder")
+except Exception as e:
+    print(f"  ICE COT FEIL: {e}")
 
 # 1. Priser + COT per instrument
 print("  Henter priser (stooq → macro fallback)...")
@@ -382,7 +437,14 @@ for i, inst in enumerate(PRICE_INDICES):
         price = fetch_from_macro(inst["id"])
         if price:
             print(f"    {inst['label']:20} → bruker macro-data som fallback")
-    cot   = get_cot(inst["cot_key"], cot_data) if inst["cot_key"] else None
+    if inst["id"] == "brent":
+        cot = get_combined_cot("brent", "ice brent crude")
+    elif inst["id"] == "heatoil":
+        cot = get_ice_cot("ice gasoil") or get_cot(inst["cot_key"], cot_data) if inst["cot_key"] else get_ice_cot("ice gasoil")
+    elif inst["cot_key"]:
+        cot = get_cot(inst["cot_key"], cot_data)
+    else:
+        cot = None
     signal = combine_signal(price, cot)
     status = f"{price['value']} ({price['chg1d']:+.2f}%)" if price else "ikke tilgjengelig"
     print(f"    {inst['label']:20} → {status}")
@@ -430,7 +492,7 @@ if key_instruments:
 else:
     overall_signal = "NØYTRAL"
 
-_og_cot_dates = [i.get("cot", {}).get("date") for i in instruments if i.get("cot", {}).get("date")]
+_og_cot_dates = [(i.get("cot") or {}).get("date") for i in instruments if (i.get("cot") or {}).get("date")]
 _og_cot_date  = max(_og_cot_dates) if _og_cot_dates else None
 
 output = {
