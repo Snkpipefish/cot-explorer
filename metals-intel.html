@@ -1120,20 +1120,36 @@ function renderOilgas(d){
   var PSIG_COL  = {'bull':'var(--bull)','bull-mild':'var(--bull)','neutral':'var(--m)','bear-mild':'var(--bear)','bear':'var(--bear)'};
   var h = '';
 
+  // Sparkline-hjelper
+  function mkSparkline(data, w, ht, color){
+    if(!data || data.length < 2) return '';
+    var mn=Math.min.apply(null,data), mx=Math.max.apply(null,data);
+    var rng=mx-mn||1;
+    var pts=data.map(function(v,i){
+      return (i/(data.length-1)*w).toFixed(1)+','+(ht-(v-mn)/rng*ht).toFixed(1);
+    }).join(' ');
+    return '<svg width="'+w+'" height="'+ht+'" style="display:block;overflow:visible">'
+      +'<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round"/>'
+      +'</svg>';
+  }
+
+  // Kildebadge-hjelper
+  function srcBadge(txt){
+    return '<span style="font-size:9px;padding:1px 4px;border-radius:3px;border:1px solid var(--b2);color:var(--m);margin-left:4px">'+txt+'</span>';
+  }
+
   // ── Samlet status-banner ──
   var sigCol  = SIG_COL[d.overall_signal]  || 'var(--m)';
   var riskCol = RISK_COL[d.overall_risk]   || 'var(--m)';
   var riskBg  = RISK_BG[d.overall_risk]    || 'var(--s2)';
   h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">';
-  // Signal
   h += '<div style="padding:12px 16px;background:var(--s2);border-radius:8px;border:1px solid '+sigCol+'">';
   h += '<div style="font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Markedssignal</div>';
   h += '<div style="font-size:16px;font-weight:700;color:'+sigCol+'">'+d.overall_signal+'</div>';
   if(d.brent_wti_spread !== null && d.brent_wti_spread !== undefined){
-    h += '<div style="font-size:11px;color:var(--m);margin-top:4px">Brent–WTI spread: '+(d.brent_wti_spread>0?'+':'')+d.brent_wti_spread+' USD</div>';
+    h += '<div style="font-size:11px;color:var(--m);margin-top:4px">Brent\u2013WTI spread: '+(d.brent_wti_spread>0?'+':'')+d.brent_wti_spread+' USD</div>';
   }
   h += '</div>';
-  // Risiko
   h += '<div style="padding:12px 16px;background:'+riskBg+';border-radius:8px;border:1px solid '+riskCol+'">';
   h += '<div style="font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Forstyrrelsesrisiko</div>';
   h += '<div style="font-size:16px;font-weight:700;color:'+riskCol+'">'+d.overall_risk+'</div>';
@@ -1142,56 +1158,117 @@ function renderOilgas(d){
   h += '</div>';
   h += '</div>';
 
-  // ── Instrumentkort: pris + COT ──
-  h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px">Energipriser & COT-posisjonering</div>';
-  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px">';
+  // ── Sammendragstabell ──
+  h += '<div style="margin-bottom:24px;overflow-x:auto">';
+  h += '<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:500px">';
+  h += '<thead><tr style="border-bottom:1px solid var(--b);color:var(--m);font-size:11px;text-transform:uppercase">';
+  h += '<th style="text-align:left;padding:6px 8px">Instrument</th>';
+  h += '<th style="text-align:right;padding:6px 8px">Pris</th>';
+  h += '<th style="text-align:center;padding:6px 8px">1d</th>';
+  h += '<th style="text-align:center;padding:6px 8px">COT</th>';
+  h += '<th style="text-align:center;padding:6px 8px">Momentum</th>';
+  h += '<th style="text-align:center;padding:6px 8px">Signal</th>';
+  h += '</tr></thead><tbody>';
+  d.instruments.forEach(function(inst){
+    var p = inst.price;
+    var cot = inst.cot;
+    var sCol = SIG_COL[inst.signal] || 'var(--m)';
+    var bold = inst.signal.indexOf('STERKT') >= 0 ? 'font-weight:700' : '';
+    var chgCol = (p && p.chg1d >= 0) ? 'var(--bull)' : 'var(--bear)';
+    var cotCol = cot ? (cot.bias === 'bull' ? 'var(--bull)' : 'var(--bear)') : 'var(--m)';
+    var cotBias = cot ? (cot.bias === 'bull' ? '\u25B2 LONG' : '\u25BC SHORT') : '\u2014';
+    var cotMom = cot ? cot.momentum : '\u2014';
+    h += '<tr style="border-bottom:1px solid var(--b)">';
+    h += '<td style="padding:8px;font-weight:600">'+inst.label+'</td>';
+    h += '<td style="padding:8px;text-align:right;font-family:\'DM Mono\',monospace">'+(p ? p.value+' <span style="font-size:10px;color:var(--m)">'+inst.unit+'</span>' : '<span style="color:var(--m)">\u2014</span>')+'</td>';
+    h += '<td style="padding:8px;text-align:center;color:'+chgCol+'">'+(p ? (p.chg1d>=0?'+':'')+p.chg1d+'%' : '\u2014')+'</td>';
+    h += '<td style="padding:8px;text-align:center;color:'+cotCol+';font-size:12px">'+cotBias+(cot ? '<br><span style="font-size:10px;color:var(--m)">'+(cot.net_pct>=0?'+':'')+cot.net_pct+'% OI</span>':'')+'</td>';
+    h += '<td style="padding:8px;text-align:center;color:'+cotCol+';font-size:12px">'+cotMom+'</td>';
+    h += '<td style="padding:8px;text-align:center;color:'+sCol+';'+bold+'">'+inst.signal+'</td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+
+  // ── Instrumentkort: pris + COT med doble sparklines ──
+  h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px">Detaljer & Sparklines</div>';
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:24px">';
   d.instruments.forEach(function(inst){
     var p    = inst.price;
     var cot  = inst.cot;
     var sCol = SIG_COL[inst.signal] || 'var(--m)';
+    var pSrc = p ? (p.source || 'stooq') : null;
     h += '<div class="card" style="border-top:3px solid '+sCol+'">';
-    // Label + signal
+    // Header: label + signal + kildebadges
     h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
-    h += '<div style="font-size:11px;color:var(--m)">'+inst.label+'</div>';
+    h += '<div style="font-size:12px;font-weight:600">'+inst.label+'</div>';
     h += '<div style="font-size:10px;font-weight:700;color:'+sCol+'">'+inst.signal+'</div>';
     h += '</div>';
+    // Pris
     if(p){
       var chgCol = p.chg1d >= 0 ? 'var(--bull)' : 'var(--bear)';
-      h += '<div style="font-size:22px;font-weight:700;font-family:\'DM Mono\',monospace">'+p.value+'</div>';
-      h += '<div style="font-size:11px;color:var(--m)">'+inst.unit+'</div>';
-      h += '<div style="font-size:12px;margin-top:5px">';
-      h += '<span style="color:'+chgCol+'">'+(p.chg1d>=0?'+':'')+p.chg1d+'%</span>';
       var devCol = PSIG_COL[p.signal] || 'var(--m)';
+      h += '<div style="display:flex;align-items:baseline;gap:8px">';
+      h += '<div style="font-size:22px;font-weight:700;font-family:\'DM Mono\',monospace">'+p.value+'</div>';
+      h += '<span style="font-size:11px;color:var(--m)">'+inst.unit+'</span>';
+      h += srcBadge(pSrc);
+      h += '</div>';
+      h += '<div style="font-size:12px;margin-top:4px">';
+      h += '<span style="color:'+chgCol+'">'+(p.chg1d>=0?'+':'')+p.chg1d+'%</span>';
       if(p.dev_ma!=null){
-        h += '<span style="color:var(--m)"> 1d · </span>';
+        h += '<span style="color:var(--m)"> 1d \u00B7 </span>';
         h += '<span style="color:'+devCol+'">'+(p.dev_ma>=0?'+':'')+p.dev_ma+'% MA20</span>';
       }
       h += '</div>';
       if(p.trend){h += '<div style="font-size:10px;color:var(--m);margin-top:2px">'+p.trend+'</div>';}
-      if(p.source==='macro'){h += '<div style="font-size:10px;color:var(--m);margin-top:2px;opacity:0.6">Kilde: makrodata</div>';}
-      // Sparkline
-      if(p.history && p.history.length > 2){
-        var mn=Math.min.apply(null,p.history), mx=Math.max.apply(null,p.history);
-        var rng=mx-mn||1, w2=90, h2=20;
-        var pts=p.history.map(function(v,i){
-          return (i/(p.history.length-1)*w2).toFixed(1)+','+(h2-(v-mn)/rng*h2).toFixed(1);
-        }).join(' ');
-        h += '<svg width="'+w2+'" height="'+h2+'" style="display:block;margin-top:6px;overflow:visible">';
-        h += '<polyline points="'+pts+'" fill="none" stroke="'+devCol+'" stroke-width="1.5" stroke-linejoin="round"/>';
-        h += '</svg>';
-      }
     } else {
-      h += '<div style="font-size:13px;color:var(--m);margin-top:8px">Ikke tilgjengelig</div>';
+      h += '<div style="font-size:13px;color:var(--m);margin-top:8px">Pris ikke tilgjengelig</div>';
     }
-    // COT
+    // Doble sparklines: pris + COT side om side
+    var hasPrice = p && p.history && p.history.length > 2;
+    var cotHist = cot ? (cot.spec_net_history || []) : [];
+    var hasCot = cotHist.length >= 2;
+    if(hasPrice || hasCot){
+      h += '<div style="display:flex;gap:12px;margin-top:8px">';
+      if(hasPrice){
+        var devCol2 = PSIG_COL[(p||{}).signal] || 'var(--m)';
+        h += '<div style="flex:1;min-width:0">';
+        h += '<div style="font-size:9px;color:var(--m);text-transform:uppercase;margin-bottom:2px">Pris 15d</div>';
+        h += mkSparkline(p.history, 100, 24, devCol2);
+        h += '</div>';
+      }
+      if(hasCot){
+        var cotSpkCol = cot.bias === 'bull' ? 'var(--bull)' : 'var(--bear)';
+        h += '<div style="flex:1;min-width:0">';
+        h += '<div style="font-size:9px;color:var(--m);text-transform:uppercase;margin-bottom:2px">COT '+cotHist.length+'u</div>';
+        h += mkSparkline(cotHist, 100, 24, cotSpkCol);
+        h += '</div>';
+      }
+      h += '</div>';
+    }
+    // COT-detaljer
     if(cot){
       var cotCol = cot.bias==='bull' ? 'var(--bull)' : 'var(--bear)';
       h += '<div style="border-top:1px solid var(--b);margin-top:8px;padding-top:6px;font-size:11px">';
-      h += '<div style="color:var(--m);margin-bottom:3px;font-size:10px;text-transform:uppercase;letter-spacing:.5px">'+(cot.source||'CFTC')+' COT'+(cot.date?' · per '+cot.date:'')+'</div>';
-      h += '<span style="color:'+cotCol+';font-weight:600">'+(cot.bias==='bull'?'▲ LONG':'▼ SHORT')+'</span>';
+      h += '<div style="display:flex;align-items:center;gap:4px;color:var(--m);margin-bottom:3px;font-size:10px;text-transform:uppercase;letter-spacing:.5px">';
+      h += (cot.source||'CFTC')+' COT';
+      h += srcBadge(cot.source||'CFTC');
+      if(cot.date) h += '<span style="margin-left:auto;font-size:9px;color:var(--m)">per '+cot.date+'</span>';
+      h += '</div>';
+      h += '<span style="color:'+cotCol+';font-weight:600">'+(cot.bias==='bull'?'\u25B2 LONG':'\u25BC SHORT')+'</span>';
       h += ' <span style="color:var(--m)">'+(cot.net_pct>=0?'+':'')+cot.net_pct+'% av OI</span>';
       h += ' <span style="color:'+cotCol+'">'+cot.momentum+'</span>';
+      if(cot.change != null){
+        var chgCotCol = cot.change >= 0 ? 'var(--bull)' : 'var(--bear)';
+        h += '<div style="font-size:10px;color:'+chgCotCol+';margin-top:2px">\u0394 '+(cot.change>=0?'+':'')+cot.change.toLocaleString()+' kontrakter</div>';
+      }
       h += '</div>';
+    }
+    // Freshness
+    var parts = [];
+    if(p && p.date) parts.push('Pris: '+p.date.substring(0,10));
+    if(cot && cot.date) parts.push('COT: '+cot.date);
+    if(parts.length){
+      h += '<div style="font-size:9px;color:var(--m);margin-top:6px;opacity:0.7">'+parts.join(' \u00B7 ')+'</div>';
     }
     h += '</div>';
   });
@@ -1208,7 +1285,7 @@ function renderOilgas(d){
     h += '<div style="font-weight:600;min-width:0;flex:1 1 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+s.ikon+' '+s.name+'</div>';
     h += '<span style="flex-shrink:0;white-space:nowrap;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid '+rCol+';color:'+rCol+';background:'+rBg+'">'+s.risk+'</span>';
     h += '</div>';
-    h += '<div style="font-size:11px;color:var(--blue);margin-bottom:6px">📈 '+s.impact+'</div>';
+    h += '<div style="font-size:11px;color:var(--blue);margin-bottom:6px">\uD83D\uDCC8 '+s.impact+'</div>';
     if(s.articles && s.articles.length){
       h += '<div style="border-top:1px solid var(--b);padding-top:6px">';
       s.articles.slice(0,2).forEach(function(art){
@@ -1225,9 +1302,10 @@ function renderOilgas(d){
   });
   h += '</div>';
 
-  // ── Nyhetsfeed ──
+  // ── Nyhetsfeed (kollapset som standard) ──
   if(d.news && d.news.length){
-    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:10px">Energi-nyheter ('+d.news.length+')</div>';
+    h += '<details style="margin-bottom:24px">';
+    h += '<summary style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);cursor:pointer;margin-bottom:10px;user-select:none">Energi-nyheter ('+d.news.length+') \u25B6</summary>';
     var CAT_COL = {
       'opec':'var(--gold)','prices':'var(--bull)','natgas':'#4fc3f7',
       'geopolit':'var(--bear)','inventory':'var(--copper)'
@@ -1241,7 +1319,16 @@ function renderOilgas(d){
       h += '<span>'+a.source+'</span><span>'+a.time+'</span>';
       h += '</div></div>';
     });
+    h += '</details>';
   }
+
+  // ── Datakilde-footer ──
+  h += '<div style="margin-top:8px;padding:10px 14px;background:var(--s2);border-radius:6px;border:1px solid var(--b);font-size:11px;color:var(--m)">';
+  h += '<span style="text-transform:uppercase;letter-spacing:1px;font-weight:700">Datakilder</span>';
+  h += '<span style="margin-left:12px">COT: CFTC + ICE (ukentlig'+(d.cot_date ? ', per '+d.cot_date : '')+')</span>';
+  h += '<span style="margin-left:12px">Priser: Stooq (daglig) \u00B7 Skilling bot (live) \u00B7 Makro (fallback)</span>';
+  h += '<span style="margin-left:12px">Generert: '+d.generated+'</span>';
+  h += '</div>';
 
   return h;
 }

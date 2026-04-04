@@ -176,6 +176,7 @@ def fetch_stooq(symbol):
             "signal":  signal,
             "date":    rows[-1]["date"],
             "history": [round(c, 2) for c in closes[-15:]],
+            "source":  "stooq",
         }
     except Exception as e:
         print(f"  Stooq FEIL ({symbol}): {e}")
@@ -278,6 +279,7 @@ def _cot_from_entry(entry, source="CFTC"):
         "bias":      bias,
         "momentum":  momentum,
         "cot_score": cot_score,
+        "spec_net_history": hist,
         "date":      entry.get("date"),
         "source":    source,
     }
@@ -318,6 +320,14 @@ def get_combined_cot(cot_key, ice_market_name):
     net_pct = combined_net / combined_oi * 100 if combined_oi else 0
     bias = "bull" if combined_net > 0 else "bear"
     cot_score = cftc.get("cot_score", 0)  # bruk CFTC sin score som basis
+    # Kombiner spec_net_history frå begge kjelder
+    cftc_hist = cftc.get("spec_net_history") or []
+    ice_hist = ice.get("spec_net_history") or []
+    if cftc_hist and ice_hist:
+        hl = min(len(cftc_hist), len(ice_hist))
+        combined_hist = [cftc_hist[-(hl - i)] + ice_hist[-(hl - i)] for i in range(hl, 0, -1)]
+    else:
+        combined_hist = cftc_hist or ice_hist
     return {
         "market":    f"{ice.get('market','')} + {cftc.get('market','')}",
         "net":       combined_net,
@@ -326,6 +336,7 @@ def get_combined_cot(cot_key, ice_market_name):
         "bias":      bias,
         "momentum":  cftc.get("momentum", ice.get("momentum", "BLANDET")),
         "cot_score": cot_score,
+        "spec_net_history": combined_hist,
         "date":      max(filter(None, [ice.get("date"), cftc.get("date")]), default=None),
         "source":    "ICE+CFTC",
     }
@@ -495,6 +506,19 @@ else:
 _og_cot_dates = [(i.get("cot") or {}).get("date") for i in instruments if (i.get("cot") or {}).get("date")]
 _og_cot_date  = max(_og_cot_dates) if _og_cot_dates else None
 
+# Data-status per instrument (for frontend freshness-visning)
+data_status = {}
+for _inst in instruments:
+    _p = _inst.get("price")
+    _c = _inst.get("cot")
+    data_status[_inst["id"]] = {
+        "price_source": _p.get("source", "stooq") if _p else None,
+        "price_date": _p.get("date", "") if _p else None,
+        "has_price_history": bool(_p and _p.get("history")),
+        "cot_source": _c.get("source", "CFTC") if _c else None,
+        "cot_date": _c.get("date") if _c else None,
+    }
+
 output = {
     "generated":      datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     "cot_date":       _og_cot_date,
@@ -502,6 +526,7 @@ output = {
     "overall_risk":   overall_risk,
     "overall_signal": overall_signal,
     "brent_wti_spread": brent_wti_spread,
+    "data_status":    data_status,
     "instruments":    instruments,
     "segments":       segments,
     "news":           all_news[:50],
