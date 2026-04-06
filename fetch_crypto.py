@@ -180,12 +180,15 @@ if combined_file.exists():
                 net = sp.get("net", 0) or 0
                 cot_btc = {
                     "market":  entry["market"],
+                    "long":    sp.get("long", 0) or 0,
+                    "short":   sp.get("short", 0) or 0,
                     "net":     net,
                     "chg":     entry.get("change_spec_net", 0),
                     "oi":      oi,
                     "pct":     round(net / oi * 100, 1),
                     "date":    entry.get("date", ""),
                     "source":  "CFTC",
+                    "label":   sp.get("label", "Hedge Funds"),
                     "history": entry.get("spec_net_history", []),
                 }
                 break

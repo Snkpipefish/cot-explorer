@@ -318,21 +318,50 @@ function renderPage(d){
   h += '<div class="section-title">🏦 Hva gjør de profesjonelle?</div>';
   if(cot.net!==undefined || cot.net===0){
     var net=cot.net||0, oi=cot.oi||1, chg=cot.chg||0, pct=cot.pct||0;
+    var cotLong=cot.long||0, cotShort=cot.short||0;
     var ci=cotInfo(pct);
-    var barPct=Math.min(100,Math.max(0,50+pct*1.2));
+
+    // Verdict-banner
     h += '<div class="cot-verdict" style="background:'+ci.bg+';border:1px solid '+ci.col+'">';
     h += '<div class="cot-verdict-emoji">'+ci.emoji+'</div>';
     h += '<div class="cot-verdict-title" style="color:'+ci.col+'">'+ci.txt+'</div>';
     h += '<div class="cot-verdict-sub">'+ci.sub+'</div>';
     h += '</div>';
+
+    // Long vs Short breakdown
     h += '<div class="card" style="margin-bottom:12px">';
-    h += '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--m);margin-bottom:6px">';
-    h += '<span>⬅️ Selger</span><span>Kjøper ➡️</span></div>';
-    h += '<div class="cbt"><div class="cbf" style="width:'+barPct+'%;background:'+ci.col+'"></div></div>';
-    h += '<div style="text-align:center;font-size:11px;color:var(--m);margin-top:4px">Netto: '+(pct>0?'+':'')+pct+'% av alle kontrakter</div>';
+    h += '<div style="font-size:13px;font-weight:600;margin-bottom:10px">Fordeling av kontrakter</div>';
+    var longPct=oi>0?Math.round(cotLong/oi*100):0;
+    var shortPct=oi>0?Math.round(cotShort/oi*100):0;
+    h += '<div style="display:flex;gap:12px;margin-bottom:12px">';
+    h += '<div style="flex:1;background:var(--bbg);border:1px solid var(--bull);border-radius:8px;padding:12px;text-align:center">';
+    h += '<div style="font-size:11px;color:var(--bull);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Long (kjøper)</div>';
+    h += '<div style="font-size:22px;font-weight:700;font-family:\'DM Mono\',monospace;color:var(--bull)">'+cotLong.toLocaleString('no-NO')+'</div>';
+    h += '<div style="font-size:11px;color:var(--m)">'+longPct+'% av total</div>';
+    h += '</div>';
+    h += '<div style="flex:1;background:var(--rbg);border:1px solid var(--bear);border-radius:8px;padding:12px;text-align:center">';
+    h += '<div style="font-size:11px;color:var(--bear);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Short (selger)</div>';
+    h += '<div style="font-size:22px;font-weight:700;font-family:\'DM Mono\',monospace;color:var(--bear)">'+cotShort.toLocaleString('no-NO')+'</div>';
+    h += '<div style="font-size:11px;color:var(--m)">'+shortPct+'% av total</div>';
+    h += '</div>';
+    h += '</div>';
+
+    // Visuell bar long vs short
+    var barLong=oi>0?Math.round(cotLong/oi*100):50;
+    h += '<div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin-bottom:4px">';
+    h += '<div style="width:'+barLong+'%;background:var(--bull)"></div>';
+    h += '<div style="width:'+(100-barLong)+'%;background:var(--bear)"></div>';
+    h += '</div>';
+    h += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m)">';
+    h += '<span>Long '+barLong+'%</span>';
+    h += '<span>Totalt '+oi.toLocaleString('no-NO')+' kontrakter (OI)</span>';
+    h += '<span>Short '+(100-barLong)+'%</span>';
+    h += '</div>';
+    h += '<div style="text-align:center;font-size:12px;font-weight:600;margin-top:8px;color:'+ci.col+'">Netto: '+(net>0?'+':'')+net.toLocaleString('no-NO')+' kontrakter ('+(pct>0?'+':'')+pct+'%)</div>';
+
+    // Netto-historikk stolpegraf
     if(cot.history&&cot.history.length>1){
-      h += '<div style="margin-top:14px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px">Posisjon siste 8 uker</div>';
-      // Stolpegraf med labels istedenfor uforklarlig sparkline
+      h += '<div style="margin-top:16px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px">Netto-posisjon siste 8 uker</div>';
       var hMax=Math.max.apply(null,cot.history.map(function(v){return Math.abs(v);}));
       if(!hMax)hMax=1;
       h += '<div style="display:flex;align-items:flex-end;gap:6px;height:60px">';
@@ -340,7 +369,7 @@ function renderPage(d){
         var barH=Math.max(4,Math.round(Math.abs(v)/hMax*50));
         var barCol=v>=0?'var(--bull)':'var(--bear)';
         var weeksAgo=cot.history.length-1-i;
-        var label=weeksAgo===0?'Nå':weeksAgo+' u. siden';
+        var label=weeksAgo===0?'Sist':weeksAgo+' u.';
         h += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">';
         h += '<div style="font-size:9px;color:var(--m)">'+(v>0?'+':'')+(v/1000).toFixed(0)+'K</div>';
         h += '<div style="width:100%;height:'+barH+'px;background:'+barCol+';border-radius:3px"></div>';
@@ -348,14 +377,17 @@ function renderPage(d){
         h += '</div>';
       });
       h += '</div>';
-      h += '<div style="font-size:10px;color:var(--m);margin-top:6px">Grønn = kjøper (long), rød = selger (short). Tall = netto tusen kontrakter.</div>';
+      h += '<div style="font-size:10px;color:var(--m);margin-top:6px">Netto = long minus short. Rød = flere short enn long. Grønn = flere long enn short.</div>';
       h += '</div>';
     }
-    var chgDir=chg>0?'Økt med '+Math.abs(chg).toLocaleString('no-NO')+' kontrakter denne uken.':'Redusert med '+Math.abs(chg).toLocaleString('no-NO')+' kontrakter denne uken.';
-    h += '<div class="explain"><strong>Hvem er dette?</strong> Store hedgefond og banker som handler Bitcoin-futures på CME-børsen i USA. De rapporterer posisjonene sine ukentlig til myndighetene (CFTC).<br><br>';
-    h += '<strong>Denne uken:</strong> '+chgDir+'<br>';
-    h += '<strong>Rapport dato:</strong> '+(cot.date||'?')+'</div>';
     h += '</div>';
+
+    // Forklaring
+    var chgDir=chg>0?'Netto-posisjonen økte med '+Math.abs(chg).toLocaleString('no-NO')+' kontrakter (mer bullish).':'Netto-posisjonen ble redusert med '+Math.abs(chg).toLocaleString('no-NO')+' kontrakter (mer bearish).';
+    h += '<div class="explain">';
+    h += '<strong>Hvem er dette?</strong> '+(cot.label||'Hedge Funds')+' og andre profesjonelle som handler Bitcoin-futures på CME-børsen i USA. De rapporterer posisjonene sine ukentlig til CFTC.<br><br>';
+    h += '<strong>Siste endring:</strong> '+chgDir+'<br>';
+    h += '<strong>Data fra:</strong> tirsdag '+(cot.date||'?')+' (publisert fredagen etter)</div>';
   } else {
     h += '<div class="card"><div class="loading">Ingen COT-data tilgjengelig</div></div>';
   }
