@@ -492,16 +492,27 @@ if len(high_seg) >= 2:   overall_risk = "HIGH"
 elif high_seg or len(med_seg) >= 3: overall_risk = "MEDIUM"
 else:                    overall_risk = "LOW"
 
-# 5. Samlet markedssignal (basert på Brent + WTI)
-key_instruments = [i for i in instruments if i["id"] in ("brent", "wti")]
+# 5. Samlet markedssignal (alle instrumenter + risikojustering)
 sig_scores = {"STERKT BULLISH": 2, "BULLISH": 1, "NØYTRAL": 0, "BEARISH": -1, "STERKT BEARISH": -2}
-if key_instruments:
-    avg_sig = sum(sig_scores.get(i["signal"], 0) for i in key_instruments) / len(key_instruments)
-    overall_signal = ("STERKT BULLISH" if avg_sig >= 1.5 else "BULLISH" if avg_sig >= 0.5
-                      else "STERKT BEARISH" if avg_sig <= -1.5 else "BEARISH" if avg_sig <= -0.5
-                      else "NØYTRAL")
-else:
-    overall_signal = "NØYTRAL"
+# Vekt: Brent/WTI teller dobbelt (hovedinstrumenter)
+weights = {"brent": 2, "wti": 2, "natgas": 1, "rbob": 1, "heating": 1}
+weighted_sum = 0
+total_weight = 0
+for i in instruments:
+    w = weights.get(i["id"], 1)
+    weighted_sum += sig_scores.get(i["signal"], 0) * w
+    total_weight += w
+avg_sig = weighted_sum / total_weight if total_weight else 0
+
+# Risikojustering: HIGH-segmenter = forstyrrelser = bullish prispress
+# Dynamisk — antall HIGH-segmenter skyver signalet opp
+high_count = len([s for s in segments if s.get("risk") == "HIGH"])
+risk_adj = high_count * 0.15  # Hver HIGH-segment gir +0.15 bullish
+avg_sig += risk_adj
+
+overall_signal = ("STERKT BULLISH" if avg_sig >= 1.5 else "BULLISH" if avg_sig >= 0.5
+                  else "STERKT BEARISH" if avg_sig <= -1.5 else "BEARISH" if avg_sig <= -0.5
+                  else "NØYTRAL")
 
 _og_cot_dates = [(i.get("cot") or {}).get("date") for i in instruments if (i.get("cot") or {}).get("date")]
 _og_cot_date  = max(_og_cot_dates) if _og_cot_dates else None
