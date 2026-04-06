@@ -43,6 +43,8 @@ try:
         if pk and pk in prices:
             p = prices[pk]
             c['price'] = {'value': p.get('price'), 'chg1d': p.get('chg1d',0), 'chg5d': p.get('chg5d',0), 'chg20d': p.get('chg20d',0), 'source': p.get('source','bot')}
+    from datetime import datetime, timezone
+    agri['generated'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
     json.dump(agri, open(AGRI,'w'), ensure_ascii=False, indent=2)
     print('  agri-priser patched')
 except Exception as e:
@@ -63,6 +65,8 @@ try:
             crypto['prices'][k]['price'] = mp.get('price', crypto['prices'][k]['price'])
             if mp.get('chg1d') is not None: crypto['prices'][k]['chg1d'] = mp['chg1d']
             crypto['prices'][k]['source'] = mp.get('source', 'bot')
+    from datetime import datetime, timezone
+    crypto['updated'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
     json.dump(crypto, open(CRYPTO,'w'), ensure_ascii=False, indent=2)
     print('  crypto-priser patched')
 except Exception as e:
