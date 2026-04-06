@@ -226,6 +226,42 @@ footer a{color:var(--blue);text-decoration:none}
 .dash-list li::before{content:'·';position:absolute;left:0;color:var(--blue)}
 .dash-link{font-size:11px;color:var(--blue);font-weight:600;margin-top:auto}
 @media(max-width:600px){.dash-grid{grid-template-columns:1fr}}
+/* ── Mood Banner ──────────────────────────────────────────── */
+.mood-banner{border-radius:10px;padding:20px 24px;margin-bottom:18px;display:flex;align-items:center;gap:16px}
+.mood-banner.green{background:rgba(63,185,80,.1);border:1px solid var(--bull)}
+.mood-banner.yellow{background:rgba(210,153,34,.1);border:1px solid var(--warn)}
+.mood-banner.red{background:rgba(248,81,73,.1);border:1px solid var(--bear)}
+.mood-emoji{font-size:36px}
+.mood-title{font-size:18px;font-weight:700}
+.mood-sub{font-size:13px;color:var(--m);margin-top:2px}
+/* ── Key Metric Cards ──────────────────────────────────────── */
+.key-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.key-card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px 16px}
+.key-card-label{font-size:10px;color:var(--m);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.key-card-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:600;line-height:1}
+.key-card-desc{font-size:11px;color:var(--m);margin-top:6px;line-height:1.4}
+/* ── Hva skjer na cards ──────────────────────────────────── */
+.now-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.now-card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px 16px}
+.now-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.now-icon{font-size:18px}
+.now-title{font-size:12px;font-weight:600;color:var(--m);text-transform:uppercase}
+.now-price{font-family:'DM Mono',monospace;font-size:20px;font-weight:600;margin-bottom:2px}
+.now-chg{font-family:'DM Mono',monospace;font-size:12px;margin-bottom:6px}
+.now-chg.up{color:var(--bull)}.now-chg.dn{color:var(--bear)}
+.now-desc{font-size:12px;color:var(--m);line-height:1.4}
+/* ── Top Signals ──────────────────────────────────────────── */
+.sig-card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px 16px;margin-bottom:10px}
+.sig-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sig-name{font-size:14px;font-weight:600}
+.sig-dir{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase}
+.sig-dir.bull{background:var(--bbg);color:var(--bull)}
+.sig-dir.bear{background:var(--rbg);color:var(--bear)}
+.sig-levels{display:flex;gap:14px;font-family:'DM Mono',monospace;font-size:12px;margin-bottom:6px}
+.sig-desc{font-size:12px;color:var(--m);line-height:1.4}
+.section-divider{border:none;border-top:1px solid var(--b);margin:20px 0}
+@media(max-width:900px){.key-grid{grid-template-columns:1fr 1fr}.now-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.key-grid,.now-grid{grid-template-columns:1fr}.mood-banner{flex-direction:column;text-align:center}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
@@ -247,23 +283,20 @@ footer a{color:var(--blue);text-decoration:none}
 </nav>
 <nav class="nav">
   <button class="nt active" data-tab="oversikt">🏠 Oversikt</button>
-  <button class="nt" data-tab="ideer">💡 Setups</button>
-  <button class="nt" data-tab="makro">🌐 Makro</button>
-  <button class="nt" data-tab="cot">📊 COT</button>
-  <button class="nt" data-tab="korrelasjoner">🔗 Korrelasjoner</button>
-  <button class="nt" data-tab="signallogg">📋 Signal-logg</button>
+  <button class="nt" data-tab="setups">💡 Setups & Trades</button>
+  <button class="nt" data-tab="makro">🌐 Makro & Priser</button>
   <button class="nt" data-tab="kalender">📅 Kalender</button>
-  <button class="nt" data-tab="priser">💹 Priser</button>
 </nav>
 <div class="main">
 
   <!-- OVERSIKT DASHBOARD -->
   <div class="panel active" id="panel-oversikt">
     <div class="sh"><div class="sh-t">Markedsoversikt</div><div class="sh-b" id="dashDate">-</div></div>
-    <div class="dash-grid" id="dashGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+    <div id="dashContent"><div class="loading"><div class="spinner"></div>Laster...</div></div>
   </div>
 
-  <div class="panel" id="panel-ideer">
+  <!-- SETUPS & TRADES -->
+  <div class="panel" id="panel-setups">
     <div class="sh">
       <div class="sh-t">Trading Setups</div>
       <div class="sh-b" id="ideDate">-</div>
@@ -271,7 +304,13 @@ footer a{color:var(--blue);text-decoration:none}
     </div>
     <div class="g4" id="ideStats"></div>
     <div id="ideGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+    <hr class="section-divider">
+    <div class="sh"><div class="sh-t">Signal-logg</div><div class="sh-b" id="logCnt">-</div></div>
+    <div class="g4" id="logStats" style="margin-bottom:16px"></div>
+    <div id="logGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
   </div>
+
+  <!-- MAKRO & PRISER -->
   <div class="panel" id="panel-makro">
     <div class="g21">
       <div class="card">
@@ -301,7 +340,20 @@ footer a{color:var(--blue);text-decoration:none}
     <div class="g4" id="macroRente"></div>
     <div id="vixTerm"></div>
     <div id="sessionRanges"></div>
+    <hr class="section-divider">
+    <div class="sh"><div class="sh-t">Markedspriser</div><div class="sh-b" id="priserDate">Kilde: Skilling bot · Yahoo Finance</div></div>
+    <div class="ct">Indekser</div><div class="pcg" id="pInd"></div>
+    <div class="ct" style="margin-top:16px">Valuta</div><div class="pcg" id="pVal"></div>
+    <div class="ct" style="margin-top:16px">Ravarer</div><div class="pcg" id="pRav"></div>
+    <hr class="section-divider">
+    <div class="sh"><div class="sh-t">COT-posisjoner</div><div class="sh-b" id="cotCnt">-</div></div>
+    <p style="font-size:12px;color:var(--m);margin-bottom:14px">COT (Commitments of Traders) viser hva store fond og institusjoner posisjonerer seg i. <span style="color:var(--bull)">Grønt</span> = de kjøper, <span style="color:var(--bear)">rødt</span> = de selger. Klikk på et marked for å se historikken.</p>
+    <div class="sbar2">
+      <input type="text" id="cotS" placeholder="Søk marked..." oninput="filterCot()">
+    </div>
+    <div id="cotGrid"></div>
   </div>
+
   <!-- COT GRAF MODAL -->
   <div class="cot-modal" id="cotModal" onclick="closeCotModal(event)">
     <div class="cot-modal-inner">
@@ -314,36 +366,19 @@ footer a{color:var(--blue);text-decoration:none}
       <div class="cot-stat-row" id="cotModalStats"></div>
     </div>
   </div>
-  <div class="panel" id="panel-cot">
-    <div class="sh"><div class="sh-t">COT-posisjoner</div><div class="sh-b" id="cotCnt">-</div></div>
-    <p style="font-size:12px;color:var(--m);margin-bottom:14px">COT (Commitments of Traders) viser hva store fond og institusjoner posisjonerer seg i. <span style="color:var(--bull)">Grønt</span> = de kjøper, <span style="color:var(--bear)">rødt</span> = de selger. Klikk på et marked for å se historikken.</p>
-    <div class="sbar2">
-      <input type="text" id="cotS" placeholder="Søk marked..." oninput="filterCot()">
-    </div>
-    <div id="cotGrid"></div>
-  </div>
-  <div class="panel" id="panel-korrelasjoner">
-    <div class="sh"><div class="sh-t">Korrelasjonstabell</div><div class="sh-b" id="corrPeriod">20-dagers Pearson</div></div>
-    <div id="corrGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
-  </div>
-  <div class="panel" id="panel-signallogg">
-    <div class="sh"><div class="sh-t">Signal-logg</div><div class="sh-b" id="logCnt">-</div></div>
-    <div class="g4" id="logStats" style="margin-bottom:16px"></div>
-    <div id="logGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
-  </div>
+
+  <!-- KALENDER -->
   <div class="panel" id="panel-kalender">
     <div class="sh"><div class="sh-t">Okonomisk kalender</div><div class="sh-b" id="calDate">Denne uken · Kilde: ForexFactory</div></div>
     <div class="g2">
       <div class="card"><div class="ct">High Impact</div><div id="calH"></div></div>
       <div class="card"><div class="ct">Medium Impact</div><div id="calM"></div></div>
     </div>
+    <hr class="section-divider">
+    <div class="sh"><div class="sh-t">Korrelasjonstabell</div><div class="sh-b" id="corrPeriod">20-dagers Pearson</div></div>
+    <div id="corrGrid"><div class="loading"><div class="spinner"></div>Laster...</div></div>
   </div>
-  <div class="panel" id="panel-priser">
-    <div class="sh"><div class="sh-t">Markedspriser</div><div class="sh-b" id="priserDate">Kilde: Skilling bot · Yahoo Finance</div></div>
-    <div class="ct">Indekser</div><div class="pcg" id="pInd"></div>
-    <div class="ct" style="margin-top:16px">Valuta</div><div class="pcg" id="pVal"></div>
-    <div class="ct" style="margin-top:16px">Ravarer</div><div class="pcg" id="pRav"></div>
-  </div>
+
 </div>
 <footer>
   <span>Kilde: <a href="https://cftc.gov" target="_blank">CFTC.gov</a> · Yahoo Finance · ForexFactory</span>
@@ -399,131 +434,173 @@ document.querySelectorAll('.nt').forEach(function(b){
   });
 });
 
-// ── Dashboard Oversikt ───────────────────────────────────────
-function dashCard(icon,title,tab,badgeTxt,badgeCol,badgeBg,metric,metricCol,sub,bullets){
-  return '<div class="dash-card" onclick="goTab(\''+tab+'\')">'+
-    '<div class="dash-top"><span class="dash-icon">'+icon+'</span>'+
-    '<span class="dash-badge" style="color:'+badgeCol+';border-color:'+badgeCol+';background:'+badgeBg+'">'+badgeTxt+'</span></div>'+
-    '<div class="dash-title">'+title+'</div>'+
-    '<div class="dash-metric" style="color:'+metricCol+'">'+metric+'</div>'+
-    '<div class="dash-sub">'+sub+'</div>'+
-    '<ul class="dash-list">'+bullets.map(function(b){return'<li>'+b+'</li>';}).join('')+'</ul>'+
-    '<span class="dash-link">Åpne →</span></div>';
-}
-
+// ── Dashboard Oversikt (Dumbass Overview) ─────────────────────────
 function renderDashboard(macro,signals,logData,cotData){
-  var RISK_COL={HIGH:'var(--bear)',MEDIUM:'var(--warn)',LOW:'var(--bull)'};
-  var RISK_BG={HIGH:'var(--rbg)',MEDIUM:'var(--wbg)',LOW:'var(--bbg)'};
-  var cards='';
+  var html='';
 
-  // 1. Setups
-  if(signals){
-    var sigs=signals.signals||[];
-    var gs=signals.global_state||{};
-    var vix=macro&&macro.vix_regime||{};
-    var vixCol=vix.color==='warn'?'var(--warn)':vix.color==='bear'?'var(--bear)':'var(--bull)';
-    var vixBg=vix.color==='warn'?'var(--wbg)':vix.color==='bear'?'var(--rbg)':'var(--bbg)';
-    var topSig=sigs[0];
-    var alerts=[];
-    if(gs.geo_active) alerts.push('⚠️ Geopolitisk risiko aktiv');
-    if(gs.oil_geo_warning) alerts.push('🛢️ '+(gs.oil_warning_reason||'Olje-advarsel'));
-    cards+=dashCard('💡','Trading Setups','ideer',
-      vix.label||'VIX', vixCol, vixBg,
-      sigs.length+' setup'+(sigs.length!==1?'s':''), vixCol,
-      'VIX: '+(vix.value||'-')+' · '+vix.label,
-      [topSig?topSig.name+' '+topSig.action+' (Grade '+topSig.grade+', RR '+topSig.rr_t1+')':'Ingen aktive setups']
-        .concat(alerts).slice(0,3));
+  // ── Section A: Mood Banner ──
+  var vix=(macro&&macro.vix_regime)||{};
+  var sent=(macro&&macro.sentiment)||{};
+  var vixVal=vix.value||0;
+  var moodClass,moodEmoji,moodTitle,moodSub;
+  if(vixVal<20){
+    moodClass='green'; moodEmoji='🟢';
+    moodTitle='Markedet er rolig';
+    moodSub='VIX under 20 — lav frykt, normalt marked. Full posisjonsstorrelse.';
+  } else if(vixVal<=30){
+    moodClass='yellow'; moodEmoji='🟡';
+    moodTitle='Markedet er usikkert';
+    moodSub='VIX mellom 20-30 — okt volatilitet. Halv posisjonsstorrelse anbefalt.';
+  } else {
+    moodClass='red'; moodEmoji='🔴';
+    moodTitle='Markedet er nervost';
+    moodSub='VIX over 30 — hoyt stressniva. Kvart posisjonsstorrelse eller sitt pa hendene.';
   }
+  html+='<div class="mood-banner '+moodClass+'">'+
+    '<div class="mood-emoji">'+moodEmoji+'</div>'+
+    '<div><div class="mood-title">'+moodTitle+'</div><div class="mood-sub">'+moodSub+'</div></div>'+
+  '</div>';
 
-  // 2. Makro & Sentiment
-  if(macro){
-    var sent=macro.sentiment||{};
-    var fg=sent.fear_greed||{};
-    var news=sent.news||{};
-    var fgScore=fg.score||0;
-    var fgCol=fgScore<25?'var(--bear)':fgScore<45?'var(--warn)':fgScore<55?'var(--m)':'var(--bull)';
-    var fgBg=fgScore<25?'var(--rbg)':fgScore<45?'var(--wbg)':'var(--bbg)';
-    var fgLabel=fgScore<25?'EKSTREM FRYKT':fgScore<45?'FRYKT':fgScore<55?'NØYTRAL':fgScore<75?'GRÅDIGHET':'EKSTREM GRÅDIGHET';
-    var ds=macro.dollar_smile||{};
-    var conflicts=sent.conflicts||[];
-    cards+=dashCard('🌐','Makro & Sentiment','makro',
-      fgLabel, fgCol, fgBg,
-      Math.round(fgScore)+'/100', fgCol,
-      'Fear & Greed · News: '+(news.label||'-'),
-      ['Dollar: '+(ds.phase||'—'),
-       'Nyhetssentiment: '+(news.roff_count||0)+' risk-off / '+(news.ro_count||0)+' risk-on']
-        .concat(conflicts.slice(0,1)));
-  }
+  // ── Section B: 4 Key Metric Cards ──
+  var ds=(macro&&macro.dollar_smile)||{};
+  var news=(sent&&sent.news)||{};
+  var cal=(macro&&macro.calendar)||[];
+  var highCal=cal.filter(function(e){return e.impact==='High';});
+  var nextEvent=highCal[0];
+  var newsLabel=(news.label||'-');
+  var newsExpl=newsLabel.toLowerCase().indexOf('risk-off')>=0?'Nyheter signaliserer forsiktighet':'Nyheter signaliserer risikoappetitt';
 
-  // 3. COT-posisjoner
+  html+='<div class="key-grid">';
+  // VIX
+  var vixCol=vixVal<20?'var(--bull)':vixVal<=30?'var(--warn)':'var(--bear)';
+  html+='<div class="key-card"><div class="key-card-label">VIX Fryktindeks</div>'+
+    '<div class="key-card-val" style="color:'+vixCol+'">'+vixVal.toFixed(1)+'</div>'+
+    '<div class="key-card-desc">0-20 normalt, 20-30 urolig, 30+ panikk</div></div>';
+  // Dollar
+  var dollarDir=ds.usd_bias||'-';
+  var dollarCol=(ds.usd_color==='bull')?'var(--bull)':'var(--bear)';
+  html+='<div class="key-card"><div class="key-card-label">Dollar-retning</div>'+
+    '<div class="key-card-val" style="color:'+dollarCol+'">'+dollarDir+'</div>'+
+    '<div class="key-card-desc">'+(ds.desc||'Dollar-smil modell')+'</div></div>';
+  // News sentiment
+  var newsCol=newsLabel.toLowerCase().indexOf('risk-off')>=0?'var(--bear)':'var(--bull)';
+  html+='<div class="key-card"><div class="key-card-label">Nyhetssentiment</div>'+
+    '<div class="key-card-val" style="color:'+newsCol+'">'+newsLabel+'</div>'+
+    '<div class="key-card-desc">'+newsExpl+'</div></div>';
+  // Next calendar event
+  var nextTxt=nextEvent?(nextEvent.title+' ('+nextEvent.country+')'):'Ingen denne uken';
+  var nextTime=nextEvent?(nextEvent.cet||nextEvent.date||'-'):'';
+  html+='<div class="key-card"><div class="key-card-label">Neste store hendelse</div>'+
+    '<div class="key-card-val" style="font-size:14px;color:var(--bear)">'+nextTxt+'</div>'+
+    '<div class="key-card-desc">'+nextTime+'</div></div>';
+  html+='</div>';
+
+  // ── Section C: "Hva skjer na?" — 6 simple cards ──
+  var p=(macro&&macro.prices)||{};
+  html+='<div class="sh" style="margin-top:4px"><div class="sh-t">Hva skjer na?</div></div>';
+  html+='<div class="now-grid">';
+
+  // Aksjer (SPX)
+  var spx=p.SPX||{};
+  var spxChg=spx.chg1d||0;
+  var spxDir=spxChg>0.1?'stiger':spxChg<-0.1?'faller':'er flatt';
+  html+='<div class="now-card"><div class="now-top"><span class="now-icon">💰</span><span class="now-title">Aksjer (SPX)</span></div>'+
+    '<div class="now-price">'+(spx.price||'-')+'</div>'+
+    '<div class="now-chg '+(spxChg>=0?'up':'dn')+'">'+fp(spxChg)+'</div>'+
+    '<div class="now-desc">Aksjemarkedet '+spxDir+' i dag</div></div>';
+
+  // Gull
+  var gold=p.Gold||{};
+  var goldChg=gold.chg1d||0;
+  var goldDesc=goldChg>0?'Gull er opp — investorer soker trygg havn':'Gull er ned — investorer forlater trygg havn';
+  if(Math.abs(goldChg)<0.1) goldDesc='Gull er flatt — avventende marked';
+  html+='<div class="now-card"><div class="now-top"><span class="now-icon">🥇</span><span class="now-title">Gull (Gold)</span></div>'+
+    '<div class="now-price">'+(gold.price||'-')+'</div>'+
+    '<div class="now-chg '+(goldChg>=0?'up':'dn')+'">'+fp(goldChg)+'</div>'+
+    '<div class="now-desc">'+goldDesc+'</div></div>';
+
+  // Olje (Brent)
+  var brent=p.Brent||{};
+  var brentChg=brent.chg1d||0;
+  var brentDir=brentChg>0.1?'Oljeprisen stiger — tilbudsbekymring eller okt ettersporsel':brentChg<-0.1?'Oljeprisen faller — lavere ettersporsel eller okt tilbud':'Oljeprisen er stabil';
+  html+='<div class="now-card"><div class="now-top"><span class="now-icon">🛢️</span><span class="now-title">Olje (Brent)</span></div>'+
+    '<div class="now-price">'+(brent.price||'-')+'</div>'+
+    '<div class="now-chg '+(brentChg>=0?'up':'dn')+'">'+fp(brentChg)+'</div>'+
+    '<div class="now-desc">'+brentDir+'</div></div>';
+
+  // Dollar (DXY)
+  var dxy=p.DXY||{};
+  var dxyChg=dxy.chg1d||0;
+  var dxyDesc=(ds.desc||'').length>60?(ds.desc||'').substring(0,60)+'...':(ds.desc||'Dollarindeksen');
+  html+='<div class="now-card"><div class="now-top"><span class="now-icon">💱</span><span class="now-title">Dollar (DXY)</span></div>'+
+    '<div class="now-price">'+(dxy.price||'-')+'</div>'+
+    '<div class="now-chg '+(dxyChg>=0?'up':'dn')+'">'+fp(dxyChg)+'</div>'+
+    '<div class="now-desc">'+dxyDesc+'</div></div>';
+
+  // Store investorer (COT)
+  var bulls=0,bears=0;
   if(cotData&&cotData.length){
-    var bulls=0,bears=0,neutrals=0;
     cotData.forEach(function(e){
       var s=sig((e.spekulanter||{}).net||0,e.open_interest||1);
       if(s.indexOf('bull')>=0) bulls++;
       else if(s.indexOf('bear')>=0) bears++;
-      else neutrals++;
     });
-    var cotBadge=bulls>bears?'BULLISH FLERTALL':bears>bulls?'BEARISH FLERTALL':'BLANDET';
-    var cotCol=bulls>bears?'var(--bull)':bears>bulls?'var(--bear)':'var(--m)';
-    var cotBg=bulls>bears?'var(--bbg)':bears>bulls?'var(--rbg)':'var(--s2)';
-    cards+=dashCard('📊','COT-posisjoner','cot',
-      cotBadge, cotCol, cotBg,
-      bulls+'▲ '+bears+'▼', cotCol,
-      'Store fond: kjøper vs selger akkurat nå',
-      [bulls+' markeder med bullish posisjonering',
-       bears+' markeder med bearish posisjonering',
-       neutrals+' nøytrale markeder']);
   }
+  var cotDesc=bulls>bears?'Fond kjoper mer enn de selger':'Fond selger mer enn de kjoper';
+  if(bulls===bears) cotDesc='Fond er delt — like mange kjopere som selgere';
+  html+='<div class="now-card"><div class="now-top"><span class="now-icon">📊</span><span class="now-title">Store investorer</span></div>'+
+    '<div class="now-price" style="color:'+(bulls>bears?'var(--bull)':'var(--bear)')+'">'+bulls+'▲ '+bears+'▼</div>'+
+    '<div class="now-chg" style="color:var(--m)">COT-data</div>'+
+    '<div class="now-desc">'+cotDesc+'</div></div>';
 
-  // 4. Signal-logg
-  if(logData){
-    var entries=logData.entries||[];
-    var wins=entries.filter(function(e){return e.result==='win';}).length;
-    var losses=entries.filter(function(e){return e.result==='loss';}).length;
-    var open=entries.filter(function(e){return !e.result;}).length;
-    var winRate=wins+losses>0?Math.round(wins/(wins+losses)*100):null;
-    var recent=entries.slice(-3).reverse();
-    var wrCol=winRate>=60?'var(--bull)':winRate>=45?'var(--warn)':'var(--bear)';
-    var wrBg=winRate>=60?'var(--bbg)':winRate>=45?'var(--wbg)':'var(--rbg)';
-    cards+=dashCard('📋','Signal-logg','signallogg',
-      entries.length>0?(winRate!=null?winRate+'% WIN RATE':'ÅPNE'):'INGEN DATA', wrCol, wrBg,
-      entries.length+' handler', wrCol,
-      wins+' ✅ wins · '+losses+' ❌ tap · '+open+' åpne',
-      recent.map(function(e){
-        var s=e.signal||{};
-        return (e.result==='win'?'✅':e.result==='loss'?'❌':'🔵')+' '+(s.instrument||s.name||'–')+' '+(s.direction||s.action||'')+' – '+(e.exit_reason||'åpen');
-      }).concat(recent.length===0?['Ingen logger enda']:[]));
-  }
+  // Boten
+  var botEntries=(logData&&logData.entries)||[];
+  var botWins=botEntries.filter(function(e){return e.result==='win';}).length;
+  var botLosses=botEntries.filter(function(e){return e.result==='loss';}).length;
+  var botOpen=botEntries.filter(function(e){return !e.result;}).length;
+  var botWR=botWins+botLosses>0?Math.round(botWins/(botWins+botLosses)*100):null;
+  var lastTrade=botEntries.length?botEntries[botEntries.length-1]:null;
+  var lastResult=lastTrade?(lastTrade.result==='win'?'Siste: WIN':'Siste: '+(lastTrade.result||'APEN').toUpperCase()):'Ingen trades enna';
+  html+='<div class="now-card"><div class="now-top"><span class="now-icon">🤖</span><span class="now-title">Boten</span></div>'+
+    '<div class="now-price">'+(botWR!=null?botWR+'%':'–')+'</div>'+
+    '<div class="now-chg" style="color:var(--m)">'+botOpen+' apne trades</div>'+
+    '<div class="now-desc">'+lastResult+'</div></div>';
 
-  // 5. Kalender
-  if(macro&&macro.calendar){
-    var cal=macro.calendar||[];
-    var high=cal.filter(function(e){return e.impact==='High';});
-    var next=high[0];
-    cards+=dashCard('📅','Okonomisk kalender','kalender',
-      high.length+' HIGH IMPACT', 'var(--bear)', 'var(--rbg)',
-      high.length+'', 'var(--bear)',
-      'Viktige hendelser denne uken',
-      high.slice(0,3).map(function(e){return (e.cet||e.date)+' – '+e.title+' ('+e.country+')';}));
-  }
+  html+='</div>';
 
-  // 6. Priser
-  if(macro&&macro.prices){
-    var p=macro.prices;
-    var keyPairs=['EURUSD','Gold','Brent','USDJPY'];
-    cards+=dashCard('💹','Markedspriser','priser',
-      'LIVE', 'var(--blue)', 'var(--blbg)',
-      keyPairs.filter(function(k){return p[k];}).length+' markeder', 'var(--blue)',
-      'Valuta · Råvarer · Indekser',
-      keyPairs.filter(function(k){return p[k];}).map(function(k){
-        var v=p[k]; var chg=v.chg1d||0;
-        return k+': '+(v.price>100?v.price.toFixed(2):v.price.toFixed(4))+' ('+(chg>=0?'+':'')+chg.toFixed(2)+'%)';
-      }));
+  // ── Section D: Top 3 Active Signals ──
+  var sigs=(signals&&signals.signals)||[];
+  if(sigs.length){
+    html+='<div class="sh" style="margin-top:4px"><div class="sh-t">Topp signaler</div></div>';
+    var top3=sigs.slice(0,3);
+    top3.forEach(function(s){
+      var isBull=(s.action||'').toUpperCase().indexOf('BUY')>=0||(s.action||'').toUpperCase().indexOf('LONG')>=0||(s.direction||'').toUpperCase().indexOf('BUY')>=0;
+      var dirLabel=isBull?'KJOP':'SELG';
+      var dirCol=isBull?'bull':'bear';
+      var entry=s.entry?fmtP(s.entry):'-';
+      var sl=s.stop||s.sl?fmtP(s.stop||s.sl):'-';
+      var t1=s.t1||s.target1?fmtP(s.t1||s.target1):'-';
+      var gradeCol=s.grade==='A+'||s.grade==='A'?'bull':s.grade==='B'?'warn':'bear';
+      var desc='Venter pa at prisen treffer '+entry+' for a '+(isBull?'kjope':'selge');
+      html+='<div class="sig-card">'+
+        '<div class="sig-top">'+
+          '<span class="sig-name">'+(s.name||s.instrument||'-')+'</span>'+
+          '<span class="sig-dir '+dirCol+'">'+dirLabel+'</span>'+
+          '<span class="tgrade '+gradeCol+'">'+(s.grade||'-')+'</span>'+
+        '</div>'+
+        '<div class="sig-levels">'+
+          '<span>Entry: <span style="color:var(--blue)">'+entry+'</span></span>'+
+          '<span>SL: <span style="color:var(--bear)">'+sl+'</span></span>'+
+          '<span>T1: <span style="color:var(--bull)">'+t1+'</span></span>'+
+          (s.rr_t1?'<span>RR: <span style="color:var(--warn)">1:'+s.rr_t1+'</span></span>':'')+
+        '</div>'+
+        '<div class="sig-desc">'+desc+'</div>'+
+      '</div>';
+    });
   }
 
   document.getElementById('dashDate').textContent=macro?toNO(macro.date)||'-':'-';
-  document.getElementById('dashGrid').innerHTML=cards||'<div class="loading">Ingen data</div>';
+  document.getElementById('dashContent').innerHTML=html||'<div class="loading">Ingen data</div>';
 }
 
 function togIde(idx){
@@ -818,7 +895,6 @@ function renderIdeer(m){
         '</div>'+
         '<div id="tdet'+i+'" class="tdet">'+
           buildExplain(lv)+
-          (brisk.length?'':'')+ // briskHtml already in buildExplain
           '<div class="setup-grid">'+
             '<div class="setup-side">'+renderSetupSide(lv.setup_long,'LONG',lv.supports)+'</div>'+
             '<div class="setup-side">'+renderSetupSide(lv.setup_short,'SHORT',lv.resistances)+'</div>'+
