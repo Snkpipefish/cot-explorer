@@ -1213,13 +1213,13 @@ function initMap(){
   var map = new maplibregl.Map({
     container: 'map',
     style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-    center: [20, 15],
-    zoom: 1.2,
+    center: [20, 20],
+    zoom: 1.5,
     renderWorldCopies: false,
-    maxBounds: [[-180, -70], [180, 80]],
     scrollZoom: false,
     boxZoom: false,
     doubleClickZoom: false,
+    dragPan: false,
     dragRotate: false,
     touchZoomRotate: false,
     keyboard: false,
@@ -1229,6 +1229,8 @@ function initMap(){
   window.mlMap = map;
 
   map.on('load', function(){
+    // Fit hele verden i containeren
+    map.fitBounds([[-160, -50], [180, 70]], {padding: 10, animate: false});
     Promise.all([
       loadJSON('data/geointel/shipping_lanes.json'),
       loadJSON('data/geointel/pipelines.json'),
