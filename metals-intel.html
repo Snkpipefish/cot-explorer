@@ -114,6 +114,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   .ship-route-grid{grid-template-columns:1fr!important}
   .ship-route-impact{display:none}
   .metrics{grid-template-columns:1fr}
+  .tab-map-wrap{height:400px}
 }
 /* Modal popup */
 .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:500;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto}
@@ -1185,7 +1186,10 @@ function showMapForTab(tab){
   if(!mapEl) return;
   currentMapTab = tab;
   wrap.appendChild(mapEl);
-  setTimeout(function(){ window.mlMap.resize(); }, 50);
+  setTimeout(function(){
+    window.mlMap.resize();
+    window.mlMap.fitBounds([[-180, -80], [180, 85]], {padding: 0, animate: false});
+  }, 50);
 
   var showIds;
   if(tab==='energy') showIds = ENERGY_LAYERS;
