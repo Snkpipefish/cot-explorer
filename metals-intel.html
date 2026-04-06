@@ -333,7 +333,7 @@ function fmtSt(n){if(!n)return '0';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(1)
 function fmtChg(n,isOz){if(!n)return '';var s=(n>0?'+':'')+(isOz?fmtOz(n):fmtSt(n));return '<span class="comex-chg '+(n>0?'pos':'neg')+'">'+s+'</span>';}
 function fmtNum(n){if(n==null)return '—';if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+'M';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(0)+'K';return n.toString();}
 function stressColor(v){if(v>=70)return 'var(--bear)';if(v>=40)return 'var(--warn)';return 'var(--bull)';}
-function loadJSON(url){return fetch(url).then(function(r){return r.json();}).catch(function(e){console.warn('Load failed:',url,e);return null;});}
+function loadJSON(url){return fetch(url).then(function(r){if(!r.ok)return null;return r.json();}).catch(function(e){console.warn('Load failed:',url,e);return null;});}
 
 // ── Stage labels + colors ────────────────────────────────────
 var STAGE_NO={'post-harvest':'Etter-høst','pre-plant':'Forberedelse','planting':'Såing','early-growth':'Tidlig vekst','growing':'Vekst','flowering':'Blomstring','ripening':'Modning','harvest':'Høsting','dormancy':'Dvale','dormancy-end':'Dvale slutter','heading':'Akssetting','boll-dev':'Bolleutvikling','main-harvest':'Hovedhøst','mid-crop':'Mellom-sesong','low-prod':'Lav produksjon','recovering':'Gjenoppretting','moderate':'Moderat','peak':'Topp-sesong','emergence':'Spiring','sowing':'Såing'};
@@ -406,7 +406,8 @@ function renderIntelSection(d){
   });
   document.getElementById('intelFilters').innerHTML=fh;
   renderIntel();
-  document.getElementById('intelSummary').textContent=intelData.length+' artikler · gull, sølv, kobber, energi';
+  var sumEl=document.getElementById('intelSummary');
+  if(sumEl) sumEl.textContent=intelData.length+' artikler · gull, sølv, kobber, energi';
 }
 function filterIntel(cat,btn){
   activeIntelCat=cat;
@@ -434,20 +435,59 @@ var _YIELD_COL={'Utmerket':'var(--bull)','God':'var(--bull)','Middels':'var(--wa
 function progressBar(pct,color,w){w=w||'100%';pct=Math.max(0,Math.min(100,pct||0));return'<div style="width:'+w+';height:6px;background:var(--b);border-radius:3px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+color+';border-radius:3px;transition:width .3s"></div></div>';}
 function yieldCol(rating){if(!rating)return'var(--m)';for(var k in _YIELD_COL){if(rating.indexOf(k)>=0)return _YIELD_COL[k];}return'var(--m)';}
 
-function renderCotSection(d){
+function renderCotSection(d, iceCot, euronextCot){
   if(!d||!Array.isArray(d)) return;
-  var skip=/calendar spread|cso|financial|options|pjm|avg price/i;
+  var skip=/calendar spread|cso|financial|options|pjm|avg price|cal spread|crk|spread|1st line|midland|argus|gulf coast|mt belv|index.*ep|micro/i;
   // Split energi vs metaller vs landbruk
-  var energiKeys=/crude|natural gas|gasoline|rbob|heating|brent|gasoil|diesel|ethanol|propane/i;
+  var energiKeys=/crude|wti|natural gas|gasoline|rbob|heating|brent|gasoil|diesel|ethanol|propane|fuel/i;
+  var metallKeys=/gold|silver|copper|platinum|palladium|lumber/i;
   var energi=d.filter(function(x){return x.kategori==='råvarer'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market)&&energiKeys.test(x.market);});
-  var metaller=d.filter(function(x){return x.kategori==='råvarer'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market)&&!energiKeys.test(x.market);});
+  var metaller=d.filter(function(x){return x.kategori==='råvarer'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market)&&metallKeys.test(x.market);});
   var landbruk=d.filter(function(x){return x.kategori==='landbruk'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market);});
+
+  // Legg til ICE COT (Brent, Gasoil) i energi-tab
+  if(iceCot && iceCot.markets){
+    iceCot.markets.forEach(function(m){
+      if(m.spekulanter && m.spekulanter.net!=null){
+        energi.push({
+          market: m.market + ' (ICE)',
+          navn_no: m.market.replace('ice ','').replace('crude','Brent').replace('gasoil','Gasoil'),
+          spekulanter: m.spekulanter,
+          open_interest: m.open_interest||1,
+          change_spec_net: m.change_spec_net||0,
+          spec_net_history: m.spec_net_history||[],
+          forklaring: 'ICE Futures Europe'
+        });
+      }
+    });
+  }
+
+  // Legg til Euronext COT (hvete, raps, mais) i landbruk-tab
+  if(euronextCot && Array.isArray(euronextCot)){
+    euronextCot.forEach(function(m){
+      if(m.spekulanter && m.spekulanter.net!=null){
+        landbruk.push({
+          market: m.market + ' (Euronext)',
+          navn_no: m.navn_no||m.market,
+          spekulanter: m.spekulanter,
+          open_interest: m.open_interest||1,
+          change_spec_net: m.change_spec_net||0,
+          spec_net_history: m.spec_net_history||[],
+          forklaring: 'Euronext MiFID II'
+        });
+      }
+    });
+  }
+
   function byAbs(a,b){return Math.abs(b.spekulanter.net)-Math.abs(a.spekulanter.net);}
   energi.sort(byAbs); metaller.sort(byAbs); landbruk.sort(byAbs);
+
   // Render til 3 separate containers
-  document.getElementById('cotEnergyCards').innerHTML=renderCotGroup('🛢️ Energi ('+energi.length+')',energi)||'<div class="loading">Ingen energi COT</div>';
-  document.getElementById('cotMetalCards').innerHTML=renderCotGroup('⚙️ Metaller ('+metaller.length+')',metaller)||'<div class="loading">Ingen metall COT</div>';
-  document.getElementById('cotAgriCards').innerHTML=renderCotGroup('🌾 Landbruk ('+landbruk.length+')',landbruk)||'<div class="loading">Ingen landbruk COT</div>';
+  var eSrc=iceCot?' · Inkl. ICE Futures Europe':'';
+  var aSrc=euronextCot?' · Inkl. Euronext MiFID II':'';
+  document.getElementById('cotEnergyCards').innerHTML=renderCotGroup('🛢️ CFTC + ICE Energi ('+energi.length+')'+eSrc,energi)||'<div class="loading">Ingen energi COT</div>';
+  document.getElementById('cotMetalCards').innerHTML=renderCotGroup('⚙️ CFTC Metaller ('+metaller.length+')',metaller)||'<div class="loading">Ingen metall COT</div>';
+  document.getElementById('cotAgriCards').innerHTML=renderCotGroup('🌾 CFTC + Euronext Landbruk ('+landbruk.length+')'+aSrc,landbruk)||'<div class="loading">Ingen landbruk COT</div>';
 }
 
 function renderCotGroup(title, items){
@@ -1442,33 +1482,31 @@ Promise.all([
   loadJSON('data/agri/latest.json'),
   loadJSON('data/shipping/latest.json'),
   loadJSON('data/oilgas/latest.json'),
+  loadJSON('data/ice_cot/latest.json'),
+  loadJSON('data/euronext_cot/latest.json'),
 ]).then(function(res){
-  var comex=res[0], intel=res[1], cot=res[2], agri=res[3], ship=res[4], og=res[5];
+  var comex=res[0], intel=res[1], cot=res[2], agri=res[3], ship=res[4], og=res[5], iceCot=res[6], euronextCot=res[7];
 
   // Update timestamp
   var ts = (og && og.generated) || (ship && ship.generated) || (agri && agri.generated) || '-';
   document.getElementById('updLabel').textContent = 'Oppdatert: ' + toNO(ts);
 
-  // Seksjon 1: Oversiktsbanner
+  // Bannere per tab
   renderOverview(comex, ship, og, agri);
 
-  // Seksjon 2: Olje & Gass
+  // Tab 1: Energi & Shipping
   renderOilgasSection(og);
-
-  // Seksjon 3: Avlings-analyse
-  renderAgriSection(agri);
-
-  // Seksjon 4: COMEX
-  renderComex(comex);
-
-  // Seksjon 5: Shipping
   renderShippingSection(ship);
 
-  // Seksjon 7: Råvare COT
-  renderCotSection(cot);
-
-  // Seksjon 8: Intel Feed
+  // Tab 2: Metaller
+  renderComex(comex);
   renderIntelSection(intel);
+
+  // Tab 3: Avlinger
+  renderAgriSection(agri);
+
+  // COT med ICE + Euronext
+  renderCotSection(cot, iceCot, euronextCot);
 });
 </script>
 </body>
