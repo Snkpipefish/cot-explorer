@@ -139,6 +139,15 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   .ship-route-impact{display:none}
   .metrics{grid-template-columns:1fr}
 }
+/* Modal popup */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:500;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--bg);border:1px solid var(--b);border-radius:12px;width:100%;max-width:1200px;max-height:calc(100vh - 80px);overflow-y:auto;padding:24px;position:relative}
+.modal-close{position:sticky;top:0;float:right;background:var(--s);border:1px solid var(--b);border-radius:8px;color:var(--t);font-size:18px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10}
+.modal-close:hover{background:var(--rbg);border-color:var(--bear)}
+.open-modal-btn{background:var(--s);border:1px solid var(--b);border-radius:8px;color:var(--blue);font-size:13px;font-weight:600;padding:10px 18px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+.open-modal-btn:hover{background:var(--blbg);border-color:var(--blue)}
+@media(max-width:600px){.modal-overlay{padding:10px}.modal-box{padding:14px}}
 </style>
 </head>
 <body>
@@ -240,17 +249,48 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
     </div>
   </div>
 
-  <!-- SEKSJON 7: Råvare COT -->
+  <!-- SEKSJON 7: Råvare COT (popup) -->
   <div class="section" id="sec-cot">
-    <div class="section-title">📊 Råvare COT <span class="section-sub">Spekulantposisjonering fra CFTC</span></div>
-    <div id="cotCards"><div class="loading"><div class="spinner"></div>Laster COT-data...</div></div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div class="section-title" style="margin-bottom:0">📊 Råvare COT</div>
+      <button class="open-modal-btn" onclick="openModal('cotModal')">Åpne COT-data →</button>
+      <span id="cotSummary" style="font-size:12px;color:var(--m)"></span>
+    </div>
   </div>
 
-  <!-- SEKSJON 8: Intel Feed -->
+  <!-- SEKSJON 8: Intel Feed (popup) -->
   <div class="section" id="sec-intel">
-    <div class="section-title">📰 Intel Feed <span class="section-sub">Nyheter og analyser</span></div>
-    <div class="intel-filters" id="intelFilters"><button class="intel-btn active" data-cat="all">Alle</button></div>
-    <div id="intelFeed"><div class="loading"><div class="spinner"></div>Laster nyheter...</div></div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div class="section-title" style="margin-bottom:0">📰 Intel Feed</div>
+      <button class="open-modal-btn" onclick="openModal('intelModal')">Åpne nyheter →</button>
+      <span id="intelSummary" style="font-size:12px;color:var(--m)"></span>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal-overlay" id="cotModal" onclick="if(event.target===this)closeModal('cotModal')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('cotModal')">✕</button>
+      <div class="section-title">📊 Råvare COT <span class="section-sub">Spekulantposisjonering fra CFTC</span></div>
+      <div id="cotCards"><div class="loading"><div class="spinner"></div>Laster COT-data...</div></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="intelModal" onclick="if(event.target===this)closeModal('intelModal')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('intelModal')">✕</button>
+      <div class="section-title">📰 Intel Feed <span class="section-sub">Nyheter og analyser</span></div>
+      <div class="intel-filters" id="intelFilters"><button class="intel-btn active" data-cat="all">Alle</button></div>
+      <div id="intelFeed"><div class="loading"><div class="spinner"></div>Laster nyheter...</div></div>
+    </div>
+  </div>
+
+  <!-- Avlings-detalj modal -->
+  <div class="modal-overlay" id="agriDetailModal" onclick="if(event.target===this)closeModal('agriDetailModal')">
+    <div class="modal-box" style="max-width:800px">
+      <button class="modal-close" onclick="closeModal('agriDetailModal')">✕</button>
+      <div id="agriDetailContent"></div>
+    </div>
   </div>
 
 </div><!-- /main -->
@@ -262,6 +302,20 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 
 <script>
 // ── Helpers ─────────────────────────────────────────────────
+// ── Modal-funksjoner ─────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.open').forEach(function(m){m.classList.remove('open');});document.body.style.overflow='';}});
+
+// ── Global agri data for popup ───────────────────────────────
+var _agriData = null;
+function showCropDetail(idx){
+  if(!_agriData||!_agriData.crop_summary||!_agriData.crop_summary[idx])return;
+  var c=_agriData.crop_summary[idx];
+  document.getElementById('agriDetailContent').innerHTML=renderCropDetail(c);
+  openModal('agriDetailModal');
+}
+
 function toNO(str){if(!str||str==='-')return str||'-';var m=str.match(/(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);if(!m)return str;try{var dt=new Date(m[1]+'T'+m[2]+':00Z');return dt.toLocaleString('nb-NO',{timeZone:'Europe/Oslo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return str;}}
 function fmtOz(n){if(!n)return '0';if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+' Moz';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(0)+'K oz';return n.toLocaleString()+' oz';}
 function fmtSt(n){if(!n)return '0';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(1)+'K st';return n.toLocaleString()+' st';}
@@ -341,6 +395,7 @@ function renderIntelSection(d){
   });
   document.getElementById('intelFilters').innerHTML=fh;
   renderIntel();
+  document.getElementById('intelSummary').textContent=intelData.length+' artikler · gull, sølv, kobber, energi';
 }
 function filterIntel(cat,btn){
   activeIntelCat=cat;
@@ -363,6 +418,11 @@ function renderIntel(){
 }
 
 // ── Råvare COT ──────────────────────────────────────────────
+// Globale versjoner av hjelpefunksjoner brukt i renderCropDetail popup
+var _YIELD_COL={'Utmerket':'var(--bull)','God':'var(--bull)','Middels':'var(--warn)','Svak':'var(--bear)','Kritisk':'var(--bear)'};
+function progressBar(pct,color,w){w=w||'100%';pct=Math.max(0,Math.min(100,pct||0));return'<div style="width:'+w+';height:6px;background:var(--b);border-radius:3px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+color+';border-radius:3px;transition:width .3s"></div></div>';}
+function yieldCol(rating){if(!rating)return'var(--m)';for(var k in _YIELD_COL){if(rating.indexOf(k)>=0)return _YIELD_COL[k];}return'var(--m)';}
+
 function renderCotSection(d){
   if(!d||!Array.isArray(d)){document.getElementById('cotCards').innerHTML='<div class="loading">Ingen COT-data – kjør update.sh</div>';return;}
   var skip=/calendar spread|cso|financial|options|pjm|avg price/i;
@@ -371,6 +431,10 @@ function renderCotSection(d){
   function byAbs(a,b){return Math.abs(b.spekulanter.net)-Math.abs(a.spekulanter.net);}
   ravarer.sort(byAbs); landbruk.sort(byAbs);
   document.getElementById('cotCards').innerHTML=renderCotGroup('🛢️ Energi & Metaller',ravarer)+renderCotGroup('🌾 Landbruk',landbruk);
+  // Oppdater knapp-summary
+  var bulls=0,bears=0;
+  d.forEach(function(e){var n=(e.spekulanter||{}).net||0,oi=e.open_interest||1;if(n/oi*100>5)bulls++;else if(n/oi*100<-5)bears++;});
+  document.getElementById('cotSummary').textContent=ravarer.length+' energi/metall + '+landbruk.length+' landbruk · '+bulls+'▲ bull / '+bears+'▼ bear';
 }
 
 function renderCotGroup(title, items){
@@ -407,6 +471,7 @@ function renderAgriSection(d){
     document.getElementById('agriContent').innerHTML='<div class="loading">Ingen avlingsdata – kjør update.sh</div>';
     return;
   }
+  _agriData = d;
   document.getElementById('agriContent').innerHTML = renderAgri(d);
 }
 
@@ -466,7 +531,7 @@ function renderAgri(d){
   h += '<th class="agri-col-drivers" style="text-align:left;padding:6px 8px">Hoveddrivere</th>';
   h += '</tr></thead><tbody>';
 
-  d.crop_summary.forEach(function(c){
+  d.crop_summary.forEach(function(c, i){
     var sig = c.outlook.signal;
     var col = SIGNAL_COL[sig] || 'var(--m)';
     var bold = sig.indexOf('STERKT') >= 0 ? 'font-weight:700' : '';
@@ -511,8 +576,8 @@ function renderAgri(d){
       priceTxt += '<br><span style="font-size:10px;color:'+chgCol+'">'+chgSign+chg.toFixed(1)+'%</span>';
     }
 
-    h += '<tr style="border-bottom:1px solid var(--b)">';
-    h += '<td style="padding:8px;font-weight:600">' + c.ikon + ' ' + c.navn + '</td>';
+    h += '<tr style="border-bottom:1px solid var(--b);cursor:pointer" onclick="showCropDetail('+i+')" title="Klikk for detaljer">';
+    h += '<td style="padding:8px;font-weight:600">' + c.ikon + ' ' + c.navn + ' <span style="font-size:10px;color:var(--blue)">▸</span></td>';
     h += '<td style="padding:8px;text-align:right;font-size:12px">' + priceTxt + '</td>';
     h += '<td class="agri-col-season" style="padding:8px;text-align:center;font-size:11px">' + seasonTxt + '</td>';
     h += '<td style="padding:8px;text-align:center;color:' + col + ';' + bold + '">' + sig + '</td>';
@@ -526,159 +591,115 @@ function renderAgri(d){
   });
   h += '</tbody></table></div>';
 
-  // ── Per-avling detaljkort ──
-  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px">';
-  d.crop_summary.forEach(function(c){
-    var sig = c.outlook.signal;
-    var col = SIGNAL_COL[sig] || 'var(--m)';
-    var cot = c.cot;
-    var cotNet = cot ? (cot.net > 0 ? '+' : '') + (cot.net/1000).toFixed(0) + 'K' : '—';
-    var cotChg = cot ? ((cot.change > 0 ? '+' : '') + (cot.change/1000).toFixed(0) + 'K uke') : '';
-    var cotPct  = cot ? (cot.net_pct > 0 ? '+' : '') + cot.net_pct + '% av OI' : '';
+  h += '<div style="font-size:12px;color:var(--m);margin-top:10px;text-align:center">Klikk på en rad for å se detaljer om vekstsyklus, vær, yield og COT</div>';
+  return h;
+}
 
-    h += '<div class="card" style="border-top:3px solid ' + col + '">';
-    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
-    h += '<div style="font-size:16px;font-weight:700">' + c.ikon + ' ' + c.navn + '</div>';
-    h += '<div style="font-size:12px;font-weight:700;color:' + col + '">' + sig + '</div>';
-    h += '</div>';
+// ── Avlings-detalj popup ────────────────────────────────────────
+function renderCropDetail(c){
+  var SIGNAL_COL={'STERKT BULLISH':'var(--bull)','BULLISH':'var(--bull)','NØYTRAL':'var(--m)','BEARISH':'var(--bear)','STERKT BEARISH':'var(--bear)'};
+  var WX_COL={'tørt':'var(--warn)','vått':'var(--blue)','hett':'var(--bear)','kaldt':'var(--blue)','normalt':'var(--bull)','utmerket':'var(--bull)'};
+  var WX_IKON={'tørt':'🏜️','vått':'🌧️','hett':'🔥','kaldt':'❄️','normalt':'✅','utmerket':'✅'};
+  var sig=c.outlook.signal, col=SIGNAL_COL[sig]||'var(--m)';
+  var cot=c.cot;
+  var cotNet=cot?(cot.net>0?'+':'')+(cot.net/1000).toFixed(0)+'K':'—';
+  var cotChg=cot?((cot.change>0?'+':'')+(cot.change/1000).toFixed(0)+'K uke'):'';
+  var cotPct=cot?(cot.net_pct>0?'+':'')+cot.net_pct+'% av OI':'';
+  var h='';
 
-    // ── Pris ──
-    if(c.price && c.price.value){
-      var pv = c.price.value;
-      var pd = pv < 10 ? 4 : pv < 100 ? 2 : pv < 10000 ? 1 : 0;
-      var ch1 = c.price.chg1d || 0;
-      var ch5 = c.price.chg5d || 0;
-      var ch1c = ch1 > 0 ? 'var(--bull)' : ch1 < 0 ? 'var(--bear)' : 'var(--m)';
-      var ch5c = ch5 > 0 ? 'var(--bull)' : ch5 < 0 ? 'var(--bear)' : 'var(--m)';
-      var ch1s = ch1 > 0 ? '+' : '';
-      var ch5s = ch5 > 0 ? '+' : '';
-      h += '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;padding:6px 8px;background:var(--b);border-radius:6px">';
-      h += '<span style="font-size:18px;font-weight:700">$'+pv.toFixed(pd)+'</span>';
-      h += '<span style="font-size:11px;color:'+ch1c+'">1d: '+ch1s+ch1.toFixed(1)+'%</span>';
-      h += '<span style="font-size:11px;color:'+ch5c+'">5d: '+ch5s+ch5.toFixed(1)+'%</span>';
-      h += '<span style="font-size:9px;color:var(--m);margin-left:auto">'+c.price.source+'</span>';
-      h += '</div>';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">';
+  h+='<div style="font-size:20px;font-weight:700">'+c.ikon+' '+c.navn+'</div>';
+  h+='<div style="font-size:14px;font-weight:700;color:'+col+'">'+sig+'</div></div>';
+
+  // Pris
+  if(c.price&&c.price.value){
+    var pv=c.price.value,pd=pv<10?4:pv<100?2:pv<10000?1:0;
+    var ch1=c.price.chg1d||0,ch5=c.price.chg5d||0;
+    h+='<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px;padding:10px 12px;background:var(--b);border-radius:8px">';
+    h+='<span style="font-size:22px;font-weight:700">$'+pv.toFixed(pd)+'</span>';
+    h+='<span style="font-size:12px;color:'+(ch1>0?'var(--bull)':'var(--bear)')+'">1d: '+(ch1>0?'+':'')+ch1.toFixed(1)+'%</span>';
+    h+='<span style="font-size:12px;color:'+(ch5>0?'var(--bull)':'var(--bear)')+'">5d: '+(ch5>0?'+':'')+ch5.toFixed(1)+'%</span>';
+    h+='<span style="font-size:10px;color:var(--m);margin-left:auto">'+c.price.source+'</span>';
+    h+='</div>';
+  }
+
+  // Vekstsyklus
+  if(c.growth_stage){
+    h+='<div class="card" style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;margin-bottom:8px">📅 Vekstsyklus</div>';
+    if(c.in_season){
+      var stages=[{n:'Såing',c:'#3fb950'},{n:'Vekst',c:'#1a7f37'},{n:'Blomstring',c:'#d29922'},{n:'Modning',c:'#da7726'},{n:'Høsting',c:'#8b6914'}];
+      h+='<div style="display:flex;height:10px;border-radius:5px;overflow:hidden;margin-bottom:6px">';
+      stages.forEach(function(s){h+='<div style="flex:1;background:'+s.c+';opacity:0.3"></div>';});
+      h+='</div>';
+      var pct=c.growth_stage_pct||0;
+      h+='<div style="position:relative;height:0;margin-top:-14px;margin-bottom:10px"><div style="position:absolute;left:'+pct+'%;transform:translateX(-50%);font-size:10px;color:var(--t)">▼</div></div>';
+      h+='<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--m);margin-bottom:8px">';
+      stages.forEach(function(s){h+='<span>'+s.n+'</span>';});
+      h+='</div>';
+      h+='<div style="font-size:13px">'+(c.growth_stage_icon||'🌱')+' <strong>'+c.growth_stage+'</strong> ('+pct+'% gjennom sesongen)</div>';
+      if(c.harvest_window) h+='<div style="font-size:12px;color:var(--m);margin-top:4px">🚜 Forventet høsting: '+c.harvest_window+'</div>';
+    } else {
+      h+='<div style="font-size:13px;color:var(--m)">💤 Av-sesong'+(c.season_months?' · Neste sesong: '+c.season_months:'')+'</div>';
     }
+    h+='</div>';
+  }
 
-    // ── Vekstsyklus ──
-    if(c.growth_stage){
-      h += '<div style="font-size:11px;color:var(--m);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">';
-      h += '📅 Vekstsyklus';
-      h += '<span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;opacity:.7">Livssyklusen fra såing til høsting</span>';
-      h += '</div>';
-      if(c.in_season){
-        var stages = [{n:'Såing',c:'#3fb950'},{n:'Vekst',c:'#1a7f37'},{n:'Blomstring',c:'#d29922'},{n:'Modning',c:'#da7726'},{n:'Høsting',c:'#8b6914'}];
-        h += '<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:4px;position:relative">';
-        stages.forEach(function(s){
-          h += '<div style="flex:1;background:'+s.c+';opacity:0.3"></div>';
-        });
-        h += '</div>';
-        var pct = c.growth_stage_pct || 0;
-        h += '<div style="position:relative;height:0;margin-top:-12px;margin-bottom:8px">';
-        h += '<div style="position:absolute;left:'+pct+'%;transform:translateX(-50%);font-size:8px;color:var(--t)">▼</div>';
-        h += '</div>';
-        h += '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--m);margin-bottom:6px">';
-        stages.forEach(function(s){ h += '<span>'+s.n+'</span>'; });
-        h += '</div>';
-        h += '<div style="font-size:12px;margin-bottom:4px">';
-        h += (c.growth_stage_icon||'🌱')+' <strong>'+c.growth_stage+'</strong> ('+pct+'% gjennom sesongen)';
-        h += '</div>';
-        if(c.harvest_window){
-          h += '<div style="font-size:11px;color:var(--m);margin-bottom:8px">🚜 Forventet høsting: '+c.harvest_window+'</div>';
-        }
-      } else {
-        h += '<div style="font-size:12px;color:var(--m);margin-bottom:8px">💤 Av-sesong'+(c.season_months ? ' · Neste sesong: '+c.season_months : '')+'</div>';
-      }
+  // Sesongvær
+  if(c.in_season&&(c.gdd_pct!=null||c.precip_pct!=null)){
+    h+='<div class="card" style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;margin-bottom:8px">🌤️ Værforhold denne sesongen</div>';
+    h+='<div style="display:flex;gap:20px;margin-bottom:8px">';
+    if(c.gdd_pct!=null){
+      var gddCol=c.gdd_pct>5?'var(--bull)':'var(--warn)';
+      h+='<div style="flex:1"><div style="font-size:11px;color:var(--m);margin-bottom:4px">🌡️ Varme (GDD)</div>';
+      h+=progressBar(c.gdd_pct,gddCol);
+      h+='<div style="font-size:11px;color:var(--m);margin-top:4px">'+(c.gdd_accumulated||0)+' av '+(c.gdd_required||'?')+' varmeenheter</div></div>';
     }
-
-    // ── Sesongvær & Yield ──
-    if(c.in_season && (c.gdd_pct != null || c.precip_pct != null)){
-      h += '<div style="font-size:11px;color:var(--m);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">';
-      h += '🌤️ Værforhold denne sesongen';
-      h += '<span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;opacity:.7">Faktisk vs. hva avlingen trenger</span>';
-      h += '</div>';
-      h += '<div style="display:flex;gap:16px;margin-bottom:8px">';
-      if(c.gdd_pct != null){
-        var gddCol = c.gdd_pct > 5 ? 'var(--bull)' : 'var(--warn)';
-        h += '<div style="flex:1">';
-        h += '<div style="font-size:10px;color:var(--m);margin-bottom:2px">🌡️ Varme (GDD)</div>';
-        h += progressBar(c.gdd_pct, gddCol);
-        h += '<div style="font-size:10px;color:var(--m);margin-top:2px">'+(c.gdd_accumulated||0)+' av '+(c.gdd_required||'?')+' varmeenheter</div>';
-        h += '</div>';
-      }
-      if(c.precip_pct != null){
-        var precCol = c.precip_pct > 60 && c.precip_pct < 140 ? 'var(--bull)' : c.precip_pct > 30 ? 'var(--warn)' : 'var(--bear)';
-        h += '<div style="flex:1">';
-        h += '<div style="font-size:10px;color:var(--m);margin-bottom:2px">🌧️ Nedbør</div>';
-        h += progressBar(Math.min(c.precip_pct, 100), precCol);
-        h += '<div style="font-size:10px;color:var(--m);margin-top:2px">'+(c.season_precip_mm||0)+'mm av '+(c.ideal_precip_mm||'?')+'mm ideelt</div>';
-        h += '</div>';
-      }
-      h += '</div>';
-      if(c.stress_days > 0){
-        h += '<div style="font-size:11px;color:var(--bear);margin-bottom:6px">⚠️ '+c.stress_days+' dager med ekstremvær (kan skade avlingen)</div>';
-      }
+    if(c.precip_pct!=null){
+      var precCol=c.precip_pct>60&&c.precip_pct<140?'var(--bull)':c.precip_pct>30?'var(--warn)':'var(--bear)';
+      h+='<div style="flex:1"><div style="font-size:11px;color:var(--m);margin-bottom:4px">🌧️ Nedbør</div>';
+      h+=progressBar(Math.min(c.precip_pct,100),precCol);
+      h+='<div style="font-size:11px;color:var(--m);margin-top:4px">'+(c.season_precip_mm||0)+'mm av '+(c.ideal_precip_mm||'?')+'mm ideelt</div></div>';
     }
+    h+='</div>';
+    if(c.stress_days>0) h+='<div style="font-size:12px;color:var(--bear)">⚠️ '+c.stress_days+' dager med ekstremvær</div>';
+    h+='</div>';
+  }
 
-    // Yield-kvalitet
-    if(c.yield_quality){
-      var yc = yieldCol(c.yield_quality);
-      var yIcon = c.yield_score >= 70 ? '🟢' : c.yield_score >= 55 ? '🟡' : '🔴';
-      h += '<div style="padding:8px 10px;background:var(--s2);border-radius:6px;border:1px solid var(--b);margin-bottom:8px">';
-      h += '<div style="font-size:12px;font-weight:600;color:'+yc+'">'+yIcon+' Yield-estimat: '+c.yield_quality+'</div>';
-      if(c.yield_hint){
-        h += '<div style="font-size:11px;color:var(--m);margin-top:2px">'+c.yield_hint+'</div>';
-      }
-      h += '</div>';
-    }
+  // Yield
+  if(c.yield_quality){
+    var yc=yieldCol(c.yield_quality);
+    var yIcon=c.yield_score>=70?'🟢':c.yield_score>=55?'🟡':'🔴';
+    h+='<div class="card" style="margin-bottom:12px"><div style="font-size:13px;font-weight:600;color:'+yc+'">'+yIcon+' Yield-estimat: '+c.yield_quality+'</div>';
+    if(c.yield_hint) h+='<div style="font-size:12px;color:var(--m);margin-top:4px">'+c.yield_hint+'</div>';
+    h+='</div>';
+  }
 
-    // Regioner med vær-risiko
-    if(c.worst_region){
-      h += '<div style="font-size:11px;color:var(--m);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">🌍 Vær neste 7 dager</div>';
-      var wxOut = c.worst_region.weather_outlook;
-      var wxIkon = WX_IKON[wxOut] || '❓';
-      var wxCol  = WX_COL[wxOut]  || 'var(--m)';
-      h += '<div style="font-size:13px;margin-bottom:4px;color:' + wxCol + '">';
-      h += wxIkon + ' ' + c.worst_region.region_name + ': ' + c.worst_region.weather_summary;
-      h += '</div>';
-      if(c.total_regions > 1){
-        h += '<div style="font-size:11px;color:var(--m);margin-bottom:8px">';
-        h += c.risk_regions + ' av ' + c.total_regions + ' regioner med vær-stress';
-        h += '</div>';
-      }
-    }
+  // Vær
+  if(c.worst_region){
+    h+='<div class="card" style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;margin-bottom:6px">🌍 Vær neste 7 dager</div>';
+    var wxOut=c.worst_region.weather_outlook;
+    h+='<div style="font-size:13px;color:'+(WX_COL[wxOut]||'var(--m)')+'">'+(WX_IKON[wxOut]||'❓')+' '+c.worst_region.region_name+': '+c.worst_region.weather_summary+'</div>';
+    if(c.total_regions>1) h+='<div style="font-size:12px;color:var(--m);margin-top:4px">'+c.risk_regions+' av '+c.total_regions+' regioner med vær-stress</div>';
+    h+='</div>';
+  }
 
-    // COT
-    if(cot){
-      h += '<div style="font-size:11px;color:var(--m);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">';
-      h += '📊 '+(cot.source||'CFTC')+' COT';
-      h += '<span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;opacity:.7">Hva store spekulanter satser på</span>';
-      h += ' <span style="font-size:9px;opacity:.6">('+cot.date+')</span></div>';
-      var cotBiasCol = cot.bias === 'bull' ? 'var(--bull)' : 'var(--bear)';
-      h += '<div style="font-size:13px;display:flex;gap:12px;flex-wrap:wrap">';
-      h += '<span style="color:' + cotBiasCol + '">' + (cot.bias === 'bull' ? '▲' : '▼') + ' ' + cotNet + '</span>';
-      h += '<span style="color:var(--m)">' + cotChg + '</span>';
-      h += '<span style="color:var(--m)">' + cotPct + '</span>';
-      h += '<span style="color:' + cotBiasCol + '">' + cot.momentum + '</span>';
-      h += '</div>';
-    }
+  // COT
+  if(cot){
+    h+='<div class="card" style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;margin-bottom:6px">📊 '+(cot.source||'CFTC')+' COT <span style="font-size:10px;color:var(--m)">('+cot.date+')</span></div>';
+    var cotBiasCol=cot.bias==='bull'?'var(--bull)':'var(--bear)';
+    h+='<div style="font-size:14px;display:flex;gap:14px;flex-wrap:wrap">';
+    h+='<span style="color:'+cotBiasCol+'">'+(cot.bias==='bull'?'▲':'▼')+' '+cotNet+'</span>';
+    h+='<span style="color:var(--m)">'+cotChg+'</span>';
+    h+='<span style="color:var(--m)">'+cotPct+'</span>';
+    h+='<span style="color:'+cotBiasCol+'">'+cot.momentum+'</span>';
+    h+='</div></div>';
+  }
 
-    // Samlet vurdering
-    h += '<div style="border-top:1px solid var(--b);margin-top:10px;padding-top:8px;font-size:12px;color:var(--m)">';
-    h += '<strong style="color:var(--t)">Oppsummering:</strong> ';
-    var parts = [];
-    if(cot) parts.push('Spekulanter er '+(cot.bias==='bull'?'LONG':'SHORT'));
-    if(c.worst_region){
-      var wo = c.worst_region.weather_outlook;
-      parts.push('været er '+(wo==='normalt'||wo==='utmerket'?'normalt':'utfordrende ('+wo+')'));
-    }
-    if(c.yield_quality) parts.push('yield '+c.yield_quality.toLowerCase());
-    if(parts.length) h += parts.join(', ')+'.';
-    h += '</div>';
-
-    h += '</div>';
-  });
-  h += '</div>';
+  // Drivere
+  if(c.drivers&&c.drivers.length){
+    h+='<div style="border-top:1px solid var(--b);padding-top:10px;font-size:13px;color:var(--m)">';
+    h+='<strong style="color:var(--t)">Hoveddrivere:</strong> '+c.drivers.join(' · ')+'</div>';
+  }
   return h;
 }
 
