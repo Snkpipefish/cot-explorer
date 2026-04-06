@@ -495,24 +495,61 @@ function renderCotGroup(title, items){
   var html='<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--b)">'+title+'</div>';
   html+='<div class="rcot-grid">';
   items.forEach(function(item){
-    var net=item.spekulanter.net;
+    var sp=item.spekulanter;
+    var net=sp.net||0;
+    var lng=sp.long||0;
+    var shrt=sp.short||0;
     var chg=item.change_spec_net||0;
     var oi=item.open_interest||1;
-    var pct=Math.min(100,Math.round(Math.abs(net)/oi*100));
+    var netPct=Math.round(net/oi*100);
     var isLong=net>=0;
+    var total=lng+shrt;
+    var longPct=total>0?Math.round(lng/total*100):50;
+
+    // Netto-historikk stolpegraf
     var hist=item.spec_net_history||[];
-    var maxAbs=Math.max.apply(null,hist.map(function(v){return Math.abs(v)||1;}));
-    var spark=hist.map(function(v){
-      var h2=Math.max(2,Math.round(Math.abs(v)/maxAbs*24));
-      return '<div class="rcot-sbar" style="height:'+h2+'px;background:'+(v>=0?'var(--bull)':'var(--bear)')+'"></div>';
-    }).join('');
-    html+='<div class="rcot-card">'+
-      '<div class="rcot-name">'+(item.navn_no||item.market)+'</div>'+
-      '<div class="rcot-mkt">'+item.market+(item.forklaring?' · '+item.forklaring.substring(0,40):'')+'</div>'+
-      '<div class="rcot-net '+(isLong?'bull':'bear')+'">'+(isLong?'+':'')+fmtNum(net)+'</div>'+
-      '<span class="rcot-chg '+(chg>=0?'pos':'neg')+'">'+(chg>=0?'+':'')+fmtNum(chg)+'</span>'+
-      '<div class="rcot-spark">'+spark+'</div>'+
-      '</div>';
+    var hBar='';
+    if(hist.length>1){
+      var hMax=Math.max.apply(null,hist.map(function(v){return Math.abs(v)||1;}));
+      hBar+='<div style="display:flex;align-items:flex-end;gap:2px;height:28px;margin-top:6px">';
+      hist.forEach(function(v){
+        var bH=Math.max(2,Math.round(Math.abs(v)/hMax*24));
+        hBar+='<div style="flex:1;height:'+bH+'px;background:'+(v>=0?'var(--bull)':'var(--bear)')+';border-radius:1px"></div>';
+      });
+      hBar+='</div>';
+    }
+
+    html+='<div class="rcot-card">';
+    // Navn + netto badge
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    html+='<div class="rcot-name">'+(item.navn_no||item.market)+'</div>';
+    html+='<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;color:'+(isLong?'var(--bull)':'var(--bear)')+';background:'+(isLong?'var(--bbg)':'var(--rbg)')+'">'+(isLong?'LONG':'SHORT')+'</span>';
+    html+='</div>';
+    html+='<div class="rcot-mkt">'+item.market+(item.forklaring?' · '+item.forklaring.substring(0,40):'')+'</div>';
+
+    // Long vs Short tall
+    html+='<div style="display:flex;gap:10px;margin:8px 0 4px;font-size:11px">';
+    html+='<span style="color:var(--bull)">Long: '+fmtNum(lng)+'</span>';
+    html+='<span style="color:var(--bear)">Short: '+fmtNum(shrt)+'</span>';
+    html+='<span style="color:var(--m);margin-left:auto">OI: '+fmtNum(oi)+'</span>';
+    html+='</div>';
+
+    // Visuell long/short bar
+    html+='<div style="display:flex;height:8px;border-radius:4px;overflow:hidden">';
+    html+='<div style="width:'+longPct+'%;background:var(--bull)"></div>';
+    html+='<div style="width:'+(100-longPct)+'%;background:var(--bear)"></div>';
+    html+='</div>';
+
+    // Netto + endring
+    html+='<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px">';
+    html+='<span style="color:'+(isLong?'var(--bull)':'var(--bear)')+';font-weight:600;font-family:\'DM Mono\',monospace">Netto: '+(isLong?'+':'')+fmtNum(net)+' ('+netPct+'%)</span>';
+    html+='<span class="rcot-chg '+(chg>=0?'pos':'neg')+'" style="font-size:10px">Δ '+(chg>=0?'+':'')+fmtNum(chg)+'</span>';
+    html+='</div>';
+
+    // Stolpegraf historikk
+    html+=hBar;
+
+    html+='</div>';
   });
   html+='</div><div style="margin-bottom:20px"></div>';
   return html;
