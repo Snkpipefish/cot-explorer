@@ -162,127 +162,115 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   <a href="metals-intel.html" class="nt-main active">🛢️ Råvare Intel</a>
   <a href="crypto-intel.html" class="nt-main">₿ Krypto Intel</a>
 </nav>
+<nav class="nav">
+  <button class="nt active" data-tab="energy">⛽ Energi & Shipping</button>
+  <button class="nt" data-tab="metals">🏦 Metaller & Geo-Intel</button>
+  <button class="nt" data-tab="agri">🌾 Avlinger</button>
+</nav>
 
 <div class="main">
 
-  <!-- SEKSJON 1: Oversiktsbanner -->
+  <!-- Oversiktsbanner (alltid synlig) -->
   <div class="section" id="sec-oversikt">
-    <div class="section-title">🏠 Oversikt <span class="section-sub">Markedsstemning og nøkkelmetrikker</span></div>
     <div id="moodBanner"><div class="loading"><div class="spinner"></div>Laster dashboard...</div></div>
     <div class="metrics" id="keyMetrics"></div>
   </div>
 
-  <!-- SEKSJON 2: Olje & Gass -->
-  <div class="section" id="sec-oilgas">
-    <div class="section-title">⛽ Olje & Gass <span class="section-sub">Priser, COT og markedssignal</span></div>
-    <div id="oilgasContent"><div class="loading"><div class="spinner"></div>Laster energidata...</div></div>
-  </div>
+  <!-- ═══ TAB 1: Energi & Shipping ═══ -->
+  <div class="panel active" id="panel-energy">
 
-  <!-- SEKSJON 3: Avlings-analyse -->
-  <div class="section" id="sec-agri">
-    <div class="section-title">🌾 Avlings-analyse <span class="section-sub">Vær, COT og prisretning</span></div>
-    <div id="agriContent"><div class="loading"><div class="spinner"></div>Laster avlingsdata...</div></div>
-  </div>
-
-  <!-- SEKSJON 4: COMEX Lager -->
-  <div class="section" id="sec-comex">
-    <div class="section-title">🏦 COMEX Lager <span class="section-sub">Metallbeholdning og stress-indeks</span></div>
-    <div class="comex-grid" id="comexCards"><div class="loading"><div class="spinner"></div>Laster COMEX-data...</div></div>
-    <div class="card" style="margin-bottom:16px">
-      <div class="ct">Stress-indeks (0=trygg · 100=ekstremt press)</div>
-      <div id="stressGauges"><div class="loading">Laster...</div></div>
-      <div style="margin-top:12px;font-size:11px;color:var(--m);line-height:1.6">
-        Høy stress → andel <em>registered</em> synker mot <em>eligible</em> → squeezerisiko på futures.
-      </div>
+    <div class="section">
+      <div class="section-title">⛽ Olje & Gass <span class="section-sub">Priser, COT og markedssignal</span></div>
+      <div id="oilgasContent"><div class="loading"><div class="spinner"></div>Laster energidata...</div></div>
     </div>
-    <div class="card">
-      <div class="ct">Forklaring</div>
-      <div style="font-size:13px;color:var(--m);line-height:1.8">
-        <strong style="color:var(--t)">Registered</strong> — Sertifiserte, leveringsklare lagerenheter.<br>
-        <strong style="color:var(--t)">Eligible</strong> — Lagret metall som møter COMEX-krav, men ikke registrert.<br>
-        <strong style="color:var(--t)">Dekning</strong> — Under 20%: squeeze-risiko.
-      </div>
+
+    <div class="section">
+      <div class="section-title">🚢 Shipping <span class="section-sub">Indekser, ruter og risiko</span></div>
+      <div id="shippingContent"><div class="loading"><div class="spinner"></div>Laster shipping-data...</div></div>
     </div>
+
+    <div class="section">
+      <div class="section-title">📊 Energi COT <span class="section-sub">Spekulantposisjonering — olje, gass, energi</span></div>
+      <div id="cotEnergyCards"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+    </div>
+
   </div>
 
-  <!-- SEKSJON 5: Shipping -->
-  <div class="section" id="sec-shipping">
-    <div class="section-title">🚢 Shipping <span class="section-sub">Indekser, ruter og risiko</span></div>
-    <div id="shippingContent"><div class="loading"><div class="spinner"></div>Laster shipping-data...</div></div>
-  </div>
+  <!-- ═══ TAB 2: Metaller & Geo-Intel ═══ -->
+  <div class="panel" id="panel-metals">
 
-  <!-- SEKSJON 6: Geo-Intel Kart -->
-  <div class="section" id="sec-map">
-    <div class="section-title">🗺️ Geo-Intel Kart <span class="section-sub">Gruver, chokepoints og infrastruktur</span></div>
-    <div style="position:relative">
-      <div id="map"></div>
-      <div class="layer-ctrl" id="layerCtrl"></div>
-      <button class="layer-toggle-btn" id="layerToggleBtn" onclick="toggleLayerCtrl()">🗂️ Lag</button>
-    </div>
-    <div class="legend card" style="margin-top:12px">
-      <div class="ct">Kart-legend</div>
-      <div style="display:flex;flex-wrap:wrap;gap:16px">
-        <div>
-          <div class="leg-row"><div class="leg-dot" style="background:var(--gold)"></div>Gull-gruve</div>
-          <div class="leg-row"><div class="leg-dot" style="background:var(--silver)"></div>Sølv-gruve</div>
-          <div class="leg-row"><div class="leg-dot" style="background:var(--copper)"></div>Kobber-gruve</div>
-          <div class="leg-row"><div class="leg-dot" style="background:var(--bear);border:2px solid rgba(255,255,255,.4);background:transparent;border-color:var(--bear)"></div>Chokepoint (høy)</div>
-          <div class="leg-row"><div class="leg-dot" style="background:transparent;border:2px solid var(--warn)"></div>Chokepoint (middels)</div>
-          <div class="leg-row"><div class="leg-dot" style="background:#ff6b00;opacity:.7"></div>Jordskjelv (7d)</div>
-        </div>
-        <div>
-          <div class="leg-row"><div style="width:18px;height:3px;background:#e8a838;border-radius:2px"></div>Oljerørledning</div>
-          <div class="leg-row"><div style="width:18px;height:3px;background:#4fc3f7;border-radius:2px"></div>Gassrørledning</div>
-          <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #6b7280"></div>Sabotert / inaktiv</div>
-          <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7"></div>LNG-terminal</div>
-          <div class="leg-row"><div class="leg-dot" style="background:#e8a838"></div>Raffineri</div>
-          <div class="leg-row"><div class="leg-dot" style="background:#a371f7"></div>Strategisk havn</div>
-          <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #f85149"></div>Skipslei (høy risiko)</div>
-          <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #d29922"></div>Skipslei (middels)</div>
-          <div class="leg-row"><div class="leg-dot" style="background:var(--agri);opacity:.7"></div>Landbruksregion</div>
+    <div class="section">
+      <div class="section-title">🏦 COMEX Lager <span class="section-sub">Metallbeholdning og stress-indeks</span></div>
+      <div class="comex-grid" id="comexCards"><div class="loading"><div class="spinner"></div>Laster COMEX-data...</div></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="ct">Stress-indeks (0=trygg · 100=ekstremt press)</div>
+        <div id="stressGauges"><div class="loading">Laster...</div></div>
+        <div style="margin-top:12px;font-size:11px;color:var(--m);line-height:1.6">
+          Høy stress → andel <em>registered</em> synker mot <em>eligible</em> → squeezerisiko på futures.
         </div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-      <div class="card" id="cpList"><div class="loading">Laster...</div></div>
-      <div class="card" id="seismicList"><div class="loading">Laster...</div></div>
-    </div>
-  </div>
 
-  <!-- SEKSJON 7: Råvare COT (popup) -->
-  <div class="section" id="sec-cot">
-    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      <div class="section-title" style="margin-bottom:0">📊 Råvare COT</div>
-      <button class="open-modal-btn" onclick="openModal('cotModal')">Åpne COT-data →</button>
-      <span id="cotSummary" style="font-size:12px;color:var(--m)"></span>
+    <div class="section">
+      <div class="section-title">📊 Metall COT <span class="section-sub">Spekulantposisjonering — gull, sølv, kobber, platina</span></div>
+      <div id="cotMetalCards"><div class="loading"><div class="spinner"></div>Laster...</div></div>
     </div>
-  </div>
 
-  <!-- SEKSJON 8: Intel Feed (popup) -->
-  <div class="section" id="sec-intel">
-    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      <div class="section-title" style="margin-bottom:0">📰 Intel Feed</div>
-      <button class="open-modal-btn" onclick="openModal('intelModal')">Åpne nyheter →</button>
-      <span id="intelSummary" style="font-size:12px;color:var(--m)"></span>
+    <div class="section" id="sec-map">
+      <div class="section-title">🗺️ Geo-Intel Kart <span class="section-sub">Gruver, chokepoints og infrastruktur</span></div>
+      <div style="position:relative">
+        <div id="map"></div>
+        <div class="layer-ctrl" id="layerCtrl"></div>
+        <button class="layer-toggle-btn" id="layerToggleBtn" onclick="toggleLayerCtrl()">🗂️ Lag</button>
+      </div>
+      <div class="legend card" style="margin-top:12px">
+        <div class="ct">Kart-legend</div>
+        <div style="display:flex;flex-wrap:wrap;gap:16px">
+          <div>
+            <div class="leg-row"><div class="leg-dot" style="background:var(--gold)"></div>Gull-gruve</div>
+            <div class="leg-row"><div class="leg-dot" style="background:var(--silver)"></div>Sølv-gruve</div>
+            <div class="leg-row"><div class="leg-dot" style="background:var(--copper)"></div>Kobber-gruve</div>
+            <div class="leg-row"><div class="leg-dot" style="background:transparent;border:2px solid var(--bear)"></div>Chokepoint (høy)</div>
+            <div class="leg-row"><div class="leg-dot" style="background:transparent;border:2px solid var(--warn)"></div>Chokepoint (middels)</div>
+            <div class="leg-row"><div class="leg-dot" style="background:#ff6b00;opacity:.7"></div>Jordskjelv (7d)</div>
+          </div>
+          <div>
+            <div class="leg-row"><div style="width:18px;height:3px;background:#e8a838;border-radius:2px"></div>Oljerørledning</div>
+            <div class="leg-row"><div style="width:18px;height:3px;background:#4fc3f7;border-radius:2px"></div>Gassrørledning</div>
+            <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7"></div>LNG-terminal</div>
+            <div class="leg-row"><div class="leg-dot" style="background:#e8a838"></div>Raffineri</div>
+            <div class="leg-row"><div class="leg-dot" style="background:#a371f7"></div>Strategisk havn</div>
+            <div class="leg-row"><div class="leg-dot" style="background:var(--agri);opacity:.7"></div>Landbruksregion</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div class="card" id="cpList"><div class="loading">Laster...</div></div>
+        <div class="card" id="seismicList"><div class="loading">Laster...</div></div>
+      </div>
     </div>
-  </div>
 
-  <!-- Modals -->
-  <div class="modal-overlay" id="cotModal" onclick="if(event.target===this)closeModal('cotModal')">
-    <div class="modal-box">
-      <button class="modal-close" onclick="closeModal('cotModal')">✕</button>
-      <div class="section-title">📊 Råvare COT <span class="section-sub">Spekulantposisjonering fra CFTC</span></div>
-      <div id="cotCards"><div class="loading"><div class="spinner"></div>Laster COT-data...</div></div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="intelModal" onclick="if(event.target===this)closeModal('intelModal')">
-    <div class="modal-box">
-      <button class="modal-close" onclick="closeModal('intelModal')">✕</button>
-      <div class="section-title">📰 Intel Feed <span class="section-sub">Nyheter og analyser</span></div>
+    <div class="section">
+      <div class="section-title">📰 Intel Feed <span class="section-sub">Nyheter om metaller og geopolitikk</span></div>
       <div class="intel-filters" id="intelFilters"><button class="intel-btn active" data-cat="all">Alle</button></div>
       <div id="intelFeed"><div class="loading"><div class="spinner"></div>Laster nyheter...</div></div>
     </div>
+
+  </div>
+
+  <!-- ═══ TAB 3: Avlinger ═══ -->
+  <div class="panel" id="panel-agri">
+
+    <div class="section">
+      <div class="section-title">🌾 Avlings-analyse <span class="section-sub">Vær, COT og prisretning</span></div>
+      <div id="agriContent"><div class="loading"><div class="spinner"></div>Laster avlingsdata...</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">📊 Landbruk COT <span class="section-sub">Spekulantposisjonering — korn, bønner, bomull, kaffe</span></div>
+      <div id="cotAgriCards"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+    </div>
+
   </div>
 
   <!-- Avlings-detalj modal -->
@@ -302,6 +290,18 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 
 <script>
 // ── Helpers ─────────────────────────────────────────────────
+// ── Tab-navigasjon ───────────────────────────────────────────
+document.querySelectorAll('.nt').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.nt').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+    btn.classList.add('active');
+    var panel=document.getElementById('panel-'+btn.dataset.tab);
+    if(panel) panel.classList.add('active');
+    if(btn.dataset.tab==='metals' && window.mlMap) setTimeout(function(){window.mlMap.resize();},100);
+  });
+});
+
 // ── Modal-funksjoner ─────────────────────────────────────────
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
 function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
@@ -424,17 +424,19 @@ function progressBar(pct,color,w){w=w||'100%';pct=Math.max(0,Math.min(100,pct||0
 function yieldCol(rating){if(!rating)return'var(--m)';for(var k in _YIELD_COL){if(rating.indexOf(k)>=0)return _YIELD_COL[k];}return'var(--m)';}
 
 function renderCotSection(d){
-  if(!d||!Array.isArray(d)){document.getElementById('cotCards').innerHTML='<div class="loading">Ingen COT-data – kjør update.sh</div>';return;}
+  if(!d||!Array.isArray(d)) return;
   var skip=/calendar spread|cso|financial|options|pjm|avg price/i;
-  var ravarer=d.filter(function(x){return x.kategori==='råvarer'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market);});
+  // Split energi vs metaller vs landbruk
+  var energiKeys=/crude|natural gas|gasoline|rbob|heating|brent|gasoil|diesel|ethanol|propane/i;
+  var energi=d.filter(function(x){return x.kategori==='råvarer'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market)&&energiKeys.test(x.market);});
+  var metaller=d.filter(function(x){return x.kategori==='råvarer'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market)&&!energiKeys.test(x.market);});
   var landbruk=d.filter(function(x){return x.kategori==='landbruk'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market);});
   function byAbs(a,b){return Math.abs(b.spekulanter.net)-Math.abs(a.spekulanter.net);}
-  ravarer.sort(byAbs); landbruk.sort(byAbs);
-  document.getElementById('cotCards').innerHTML=renderCotGroup('🛢️ Energi & Metaller',ravarer)+renderCotGroup('🌾 Landbruk',landbruk);
-  // Oppdater knapp-summary
-  var bulls=0,bears=0;
-  d.forEach(function(e){var n=(e.spekulanter||{}).net||0,oi=e.open_interest||1;if(n/oi*100>5)bulls++;else if(n/oi*100<-5)bears++;});
-  document.getElementById('cotSummary').textContent=ravarer.length+' energi/metall + '+landbruk.length+' landbruk · '+bulls+'▲ bull / '+bears+'▼ bear';
+  energi.sort(byAbs); metaller.sort(byAbs); landbruk.sort(byAbs);
+  // Render til 3 separate containers
+  document.getElementById('cotEnergyCards').innerHTML=renderCotGroup('🛢️ Energi ('+energi.length+')',energi)||'<div class="loading">Ingen energi COT</div>';
+  document.getElementById('cotMetalCards').innerHTML=renderCotGroup('⚙️ Metaller ('+metaller.length+')',metaller)||'<div class="loading">Ingen metall COT</div>';
+  document.getElementById('cotAgriCards').innerHTML=renderCotGroup('🌾 Landbruk ('+landbruk.length+')',landbruk)||'<div class="loading">Ingen landbruk COT</div>';
 }
 
 function renderCotGroup(title, items){
