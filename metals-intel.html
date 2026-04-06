@@ -159,13 +159,10 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 
 <nav class="nav-main">
   <a href="index.html" class="nt-main">🏠 Markedspuls</a>
-  <a href="metals-intel.html" class="nt-main active">🛢️ Råvare Intel</a>
+  <button class="nt-main active" data-tab="energy">⛽ Energi & Shipping</button>
+  <button class="nt-main" data-tab="metals">🏦 Metaller</button>
+  <button class="nt-main" data-tab="agri">🌾 Avlinger</button>
   <a href="crypto-intel.html" class="nt-main">₿ Krypto Intel</a>
-</nav>
-<nav class="nav">
-  <button class="nt active" data-tab="energy">⛽ Energi & Shipping</button>
-  <button class="nt" data-tab="metals">🏦 Metaller & Geo-Intel</button>
-  <button class="nt" data-tab="agri">🌾 Avlinger</button>
 </nav>
 
 <div class="main">
@@ -291,9 +288,9 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 <script>
 // ── Helpers ─────────────────────────────────────────────────
 // ── Tab-navigasjon ───────────────────────────────────────────
-document.querySelectorAll('.nt').forEach(function(btn){
+document.querySelectorAll('.nt-main[data-tab]').forEach(function(btn){
   btn.addEventListener('click', function(){
-    document.querySelectorAll('.nt').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('.nt-main[data-tab]').forEach(function(b){b.classList.remove('active');});
     document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
     btn.classList.add('active');
     var panel=document.getElementById('panel-'+btn.dataset.tab);
@@ -301,6 +298,19 @@ document.querySelectorAll('.nt').forEach(function(btn){
     if(btn.dataset.tab==='metals' && window.mlMap) setTimeout(function(){window.mlMap.resize();},100);
   });
 });
+
+// ── Hash-basert tab-switching (for linker fra andre sider) ────
+function switchToTab(tab){
+  document.querySelectorAll('.nt-main[data-tab]').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  var btn=document.querySelector('.nt-main[data-tab="'+tab+'"]');
+  if(btn) btn.classList.add('active');
+  var panel=document.getElementById('panel-'+tab);
+  if(panel) panel.classList.add('active');
+  if(tab==='metals' && window.mlMap) setTimeout(function(){window.mlMap.resize();},100);
+}
+var hash=window.location.hash.replace('#','');
+if(hash && document.getElementById('panel-'+hash)) switchToTab(hash);
 
 // ── Modal-funksjoner ─────────────────────────────────────────
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
