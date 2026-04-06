@@ -14,24 +14,32 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .topbar{background:var(--s);border-bottom:1px solid var(--b);padding:0 20px;height:50px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:200}
 .logo{font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
 .logo em{font-style:italic;font-weight:400;color:var(--blue)}
-.back-link{font-size:12px;color:var(--blue);text-decoration:none;padding:4px 10px;border:1px solid var(--b2);border-radius:6px;margin-left:8px}
-.back-link:hover{background:var(--blbg)}
 .upd{font-size:10px;color:var(--m);margin-left:auto}
 .nav-main{background:var(--bg);border-bottom:1px solid var(--b2);padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none}
 .nav-main::-webkit-scrollbar{display:none}
 .nt-main{background:none;border:none;border-bottom:2px solid transparent;padding:9px 16px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--m);cursor:pointer;white-space:nowrap;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center}
 .nt-main:hover{color:var(--t)}.nt-main.active{color:var(--t);border-bottom-color:var(--b2)}
-.nav{background:var(--s);border-bottom:1px solid var(--b);padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none}
-.nav::-webkit-scrollbar{display:none}
-.nt{background:none;border:none;border-bottom:2px solid transparent;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--m);cursor:pointer;white-space:nowrap;transition:all .15s}
-.nt:hover{color:var(--t)}.nt.active{color:var(--blue);border-bottom-color:var(--blue)}
-.panel{display:none}.panel.active{display:block}
 .main{padding:18px 20px;max-width:1600px;margin:0 auto}
 .card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:16px 18px}
-.ct{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:12px}
-.map-wrap{display:grid;grid-template-columns:1fr 320px;gap:12px;height:calc(100vh - 140px);min-height:500px}
-#map{height:100%;border-radius:8px;border:1px solid var(--b);overflow:hidden}
-.map-sidebar{display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.section{margin-bottom:28px}
+.section-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-sub{font-size:12px;color:var(--m);font-family:'DM Sans',sans-serif;font-weight:400}
+.loading{color:var(--m);font-size:12px;padding:16px;text-align:center}
+.spinner{width:26px;height:26px;border:2px solid var(--b);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Mood banner */
+.mood-banner{border-radius:10px;padding:20px;margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.mood-emoji{font-size:44px;flex-shrink:0}
+.mood-title{font-size:22px;font-weight:700;margin-bottom:3px}
+.mood-sub{font-size:13px;opacity:.85;line-height:1.5}
+/* Key metrics */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:0}
+.metric-card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px 16px;text-align:center}
+.metric-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:6px}
+.metric-val{font-size:24px;font-weight:700;margin-bottom:4px;font-family:'DM Mono',monospace}
+.metric-desc{font-size:11px;color:var(--m);line-height:1.4}
+/* Map */
+#map{height:500px;border-radius:8px;border:1px solid var(--b);overflow:hidden}
 .legend{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:12px 14px}
 .leg-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
 .leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
@@ -101,18 +109,18 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .rcot-chg.neg{color:var(--bear);border-color:var(--bear);background:var(--rbg)}
 .rcot-spark{display:flex;align-items:flex-end;gap:2px;height:24px;margin-top:8px}
 .rcot-sbar{border-radius:1px;min-height:2px;width:10px}
-.loading{color:var(--m);font-size:12px;padding:16px;text-align:center}
+.ct{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:12px}
 .sh{margin-bottom:18px}.sh-t{font-size:20px;font-weight:700}
 .sh-b{font-size:12px;color:var(--m);margin-top:2px}
+/* Collapsible news toggle */
+.news-toggle-btn{background:none;border:1px solid var(--b2);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--m);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:10px}
+.news-toggle-btn:hover{border-color:var(--blue);color:var(--blue)}
 /* Kollaps-knapp — kun synlig på mobil */
 .layer-toggle-btn{display:none;position:absolute;bottom:10px;right:10px;z-index:11;background:rgba(22,27,34,.93);border:1px solid var(--b);border-radius:8px;color:var(--t);font-size:13px;padding:8px 12px;cursor:pointer}
 @media(max-width:900px){
-  .map-wrap{grid-template-columns:1fr;grid-template-rows:60vh auto}
   .comex-grid{grid-template-columns:1fr}
-  .map-sidebar{flex-direction:row;flex-wrap:wrap;overflow-y:visible;gap:8px}
-  .map-sidebar .card{flex:1 1 calc(50% - 4px);min-width:140px}
+  .metrics{grid-template-columns:1fr 1fr}
   .leg-row{font-size:11px;margin-bottom:4px}
-  /* Desktop lag-kontroll skjules på mobil — erstattes av kollaps-panel */
   .layer-ctrl{display:none;top:auto;bottom:50px;left:8px;right:8px;min-width:0;max-width:none;padding:10px 12px}
   .layer-ctrl.open{display:block}
   .lyr-row{display:flex;margin-bottom:6px}
@@ -129,22 +137,8 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   .ship-idx-grid{grid-template-columns:repeat(2,1fr)!important}
   .ship-route-grid{grid-template-columns:1fr!important}
   .ship-route-impact{display:none}
+  .metrics{grid-template-columns:1fr}
 }
-/* ── Dashboard Oversikt ───────────────────────────────────────── */
-.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:6px}
-.dash-card{background:var(--s);border:1px solid var(--b);border-radius:10px;padding:18px 20px;cursor:pointer;transition:border-color .15s,transform .1s;display:flex;flex-direction:column;gap:0}
-.dash-card:hover{border-color:var(--blue);transform:translateY(-1px)}
-.dash-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.dash-icon{font-size:22px}
-.dash-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid;white-space:nowrap}
-.dash-title{font-size:13px;font-weight:700;margin-bottom:4px}
-.dash-metric{font-size:26px;font-weight:700;font-family:'DM Mono',monospace;margin-bottom:4px;line-height:1}
-.dash-sub{font-size:12px;color:var(--m);line-height:1.4;margin-bottom:10px}
-.dash-bullets{list-style:none;padding:0;margin-bottom:12px}
-.dash-bullets li{font-size:12px;color:var(--m);padding:2px 0;padding-left:14px;position:relative}
-.dash-bullets li::before{content:'·';position:absolute;left:0;color:var(--blue)}
-.dash-link{font-size:11px;color:var(--blue);font-weight:600;margin-top:auto;align-self:flex-start}
-@media(max-width:600px){.dash-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -159,69 +153,32 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
   <a href="metals-intel.html" class="nt-main active">🛢️ Råvare Intel</a>
   <a href="crypto-intel.html" class="nt-main">₿ Krypto Intel</a>
 </nav>
-<nav class="nav">
-  <button class="nt active" data-tab="oversikt">🏠 Oversikt</button>
-  <button class="nt" data-tab="map">🗺️ Geo-Intel Kart</button>
-  <button class="nt" data-tab="comex">🏦 COMEX Lager</button>
-  <button class="nt" data-tab="intel">📰 Intel Feed</button>
-  <button class="nt" data-tab="cot">📊 Råvare COT</button>
-  <button class="nt" data-tab="agri">🌾 Avlings-analyse</button>
-  <button class="nt" data-tab="shipping">🚢 Shipping</button>
-  <button class="nt" data-tab="oilgas">⛽ Olje & Gass</button>
-</nav>
 
 <div class="main">
 
-  <!-- OVERSIKT DASHBOARD -->
-  <div class="panel active" id="panel-oversikt">
-    <div class="sh">
-      <div class="sh-t">Råvare Dashboard</div>
-      <div class="sh-b" id="dashDate">-</div>
-    </div>
-    <div class="dash-grid" id="dashGrid">
-      <div class="loading">Laster dashboard...</div>
-    </div>
+  <!-- SEKSJON 1: Oversiktsbanner -->
+  <div class="section" id="sec-oversikt">
+    <div class="section-title">🏠 Oversikt <span class="section-sub">Markedsstemning og nøkkelmetrikker</span></div>
+    <div id="moodBanner"><div class="loading"><div class="spinner"></div>Laster dashboard...</div></div>
+    <div class="metrics" id="keyMetrics"></div>
   </div>
 
-  <!-- MAP PANEL -->
-  <div class="panel" id="panel-map">
-    <div class="map-wrap">
-      <div style="position:relative;height:100%">
-        <div id="map" style="height:100%;border-radius:8px"></div>
-        <div class="layer-ctrl" id="layerCtrl"></div>
-        <button class="layer-toggle-btn" id="layerToggleBtn" onclick="toggleLayerCtrl()">🗂️ Lag</button>
-      </div>
-      <div class="map-sidebar">
-        <div class="legend card">
-          <div class="ct">Kart-legend</div>
-          <div class="leg-row"><div class="leg-dot" style="background:var(--gold)"></div>Gull-gruve</div>
-          <div class="leg-row"><div class="leg-dot" style="background:var(--silver)"></div>Sølv-gruve</div>
-          <div class="leg-row"><div class="leg-dot" style="background:var(--copper)"></div>Kobber-gruve</div>
-          <div class="leg-row"><div class="leg-dot" style="background:var(--bear);border:2px solid rgba(255,255,255,.4);background:transparent;border-color:var(--bear)"></div>Chokepoint (høy)</div>
-          <div class="leg-row"><div class="leg-dot" style="background:transparent;border:2px solid var(--warn)"></div>Chokepoint (middels)</div>
-          <div class="leg-row"><div class="leg-dot" style="background:#ff6b00;opacity:.7"></div>Jordskjelv (7d)</div>
-          <div style="margin-top:8px;border-top:1px solid var(--b);padding-top:8px">
-            <div class="leg-row"><div style="width:18px;height:3px;background:#e8a838;border-radius:2px"></div>Oljerørledning</div>
-            <div class="leg-row"><div style="width:18px;height:3px;background:#4fc3f7;border-radius:2px"></div>Gassrørledning</div>
-            <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #6b7280"></div>Sabotert / inaktiv</div>
-            <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7"></div>LNG-terminal</div>
-            <div class="leg-row"><div class="leg-dot" style="background:#e8a838"></div>Raffineri</div>
-            <div class="leg-row"><div class="leg-dot" style="background:#a371f7"></div>Strategisk havn</div>
-            <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #f85149"></div>Skipslei (høy risiko)</div>
-            <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #d29922"></div>Skipslei (middels)</div>
-            <div class="leg-row"><div class="leg-dot" style="background:var(--agri);opacity:.7"></div>Landbruksregion</div>
-          </div>
-        </div>
-        <div class="card" id="cpList"><div class="loading">Laster...</div></div>
-        <div class="card" id="seismicList"><div class="loading">Laster...</div></div>
-      </div>
-    </div>
+  <!-- SEKSJON 2: Olje & Gass -->
+  <div class="section" id="sec-oilgas">
+    <div class="section-title">⛽ Olje & Gass <span class="section-sub">Priser, COT og markedssignal</span></div>
+    <div id="oilgasContent"><div class="loading"><div class="spinner"></div>Laster energidata...</div></div>
   </div>
 
-  <!-- COMEX PANEL -->
-  <div class="panel" id="panel-comex">
-    <div class="sh"><div class="sh-t">COMEX Lagerdata</div><div class="sh-b" id="comexDate">-</div></div>
-    <div class="comex-grid" id="comexCards"><div class="loading">Laster COMEX-data...</div></div>
+  <!-- SEKSJON 3: Avlings-analyse -->
+  <div class="section" id="sec-agri">
+    <div class="section-title">🌾 Avlings-analyse <span class="section-sub">Vær, COT og prisretning</span></div>
+    <div id="agriContent"><div class="loading"><div class="spinner"></div>Laster avlingsdata...</div></div>
+  </div>
+
+  <!-- SEKSJON 4: COMEX Lager -->
+  <div class="section" id="sec-comex">
+    <div class="section-title">🏦 COMEX Lager <span class="section-sub">Metallbeholdning og stress-indeks</span></div>
+    <div class="comex-grid" id="comexCards"><div class="loading"><div class="spinner"></div>Laster COMEX-data...</div></div>
     <div class="card" style="margin-bottom:16px">
       <div class="ct">Stress-indeks (0=trygg · 100=ekstremt press)</div>
       <div id="stressGauges"><div class="loading">Laster...</div></div>
@@ -239,50 +196,83 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
     </div>
   </div>
 
-  <!-- INTEL PANEL -->
-  <div class="panel" id="panel-intel">
-    <div class="sh"><div class="sh-t">Råvare Intel Feed</div><div class="sh-b" id="intelDate">-</div></div>
+  <!-- SEKSJON 5: Shipping -->
+  <div class="section" id="sec-shipping">
+    <div class="section-title">🚢 Shipping <span class="section-sub">Indekser, ruter og risiko</span></div>
+    <div id="shippingContent"><div class="loading"><div class="spinner"></div>Laster shipping-data...</div></div>
+  </div>
+
+  <!-- SEKSJON 6: Geo-Intel Kart -->
+  <div class="section" id="sec-map">
+    <div class="section-title">🗺️ Geo-Intel Kart <span class="section-sub">Gruver, chokepoints og infrastruktur</span></div>
+    <div style="position:relative">
+      <div id="map"></div>
+      <div class="layer-ctrl" id="layerCtrl"></div>
+      <button class="layer-toggle-btn" id="layerToggleBtn" onclick="toggleLayerCtrl()">🗂️ Lag</button>
+    </div>
+    <div class="legend card" style="margin-top:12px">
+      <div class="ct">Kart-legend</div>
+      <div style="display:flex;flex-wrap:wrap;gap:16px">
+        <div>
+          <div class="leg-row"><div class="leg-dot" style="background:var(--gold)"></div>Gull-gruve</div>
+          <div class="leg-row"><div class="leg-dot" style="background:var(--silver)"></div>Sølv-gruve</div>
+          <div class="leg-row"><div class="leg-dot" style="background:var(--copper)"></div>Kobber-gruve</div>
+          <div class="leg-row"><div class="leg-dot" style="background:var(--bear);border:2px solid rgba(255,255,255,.4);background:transparent;border-color:var(--bear)"></div>Chokepoint (høy)</div>
+          <div class="leg-row"><div class="leg-dot" style="background:transparent;border:2px solid var(--warn)"></div>Chokepoint (middels)</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#ff6b00;opacity:.7"></div>Jordskjelv (7d)</div>
+        </div>
+        <div>
+          <div class="leg-row"><div style="width:18px;height:3px;background:#e8a838;border-radius:2px"></div>Oljerørledning</div>
+          <div class="leg-row"><div style="width:18px;height:3px;background:#4fc3f7;border-radius:2px"></div>Gassrørledning</div>
+          <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #6b7280"></div>Sabotert / inaktiv</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#4fc3f7"></div>LNG-terminal</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#e8a838"></div>Raffineri</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#a371f7"></div>Strategisk havn</div>
+          <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #f85149"></div>Skipslei (høy risiko)</div>
+          <div class="leg-row"><div style="width:18px;height:3px;border-top:2px dashed #d29922"></div>Skipslei (middels)</div>
+          <div class="leg-row"><div class="leg-dot" style="background:var(--agri);opacity:.7"></div>Landbruksregion</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+      <div class="card" id="cpList"><div class="loading">Laster...</div></div>
+      <div class="card" id="seismicList"><div class="loading">Laster...</div></div>
+    </div>
+  </div>
+
+  <!-- SEKSJON 7: Råvare COT -->
+  <div class="section" id="sec-cot">
+    <div class="section-title">📊 Råvare COT <span class="section-sub">Spekulantposisjonering fra CFTC</span></div>
+    <div id="cotCards"><div class="loading"><div class="spinner"></div>Laster COT-data...</div></div>
+  </div>
+
+  <!-- SEKSJON 8: Intel Feed -->
+  <div class="section" id="sec-intel">
+    <div class="section-title">📰 Intel Feed <span class="section-sub">Nyheter og analyser</span></div>
     <div class="intel-filters" id="intelFilters"><button class="intel-btn active" data-cat="all">Alle</button></div>
-    <div id="intelFeed"><div class="loading">Laster nyheter...</div></div>
-  </div>
-
-  <!-- RÅVARE COT PANEL -->
-  <div class="panel" id="panel-cot">
-    <div class="sh"><div class="sh-t">Råvare COT – Spekulantposisjonering</div><div class="sh-b" id="cotDate">-</div></div>
-    <div id="cotCards"><div class="loading">Laster COT-data...</div></div>
-  </div>
-
-  <!-- AVLINGS-ANALYSE PANEL -->
-  <div class="panel" id="panel-agri">
-    <div class="sh">
-      <div class="sh-t">🌾 Avlings-analyse – Vær, COT og Prisretning</div>
-      <div class="sh-b" id="agriDate">-</div>
-    </div>
-    <div id="agriContent"><div class="loading">Laster avlingsdata...</div></div>
-  </div>
-
-  <!-- OLJE & GASS PANEL -->
-  <div class="panel" id="panel-oilgas">
-    <div class="sh">
-      <div class="sh-t">⛽ Olje & Gass – Priser, COT og Markedssignal</div>
-      <div class="sh-b" id="oilgasDate">-</div>
-    </div>
-    <div id="oilgasContent"><div class="loading">Laster energidata...</div></div>
-  </div>
-
-  <!-- SHIPPING PANEL -->
-  <div class="panel" id="panel-shipping">
-    <div class="sh">
-      <div class="sh-t">🚢 Shipping Intelligence – Indekser, Ruter og Risiko</div>
-      <div class="sh-b" id="shippingDate">-</div>
-    </div>
-    <div id="shippingContent"><div class="loading">Laster shipping-data...</div></div>
+    <div id="intelFeed"><div class="loading"><div class="spinner"></div>Laster nyheter...</div></div>
   </div>
 
 </div><!-- /main -->
 
+<footer style="border-top:1px solid var(--b);padding:12px 20px;font-size:11px;color:var(--m);display:flex;gap:16px;flex-wrap:wrap;margin-top:28px">
+  <span>Kilder: CFTC · COMEX · Stooq · Skilling · Yahoo Finance · Open-Meteo · Google News RSS</span>
+  <span>Data: <a href="data/oilgas/latest.json" style="color:var(--blue);text-decoration:none">oilgas</a> · <a href="data/agri/latest.json" style="color:var(--blue);text-decoration:none">agri</a> · <a href="data/comex/latest.json" style="color:var(--blue);text-decoration:none">comex</a> · <a href="data/shipping/latest.json" style="color:var(--blue);text-decoration:none">shipping</a> · <a href="data/combined/latest.json" style="color:var(--blue);text-decoration:none">cot</a> · <a href="data/geointel/intel.json" style="color:var(--blue);text-decoration:none">intel</a></span>
+</footer>
+
 <script>
+// ── Helpers ─────────────────────────────────────────────────
 function toNO(str){if(!str||str==='-')return str||'-';var m=str.match(/(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);if(!m)return str;try{var dt=new Date(m[1]+'T'+m[2]+':00Z');return dt.toLocaleString('nb-NO',{timeZone:'Europe/Oslo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return str;}}
+function fmtOz(n){if(!n)return '0';if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+' Moz';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(0)+'K oz';return n.toLocaleString()+' oz';}
+function fmtSt(n){if(!n)return '0';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(1)+'K st';return n.toLocaleString()+' st';}
+function fmtChg(n,isOz){if(!n)return '';var s=(n>0?'+':'')+(isOz?fmtOz(n):fmtSt(n));return '<span class="comex-chg '+(n>0?'pos':'neg')+'">'+s+'</span>';}
+function fmtNum(n){if(n==null)return '—';if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+'M';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(0)+'K';return n.toString();}
+function stressColor(v){if(v>=70)return 'var(--bear)';if(v>=40)return 'var(--warn)';return 'var(--bull)';}
+function loadJSON(url){return fetch(url).then(function(r){return r.json();}).catch(function(e){console.warn('Load failed:',url,e);return null;});}
+
+// ── Stage labels + colors ────────────────────────────────────
+var STAGE_NO={'post-harvest':'Etter-høst','pre-plant':'Forberedelse','planting':'Såing','early-growth':'Tidlig vekst','growing':'Vekst','flowering':'Blomstring','ripening':'Modning','harvest':'Høsting','dormancy':'Dvale','dormancy-end':'Dvale slutter','heading':'Akssetting','boll-dev':'Bolleutvikling','main-harvest':'Hovedhøst','mid-crop':'Mellom-sesong','low-prod':'Lav produksjon','recovering':'Gjenoppretting','moderate':'Moderat','peak':'Topp-sesong','emergence':'Spiring','sowing':'Såing'};
+var STAGE_COL={'flowering':'#f0ad4e','heading':'#f0ad4e','ripening':'#e8a838','harvest':'#FFD700','main-harvest':'#FFD700','mid-crop':'#FFD700','growing':'#3fb950','early-growth':'#58d68d','planting':'#82e0aa','sowing':'#82e0aa','emergence':'#58d68d','pre-plant':'#a8e6cf','dormancy-end':'#7c8899','post-harvest':'#6b7280','dormancy':'#4b5563','boll-dev':'#f0ad4e','low-prod':'#6b7280','recovering':'#82e0aa','moderate':'#3fb950','peak':'#FFD700'};
 
 // ── Sidebar lists ───────────────────────────────────────────
 function renderCpList(cps){
@@ -310,195 +300,9 @@ function renderSeismicList(events){
   el.innerHTML=html;
 }
 
-// ── Tab navigation ──────────────────────────────────────────
-var cotLoaded = false, agriLoaded = false, shippingLoaded = false, oilgasLoaded = false;
-document.querySelectorAll('.nt').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    document.querySelectorAll('.nt').forEach(function(b){b.classList.remove('active');});
-    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
-    btn.classList.add('active');
-    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
-    if(btn.dataset.tab==='map' && window.mlMap) setTimeout(function(){window.mlMap.resize();},50);
-    if(btn.dataset.tab==='cot'      && !cotLoaded)      { cotLoaded=true;      loadCotTab();      }
-    if(btn.dataset.tab==='agri'     && !agriLoaded)     { agriLoaded=true;     loadAgriTab();     }
-    if(btn.dataset.tab==='shipping' && !shippingLoaded) { shippingLoaded=true; loadShippingTab(); }
-    if(btn.dataset.tab==='oilgas'   && !oilgasLoaded)  { oilgasLoaded=true;  loadOilgasTab();  }
-  });
-});
-
-// ── Dashboard Oversikt ───────────────────────────────────────
-function goTab(tab){
-  document.querySelectorAll('.nt').forEach(function(b){b.classList.remove('active');});
-  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
-  var btn=document.querySelector('.nt[data-tab="'+tab+'"]');
-  if(btn) btn.classList.add('active');
-  var panel=document.getElementById('panel-'+tab);
-  if(panel) panel.classList.add('active');
-  if(tab==='map' && window.mlMap) setTimeout(function(){window.mlMap.resize();},50);
-  if(tab==='cot'      && !cotLoaded)      { cotLoaded=true;      loadCotTab();      }
-  if(tab==='agri'     && !agriLoaded)     { agriLoaded=true;     loadAgriTab();     }
-  if(tab==='shipping' && !shippingLoaded) { shippingLoaded=true; loadShippingTab(); }
-  if(tab==='oilgas'   && !oilgasLoaded)  { oilgasLoaded=true;  loadOilgasTab();  }
-}
-
-function dashCard(icon, title, tab, badgeTxt, badgeCol, badgeBg, metric, metricCol, sub, bullets){
-  var blist = bullets.map(function(b){return '<li>'+b+'</li>';}).join('');
-  return '<div class="dash-card" onclick="goTab(\''+tab+'\')">'+
-    '<div class="dash-card-top">'+
-      '<span class="dash-icon">'+icon+'</span>'+
-      '<span class="dash-badge" style="color:'+badgeCol+';border-color:'+badgeCol+';background:'+badgeBg+'">'+badgeTxt+'</span>'+
-    '</div>'+
-    '<div class="dash-title">'+title+'</div>'+
-    '<div class="dash-metric" style="color:'+metricCol+'">'+metric+'</div>'+
-    '<div class="dash-sub">'+sub+'</div>'+
-    '<ul class="dash-bullets">'+blist+'</ul>'+
-    '<span class="dash-link">Åpne →</span>'+
-  '</div>';
-}
-
-function loadDashboard(){
-  Promise.all([
-    loadJSON('data/geointel/chokepoints.json'),
-    loadJSON('data/comex/latest.json'),
-    loadJSON('data/geointel/intel.json'),
-    loadJSON('data/combined/latest.json'),
-    loadJSON('data/agri/latest.json'),
-    loadJSON('data/shipping/latest.json'),
-    loadJSON('data/oilgas/latest.json'),
-  ]).then(function(res){
-    var cps=res[0], comex=res[1], intel=res[2], cot=res[3], agri=res[4], ship=res[5], og=res[6];
-    var cards='';
-    var RISK_COL={'HIGH':'var(--bear)','MEDIUM':'var(--warn)','LOW':'var(--bull)'};
-    var RISK_BG={'HIGH':'var(--rbg)','MEDIUM':'var(--wbg)','LOW':'var(--bbg)'};
-    var SIG_COL={'STERKT BULLISH':'var(--bull)','BULLISH':'var(--bull)','NØYTRAL':'var(--m)','BEARISH':'var(--bear)','STERKT BEARISH':'var(--bear)'};
-
-    // 1. Geo-Intel Kart
-    if(cps){
-      var highCp=(cps||[]).filter(function(c){return c.risk==='high';}).length;
-      var medCp=(cps||[]).filter(function(c){return c.risk==='medium';}).length;
-      var cpRisk=highCp>=2?'HIGH':highCp>=1?'MEDIUM':'LOW';
-      cards+=dashCard('🗺️','Geo-Intel Kart','map',
-        cpRisk, RISK_COL[cpRisk], RISK_BG[cpRisk],
-        highCp+' HIGH', RISK_COL[cpRisk],
-        'Chokepoints med høy forstyrrelsesrisiko',
-        [medCp+' medium-risiko chokepoints',
-         'Interaktivt kart med rørledninger, gruver og infrastruktur',
-         'Siste 7 dagers jordskjelvaktivitet']);
-    }
-
-    // 2. COMEX Lager
-    if(comex){
-      var si=comex.stress_index||{};
-      var gS=si.gold||0, svS=si.silver||0, cuS=si.copper||0;
-      var worstStress=Math.max(gS,svS,cuS);
-      var cxCol=worstStress>=70?'var(--bear)':worstStress>=40?'var(--warn)':'var(--bull)';
-      var cxBg=worstStress>=70?'var(--rbg)':worstStress>=40?'var(--wbg)':'var(--bbg)';
-      var cxBadge=worstStress>=70?'HØY STRESS':worstStress>=40?'MODERAT':'NORMAL';
-      cards+=dashCard('🏦','COMEX Lager','comex',
-        cxBadge, cxCol, cxBg,
-        worstStress.toFixed(1)+'', cxCol,
-        'Høyeste stress-indeks (0=trygg · 100=kritisk)',
-        ['Gull stress: '+gS.toFixed(1),
-         'Sølv stress: '+svS.toFixed(1),
-         'Kobber stress: '+cuS.toFixed(1)]);
-    }
-
-    // 3. Intel Feed
-    if(intel && intel.articles && intel.articles.length){
-      var latest=intel.articles[0];
-      cards+=dashCard('📰','Intel Feed','intel',
-        'OPPDATERT', 'var(--blue)', 'var(--blbg)',
-        intel.articles.length+'', 'var(--blue)',
-        'Siste nyhetsartikler',
-        [latest.title.substring(0,60)+(latest.title.length>60?'…':''),
-         'Kategorier: gull, sølv, kobber, energi, korn',
-         'Oppdatert: '+toNO(intel.updated||'-')]);
-    }
-
-    // 4. Råvare COT
-    if(cot && Array.isArray(cot)){
-      var bulls=0,bears=0;
-      cot.forEach(function(e){
-        var net=(e.spekulanter||{}).net||0, oi=e.open_interest||1;
-        var pct=net/oi*100;
-        if(pct>5) bulls++; else if(pct<-5) bears++;
-      });
-      var cotCol=bulls>bears?'var(--bull)':bears>bulls?'var(--bear)':'var(--m)';
-      var cotBadge=bulls>bears?'BULLISH':bears>bulls?'BEARISH':'NØYTRAL';
-      var cotBg=bulls>bears?'var(--bbg)':bears>bulls?'var(--rbg)':'var(--s2)';
-      cards+=dashCard('📊','Råvare COT','cot',
-        cotBadge, cotCol, cotBg,
-        bulls+'▲ / '+bears+'▼', cotCol,
-        'Bull vs Bear – spekulantposisjonering',
-        [bulls+' markeder der fond kjøper (long)',
-         bears+' markeder der fond selger (short)',
-         'Basert på '+cot.length+' CFTC-rapporter']);
-    }
-
-    // 5. Avlings-analyse
-    if(agri && agri.crop_summary){
-      var topCrop=agri.crop_summary[0];
-      var agriBulls=(agri.crop_summary||[]).filter(function(c){return c.outlook.signal.indexOf('BULLISH')>=0;}).length;
-      var agriSig=topCrop?topCrop.outlook.signal:'NØYTRAL';
-      var agriCol=SIG_COL[agriSig]||'var(--m)';
-      cards+=dashCard('🌾','Avlings-analyse','agri',
-        agriBulls>0?agriBulls+' BULLISH':'NØYTRAL', agriCol, agriCol==='var(--bull)'?'var(--bbg)':'var(--s2)',
-        topCrop?topCrop.ikon+' '+topCrop.navn:'—', agriCol,
-        'Sterkeste signal akkurat nå',
-        ['Vær + COT kombinert for '+agri.crop_summary.length+' avlinger',
-         topCrop?'Signal: '+agriSig:'Ingen data',
-         'Oppdatert: '+toNO(agri.generated||'-')]);
-    }
-
-    // 6. Shipping
-    if(ship){
-      var shRisk=ship.overall_risk||'LOW';
-      var shHigh=(ship.routes||[]).filter(function(r){return r.risk==='HIGH';});
-      cards+=dashCard('🚢','Shipping','shipping',
-        shRisk, RISK_COL[shRisk], RISK_BG[shRisk],
-        shHigh.length+' HIGH', RISK_COL[shRisk],
-        'Ruter med høy forstyrrelsesrisiko',
-        [shHigh.length>0?'HIGH: '+shHigh.map(function(r){return r.name;}).join(', '):'Ingen HIGH-ruter',
-         'BDI-signal: '+(ship.bdi_signal||'—'),
-         (ship.news||[]).length+' shipping-nyheter hentet']);
-    }
-
-    // 7. Olje & Gass
-    if(og){
-      var ogSig=og.overall_signal||'NØYTRAL';
-      var ogRisk=og.overall_risk||'LOW';
-      var ogCol=SIG_COL[ogSig]||'var(--m)';
-      var ogHigh=(og.segments||[]).filter(function(s){return s.risk==='HIGH';});
-      cards+=dashCard('⛽','Olje & Gass','oilgas',
-        ogSig, ogCol, ogCol==='var(--bull)'?'var(--bbg)':ogCol==='var(--bear)'?'var(--rbg)':'var(--s2)',
-        ogRisk, RISK_COL[ogRisk],
-        'Forstyrrelsesrisiko (pris+COT signal: '+ogSig+')',
-        [ogHigh.length>0?'HIGH: '+ogHigh.map(function(s){return s.name;}).join(', '):'Ingen HIGH-segmenter',
-         og.brent_wti_spread!=null?'Brent–WTI spread: '+(og.brent_wti_spread>0?'+':'')+og.brent_wti_spread+' USD':'Spread: ingen data',
-         (og.news||[]).length+' energi-nyheter hentet']);
-    }
-
-    document.getElementById('dashDate').textContent='Oppdatert: '+toNO(og&&og.generated||ship&&ship.generated||'-');
-    document.getElementById('dashGrid').innerHTML=cards||'<div class="loading">Ingen data tilgjengelig</div>';
-  });
-}
-loadDashboard();
-
-// ── Helpers ─────────────────────────────────────────────────
-function fmtOz(n){if(!n)return '0';if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+' Moz';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(0)+'K oz';return n.toLocaleString()+' oz';}
-function fmtSt(n){if(!n)return '0';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(1)+'K st';return n.toLocaleString()+' st';}
-function fmtChg(n,isOz){if(!n)return '';var s=(n>0?'+':'')+(isOz?fmtOz(n):fmtSt(n));return '<span class="comex-chg '+(n>0?'pos':'neg')+'">'+s+'</span>';}
-function fmtNum(n){if(n==null)return '—';if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+'M';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(0)+'K';return n.toString();}
-function stressColor(v){if(v>=70)return 'var(--bear)';if(v>=40)return 'var(--warn)';return 'var(--bull)';}
-
-function loadJSON(url){
-  return fetch(url).then(function(r){return r.json();}).catch(function(e){console.warn('Load failed:',url,e);return null;});
-}
-
-// ── COMEX ───────────────────────────────────────────────────
-loadJSON('data/comex/latest.json').then(function(d){
+// ── COMEX rendering ───────────────────────────────────────
+function renderComex(d){
   if(!d){document.getElementById('comexCards').innerHTML='<div class="loading">Ingen COMEX-data – kjør fetch_comex.py</div>';return;}
-  document.getElementById('comexDate').textContent='Rapport per '+(d.report_date||'?')+' · Hentet: '+toNO(d.updated||'-')+' · Kilde: '+(d.source||'-');
   function makeCard(metal,label,reg,elig,total,change,unit,isOz){
     var cov=total?Math.round(reg/total*100):0;
     var fmt=isOz?fmtOz:fmtSt;
@@ -522,13 +326,12 @@ loadJSON('data/comex/latest.json').then(function(d){
   }
   document.getElementById('stressGauges').innerHTML=
     stressRow('gold','Gull',sx.gold||0)+stressRow('silver','Sølv',sx.silver||0)+stressRow('copper','Kobber',sx.copper||0);
-});
+}
 
 // ── Intel Feed ──────────────────────────────────────────────
-var intelData=[], activeIntelCat='all';
-loadJSON('data/geointel/intel.json').then(function(d){
+var intelData=[], activeIntelCat='all', intelShowCount=10;
+function renderIntelSection(d){
   if(!d||!d.articles){document.getElementById('intelFeed').innerHTML='<div class="loading">Ingen intel-data – kjør fetch_intel.py</div>';return;}
-  document.getElementById('intelDate').textContent='Oppdatert: '+toNO(d.updated||'-');
   intelData=d.articles;
   var cats=d.categories||[];
   var fh='<button class="intel-btn active" data-cat="all" onclick="filterIntel(\'all\',this)">Alle ('+intelData.length+')</button>';
@@ -538,34 +341,36 @@ loadJSON('data/geointel/intel.json').then(function(d){
   });
   document.getElementById('intelFilters').innerHTML=fh;
   renderIntel();
-});
+}
 function filterIntel(cat,btn){
   activeIntelCat=cat;
-  document.querySelectorAll('.intel-btn').forEach(function(b){b.classList.remove('active');});
+  intelShowCount=10;
+  document.querySelectorAll('#intelFilters .intel-btn').forEach(function(b){b.classList.remove('active');});
   if(btn) btn.classList.add('active');
   renderIntel();
 }
 function renderIntel(){
   var arts=activeIntelCat==='all'?intelData:intelData.filter(function(a){return a.cat===activeIntelCat;});
   if(!arts.length){document.getElementById('intelFeed').innerHTML='<div class="loading">Ingen artikler</div>';return;}
-  document.getElementById('intelFeed').innerHTML=arts.map(function(a){
+  var html=arts.slice(0,intelShowCount).map(function(a){
     return '<div class="intel-item"><div class="intel-title"><a href="'+a.url+'" target="_blank" rel="noopener">'+a.title+'</a></div>'+
       '<div class="intel-meta"><span class="intel-cat '+(a.color||'')+'">'+a.cat.toUpperCase()+'</span><span>'+a.source+'</span><span>'+a.time+'</span></div></div>';
   }).join('');
+  if(arts.length>intelShowCount){
+    html+='<button class="news-toggle-btn" onclick="intelShowCount+=10;renderIntel()">Vis mer ('+(arts.length-intelShowCount)+' gjenstår)</button>';
+  }
+  document.getElementById('intelFeed').innerHTML=html;
 }
 
-// ── Råvare COT tab ──────────────────────────────────────────
-function loadCotTab(){
-  loadJSON('data/combined/latest.json').then(function(d){
-    if(!d||!Array.isArray(d)){document.getElementById('cotCards').innerHTML='<div class="loading">Ingen COT-data – kjør update.sh</div>';return;}
-    document.getElementById('cotDate').textContent='Oppdatert: '+(d[0]&&d[0].date||'-');
-    var skip=/calendar spread|cso|financial|options|pjm|avg price/i;
-    var ravarer=d.filter(function(x){return x.kategori==='råvarer'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market);});
-    var landbruk=d.filter(function(x){return x.kategori==='landbruk'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market);});
-    function byAbs(a,b){return Math.abs(b.spekulanter.net)-Math.abs(a.spekulanter.net);}
-    ravarer.sort(byAbs); landbruk.sort(byAbs);
-    document.getElementById('cotCards').innerHTML=renderCotGroup('🛢️ Energi & Metaller',ravarer)+renderCotGroup('🌾 Landbruk',landbruk);
-  });
+// ── Råvare COT ──────────────────────────────────────────────
+function renderCotSection(d){
+  if(!d||!Array.isArray(d)){document.getElementById('cotCards').innerHTML='<div class="loading">Ingen COT-data – kjør update.sh</div>';return;}
+  var skip=/calendar spread|cso|financial|options|pjm|avg price/i;
+  var ravarer=d.filter(function(x){return x.kategori==='råvarer'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market);});
+  var landbruk=d.filter(function(x){return x.kategori==='landbruk'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market);});
+  function byAbs(a,b){return Math.abs(b.spekulanter.net)-Math.abs(a.spekulanter.net);}
+  ravarer.sort(byAbs); landbruk.sort(byAbs);
+  document.getElementById('cotCards').innerHTML=renderCotGroup('🛢️ Energi & Metaller',ravarer)+renderCotGroup('🌾 Landbruk',landbruk);
 }
 
 function renderCotGroup(title, items){
@@ -581,8 +386,8 @@ function renderCotGroup(title, items){
     var hist=item.spec_net_history||[];
     var maxAbs=Math.max.apply(null,hist.map(function(v){return Math.abs(v)||1;}));
     var spark=hist.map(function(v){
-      var h=Math.max(2,Math.round(Math.abs(v)/maxAbs*24));
-      return '<div class="rcot-sbar" style="height:'+h+'px;background:'+(v>=0?'var(--bull)':'var(--bear)')+'"></div>';
+      var h2=Math.max(2,Math.round(Math.abs(v)/maxAbs*24));
+      return '<div class="rcot-sbar" style="height:'+h2+'px;background:'+(v>=0?'var(--bull)':'var(--bear)')+'"></div>';
     }).join('');
     html+='<div class="rcot-card">'+
       '<div class="rcot-name">'+(item.navn_no||item.market)+'</div>'+
@@ -596,279 +401,13 @@ function renderCotGroup(title, items){
   return html;
 }
 
-// ── Stage labels + colors ────────────────────────────────────
-var STAGE_NO={'post-harvest':'Etter-høst','pre-plant':'Forberedelse','planting':'Såing','early-growth':'Tidlig vekst','growing':'Vekst','flowering':'Blomstring','ripening':'Modning','harvest':'Høsting','dormancy':'Dvale','dormancy-end':'Dvale slutter','heading':'Akssetting','boll-dev':'Bolleutvikling','main-harvest':'Hovedhøst','mid-crop':'Mellom-sesong','low-prod':'Lav produksjon','recovering':'Gjenoppretting','moderate':'Moderat','peak':'Topp-sesong','emergence':'Spiring','sowing':'Såing'};
-var STAGE_COL={'flowering':'#f0ad4e','heading':'#f0ad4e','ripening':'#e8a838','harvest':'#FFD700','main-harvest':'#FFD700','mid-crop':'#FFD700','growing':'#3fb950','early-growth':'#58d68d','planting':'#82e0aa','sowing':'#82e0aa','emergence':'#58d68d','pre-plant':'#a8e6cf','dormancy-end':'#7c8899','post-harvest':'#6b7280','dormancy':'#4b5563','boll-dev':'#f0ad4e','low-prod':'#6b7280','recovering':'#82e0aa','moderate':'#3fb950','peak':'#FFD700'};
-
-// ── MapLibre Map ─────────────────────────────────────────────
-var agriLookup = {};
-window.mlMap = null;
-
-window.addEventListener('DOMContentLoaded', function(){
-  var map = new maplibregl.Map({
-    container: 'map',
-    style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-    center: [20, 20],
-    zoom: 2,
-    attributionControl: false
-  });
-  map.addControl(new maplibregl.NavigationControl({showCompass:false}), 'top-right');
-  map.addControl(new maplibregl.AttributionControl({compact:true}), 'bottom-right');
-  window.mlMap = map;
-
-  map.on('load', function(){
-    Promise.all([
-      loadJSON('data/geointel/shipping_lanes.json'),
-      loadJSON('data/geointel/pipelines.json'),
-      loadJSON('data/geointel/infrastructure.json'),
-      loadJSON('data/geointel/seismic.json'),
-      loadJSON('data/geointel/chokepoints.json'),
-      loadJSON('data/geointel/mines.json'),
-      loadJSON('data/geointel/agri_regions.json')
-    ]).then(function(res){
-      var lanes=res[0], pipes=res[1], infra=res[2], seis=res[3], cps=res[4], mines=res[5], agri=res[6];
-
-      // Shipping lanes
-      if(lanes) map.addSource('src-lanes',{type:'geojson',data:{type:'FeatureCollection',features:lanes.map(function(l){return {type:'Feature',geometry:{type:'LineString',coordinates:l.coordinates.map(function(c){return [c[1],c[0]];})},properties:{name:l.name,risk:l.risk||'low',cargo:l.cargo||'',volume:l.volume||'',desc:l.desc||''}};})}}),
-        map.addLayer({id:'layer-lanes',type:'line',source:'src-lanes',paint:{'line-color':['match',['get','risk'],'high','#f85149','medium','#d29922','#3fb950'],'line-width':['match',['get','risk'],'high',2.5,'medium',2,1.5],'line-opacity':['match',['get','risk'],'high',0.65,'medium',0.55,0.4],'line-dasharray':[6,4]}});
-
-      // Pipelines — active
-      if(pipes){
-        var pFeats=pipes.map(function(p){return {type:'Feature',geometry:{type:'LineString',coordinates:p.coordinates.map(function(c){return [c[1],c[0]];})},properties:{name:p.name,commodity:p.commodity||'oil',status:p.status,capacity:p.capacity||'',operator:p.operator||'',from:p.from||'',to:p.to||'',desc:p.desc||'',active:(p.status==='active')?1:0}};});
-        map.addSource('src-pipes',{type:'geojson',data:{type:'FeatureCollection',features:pFeats}});
-        map.addLayer({id:'layer-pipes-active',type:'line',source:'src-pipes',filter:['==',['get','active'],1],paint:{'line-color':['match',['get','commodity'],'gas','#4fc3f7','refined','#a371f7','#e8a838'],'line-width':2.5,'line-opacity':0.85}});
-        map.addLayer({id:'layer-pipes-dashed',type:'line',source:'src-pipes',filter:['==',['get','active'],0],paint:{'line-color':'#6b7280','line-width':2,'line-opacity':0.7,'line-dasharray':[5,3]}});
-      }
-
-      // Infrastructure
-      if(infra){
-        map.addSource('src-infra',{type:'geojson',data:{type:'FeatureCollection',features:infra.map(function(f){return {type:'Feature',geometry:{type:'Point',coordinates:[f.lon,f.lat]},properties:{name:f.name,type:f.type,country:f.country||'',capacity:f.capacity||'',operator:f.operator||'',desc:f.desc||''}};})}}),
-        map.addLayer({id:'layer-infra',type:'circle',source:'src-infra',paint:{'circle-radius':7,'circle-color':['match',['get','type'],'LNG','#4fc3f7','refinery','#e8a838','storage','#e8a838','#a371f7'],'circle-stroke-color':'rgba(0,0,0,0.5)','circle-stroke-width':2,'circle-opacity':0.85}});
-      }
-
-      // Seismic
-      if(seis){
-        var evts=(seis.all||[]).slice(0,30);
-        map.addSource('src-seis',{type:'geojson',data:{type:'FeatureCollection',features:evts.map(function(e){return {type:'Feature',geometry:{type:'Point',coordinates:[e.lon,e.lat]},properties:{mag:e.mag,place:e.place,time:e.time,depth_km:e.depth_km,region:e.region||''}};})}}),
-        map.addLayer({id:'layer-seismic',type:'circle',source:'src-seis',paint:{'circle-radius':['interpolate',['linear'],['get','mag'],4,5,6,10,8,18],'circle-color':['case',['>=',['get','mag'],7],'#f85149',['>=',['get','mag'],6],'#d29922','#ff6b00'],'circle-opacity':0.5,'circle-stroke-color':'rgba(0,0,0,0.3)','circle-stroke-width':1}});
-        renderSeismicList(seis.mine_region||[]);
-        document.getElementById('updLabel').textContent='Oppdatert: '+toNO(seis.updated);
-      }
-
-      // Agri regions
-      if(agri){
-        agri.forEach(function(r){agriLookup[r.id]=r;});
-        map.addSource('src-agri',{type:'geojson',data:{type:'FeatureCollection',features:agri.map(function(r){return {type:'Feature',geometry:{type:'Point',coordinates:[r.lon,r.lat]},properties:{id:r.id,lat:r.lat,lon:r.lon}};})}}),
-        map.addLayer({id:'layer-agri-circle',type:'circle',source:'src-agri',paint:{'circle-radius':['interpolate',['linear'],['zoom'],1,12,4,30,7,60],'circle-color':'#22c55e','circle-opacity':0.12,'circle-stroke-color':'#22c55e','circle-stroke-width':1.5,'circle-stroke-opacity':0.5}}),
-        map.addLayer({id:'layer-agri-label',type:'symbol',source:'src-agri',layout:{'text-field':['get','id'],'text-size':0}});
-        // Use a separate approach: just icon via circle click
-      }
-
-      // Chokepoints
-      if(cps){
-        map.addSource('src-choke',{type:'geojson',data:{type:'FeatureCollection',features:cps.map(function(c){return {type:'Feature',geometry:{type:'Point',coordinates:[c.lon,c.lat]},properties:{name:c.name,risk:c.risk,throughput:c.throughput,cargo:Array.isArray(c.cargo)?c.cargo.join(', '):c.cargo,desc:c.desc||''}};})}}),
-        map.addLayer({id:'layer-choke',type:'circle',source:'src-choke',paint:{'circle-radius':10,'circle-color':'rgba(0,0,0,0)','circle-stroke-color':['match',['get','risk'],'high','#f85149','medium','#d29922','#3fb950'],'circle-stroke-width':3}}),
-        map.addLayer({id:'layer-choke-dot',type:'circle',source:'src-choke',paint:{'circle-radius':4,'circle-color':['match',['get','risk'],'high','#f85149','medium','#d29922','#3fb950'],'circle-opacity':0.7}});
-        renderCpList(cps);
-      }
-
-      // Mines
-      if(mines){
-        map.addSource('src-mines',{type:'geojson',data:{type:'FeatureCollection',features:mines.map(function(m){return {type:'Feature',geometry:{type:'Point',coordinates:[m.lon,m.lat]},properties:{name:m.name,metal:m.metal,company:m.company,country:m.country,region:m.region,production:m.production,note:m.note||''}};})}}),
-        map.addLayer({id:'layer-mines',type:'circle',source:'src-mines',paint:{'circle-radius':7,'circle-color':['match',['get','metal'],'gold','#FFD700','silver','#C0C0C0','copper','#B87333','#88aacc'],'circle-stroke-color':'rgba(0,0,0,0.5)','circle-stroke-width':1.5,'circle-opacity':0.85}});
-      }
-
-      buildLayerCtrl(map, {lanes:!!lanes, pipes:!!pipes, infra:!!infra, seismic:!!seis, agri:!!agri, choke:!!cps, mines:!!mines});
-      setupClickHandlers(map);
-    });
-  });
-});
-
-function buildLayerCtrl(map, avail){
-  var meta=[
-    {key:'mines',    label:'Gruver',              col:'#FFD700', dot:true,  ids:['layer-mines']},
-    {key:'choke',    label:'Chokepoints',          col:'#f85149', dot:true,  ids:['layer-choke','layer-choke-dot']},
-    {key:'seismic',  label:'Jordskjelv',           col:'#ff6b00', dot:true,  ids:['layer-seismic']},
-    {key:'pipes',    label:'Rørledninger',         col:'#e8a838', dot:false, ids:['layer-pipes-active','layer-pipes-dashed']},
-    {key:'infra',    label:'Energiinfrastruktur',  col:'#4fc3f7', dot:true,  ids:['layer-infra']},
-    {key:'lanes',    label:'Skipslei',             col:'#d29922', dot:false, ids:['layer-lanes']},
-    {key:'agri',     label:'Landbruksregioner',    col:'#22c55e', dot:true,  ids:['layer-agri-circle','layer-agri-label']},
-  ];
-  var html='<div class="lc-ttl">Kartlag</div>';
-  meta.forEach(function(m){
-    if(!avail[m.key]) return;
-    html+='<label class="lyr-row"><input type="checkbox" checked onchange="toggleLayers(\''+m.key+'\',this.checked)"><div class="lyr-sw'+(m.dot?' d':'')+'" style="background:'+m.col+'"></div>'+m.label+'</label>';
-  });
-  document.getElementById('layerCtrl').innerHTML=html;
-  window._layerMeta=meta;
-}
-
-function toggleLayerCtrl(){
-  var ctrl = document.getElementById('layerCtrl');
-  var btn  = document.getElementById('layerToggleBtn');
-  var open = ctrl.classList.toggle('open');
-  btn.textContent = open ? '✕ Lukk' : '🗂️ Lag';
-}
-
-function toggleLayers(key, vis){
-  var meta=(window._layerMeta||[]).find(function(m){return m.key===key;});
-  if(!meta||!window.mlMap) return;
-  meta.ids.forEach(function(id){
-    if(window.mlMap.getLayer(id)) window.mlMap.setLayoutProperty(id,'visibility',vis?'visible':'none');
-  });
-}
-
-function flyTo(lat, lon, zoom){
-  if(window.mlMap) window.mlMap.flyTo({center:[lon,lat],zoom:zoom,duration:1200});
-}
-
-// ── Click + cursor handlers ──────────────────────────────────
-function setupClickHandlers(map){
-  var clickLayers=['layer-mines','layer-choke','layer-choke-dot','layer-infra','layer-seismic','layer-pipes-active','layer-pipes-dashed','layer-lanes','layer-agri-circle'];
-  clickLayers.forEach(function(id){
-    if(!map.getLayer(id)) return;
-    map.on('mouseenter',id,function(){map.getCanvas().style.cursor='pointer';});
-    map.on('mouseleave',id,function(){map.getCanvas().style.cursor='';});
-  });
-
-  if(map.getLayer('layer-mines')) map.on('click','layer-mines',function(e){
-    var p=e.features[0].properties;
-    var col=p.metal==='gold'?'#FFD700':p.metal==='silver'?'#C0C0C0':p.metal==='copper'?'#B87333':'#88aacc';
-    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
-      '<div class="pop-name" style="color:'+col+'">⛏ '+p.name+'</div>'+
-      '<div class="pop-row">Land: <span>'+p.country+' ('+p.region+')</span></div>'+
-      '<div class="pop-row">Selskap: <span>'+p.company+'</span></div>'+
-      '<div class="pop-row">Produksjon: <span>'+p.production+'</span></div>'+
-      (p.note?'<div class="pop-row" style="margin-top:4px;font-style:italic">'+p.note+'</div>':'')
-    ).addTo(map);
-  });
-
-  ['layer-choke','layer-choke-dot'].forEach(function(id){
-    if(!map.getLayer(id)) return;
-    map.on('click',id,function(e){
-      var p=e.features[0].properties;
-      var col=p.risk==='high'?'#f85149':p.risk==='medium'?'#d29922':'#3fb950';
-      new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
-        '<div class="pop-name" style="color:'+col+'">⚓ '+p.name+'</div>'+
-        '<div class="pop-row">Gjennomstrømning: <span>'+p.throughput+'</span></div>'+
-        '<div class="pop-row">Risiko: <span>'+p.risk.toUpperCase()+'</span></div>'+
-        '<div class="pop-row">Last: <span>'+p.cargo+'</span></div>'+
-        (p.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+p.desc+'</div>':'')
-      ).addTo(map);
-    });
-  });
-
-  if(map.getLayer('layer-infra')) map.on('click','layer-infra',function(e){
-    var p=e.features[0].properties;
-    var col=p.type==='LNG'?'#4fc3f7':p.type==='refinery'?'#e8a838':'#a371f7';
-    var em=p.type==='LNG'?'🧊':p.type==='refinery'?'🏭':p.type==='storage'?'🛢':'⚓';
-    var typeNO=p.type==='LNG'?'LNG-terminal':p.type==='refinery'?'Raffineri':p.type==='storage'?'Oljelager':'Strategisk havn';
-    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
-      '<div class="pop-name" style="color:'+col+'">'+em+' '+p.name+'</div>'+
-      '<div class="pop-row">Type: <span>'+typeNO+'</span></div>'+
-      (p.country?'<div class="pop-row">Land: <span>'+p.country+'</span></div>':'')+
-      (p.capacity?'<div class="pop-row">Kapasitet: <span>'+p.capacity+'</span></div>':'')+
-      (p.operator?'<div class="pop-row">Operatør: <span>'+p.operator+'</span></div>':'')+
-      (p.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+p.desc+'</div>':'')
-    ).addTo(map);
-  });
-
-  if(map.getLayer('layer-seismic')) map.on('click','layer-seismic',function(e){
-    var p=e.features[0].properties;
-    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
-      '<div class="pop-name">🌍 M'+p.mag+' – '+p.place+'</div>'+
-      '<div class="pop-row">Tid: <span>'+p.time+'</span></div>'+
-      (p.depth_km?'<div class="pop-row">Dybde: <span>'+p.depth_km+' km</span></div>':'')+
-      (p.region?'<div class="pop-row">Gruveregion: <span style="color:var(--blue)">'+p.region+'</span></div>':'')
-    ).addTo(map);
-  });
-
-  ['layer-pipes-active','layer-pipes-dashed'].forEach(function(id){
-    if(!map.getLayer(id)) return;
-    map.on('click',id,function(e){
-      var p=e.features[0].properties;
-      var col=p.active?'#e8a838':'#6b7280';
-      var statusTxt=p.status==='active'?'✅ Aktiv':p.status==='sabotaged'?'💥 Sabotert':p.status==='partly_active'?'⚠️ Delvis aktiv':'❌ Inaktiv';
-      new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
-        '<div class="pop-name" style="color:'+col+'">🛢 '+p.name+'</div>'+
-        '<div class="pop-row">Status: <span>'+statusTxt+'</span></div>'+
-        (p.capacity?'<div class="pop-row">Kapasitet: <span>'+p.capacity+'</span></div>':'')+
-        (p.operator?'<div class="pop-row">Operatør: <span>'+p.operator+'</span></div>':'')+
-        (p.from?'<div class="pop-row">Fra → Til: <span>'+p.from+' → '+p.to+'</span></div>':'')+
-        (p.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+p.desc+'</div>':'')
-      ).addTo(map);
-    });
-  });
-
-  if(map.getLayer('layer-lanes')) map.on('click','layer-lanes',function(e){
-    var p=e.features[0].properties;
-    var col=p.risk==='high'?'#f85149':p.risk==='medium'?'#d29922':'#3fb950';
-    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
-      '<div class="pop-name" style="color:'+col+'">🚢 '+p.name+'</div>'+
-      '<div class="pop-row">Risiko: <span>'+p.risk.toUpperCase()+'</span></div>'+
-      (p.cargo?'<div class="pop-row">Last: <span>'+p.cargo+'</span></div>':'')+
-      (p.volume?'<div class="pop-row">Volum: <span>'+p.volume+'</span></div>':'')+
-      (p.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+p.desc+'</div>':'')
-    ).addTo(map);
-  });
-
-  // Agri popup med vær
-  if(map.getLayer('layer-agri-circle')) map.on('click','layer-agri-circle',function(e){
-    var id=e.features[0].properties.id;
-    var r=agriLookup[id]; if(!r) return;
-    var mIdx=new Date().getMonth();
-    var stage=r.stages[mIdx]||'unknown';
-    var stageLabel=STAGE_NO[stage]||stage;
-    var stageCol=STAGE_COL[stage]||'#7d8590';
-    var isCritical=r.critical_months&&r.critical_months.indexOf(mIdx)>=0;
-    var container=document.createElement('div');
-    container.innerHTML=
-      '<div class="pop-name" style="color:var(--agri)">'+r.icon+' '+r.name+'</div>'+
-      '<div class="pop-row" style="margin-bottom:4px">'+r.world_importance+'</div>'+
-      '<div class="pop-row">Vekster: <span>'+r.crops.join(', ')+'</span></div>'+
-      '<div style="margin:6px 0"><span style="background:'+stageCol+';color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px">'+stageLabel+'</span>'+
-      (isCritical?' <span style="background:var(--rbg);color:var(--bear);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid var(--bear)">⚡ Kritisk måned</span>':'')+
-      '</div>'+
-      '<div style="font-size:11px;color:var(--m);margin-bottom:6px">'+r.desc+'</div>'+
-      '<div style="font-size:11px;color:var(--m)">Risikoer: '+r.risks.join(' · ')+'</div>'+
-      '<div id="wx-'+id+'" style="margin-top:8px;border-top:1px solid var(--b);padding-top:8px;font-size:11px;color:var(--m)">⏳ Henter vær...</div>';
-    new maplibregl.Popup({closeOnClick:true,maxWidth:'340px'}).setLngLat(e.lngLat).setDOMContent(container).addTo(map);
-    // Fetch weather
-    fetch('https://api.open-meteo.com/v1/forecast?latitude='+r.lat+'&longitude='+r.lon+'&current=temperature_2m,precipitation,wind_speed_10m&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&forecast_days=7&timezone=auto')
-      .then(function(res){return res.json();})
-      .then(function(w){
-        var el=document.getElementById('wx-'+id); if(!el) return;
-        var c=w.current||{}, d=w.daily||{};
-        var impact='';
-        if(stage==='flowering'&&c.precipitation<0.5) impact='<div style="margin-top:4px;padding:4px 8px;border-radius:4px;background:var(--rbg);border:1px solid var(--bear);color:var(--bear)">⚠ Tørke i blomstringsfase – kritisk for pris</div>';
-        else if(stage==='harvest'&&c.precipitation>8) impact='<div style="margin-top:4px;padding:4px 8px;border-radius:4px;background:var(--wbg);border:1px solid var(--warn);color:var(--warn)">⚠ Nedbør forsinker innhøsting</div>';
-        else if(stage==='planting'&&c.temperature_2m<5) impact='<div style="margin-top:4px;padding:4px 8px;border-radius:4px;background:var(--wbg);border:1px solid var(--warn);color:var(--warn)">⚠ For kaldt for god spiring</div>';
-        var maxT=d.temperature_2m_max?Math.max.apply(null,d.temperature_2m_max).toFixed(0):'–';
-        var minT=d.temperature_2m_min?Math.min.apply(null,d.temperature_2m_min).toFixed(0):'–';
-        var totP=d.precipitation_sum?(d.precipitation_sum.reduce(function(a,b){return a+(b||0);},0).toFixed(1)):'–';
-        el.innerHTML='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:4px">Vær nå</div>'+
-          '<div style="display:flex;gap:12px">'+
-          '<span>🌡 '+Math.round(c.temperature_2m||0)+'°C</span>'+
-          '<span>💧 '+(c.precipitation||0)+' mm</span>'+
-          '<span>💨 '+Math.round(c.wind_speed_10m||0)+' km/h</span></div>'+
-          '<div style="color:var(--m);margin-top:3px">7 dager: '+minT+'–'+maxT+'°C · '+totP+' mm total</div>'+impact;
-      })
-      .catch(function(){var el=document.getElementById('wx-'+id);if(el)el.textContent='Vær utilgjengelig';});
-  });
-}
-
-// ── Avlings-analyse tab ─────────────────────────────────────
-function loadAgriTab(){
-  loadJSON('data/agri/latest.json').then(function(d){
-    if(!d||!d.crop_summary){
-      document.getElementById('agriContent').innerHTML='<div class="loading">Ingen avlingsdata – kjør update.sh</div>';
-      return;
-    }
-    document.getElementById('agriDate').textContent = 'COT per '+(d.cot_date||'?')+' · Hentet: '+toNO(d.generated)+' · Kilde: '+(d.source||'CFTC · Euronext · Open-Meteo');
-    document.getElementById('agriContent').innerHTML = renderAgri(d);
-  }).catch(function(){
-    document.getElementById('agriContent').innerHTML='<div class="loading">Feil ved lasting av avlingsdata</div>';
-  });
+// ── Agri rendering ─────────────────────────────────────────
+function renderAgriSection(d){
+  if(!d||!d.crop_summary){
+    document.getElementById('agriContent').innerHTML='<div class="loading">Ingen avlingsdata – kjør update.sh</div>';
+    return;
+  }
+  document.getElementById('agriContent').innerHTML = renderAgri(d);
 }
 
 function renderAgri(d){
@@ -1028,14 +567,12 @@ function renderAgri(d){
       h += '<span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;opacity:.7">Livssyklusen fra såing til høsting</span>';
       h += '</div>';
       if(c.in_season){
-        // Visuell tidslinje
         var stages = [{n:'Såing',c:'#3fb950'},{n:'Vekst',c:'#1a7f37'},{n:'Blomstring',c:'#d29922'},{n:'Modning',c:'#da7726'},{n:'Høsting',c:'#8b6914'}];
         h += '<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:4px;position:relative">';
         stages.forEach(function(s){
           h += '<div style="flex:1;background:'+s.c+';opacity:0.3"></div>';
         });
         h += '</div>';
-        // Markør
         var pct = c.growth_stage_pct || 0;
         h += '<div style="position:relative;height:0;margin-top:-12px;margin-bottom:8px">';
         h += '<div style="position:absolute;left:'+pct+'%;transform:translateX(-50%);font-size:8px;color:var(--t)">▼</div>';
@@ -1061,7 +598,6 @@ function renderAgri(d){
       h += '<span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;opacity:.7">Faktisk vs. hva avlingen trenger</span>';
       h += '</div>';
       h += '<div style="display:flex;gap:16px;margin-bottom:8px">';
-      // GDD
       if(c.gdd_pct != null){
         var gddCol = c.gdd_pct > 5 ? 'var(--bull)' : 'var(--warn)';
         h += '<div style="flex:1">';
@@ -1070,7 +606,6 @@ function renderAgri(d){
         h += '<div style="font-size:10px;color:var(--m);margin-top:2px">'+(c.gdd_accumulated||0)+' av '+(c.gdd_required||'?')+' varmeenheter</div>';
         h += '</div>';
       }
-      // Nedbør
       if(c.precip_pct != null){
         var precCol = c.precip_pct > 60 && c.precip_pct < 140 ? 'var(--bull)' : c.precip_pct > 30 ? 'var(--warn)' : 'var(--bear)';
         h += '<div style="flex:1">';
@@ -1147,18 +682,13 @@ function renderAgri(d){
   return h;
 }
 
-// ── Shipping tab ──────────────────────────────────────────────────
-function loadShippingTab(){
-  loadJSON('data/shipping/latest.json').then(function(d){
-    if(!d||!d.routes){
-      document.getElementById('shippingContent').innerHTML='<div class="loading">Ingen shipping-data – kjør update.sh</div>';
-      return;
-    }
-    document.getElementById('shippingDate').textContent = 'BDI per '+(d.bdi_date||'?')+' · Hentet: '+toNO(d.generated)+' · Kilde: '+(d.source||'tradingeconomics.com · Google News RSS');
-    document.getElementById('shippingContent').innerHTML = renderShipping(d);
-  }).catch(function(){
-    document.getElementById('shippingContent').innerHTML='<div class="loading">Feil ved lasting av shipping-data</div>';
-  });
+// ── Shipping rendering ──────────────────────────────────────────
+function renderShippingSection(d){
+  if(!d||!d.routes){
+    document.getElementById('shippingContent').innerHTML='<div class="loading">Ingen shipping-data – kjør update.sh</div>';
+    return;
+  }
+  document.getElementById('shippingContent').innerHTML = renderShipping(d);
 }
 
 function renderShipping(d){
@@ -1205,7 +735,6 @@ function renderShipping(d){
       h += '<span style="color:'+sigCol+'">'+devStr+'</span>';
       h += '</div>';
       h += '<div style="font-size:10px;color:var(--m);margin-top:3px">'+idx.desc+' · '+data.trend+'</div>';
-      // Mini sparkline
       if(data.history && data.history.length > 2){
         var mn = Math.min.apply(null,data.history), mx = Math.max.apply(null,data.history);
         var range = mx - mn || 1;
@@ -1229,14 +758,12 @@ function renderShipping(d){
     var rCol = RISK_COL[r.risk] || 'var(--m)';
     var rBg  = RISK_BG[r.risk]  || 'var(--s2)';
     h += '<div class="card" style="border-left:3px solid '+rCol+'">';
-    // Header
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
     h += '<div style="font-weight:600;min-width:0;flex:1 1 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.ikon+' '+r.name+'</div>';
     h += '<span style="flex-shrink:0;white-space:nowrap;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid '+rCol+';color:'+rCol+';background:'+rBg+'">'+r.risk+'</span>';
     h += '</div>';
     h += '<div style="font-size:11px;color:var(--m);margin-bottom:3px">'+r.from+' → '+r.to+' · '+r.cargo+'</div>';
     h += '<div class="ship-route-impact" style="font-size:11px;color:var(--blue);margin-bottom:6px">📈 '+r.impact+'</div>';
-    // Artikler knyttet til ruten
     if(r.articles && r.articles.length){
       h += '<div style="border-top:1px solid var(--b);margin-top:6px;padding-top:6px">';
       r.articles.slice(0,2).forEach(function(art){
@@ -1253,9 +780,11 @@ function renderShipping(d){
   });
   h += '</div>';
 
-  // ── Nyhetsfeed ──
+  // ── Nyhetsfeed (collapsed) ──
   if(d.news && d.news.length){
-    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:10px">Shipping-nyheter ('+d.news.length+')</div>';
+    h += '<div id="shipNewsWrap">';
+    h += '<button class="news-toggle-btn" onclick="toggleShipNews()">Vis nyheter ('+d.news.length+')</button>';
+    h += '<div id="shipNewsBody" style="display:none">';
     var CAT_COL = {
       'container':'#4fc3f7','tanker':'#e8a838','bulk':'var(--copper)',
       'chokepoint':'var(--bear)','port':'var(--warn)'
@@ -1269,23 +798,25 @@ function renderShipping(d){
       h += '<span>'+a.source+'</span><span>'+a.time+'</span>';
       h += '</div></div>';
     });
+    h += '</div></div>';
   }
 
   return h;
 }
+function toggleShipNews(){
+  var body=document.getElementById('shipNewsBody');
+  var btn=body.previousElementSibling;
+  if(body.style.display==='none'){body.style.display='block';btn.textContent='Skjul nyheter';}
+  else{body.style.display='none';btn.textContent='Vis nyheter';}
+}
 
-// ── Olje & Gass tab ───────────────────────────────────────────────
-function loadOilgasTab(){
-  loadJSON('data/oilgas/latest.json').then(function(d){
-    if(!d||!d.instruments){
-      document.getElementById('oilgasContent').innerHTML='<div class="loading">Ingen energidata – kjør update.sh</div>';
-      return;
-    }
-    document.getElementById('oilgasDate').textContent = 'COT per '+(d.cot_date||'?')+' · Hentet: '+toNO(d.generated)+' · Kilde: '+(d.source||'CFTC · Skilling bot · Yahoo Finance');
-    document.getElementById('oilgasContent').innerHTML = renderOilgas(d);
-  }).catch(function(){
-    document.getElementById('oilgasContent').innerHTML='<div class="loading">Feil ved lasting av energidata</div>';
-  });
+// ── Olje & Gass rendering ───────────────────────────────────────
+function renderOilgasSection(d){
+  if(!d||!d.instruments){
+    document.getElementById('oilgasContent').innerHTML='<div class="loading">Ingen energidata – kjør update.sh</div>';
+    return;
+  }
+  document.getElementById('oilgasContent').innerHTML = renderOilgas(d);
 }
 
 function renderOilgas(d){
@@ -1377,12 +908,10 @@ function renderOilgas(d){
     var sCol = SIG_COL[inst.signal] || 'var(--m)';
     var pSrc = p ? (p.source || 'stooq') : null;
     h += '<div class="card" style="border-top:3px solid '+sCol+'">';
-    // Header: label + signal + kildebadges
     h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
     h += '<div style="font-size:12px;font-weight:600">'+inst.label+'</div>';
     h += '<div style="font-size:10px;font-weight:700;color:'+sCol+'">'+inst.signal+'</div>';
     h += '</div>';
-    // Pris
     if(p){
       var chgCol = p.chg1d >= 0 ? 'var(--bull)' : 'var(--bear)';
       var devCol = PSIG_COL[p.signal] || 'var(--m)';
@@ -1402,7 +931,6 @@ function renderOilgas(d){
     } else {
       h += '<div style="font-size:13px;color:var(--m);margin-top:8px">Pris ikke tilgjengelig</div>';
     }
-    // Doble sparklines: pris + COT side om side
     var hasPrice = p && p.history && p.history.length > 2;
     var cotHist = cot ? (cot.spec_net_history || []) : [];
     var hasCot = cotHist.length >= 2;
@@ -1424,7 +952,6 @@ function renderOilgas(d){
       }
       h += '</div>';
     }
-    // COT-detaljer
     if(cot){
       var cotCol = cot.bias==='bull' ? 'var(--bull)' : 'var(--bear)';
       h += '<div style="border-top:1px solid var(--b);margin-top:8px;padding-top:6px;font-size:11px">';
@@ -1442,7 +969,6 @@ function renderOilgas(d){
       }
       h += '</div>';
     }
-    // Freshness
     var parts = [];
     if(p && p.date) parts.push('Pris: '+p.date.substring(0,10));
     if(cot && cot.date) parts.push('COT: '+cot.date);
@@ -1481,10 +1007,11 @@ function renderOilgas(d){
   });
   h += '</div>';
 
-  // ── Nyhetsfeed (kollapset som standard) ──
+  // ── Nyhetsfeed (collapsed) ──
   if(d.news && d.news.length){
-    h += '<details style="margin-bottom:24px">';
-    h += '<summary style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);cursor:pointer;margin-bottom:10px;user-select:none">Energi-nyheter ('+d.news.length+') \u25B6</summary>';
+    h += '<div id="oilNewsWrap">';
+    h += '<button class="news-toggle-btn" onclick="toggleOilNews()">Vis nyheter ('+d.news.length+')</button>';
+    h += '<div id="oilNewsBody" style="display:none">';
     var CAT_COL = {
       'opec':'var(--gold)','prices':'var(--bull)','natgas':'#4fc3f7',
       'geopolit':'var(--bear)','inventory':'var(--copper)'
@@ -1498,7 +1025,7 @@ function renderOilgas(d){
       h += '<span>'+a.source+'</span><span>'+a.time+'</span>';
       h += '</div></div>';
     });
-    h += '</details>';
+    h += '</div></div>';
   }
 
   // ── Datakilde-footer ──
@@ -1511,6 +1038,392 @@ function renderOilgas(d){
 
   return h;
 }
+function toggleOilNews(){
+  var body=document.getElementById('oilNewsBody');
+  var btn=body.previousElementSibling;
+  if(body.style.display==='none'){body.style.display='block';btn.textContent='Skjul nyheter';}
+  else{body.style.display='none';btn.textContent='Vis nyheter';}
+}
+
+// ── Oversiktsbanner (mood + 4 key metrics) ──────────────────
+function renderOverview(comex, ship, og, agri){
+  var RISK_COL={'HIGH':'var(--bear)','MEDIUM':'var(--warn)','LOW':'var(--bull)'};
+  var SIG_COL={'STERKT BULLISH':'var(--bull)','BULLISH':'var(--bull)','NØYTRAL':'var(--m)','BEARISH':'var(--bear)','STERKT BEARISH':'var(--bear)'};
+
+  // Compute metrics
+  var si = comex ? (comex.stress_index||{}) : {};
+  var worstStress = Math.max(si.gold||0, si.silver||0, si.copper||0);
+
+  var shipRisk = ship ? (ship.overall_risk||'LOW') : 'LOW';
+
+  var ogSig = og ? (og.overall_signal||'NØYTRAL') : 'NØYTRAL';
+  var ogCol = SIG_COL[ogSig] || 'var(--m)';
+
+  var agriBulls = 0;
+  if(agri && agri.crop_summary){
+    agriBulls = agri.crop_summary.filter(function(c){return c.outlook.signal.indexOf('BULLISH')>=0;}).length;
+  }
+
+  // Determine overall mood
+  var moodCol, moodBg, moodBorder, moodEmoji, moodTitle, moodSub;
+  var stress = worstStress >= 70;
+  var shipHigh = shipRisk === 'HIGH';
+  var ogBear = ogSig.indexOf('BEARISH') >= 0;
+  if(stress || shipHigh){
+    moodEmoji='🔴'; moodTitle='Høy risiko i råvaremarkedet'; moodSub='Stress i COMEX-lagre eller forstyrrelsesrisiko i shipping påvirker prisbildet.';
+    moodCol='var(--bear)'; moodBg='var(--rbg)'; moodBorder='var(--bear)';
+  } else if(ogBear || worstStress >= 40){
+    moodEmoji='🟡'; moodTitle='Avventende stemning'; moodSub='Moderate risikosignaler. Følg med på COMEX stress og shipping-ruter.';
+    moodCol='var(--warn)'; moodBg='var(--wbg)'; moodBorder='var(--warn)';
+  } else {
+    moodEmoji='🟢'; moodTitle='Rolig råvaremarked'; moodSub='Lave stressnivåer og normal aktivitet i supply chain.';
+    moodCol='var(--bull)'; moodBg='var(--bbg)'; moodBorder='var(--bull)';
+  }
+
+  var mh = '<div class="mood-banner" style="background:'+moodBg+';border:1px solid '+moodBorder+'">';
+  mh += '<div class="mood-emoji">'+moodEmoji+'</div>';
+  mh += '<div><div class="mood-title" style="color:'+moodCol+'">'+moodTitle+'</div>';
+  mh += '<div class="mood-sub">'+moodSub+'</div></div>';
+  mh += '</div>';
+  document.getElementById('moodBanner').innerHTML = mh;
+
+  // 4 key metrics
+  var stressCol = stressColor(worstStress);
+  var shipCol = RISK_COL[shipRisk] || 'var(--m)';
+
+  var km = '';
+  km += '<div class="metric-card"><div class="metric-label">COMEX Stress</div>';
+  km += '<div class="metric-val" style="color:'+stressCol+'">'+worstStress.toFixed(0)+'</div>';
+  km += '<div class="metric-desc">Høyeste stress-indeks (Au/Ag/Cu)</div></div>';
+
+  km += '<div class="metric-card"><div class="metric-label">Shipping Risiko</div>';
+  km += '<div class="metric-val" style="color:'+shipCol+'">'+shipRisk+'</div>';
+  km += '<div class="metric-desc">Samlet forstyrrelsesrisiko</div></div>';
+
+  km += '<div class="metric-card"><div class="metric-label">Olje Signal</div>';
+  km += '<div class="metric-val" style="color:'+ogCol+'">'+ogSig+'</div>';
+  km += '<div class="metric-desc">Pris + COT kombinert</div></div>';
+
+  km += '<div class="metric-card"><div class="metric-label">Agri Bullish</div>';
+  km += '<div class="metric-val" style="color:'+(agriBulls>0?'var(--bull)':'var(--m)')+'">'+agriBulls+'</div>';
+  km += '<div class="metric-desc">Avlinger med bullish signal</div></div>';
+
+  document.getElementById('keyMetrics').innerHTML = km;
+}
+
+// ── MapLibre Map (lazy-loaded via IntersectionObserver) ──────
+var agriLookup = {};
+window.mlMap = null;
+var mapInitialized = false;
+
+function initMap(){
+  if(mapInitialized) return;
+  mapInitialized = true;
+
+  var map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    center: [20, 20],
+    zoom: 2,
+    attributionControl: false
+  });
+  map.addControl(new maplibregl.NavigationControl({showCompass:false}), 'top-right');
+  map.addControl(new maplibregl.AttributionControl({compact:true}), 'bottom-right');
+  window.mlMap = map;
+
+  map.on('load', function(){
+    Promise.all([
+      loadJSON('data/geointel/shipping_lanes.json'),
+      loadJSON('data/geointel/pipelines.json'),
+      loadJSON('data/geointel/infrastructure.json'),
+      loadJSON('data/geointel/seismic.json'),
+      loadJSON('data/geointel/chokepoints.json'),
+      loadJSON('data/geointel/mines.json'),
+      loadJSON('data/geointel/agri_regions.json')
+    ]).then(function(res){
+      var lanes=res[0], pipes=res[1], infra=res[2], seis=res[3], cps=res[4], mines=res[5], agri=res[6];
+
+      // Shipping lanes
+      if(lanes) map.addSource('src-lanes',{type:'geojson',data:{type:'FeatureCollection',features:lanes.map(function(l){return {type:'Feature',geometry:{type:'LineString',coordinates:l.coordinates.map(function(c){return [c[1],c[0]];})},properties:{name:l.name,risk:l.risk||'low',cargo:l.cargo||'',volume:l.volume||'',desc:l.desc||''}};})}}),
+        map.addLayer({id:'layer-lanes',type:'line',source:'src-lanes',paint:{'line-color':['match',['get','risk'],'high','#f85149','medium','#d29922','#3fb950'],'line-width':['match',['get','risk'],'high',2.5,'medium',2,1.5],'line-opacity':['match',['get','risk'],'high',0.65,'medium',0.55,0.4],'line-dasharray':[6,4]}});
+
+      // Pipelines — active
+      if(pipes){
+        var pFeats=pipes.map(function(p){return {type:'Feature',geometry:{type:'LineString',coordinates:p.coordinates.map(function(c){return [c[1],c[0]];})},properties:{name:p.name,commodity:p.commodity||'oil',status:p.status,capacity:p.capacity||'',operator:p.operator||'',from:p.from||'',to:p.to||'',desc:p.desc||'',active:(p.status==='active')?1:0}};});
+        map.addSource('src-pipes',{type:'geojson',data:{type:'FeatureCollection',features:pFeats}});
+        map.addLayer({id:'layer-pipes-active',type:'line',source:'src-pipes',filter:['==',['get','active'],1],paint:{'line-color':['match',['get','commodity'],'gas','#4fc3f7','refined','#a371f7','#e8a838'],'line-width':2.5,'line-opacity':0.85}});
+        map.addLayer({id:'layer-pipes-dashed',type:'line',source:'src-pipes',filter:['==',['get','active'],0],paint:{'line-color':'#6b7280','line-width':2,'line-opacity':0.7,'line-dasharray':[5,3]}});
+      }
+
+      // Infrastructure
+      if(infra){
+        map.addSource('src-infra',{type:'geojson',data:{type:'FeatureCollection',features:infra.map(function(f){return {type:'Feature',geometry:{type:'Point',coordinates:[f.lon,f.lat]},properties:{name:f.name,type:f.type,country:f.country||'',capacity:f.capacity||'',operator:f.operator||'',desc:f.desc||''}};})}}),
+        map.addLayer({id:'layer-infra',type:'circle',source:'src-infra',paint:{'circle-radius':7,'circle-color':['match',['get','type'],'LNG','#4fc3f7','refinery','#e8a838','storage','#e8a838','#a371f7'],'circle-stroke-color':'rgba(0,0,0,0.5)','circle-stroke-width':2,'circle-opacity':0.85}});
+      }
+
+      // Seismic
+      if(seis){
+        var evts=(seis.all||[]).slice(0,30);
+        map.addSource('src-seis',{type:'geojson',data:{type:'FeatureCollection',features:evts.map(function(e){return {type:'Feature',geometry:{type:'Point',coordinates:[e.lon,e.lat]},properties:{mag:e.mag,place:e.place,time:e.time,depth_km:e.depth_km,region:e.region||''}};})}}),
+        map.addLayer({id:'layer-seismic',type:'circle',source:'src-seis',paint:{'circle-radius':['interpolate',['linear'],['get','mag'],4,5,6,10,8,18],'circle-color':['case',['>=',['get','mag'],7],'#f85149',['>=',['get','mag'],6],'#d29922','#ff6b00'],'circle-opacity':0.5,'circle-stroke-color':'rgba(0,0,0,0.3)','circle-stroke-width':1}});
+        renderSeismicList(seis.mine_region||[]);
+        document.getElementById('updLabel').textContent='Oppdatert: '+toNO(seis.updated);
+      }
+
+      // Agri regions
+      if(agri){
+        agri.forEach(function(r){agriLookup[r.id]=r;});
+        map.addSource('src-agri',{type:'geojson',data:{type:'FeatureCollection',features:agri.map(function(r){return {type:'Feature',geometry:{type:'Point',coordinates:[r.lon,r.lat]},properties:{id:r.id,lat:r.lat,lon:r.lon}};})}}),
+        map.addLayer({id:'layer-agri-circle',type:'circle',source:'src-agri',paint:{'circle-radius':['interpolate',['linear'],['zoom'],1,12,4,30,7,60],'circle-color':'#22c55e','circle-opacity':0.12,'circle-stroke-color':'#22c55e','circle-stroke-width':1.5,'circle-stroke-opacity':0.5}}),
+        map.addLayer({id:'layer-agri-label',type:'symbol',source:'src-agri',layout:{'text-field':['get','id'],'text-size':0}});
+      }
+
+      // Chokepoints
+      if(cps){
+        map.addSource('src-choke',{type:'geojson',data:{type:'FeatureCollection',features:cps.map(function(c){return {type:'Feature',geometry:{type:'Point',coordinates:[c.lon,c.lat]},properties:{name:c.name,risk:c.risk,throughput:c.throughput,cargo:Array.isArray(c.cargo)?c.cargo.join(', '):c.cargo,desc:c.desc||''}};})}}),
+        map.addLayer({id:'layer-choke',type:'circle',source:'src-choke',paint:{'circle-radius':10,'circle-color':'rgba(0,0,0,0)','circle-stroke-color':['match',['get','risk'],'high','#f85149','medium','#d29922','#3fb950'],'circle-stroke-width':3}}),
+        map.addLayer({id:'layer-choke-dot',type:'circle',source:'src-choke',paint:{'circle-radius':4,'circle-color':['match',['get','risk'],'high','#f85149','medium','#d29922','#3fb950'],'circle-opacity':0.7}});
+        renderCpList(cps);
+      }
+
+      // Mines
+      if(mines){
+        map.addSource('src-mines',{type:'geojson',data:{type:'FeatureCollection',features:mines.map(function(m){return {type:'Feature',geometry:{type:'Point',coordinates:[m.lon,m.lat]},properties:{name:m.name,metal:m.metal,company:m.company,country:m.country,region:m.region,production:m.production,note:m.note||''}};})}}),
+        map.addLayer({id:'layer-mines',type:'circle',source:'src-mines',paint:{'circle-radius':7,'circle-color':['match',['get','metal'],'gold','#FFD700','silver','#C0C0C0','copper','#B87333','#88aacc'],'circle-stroke-color':'rgba(0,0,0,0.5)','circle-stroke-width':1.5,'circle-opacity':0.85}});
+      }
+
+      buildLayerCtrl(map, {lanes:!!lanes, pipes:!!pipes, infra:!!infra, seismic:!!seis, agri:!!agri, choke:!!cps, mines:!!mines});
+      setupClickHandlers(map);
+    });
+  });
+}
+
+// IntersectionObserver for lazy map init
+if('IntersectionObserver' in window){
+  var mapObs = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        initMap();
+        mapObs.unobserve(entry.target);
+      }
+    });
+  }, {rootMargin:'200px'});
+  document.addEventListener('DOMContentLoaded', function(){
+    mapObs.observe(document.getElementById('sec-map'));
+  });
+} else {
+  document.addEventListener('DOMContentLoaded', initMap);
+}
+
+function buildLayerCtrl(map, avail){
+  var meta=[
+    {key:'mines',    label:'Gruver',              col:'#FFD700', dot:true,  ids:['layer-mines']},
+    {key:'choke',    label:'Chokepoints',          col:'#f85149', dot:true,  ids:['layer-choke','layer-choke-dot']},
+    {key:'seismic',  label:'Jordskjelv',           col:'#ff6b00', dot:true,  ids:['layer-seismic']},
+    {key:'pipes',    label:'Rørledninger',         col:'#e8a838', dot:false, ids:['layer-pipes-active','layer-pipes-dashed']},
+    {key:'infra',    label:'Energiinfrastruktur',  col:'#4fc3f7', dot:true,  ids:['layer-infra']},
+    {key:'lanes',    label:'Skipslei',             col:'#d29922', dot:false, ids:['layer-lanes']},
+    {key:'agri',     label:'Landbruksregioner',    col:'#22c55e', dot:true,  ids:['layer-agri-circle','layer-agri-label']},
+  ];
+  var html='<div class="lc-ttl">Kartlag</div>';
+  meta.forEach(function(m){
+    if(!avail[m.key]) return;
+    html+='<label class="lyr-row"><input type="checkbox" checked onchange="toggleLayers(\''+m.key+'\',this.checked)"><div class="lyr-sw'+(m.dot?' d':'')+'" style="background:'+m.col+'"></div>'+m.label+'</label>';
+  });
+  document.getElementById('layerCtrl').innerHTML=html;
+  window._layerMeta=meta;
+}
+
+function toggleLayerCtrl(){
+  var ctrl = document.getElementById('layerCtrl');
+  var btn  = document.getElementById('layerToggleBtn');
+  var open = ctrl.classList.toggle('open');
+  btn.textContent = open ? '✕ Lukk' : '🗂️ Lag';
+}
+
+function toggleLayers(key, vis){
+  var meta=(window._layerMeta||[]).find(function(m){return m.key===key;});
+  if(!meta||!window.mlMap) return;
+  meta.ids.forEach(function(id){
+    if(window.mlMap.getLayer(id)) window.mlMap.setLayoutProperty(id,'visibility',vis?'visible':'none');
+  });
+}
+
+function flyTo(lat, lon, zoom){
+  if(window.mlMap) window.mlMap.flyTo({center:[lon,lat],zoom:zoom,duration:1200});
+}
+
+// ── Click + cursor handlers ──────────────────────────────────
+function setupClickHandlers(map){
+  var clickLayers=['layer-mines','layer-choke','layer-choke-dot','layer-infra','layer-seismic','layer-pipes-active','layer-pipes-dashed','layer-lanes','layer-agri-circle'];
+  clickLayers.forEach(function(id){
+    if(!map.getLayer(id)) return;
+    map.on('mouseenter',id,function(){map.getCanvas().style.cursor='pointer';});
+    map.on('mouseleave',id,function(){map.getCanvas().style.cursor='';});
+  });
+
+  if(map.getLayer('layer-mines')) map.on('click','layer-mines',function(e){
+    var p=e.features[0].properties;
+    var col=p.metal==='gold'?'#FFD700':p.metal==='silver'?'#C0C0C0':p.metal==='copper'?'#B87333':'#88aacc';
+    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
+      '<div class="pop-name" style="color:'+col+'">⛏ '+p.name+'</div>'+
+      '<div class="pop-row">Land: <span>'+p.country+' ('+p.region+')</span></div>'+
+      '<div class="pop-row">Selskap: <span>'+p.company+'</span></div>'+
+      '<div class="pop-row">Produksjon: <span>'+p.production+'</span></div>'+
+      (p.note?'<div class="pop-row" style="margin-top:4px;font-style:italic">'+p.note+'</div>':'')
+    ).addTo(map);
+  });
+
+  ['layer-choke','layer-choke-dot'].forEach(function(id){
+    if(!map.getLayer(id)) return;
+    map.on('click',id,function(e){
+      var p=e.features[0].properties;
+      var col=p.risk==='high'?'#f85149':p.risk==='medium'?'#d29922':'#3fb950';
+      new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
+        '<div class="pop-name" style="color:'+col+'">⚓ '+p.name+'</div>'+
+        '<div class="pop-row">Gjennomstrømning: <span>'+p.throughput+'</span></div>'+
+        '<div class="pop-row">Risiko: <span>'+p.risk.toUpperCase()+'</span></div>'+
+        '<div class="pop-row">Last: <span>'+p.cargo+'</span></div>'+
+        (p.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+p.desc+'</div>':'')
+      ).addTo(map);
+    });
+  });
+
+  if(map.getLayer('layer-infra')) map.on('click','layer-infra',function(e){
+    var p=e.features[0].properties;
+    var col=p.type==='LNG'?'#4fc3f7':p.type==='refinery'?'#e8a838':'#a371f7';
+    var em=p.type==='LNG'?'🧊':p.type==='refinery'?'🏭':p.type==='storage'?'🛢':'⚓';
+    var typeNO=p.type==='LNG'?'LNG-terminal':p.type==='refinery'?'Raffineri':p.type==='storage'?'Oljelager':'Strategisk havn';
+    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
+      '<div class="pop-name" style="color:'+col+'">'+em+' '+p.name+'</div>'+
+      '<div class="pop-row">Type: <span>'+typeNO+'</span></div>'+
+      (p.country?'<div class="pop-row">Land: <span>'+p.country+'</span></div>':'')+
+      (p.capacity?'<div class="pop-row">Kapasitet: <span>'+p.capacity+'</span></div>':'')+
+      (p.operator?'<div class="pop-row">Operatør: <span>'+p.operator+'</span></div>':'')+
+      (p.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+p.desc+'</div>':'')
+    ).addTo(map);
+  });
+
+  if(map.getLayer('layer-seismic')) map.on('click','layer-seismic',function(e){
+    var p=e.features[0].properties;
+    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
+      '<div class="pop-name">🌍 M'+p.mag+' – '+p.place+'</div>'+
+      '<div class="pop-row">Tid: <span>'+p.time+'</span></div>'+
+      (p.depth_km?'<div class="pop-row">Dybde: <span>'+p.depth_km+' km</span></div>':'')+
+      (p.region?'<div class="pop-row">Gruveregion: <span style="color:var(--blue)">'+p.region+'</span></div>':'')
+    ).addTo(map);
+  });
+
+  ['layer-pipes-active','layer-pipes-dashed'].forEach(function(id){
+    if(!map.getLayer(id)) return;
+    map.on('click',id,function(e){
+      var p=e.features[0].properties;
+      var col=p.active?'#e8a838':'#6b7280';
+      var statusTxt=p.status==='active'?'✅ Aktiv':p.status==='sabotaged'?'💥 Sabotert':p.status==='partly_active'?'⚠️ Delvis aktiv':'❌ Inaktiv';
+      new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
+        '<div class="pop-name" style="color:'+col+'">🛢 '+p.name+'</div>'+
+        '<div class="pop-row">Status: <span>'+statusTxt+'</span></div>'+
+        (p.capacity?'<div class="pop-row">Kapasitet: <span>'+p.capacity+'</span></div>':'')+
+        (p.operator?'<div class="pop-row">Operatør: <span>'+p.operator+'</span></div>':'')+
+        (p.from?'<div class="pop-row">Fra → Til: <span>'+p.from+' → '+p.to+'</span></div>':'')+
+        (p.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+p.desc+'</div>':'')
+      ).addTo(map);
+    });
+  });
+
+  if(map.getLayer('layer-lanes')) map.on('click','layer-lanes',function(e){
+    var p=e.features[0].properties;
+    var col=p.risk==='high'?'#f85149':p.risk==='medium'?'#d29922':'#3fb950';
+    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(e.lngLat).setHTML(
+      '<div class="pop-name" style="color:'+col+'">🚢 '+p.name+'</div>'+
+      '<div class="pop-row">Risiko: <span>'+p.risk.toUpperCase()+'</span></div>'+
+      (p.cargo?'<div class="pop-row">Last: <span>'+p.cargo+'</span></div>':'')+
+      (p.volume?'<div class="pop-row">Volum: <span>'+p.volume+'</span></div>':'')+
+      (p.desc?'<div class="pop-row" style="margin-top:6px;font-size:11px;color:var(--m)">'+p.desc+'</div>':'')
+    ).addTo(map);
+  });
+
+  // Agri popup med vær
+  if(map.getLayer('layer-agri-circle')) map.on('click','layer-agri-circle',function(e){
+    var id=e.features[0].properties.id;
+    var r=agriLookup[id]; if(!r) return;
+    var mIdx=new Date().getMonth();
+    var stage=r.stages[mIdx]||'unknown';
+    var stageLabel=STAGE_NO[stage]||stage;
+    var stageCol=STAGE_COL[stage]||'#7d8590';
+    var isCritical=r.critical_months&&r.critical_months.indexOf(mIdx)>=0;
+    var container=document.createElement('div');
+    container.innerHTML=
+      '<div class="pop-name" style="color:var(--agri)">'+r.icon+' '+r.name+'</div>'+
+      '<div class="pop-row" style="margin-bottom:4px">'+r.world_importance+'</div>'+
+      '<div class="pop-row">Vekster: <span>'+r.crops.join(', ')+'</span></div>'+
+      '<div style="margin:6px 0"><span style="background:'+stageCol+';color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px">'+stageLabel+'</span>'+
+      (isCritical?' <span style="background:var(--rbg);color:var(--bear);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid var(--bear)">⚡ Kritisk måned</span>':'')+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--m);margin-bottom:6px">'+r.desc+'</div>'+
+      '<div style="font-size:11px;color:var(--m)">Risikoer: '+r.risks.join(' · ')+'</div>'+
+      '<div id="wx-'+id+'" style="margin-top:8px;border-top:1px solid var(--b);padding-top:8px;font-size:11px;color:var(--m)">⏳ Henter vær...</div>';
+    new maplibregl.Popup({closeOnClick:true,maxWidth:'340px'}).setLngLat(e.lngLat).setDOMContent(container).addTo(map);
+    // Fetch weather
+    fetch('https://api.open-meteo.com/v1/forecast?latitude='+r.lat+'&longitude='+r.lon+'&current=temperature_2m,precipitation,wind_speed_10m&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&forecast_days=7&timezone=auto')
+      .then(function(res){return res.json();})
+      .then(function(w){
+        var el=document.getElementById('wx-'+id); if(!el) return;
+        var c=w.current||{}, d2=w.daily||{};
+        var impact='';
+        if(stage==='flowering'&&c.precipitation<0.5) impact='<div style="margin-top:4px;padding:4px 8px;border-radius:4px;background:var(--rbg);border:1px solid var(--bear);color:var(--bear)">⚠ Tørke i blomstringsfase – kritisk for pris</div>';
+        else if(stage==='harvest'&&c.precipitation>8) impact='<div style="margin-top:4px;padding:4px 8px;border-radius:4px;background:var(--wbg);border:1px solid var(--warn);color:var(--warn)">⚠ Nedbør forsinker innhøsting</div>';
+        else if(stage==='planting'&&c.temperature_2m<5) impact='<div style="margin-top:4px;padding:4px 8px;border-radius:4px;background:var(--wbg);border:1px solid var(--warn);color:var(--warn)">⚠ For kaldt for god spiring</div>';
+        var maxT=d2.temperature_2m_max?Math.max.apply(null,d2.temperature_2m_max).toFixed(0):'–';
+        var minT=d2.temperature_2m_min?Math.min.apply(null,d2.temperature_2m_min).toFixed(0):'–';
+        var totP=d2.precipitation_sum?(d2.precipitation_sum.reduce(function(a,b){return a+(b||0);},0).toFixed(1)):'–';
+        el.innerHTML='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:4px">Vær nå</div>'+
+          '<div style="display:flex;gap:12px">'+
+          '<span>🌡 '+Math.round(c.temperature_2m||0)+'°C</span>'+
+          '<span>💧 '+(c.precipitation||0)+' mm</span>'+
+          '<span>💨 '+Math.round(c.wind_speed_10m||0)+' km/h</span></div>'+
+          '<div style="color:var(--m);margin-top:3px">7 dager: '+minT+'–'+maxT+'°C · '+totP+' mm total</div>'+impact;
+      })
+      .catch(function(){var el=document.getElementById('wx-'+id);if(el)el.textContent='Vær utilgjengelig';});
+  });
+}
+
+// ── Load ALL data in parallel, then render everything ────────
+Promise.all([
+  loadJSON('data/comex/latest.json'),
+  loadJSON('data/geointel/intel.json'),
+  loadJSON('data/combined/latest.json'),
+  loadJSON('data/agri/latest.json'),
+  loadJSON('data/shipping/latest.json'),
+  loadJSON('data/oilgas/latest.json'),
+]).then(function(res){
+  var comex=res[0], intel=res[1], cot=res[2], agri=res[3], ship=res[4], og=res[5];
+
+  // Update timestamp
+  var ts = (og && og.generated) || (ship && ship.generated) || (agri && agri.generated) || '-';
+  document.getElementById('updLabel').textContent = 'Oppdatert: ' + toNO(ts);
+
+  // Seksjon 1: Oversiktsbanner
+  renderOverview(comex, ship, og, agri);
+
+  // Seksjon 2: Olje & Gass
+  renderOilgasSection(og);
+
+  // Seksjon 3: Avlings-analyse
+  renderAgriSection(agri);
+
+  // Seksjon 4: COMEX
+  renderComex(comex);
+
+  // Seksjon 5: Shipping
+  renderShippingSection(ship);
+
+  // Seksjon 7: Råvare COT
+  renderCotSection(cot);
+
+  // Seksjon 8: Intel Feed
+  renderIntelSection(intel);
+});
 </script>
 </body>
 </html>
