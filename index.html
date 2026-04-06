@@ -169,7 +169,7 @@ canvas#cotChart{width:100%!important;height:300px!important}
 .cott td{padding:8px 10px;border-bottom:1px solid var(--b);vertical-align:middle;white-space:nowrap}
 .cott tr:last-child td{border-bottom:none}
 .tdr{text-align:right}
-@media(max-width:600px){.cott th,.cott td{padding:6px 8px;font-size:11px}.mob-hide{display:none}}
+@media(max-width:600px){.cott th,.cott td{padding:4px 3px;font-size:9px}.cott th{font-size:8px}.mob-hide{display:none}}
 .sp2{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase}
 .sp2.bull-strong{background:var(--bbg);color:var(--bull)}.sp2.bull-mild{background:rgba(63,185,80,.07);color:var(--bull)}
 .sp2.neutral{background:var(--s2);color:var(--m)}
@@ -1094,13 +1094,13 @@ function renderKorrelasjoner(corr){
     var col=v>0?'63,185,80':'248,81,73';
     return'background:rgba('+col+','+(a*0.6).toFixed(2)+');color:var(--t)';
   }
-  var th='<th></th>'+labels.map(function(l){return'<th style="text-align:center;font-size:11px;padding:6px 4px">'+l+'</th>';}).join('');
+  var th='<th></th>'+labels.map(function(l){return'<th style="text-align:center">'+l+'</th>';}).join('');
   var rows3='';
   corr.matrix.forEach(function(row,i){
-    rows3+='<tr><td style="font-size:11px;font-weight:600;padding:6px 8px;white-space:nowrap">'+labels[i]+'</td>';
+    rows3+='<tr><td style="font-weight:600;white-space:nowrap">'+labels[i]+'</td>';
     row.forEach(function(v){
       var f=v===null?'-':(v===1.0?'1.00':v===undefined?'-':v.toFixed(2));
-      rows3+='<td style="text-align:center;font-family:monospace;font-size:13px;padding:8px 12px;'+corrColor(v)+'">'+f+'</td>';
+      rows3+='<td style="text-align:center;font-family:monospace;'+corrColor(v)+'">'+f+'</td>';
     });
     rows3+='</tr>';
   });
