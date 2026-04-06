@@ -40,7 +40,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .metric-val{font-size:24px;font-weight:700;margin-bottom:4px;font-family:'DM Mono',monospace}
 .metric-desc{font-size:11px;color:var(--m);line-height:1.4}
 /* Map */
-.tab-map-wrap{height:550px;border-radius:8px;border:1px solid var(--b);overflow:hidden;position:relative}
+.tab-map-wrap{height:650px;border-radius:8px;border:1px solid var(--b);overflow:hidden;position:relative}
 #map{width:100%;height:100%}
 .legend{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:12px 14px}
 .leg-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
@@ -1213,8 +1213,8 @@ function initMap(){
   var map = new maplibregl.Map({
     container: 'map',
     style: {version:8,sources:{'sat':{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,attribution:'Esri, Maxar, Earthstar'}},layers:[{id:'sat',type:'raster',source:'sat'}]},
-    center: [20, 20],
-    zoom: 1.5,
+    center: [15, 25],
+    zoom: 1.8,
     renderWorldCopies: false,
     scrollZoom: false,
     boxZoom: false,
@@ -1230,7 +1230,8 @@ function initMap(){
 
   map.on('load', function(){
     // Fit hele verden i containeren
-    map.fitBounds([[-170, -65], [185, 78]], {padding: 0, animate: false});
+    // Bruk fitBounds med nok plass for Skandinavia (72°N) og Sør-Amerika (-56°S)
+    map.fitBounds([[-140, -56], [160, 72]], {padding: {top:20,bottom:20,left:10,right:10}, animate: false});
     Promise.all([
       loadJSON('data/geointel/shipping_lanes.json'),
       loadJSON('data/geointel/pipelines.json'),
