@@ -339,7 +339,8 @@ function renderPage(d){
       cot.history.forEach(function(v,i){
         var barH=Math.max(4,Math.round(Math.abs(v)/hMax*50));
         var barCol=v>=0?'var(--bull)':'var(--bear)';
-        var label=i===cot.history.length-1?'nå':'u'+(i+1);
+        var weeksAgo=cot.history.length-1-i;
+        var label=weeksAgo===0?'Nå':weeksAgo+' u. siden';
         h += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">';
         h += '<div style="font-size:9px;color:var(--m)">'+(v>0?'+':'')+(v/1000).toFixed(0)+'K</div>';
         h += '<div style="width:100%;height:'+barH+'px;background:'+barCol+';border-radius:3px"></div>';
