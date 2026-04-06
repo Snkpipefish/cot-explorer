@@ -1244,27 +1244,27 @@ function initMap(){
 
       // Shipping lanes
       if(lanes) map.addSource('src-lanes',{type:'geojson',data:{type:'FeatureCollection',features:lanes.map(function(l){return {type:'Feature',geometry:{type:'LineString',coordinates:l.coordinates.map(function(c){return [c[1],c[0]];})},properties:{name:l.name,risk:l.risk||'low',cargo:l.cargo||'',volume:l.volume||'',desc:l.desc||''}};})}}),
-        map.addLayer({id:'layer-lanes',type:'line',source:'src-lanes',paint:{'line-color':['match',['get','risk'],'high','#f85149','medium','#d29922','#3fb950'],'line-width':['match',['get','risk'],'high',2.5,'medium',2,1.5],'line-opacity':['match',['get','risk'],'high',0.65,'medium',0.55,0.4],'line-dasharray':[6,4]}});
+        map.addLayer({id:'layer-lanes',type:'line',source:'src-lanes',paint:{'line-color':['match',['get','risk'],'high','#ff4040','medium','#ffaa00','#50ff50'],'line-width':['match',['get','risk'],'high',4,'medium',3,2.5],'line-opacity':1,'line-dasharray':[6,4]}});
 
       // Pipelines -- active
       if(pipes){
         var pFeats=pipes.map(function(p){return {type:'Feature',geometry:{type:'LineString',coordinates:p.coordinates.map(function(c){return [c[1],c[0]];})},properties:{name:p.name,commodity:p.commodity||'oil',status:p.status,capacity:p.capacity||'',operator:p.operator||'',from:p.from||'',to:p.to||'',desc:p.desc||'',active:(p.status==='active')?1:0}};});
         map.addSource('src-pipes',{type:'geojson',data:{type:'FeatureCollection',features:pFeats}});
-        map.addLayer({id:'layer-pipes-active',type:'line',source:'src-pipes',filter:['==',['get','active'],1],paint:{'line-color':['match',['get','commodity'],'gas','#4fc3f7','refined','#a371f7','#e8a838'],'line-width':2.5,'line-opacity':0.85}});
-        map.addLayer({id:'layer-pipes-dashed',type:'line',source:'src-pipes',filter:['==',['get','active'],0],paint:{'line-color':'#6b7280','line-width':2,'line-opacity':0.7,'line-dasharray':[5,3]}});
+        map.addLayer({id:'layer-pipes-active',type:'line',source:'src-pipes',filter:['==',['get','active'],1],paint:{'line-color':['match',['get','commodity'],'gas','#00e5ff','refined','#cc66ff','#ffaa00'],'line-width':4,'line-opacity':1}});
+        map.addLayer({id:'layer-pipes-dashed',type:'line',source:'src-pipes',filter:['==',['get','active'],0],paint:{'line-color':'#aaaaaa','line-width':3,'line-opacity':0.9,'line-dasharray':[5,3]}});
       }
 
       // Infrastructure
       if(infra){
         map.addSource('src-infra',{type:'geojson',data:{type:'FeatureCollection',features:infra.map(function(f){return {type:'Feature',geometry:{type:'Point',coordinates:[f.lon,f.lat]},properties:{name:f.name,type:f.type,country:f.country||'',capacity:f.capacity||'',operator:f.operator||'',desc:f.desc||''}};})}}),
-        map.addLayer({id:'layer-infra',type:'circle',source:'src-infra',paint:{'circle-radius':7,'circle-color':['match',['get','type'],'LNG','#4fc3f7','refinery','#e8a838','storage','#e8a838','#a371f7'],'circle-stroke-color':'rgba(0,0,0,0.5)','circle-stroke-width':2,'circle-opacity':0.85}});
+        map.addLayer({id:'layer-infra',type:'circle',source:'src-infra',paint:{'circle-radius':9,'circle-color':['match',['get','type'],'LNG','#00e5ff','refinery','#ffaa00','storage','#ffaa00','#cc66ff'],'circle-stroke-color':'#ffffff','circle-stroke-width':2.5,'circle-opacity':1}});
       }
 
       // Seismic
       if(seis){
         var evts=(seis.all||[]).slice(0,30);
         map.addSource('src-seis',{type:'geojson',data:{type:'FeatureCollection',features:evts.map(function(e){return {type:'Feature',geometry:{type:'Point',coordinates:[e.lon,e.lat]},properties:{mag:e.mag,place:e.place,time:e.time,depth_km:e.depth_km,region:e.region||''}};})}}),
-        map.addLayer({id:'layer-seismic',type:'circle',source:'src-seis',paint:{'circle-radius':['interpolate',['linear'],['get','mag'],4,5,6,10,8,18],'circle-color':['case',['>=',['get','mag'],7],'#f85149',['>=',['get','mag'],6],'#d29922','#ff6b00'],'circle-opacity':0.5,'circle-stroke-color':'rgba(0,0,0,0.3)','circle-stroke-width':1}});
+        map.addLayer({id:'layer-seismic',type:'circle',source:'src-seis',paint:{'circle-radius':['interpolate',['linear'],['get','mag'],4,7,6,14,8,22],'circle-color':['case',['>=',['get','mag'],7],'#ff2020',['>=',['get','mag'],6],'#ffaa00','#ff6600'],'circle-opacity':0.8,'circle-stroke-color':'#ffffff','circle-stroke-width':2}});
         document.getElementById('updLabel').textContent='Oppdatert: '+toNO(seis.updated);
       }
 
@@ -1272,21 +1272,21 @@ function initMap(){
       if(agri){
         agri.forEach(function(r){agriLookup[r.id]=r;});
         map.addSource('src-agri',{type:'geojson',data:{type:'FeatureCollection',features:agri.map(function(r){return {type:'Feature',geometry:{type:'Point',coordinates:[r.lon,r.lat]},properties:{id:r.id,lat:r.lat,lon:r.lon}};})}}),
-        map.addLayer({id:'layer-agri-circle',type:'circle',source:'src-agri',paint:{'circle-radius':['interpolate',['linear'],['zoom'],1,12,4,30,7,60],'circle-color':'#22c55e','circle-opacity':0.12,'circle-stroke-color':'#22c55e','circle-stroke-width':1.5,'circle-stroke-opacity':0.5}}),
+        map.addLayer({id:'layer-agri-circle',type:'circle',source:'src-agri',paint:{'circle-radius':['interpolate',['linear'],['zoom'],1,14,4,35,7,70],'circle-color':'#00ff66','circle-opacity':0.25,'circle-stroke-color':'#00ff66','circle-stroke-width':3,'circle-stroke-opacity':0.9}}),
         map.addLayer({id:'layer-agri-label',type:'symbol',source:'src-agri',layout:{'text-field':['get','id'],'text-size':0}});
       }
 
       // Chokepoints
       if(cps){
         map.addSource('src-choke',{type:'geojson',data:{type:'FeatureCollection',features:cps.map(function(c){return {type:'Feature',geometry:{type:'Point',coordinates:[c.lon,c.lat]},properties:{name:c.name,risk:c.risk,throughput:c.throughput,cargo:Array.isArray(c.cargo)?c.cargo.join(', '):c.cargo,desc:c.desc||''}};})}}),
-        map.addLayer({id:'layer-choke',type:'circle',source:'src-choke',paint:{'circle-radius':10,'circle-color':'rgba(0,0,0,0)','circle-stroke-color':['match',['get','risk'],'high','#f85149','medium','#d29922','#3fb950'],'circle-stroke-width':3}}),
-        map.addLayer({id:'layer-choke-dot',type:'circle',source:'src-choke',paint:{'circle-radius':4,'circle-color':['match',['get','risk'],'high','#f85149','medium','#d29922','#3fb950'],'circle-opacity':0.7}});
+        map.addLayer({id:'layer-choke',type:'circle',source:'src-choke',paint:{'circle-radius':14,'circle-color':'rgba(0,0,0,0.3)','circle-stroke-color':['match',['get','risk'],'high','#ff2020','medium','#ffaa00','#50ff50'],'circle-stroke-width':4}}),
+        map.addLayer({id:'layer-choke-dot',type:'circle',source:'src-choke',paint:{'circle-radius':6,'circle-color':['match',['get','risk'],'high','#ff2020','medium','#ffaa00','#50ff50'],'circle-opacity':1}});
       }
 
       // Mines
       if(mines){
         map.addSource('src-mines',{type:'geojson',data:{type:'FeatureCollection',features:mines.map(function(m){return {type:'Feature',geometry:{type:'Point',coordinates:[m.lon,m.lat]},properties:{name:m.name,metal:m.metal,company:m.company,country:m.country,region:m.region,production:m.production,note:m.note||''}};})}}),
-        map.addLayer({id:'layer-mines',type:'circle',source:'src-mines',paint:{'circle-radius':7,'circle-color':['match',['get','metal'],'gold','#FFD700','silver','#C0C0C0','copper','#B87333','#88aacc'],'circle-stroke-color':'rgba(0,0,0,0.5)','circle-stroke-width':1.5,'circle-opacity':0.85}});
+        map.addLayer({id:'layer-mines',type:'circle',source:'src-mines',paint:{'circle-radius':10,'circle-color':['match',['get','metal'],'gold','#FFD700','silver','#E0E0E0','copper','#FF8C00','#88ccff'],'circle-stroke-color':'#ffffff','circle-stroke-width':2.5,'circle-opacity':1}});
       }
 
       setupClickHandlers(map);
