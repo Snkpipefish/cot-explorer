@@ -1230,8 +1230,8 @@ function initMap(){
 
   map.on('load', function(){
     // Fit hele verden i containeren
-    // Bruk fitBounds med nok plass for Skandinavia (72°N) og Sør-Amerika (-56°S)
-    map.fitBounds([[-140, -56], [160, 72]], {padding: {top:20,bottom:20,left:10,right:10}, animate: false});
+    // Vis hele verden inkl. polene
+    map.fitBounds([[-180, -80], [180, 85]], {padding: 0, animate: false});
     Promise.all([
       loadJSON('data/geointel/shipping_lanes.json'),
       loadJSON('data/geointel/pipelines.json'),
