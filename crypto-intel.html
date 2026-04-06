@@ -331,8 +331,24 @@ function renderPage(d){
     h += '<div class="cbt"><div class="cbf" style="width:'+barPct+'%;background:'+ci.col+'"></div></div>';
     h += '<div style="text-align:center;font-size:11px;color:var(--m);margin-top:4px">Netto: '+(pct>0?'+':'')+pct+'% av alle kontrakter</div>';
     if(cot.history&&cot.history.length>1){
-      h += '<div style="margin-top:14px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:6px">Utvikling siste 8 uker</div>';
-      h += sparkline(cot.history,280,40)+'</div>';
+      h += '<div style="margin-top:14px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px">Posisjon siste 8 uker</div>';
+      // Stolpegraf med labels istedenfor uforklarlig sparkline
+      var hMax=Math.max.apply(null,cot.history.map(function(v){return Math.abs(v);}));
+      if(!hMax)hMax=1;
+      h += '<div style="display:flex;align-items:flex-end;gap:6px;height:60px">';
+      cot.history.forEach(function(v,i){
+        var barH=Math.max(4,Math.round(Math.abs(v)/hMax*50));
+        var barCol=v>=0?'var(--bull)':'var(--bear)';
+        var label=i===cot.history.length-1?'nå':'u'+(i+1);
+        h += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">';
+        h += '<div style="font-size:9px;color:var(--m)">'+(v>0?'+':'')+(v/1000).toFixed(0)+'K</div>';
+        h += '<div style="width:100%;height:'+barH+'px;background:'+barCol+';border-radius:3px"></div>';
+        h += '<div style="font-size:8px;color:var(--m)">'+label+'</div>';
+        h += '</div>';
+      });
+      h += '</div>';
+      h += '<div style="font-size:10px;color:var(--m);margin-top:6px">Grønn = kjøper (long), rød = selger (short). Tall = netto tusen kontrakter.</div>';
+      h += '</div>';
     }
     var chgDir=chg>0?'Økt med '+Math.abs(chg).toLocaleString('no-NO')+' kontrakter denne uken.':'Redusert med '+Math.abs(chg).toLocaleString('no-NO')+' kontrakter denne uken.';
     h += '<div class="explain"><strong>Hvem er dette?</strong> Store hedgefond og banker som handler Bitcoin-futures på CME-børsen i USA. De rapporterer posisjonene sine ukentlig til myndighetene (CFTC).<br><br>';
