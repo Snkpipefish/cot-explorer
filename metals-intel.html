@@ -1212,7 +1212,7 @@ function initMap(){
 
   var map = new maplibregl.Map({
     container: 'map',
-    style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    style: {version:8,sources:{'sat':{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,attribution:'Esri, Maxar, Earthstar'}},layers:[{id:'sat',type:'raster',source:'sat'}]},
     center: [20, 20],
     zoom: 1.5,
     renderWorldCopies: false,
