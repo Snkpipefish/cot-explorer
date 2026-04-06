@@ -168,14 +168,10 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 
 <div class="main">
 
-  <!-- Oversiktsbanner (alltid synlig) -->
-  <div class="section" id="sec-oversikt">
-    <div id="moodBanner"><div class="loading"><div class="spinner"></div>Laster dashboard...</div></div>
-    <div class="metrics" id="keyMetrics"></div>
-  </div>
-
   <!-- ═══ TAB 1: Energi & Shipping ═══ -->
   <div class="panel active" id="panel-energy">
+
+    <div class="section" id="energyBanner"></div>
 
     <div class="section">
       <div class="section-title">⛽ Olje & Gass <span class="section-sub">Priser, COT og markedssignal</span></div>
@@ -196,6 +192,8 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 
   <!-- ═══ TAB 2: Metaller & Geo-Intel ═══ -->
   <div class="panel" id="panel-metals">
+
+    <div class="section" id="metalsBanner"></div>
 
     <div class="section">
       <div class="section-title">🏦 COMEX Lager <span class="section-sub">Metallbeholdning og stress-indeks</span></div>
@@ -258,6 +256,8 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 
   <!-- ═══ TAB 3: Avlinger ═══ -->
   <div class="panel" id="panel-agri">
+
+    <div class="section" id="agriBanner"></div>
 
     <div class="section">
       <div class="section-title">🌾 Avlings-analyse <span class="section-sub">Vær, COT og prisretning</span></div>
@@ -1084,65 +1084,77 @@ function renderOverview(comex, ship, og, agri){
   var RISK_COL={'HIGH':'var(--bear)','MEDIUM':'var(--warn)','LOW':'var(--bull)'};
   var SIG_COL={'STERKT BULLISH':'var(--bull)','BULLISH':'var(--bull)','NØYTRAL':'var(--m)','BEARISH':'var(--bear)','STERKT BEARISH':'var(--bear)'};
 
-  // Compute metrics
-  var si = comex ? (comex.stress_index||{}) : {};
-  var worstStress = Math.max(si.gold||0, si.silver||0, si.copper||0);
-
-  var shipRisk = ship ? (ship.overall_risk||'LOW') : 'LOW';
-
+  // ── Energi & Shipping banner ──
   var ogSig = og ? (og.overall_signal||'NØYTRAL') : 'NØYTRAL';
   var ogCol = SIG_COL[ogSig] || 'var(--m)';
-
-  var agriBulls = 0;
-  if(agri && agri.crop_summary){
-    agriBulls = agri.crop_summary.filter(function(c){return c.outlook.signal.indexOf('BULLISH')>=0;}).length;
-  }
-
-  // Determine overall mood
-  var moodCol, moodBg, moodBorder, moodEmoji, moodTitle, moodSub;
-  var stress = worstStress >= 70;
+  var ogRisk = og ? (og.overall_risk||'LOW') : 'LOW';
+  var shipRisk = ship ? (ship.overall_risk||'LOW') : 'LOW';
+  var shipCol = RISK_COL[shipRisk] || 'var(--m)';
   var shipHigh = shipRisk === 'HIGH';
   var ogBear = ogSig.indexOf('BEARISH') >= 0;
-  if(stress || shipHigh){
-    moodEmoji='🔴'; moodTitle='Høy risiko i råvaremarkedet'; moodSub='Stress i COMEX-lagre eller forstyrrelsesrisiko i shipping påvirker prisbildet.';
-    moodCol='var(--bear)'; moodBg='var(--rbg)'; moodBorder='var(--bear)';
-  } else if(ogBear || worstStress >= 40){
-    moodEmoji='🟡'; moodTitle='Avventende stemning'; moodSub='Moderate risikosignaler. Følg med på COMEX stress og shipping-ruter.';
-    moodCol='var(--warn)'; moodBg='var(--wbg)'; moodBorder='var(--warn)';
+
+  var eMood, eCol, eBg, eBorder;
+  if(shipHigh || ogRisk==='HIGH'){
+    eMood='🔴 Høy forstyrrelsesrisiko i energi og shipping'; eCol='var(--bear)'; eBg='var(--rbg)'; eBorder='var(--bear)';
+  } else if(ogBear){
+    eMood='🟡 Bearish signal i energimarkedet'; eCol='var(--warn)'; eBg='var(--wbg)'; eBorder='var(--warn)';
   } else {
-    moodEmoji='🟢'; moodTitle='Rolig råvaremarked'; moodSub='Lave stressnivåer og normal aktivitet i supply chain.';
-    moodCol='var(--bull)'; moodBg='var(--bbg)'; moodBorder='var(--bull)';
+    eMood='🟢 Normal aktivitet i energi og shipping'; eCol='var(--bull)'; eBg='var(--bbg)'; eBorder='var(--bull)';
   }
+  var eh='<div class="mood-banner" style="background:'+eBg+';border:1px solid '+eBorder+';margin-bottom:14px">';
+  eh+='<div><div class="mood-title" style="color:'+eCol+';font-size:16px">'+eMood+'</div></div></div>';
+  eh+='<div class="metrics" style="grid-template-columns:repeat(2,1fr)">';
+  eh+='<div class="metric-card"><div class="metric-label">Olje Signal</div><div class="metric-val" style="color:'+ogCol+'">'+ogSig+'</div><div class="metric-desc">Pris + COT kombinert</div></div>';
+  eh+='<div class="metric-card"><div class="metric-label">Shipping Risiko</div><div class="metric-val" style="color:'+shipCol+'">'+shipRisk+'</div><div class="metric-desc">Samlet forstyrrelsesrisiko</div></div>';
+  eh+='</div>';
+  document.getElementById('energyBanner').innerHTML=eh;
 
-  var mh = '<div class="mood-banner" style="background:'+moodBg+';border:1px solid '+moodBorder+'">';
-  mh += '<div class="mood-emoji">'+moodEmoji+'</div>';
-  mh += '<div><div class="mood-title" style="color:'+moodCol+'">'+moodTitle+'</div>';
-  mh += '<div class="mood-sub">'+moodSub+'</div></div>';
-  mh += '</div>';
-  document.getElementById('moodBanner').innerHTML = mh;
-
-  // 4 key metrics
+  // ── Metaller banner ──
+  var si = comex ? (comex.stress_index||{}) : {};
+  var worstStress = Math.max(si.gold||0, si.silver||0, si.copper||0);
   var stressCol = stressColor(worstStress);
-  var shipCol = RISK_COL[shipRisk] || 'var(--m)';
+  var mMood, mCol, mBg, mBorder;
+  if(worstStress>=70){
+    mMood='🔴 Høy stress i COMEX-lagre — squeezerisiko'; mCol='var(--bear)'; mBg='var(--rbg)'; mBorder='var(--bear)';
+  } else if(worstStress>=40){
+    mMood='🟡 Moderat stress i metallmarkedet'; mCol='var(--warn)'; mBg='var(--wbg)'; mBorder='var(--warn)';
+  } else {
+    mMood='🟢 Normale forhold i metallmarkedet'; mCol='var(--bull)'; mBg='var(--bbg)'; mBorder='var(--bull)';
+  }
+  var mh='<div class="mood-banner" style="background:'+mBg+';border:1px solid '+mBorder+';margin-bottom:14px">';
+  mh+='<div><div class="mood-title" style="color:'+mCol+';font-size:16px">'+mMood+'</div></div></div>';
+  mh+='<div class="metrics" style="grid-template-columns:repeat(3,1fr)">';
+  mh+='<div class="metric-card"><div class="metric-label">Gull Stress</div><div class="metric-val" style="color:'+stressColor(si.gold||0)+'">'+(si.gold||0).toFixed(0)+'</div></div>';
+  mh+='<div class="metric-card"><div class="metric-label">Sølv Stress</div><div class="metric-val" style="color:'+stressColor(si.silver||0)+'">'+(si.silver||0).toFixed(0)+'</div></div>';
+  mh+='<div class="metric-card"><div class="metric-label">Kobber Stress</div><div class="metric-val" style="color:'+stressColor(si.copper||0)+'">'+(si.copper||0).toFixed(0)+'</div></div>';
+  mh+='</div>';
+  document.getElementById('metalsBanner').innerHTML=mh;
 
-  var km = '';
-  km += '<div class="metric-card"><div class="metric-label">COMEX Stress</div>';
-  km += '<div class="metric-val" style="color:'+stressCol+'">'+worstStress.toFixed(0)+'</div>';
-  km += '<div class="metric-desc">Høyeste stress-indeks (Au/Ag/Cu)</div></div>';
+  // ── Avlinger banner ──
+  var agriBulls=0, agriBears=0;
+  if(agri && agri.crop_summary){
+    agriBulls=agri.crop_summary.filter(function(c){return c.outlook.signal.indexOf('BULLISH')>=0;}).length;
+    agriBears=agri.crop_summary.filter(function(c){return c.outlook.signal.indexOf('BEARISH')>=0;}).length;
+  }
+  var enso=agri?agri.enso:null;
+  var aCol=agriBulls>agriBears?'var(--bull)':agriBears>agriBulls?'var(--bear)':'var(--m)';
+  var aBg=agriBulls>agriBears?'var(--bbg)':agriBears>agriBulls?'var(--rbg)':'var(--s2)';
+  var aBorder=agriBulls>agriBears?'var(--bull)':agriBears>agriBulls?'var(--bear)':'var(--b)';
+  var aMood=agriBulls>agriBears?'🟢 Overvekt bullish signaler i avlingsmarkedet':agriBears>agriBulls?'🔴 Overvekt bearish signaler i avlingsmarkedet':'🟡 Balanserte signaler i avlingsmarkedet';
 
-  km += '<div class="metric-card"><div class="metric-label">Shipping Risiko</div>';
-  km += '<div class="metric-val" style="color:'+shipCol+'">'+shipRisk+'</div>';
-  km += '<div class="metric-desc">Samlet forstyrrelsesrisiko</div></div>';
-
-  km += '<div class="metric-card"><div class="metric-label">Olje Signal</div>';
-  km += '<div class="metric-val" style="color:'+ogCol+'">'+ogSig+'</div>';
-  km += '<div class="metric-desc">Pris + COT kombinert</div></div>';
-
-  km += '<div class="metric-card"><div class="metric-label">Agri Bullish</div>';
-  km += '<div class="metric-val" style="color:'+(agriBulls>0?'var(--bull)':'var(--m)')+'">'+agriBulls+'</div>';
-  km += '<div class="metric-desc">Avlinger med bullish signal</div></div>';
-
-  document.getElementById('keyMetrics').innerHTML = km;
+  var ah='<div class="mood-banner" style="background:'+aBg+';border:1px solid '+aBorder+';margin-bottom:14px">';
+  ah+='<div><div class="mood-title" style="color:'+aCol+';font-size:16px">'+aMood+'</div></div></div>';
+  ah+='<div class="metrics" style="grid-template-columns:repeat(3,1fr)">';
+  ah+='<div class="metric-card"><div class="metric-label">Bullish</div><div class="metric-val" style="color:var(--bull)">'+agriBulls+'</div><div class="metric-desc">Avlinger med prispress opp</div></div>';
+  ah+='<div class="metric-card"><div class="metric-label">Bearish</div><div class="metric-val" style="color:var(--bear)">'+agriBears+'</div><div class="metric-desc">Avlinger med prispress ned</div></div>';
+  if(enso){
+    var ensoCol=enso.phase==='El Niño'?'var(--warn)':enso.phase==='La Niña'?'var(--blue)':'var(--m)';
+    ah+='<div class="metric-card"><div class="metric-label">ENSO</div><div class="metric-val" style="color:'+ensoCol+';font-size:16px">'+enso.phase+'</div><div class="metric-desc">ONI: '+enso.oni_value+'</div></div>';
+  } else {
+    ah+='<div class="metric-card"><div class="metric-label">Avlinger totalt</div><div class="metric-val">'+(agri?agri.crop_summary.length:0)+'</div></div>';
+  }
+  ah+='</div>';
+  document.getElementById('agriBanner').innerHTML=ah;
 }
 
 // ── MapLibre Map (lazy-loaded via IntersectionObserver) ──────
