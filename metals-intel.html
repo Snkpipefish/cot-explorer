@@ -1312,7 +1312,7 @@ function setupClickHandlers(map){
   if(map.getLayer('layer-mines')) map.on('click','layer-mines',function(e){
     var p=e.features[0].properties;
     var col=p.metal==='gold'?'#FFD700':p.metal==='silver'?'#C0C0C0':p.metal==='copper'?'#B87333':'#88aacc';
-    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(map.getCenter()).setHTML(
+    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px',anchor:'top'}).setLngLat(map.unproject([map.getCanvas().width/2, 60])).setHTML(
       '<div class="pop-name" style="color:'+col+'">\u26CF '+p.name+'</div>'+
       '<div class="pop-row">Land: <span>'+p.country+' ('+p.region+')</span></div>'+
       '<div class="pop-row">Selskap: <span>'+p.company+'</span></div>'+
@@ -1326,7 +1326,7 @@ function setupClickHandlers(map){
     map.on('click',id,function(e){
       var p=e.features[0].properties;
       var col=p.risk==='high'?'#f85149':p.risk==='medium'?'#d29922':'#3fb950';
-      new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(map.getCenter()).setHTML(
+      new maplibregl.Popup({closeOnClick:true,maxWidth:'300px',anchor:'top'}).setLngLat(map.unproject([map.getCanvas().width/2, 60])).setHTML(
         '<div class="pop-name" style="color:'+col+'">\u2693 '+p.name+'</div>'+
         '<div class="pop-row">Gjennomstr\u00F8mning: <span>'+p.throughput+'</span></div>'+
         '<div class="pop-row">Risiko: <span>'+p.risk.toUpperCase()+'</span></div>'+
@@ -1341,7 +1341,7 @@ function setupClickHandlers(map){
     var col=p.type==='LNG'?'#4fc3f7':p.type==='refinery'?'#e8a838':'#a371f7';
     var em=p.type==='LNG'?'\u{1F9CA}':p.type==='refinery'?'\u{1F3ED}':p.type==='storage'?'\u{1F6E2}':'\u2693';
     var typeNO=p.type==='LNG'?'LNG-terminal':p.type==='refinery'?'Raffineri':p.type==='storage'?'Oljelager':'Strategisk havn';
-    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(map.getCenter()).setHTML(
+    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px',anchor:'top'}).setLngLat(map.unproject([map.getCanvas().width/2, 60])).setHTML(
       '<div class="pop-name" style="color:'+col+'">'+em+' '+p.name+'</div>'+
       '<div class="pop-row">Type: <span>'+typeNO+'</span></div>'+
       (p.country?'<div class="pop-row">Land: <span>'+p.country+'</span></div>':'')+
@@ -1353,7 +1353,7 @@ function setupClickHandlers(map){
 
   if(map.getLayer('layer-seismic')) map.on('click','layer-seismic',function(e){
     var p=e.features[0].properties;
-    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(map.getCenter()).setHTML(
+    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px',anchor:'top'}).setLngLat(map.unproject([map.getCanvas().width/2, 60])).setHTML(
       '<div class="pop-name">\u{1F30D} M'+p.mag+' \u2013 '+p.place+'</div>'+
       '<div class="pop-row">Tid: <span>'+p.time+'</span></div>'+
       (p.depth_km?'<div class="pop-row">Dybde: <span>'+p.depth_km+' km</span></div>':'')+
@@ -1367,7 +1367,7 @@ function setupClickHandlers(map){
       var p=e.features[0].properties;
       var col=p.active?'#e8a838':'#6b7280';
       var statusTxt=p.status==='active'?'\u2705 Aktiv':p.status==='sabotaged'?'\u{1F4A5} Sabotert':p.status==='partly_active'?'\u26A0\uFE0F Delvis aktiv':'\u274C Inaktiv';
-      new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(map.getCenter()).setHTML(
+      new maplibregl.Popup({closeOnClick:true,maxWidth:'300px',anchor:'top'}).setLngLat(map.unproject([map.getCanvas().width/2, 60])).setHTML(
         '<div class="pop-name" style="color:'+col+'">\u{1F6E2} '+p.name+'</div>'+
         '<div class="pop-row">Status: <span>'+statusTxt+'</span></div>'+
         (p.capacity?'<div class="pop-row">Kapasitet: <span>'+p.capacity+'</span></div>':'')+
@@ -1381,7 +1381,7 @@ function setupClickHandlers(map){
   if(map.getLayer('layer-lanes')) map.on('click','layer-lanes',function(e){
     var p=e.features[0].properties;
     var col=p.risk==='high'?'#f85149':p.risk==='medium'?'#d29922':'#3fb950';
-    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px'}).setLngLat(map.getCenter()).setHTML(
+    new maplibregl.Popup({closeOnClick:true,maxWidth:'300px',anchor:'top'}).setLngLat(map.unproject([map.getCanvas().width/2, 60])).setHTML(
       '<div class="pop-name" style="color:'+col+'">\u{1F6A2} '+p.name+'</div>'+
       '<div class="pop-row">Risiko: <span>'+p.risk.toUpperCase()+'</span></div>'+
       (p.cargo?'<div class="pop-row">Last: <span>'+p.cargo+'</span></div>':'')+
@@ -1410,7 +1410,7 @@ function setupClickHandlers(map){
       '<div style="font-size:11px;color:var(--m);margin-bottom:6px">'+r.desc+'</div>'+
       '<div style="font-size:11px;color:var(--m)">Risikoer: '+r.risks.join(' \u00B7 ')+'</div>'+
       '<div id="wx-'+id+'" style="margin-top:8px;border-top:1px solid var(--b);padding-top:8px;font-size:11px;color:var(--m)">\u23F3 Henter v\u00E6r...</div>';
-    new maplibregl.Popup({closeOnClick:true,maxWidth:'340px'}).setLngLat(map.getCenter()).setDOMContent(container).addTo(map);
+    new maplibregl.Popup({closeOnClick:true,maxWidth:'340px'}).setLngLat(map.unproject([map.getCanvas().width/2, 60])).setDOMContent(container).addTo(map);
     // Fetch weather
     fetch('https://api.open-meteo.com/v1/forecast?latitude='+r.lat+'&longitude='+r.lon+'&current=temperature_2m,precipitation,wind_speed_10m&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&forecast_days=7&timezone=auto')
       .then(function(res){return res.json();})
