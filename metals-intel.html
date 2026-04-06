@@ -440,10 +440,11 @@ function renderCotSection(d, iceCot, euronextCot){
   var skip=/calendar spread|cso|financial|options|pjm|avg price|cal spread|crk|spread|1st line|midland|argus|gulf coast|mt belv|index.*ep|micro/i;
   // Split energi vs metaller vs landbruk
   var energiKeys=/crude|wti|natural gas|gasoline|rbob|heating|brent|gasoil|diesel|ethanol|propane|fuel/i;
-  var metallKeys=/gold|silver|copper|platinum|palladium|lumber/i;
+  var metallKeys=/gold|silver|copper|platinum|palladium/i;
+  var landbrukExtra=/lumber/i;
   var energi=d.filter(function(x){return x.kategori==='råvarer'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market)&&energiKeys.test(x.market);});
   var metaller=d.filter(function(x){return x.kategori==='råvarer'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market)&&metallKeys.test(x.market);});
-  var landbruk=d.filter(function(x){return x.kategori==='landbruk'&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market);});
+  var landbruk=d.filter(function(x){return (x.kategori==='landbruk'||(x.kategori==='råvarer'&&landbrukExtra.test(x.market)))&&x.spekulanter&&x.spekulanter.net!=null&&!skip.test(x.market);});
 
   // Legg til ICE COT (Brent, Gasoil) i energi-tab
   if(iceCot && iceCot.markets){
