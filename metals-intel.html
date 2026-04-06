@@ -40,7 +40,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .metric-val{font-size:24px;font-weight:700;margin-bottom:4px;font-family:'DM Mono',monospace}
 .metric-desc{font-size:11px;color:var(--m);line-height:1.4}
 /* Map */
-.tab-map-wrap{height:400px;border-radius:8px;border:1px solid var(--b);overflow:hidden;position:relative}
+.tab-map-wrap{height:550px;border-radius:8px;border:1px solid var(--b);overflow:hidden;position:relative}
 #map{width:100%;height:100%}
 .legend{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:12px 14px}
 .leg-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
@@ -1230,7 +1230,7 @@ function initMap(){
 
   map.on('load', function(){
     // Fit hele verden i containeren
-    map.fitBounds([[-170, -60], [180, 75]], {padding: 5, animate: false});
+    map.fitBounds([[-170, -65], [185, 78]], {padding: 0, animate: false});
     Promise.all([
       loadJSON('data/geointel/shipping_lanes.json'),
       loadJSON('data/geointel/pipelines.json'),
