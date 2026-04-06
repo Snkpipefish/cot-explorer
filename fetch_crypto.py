@@ -14,6 +14,7 @@ from pathlib import Path
 BASE = Path(__file__).parent
 OUT  = BASE / "data" / "crypto" / "latest.json"
 OUT.parent.mkdir(parents=True, exist_ok=True)
+MACRO_PRICES = BASE / "data" / "macro" / "latest.json"
 
 CRYPTO_SYMBOLS = [
     {"key": "BTC",  "symbol": "BTC-USD",  "name": "Bitcoin"},
@@ -40,27 +41,61 @@ def fetch_yahoo(symbol, range_="60d", interval="1d"):
         print(f"  FEIL {symbol}: {e}")
         return []
 
+# ── Last inn bot-priser fra macro/latest.json ──────────────
+macro_prices = {}
+try:
+    with open(MACRO_PRICES) as f:
+        macro_prices = json.load(f).get("prices", {})
+except Exception:
+    pass
+
 # ── Priser ────────────────────────────────────────────────
 prices = {}
 daily_closes = {}
 for inst in CRYPTO_SYMBOLS:
+    key = inst["key"]
     print(f"  {inst['name']}...")
+
+    # Yahoo for historikk (korrelasjon, chg7d/30d)
     rows = fetch_yahoo(inst["symbol"])
-    if not rows or len(rows) < 2:
+
+    # Bot-pris som primær (ferskere)
+    mp = macro_prices.get(key)
+    if mp and mp.get("price"):
+        curr = mp["price"]
+        if rows and len(rows) >= 2:
+            c7  = rows[-8][2]  if len(rows) >= 8  else curr
+            c30 = rows[-31][2] if len(rows) >= 31 else curr
+        else:
+            c7, c30 = curr, curr
+        dec = 8 if curr < 0.01 else 5 if curr < 1 else 4 if curr < 10 else 2 if curr < 1000 else 0
+        prices[key] = {
+            "name":   inst["name"],
+            "price":  round(curr, dec),
+            "chg1d":  round(mp.get("chg1d", 0), 2),
+            "chg7d":  round((curr/c7-1)*100, 2) if c7 else 0,
+            "chg30d": round((curr/c30-1)*100, 2) if c30 else 0,
+            "source": "bot",
+        }
+        print(f"    → {curr} (bot)")
+    elif rows and len(rows) >= 2:
+        curr = rows[-1][2]
+        c1   = rows[-2][2]
+        c7   = rows[-8][2]  if len(rows) >= 8  else curr
+        c30  = rows[-31][2] if len(rows) >= 31 else curr
+        dec  = 8 if curr < 0.01 else 5 if curr < 1 else 4 if curr < 10 else 2 if curr < 1000 else 0
+        prices[key] = {
+            "name":   inst["name"],
+            "price":  round(curr, dec),
+            "chg1d":  round((curr/c1-1)*100,  2),
+            "chg7d":  round((curr/c7-1)*100,  2),
+            "chg30d": round((curr/c30-1)*100, 2),
+        }
+    else:
         continue
-    curr = rows[-1][2]
-    c1   = rows[-2][2]
-    c7   = rows[-8][2]  if len(rows) >= 8  else curr
-    c30  = rows[-31][2] if len(rows) >= 31 else curr
-    dec  = 8 if curr < 0.01 else 5 if curr < 1 else 4 if curr < 10 else 2 if curr < 1000 else 0
-    prices[inst["key"]] = {
-        "name":   inst["name"],
-        "price":  round(curr, dec),
-        "chg1d":  round((curr/c1-1)*100,  2),
-        "chg7d":  round((curr/c7-1)*100,  2),
-        "chg30d": round((curr/c30-1)*100, 2),
-    }
-    daily_closes[inst["key"]] = [r[2] for r in rows]
+
+    if rows:
+        daily_closes[key] = [r[2] for r in rows]
 
 # Hent SPX og Gull for korrelasjon
 for key, sym in [("SPX", "^GSPC"), ("Gold", "GC=F")]:

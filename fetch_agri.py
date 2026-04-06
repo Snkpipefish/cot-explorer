@@ -19,6 +19,14 @@ os.makedirs(os.path.join(BASE, "agri"), exist_ok=True)
 REGIONS_FILE      = os.path.join(BASE, "geointel", "agri_regions.json")
 COMBINED_FILE     = os.path.join(BASE, "combined", "latest.json")
 EURONEXT_COT_FILE = os.path.join(BASE, "euronext_cot", "latest.json")
+MACRO_PRICES_FILE = os.path.join(BASE, "macro", "latest.json")
+
+# Mapping fra crop_key → nøkkel i macro/latest.json prices
+CROP_PRICE_MAP = {
+    "corn": "Corn", "wheat": "Wheat", "soybeans": "Soybean",
+    "coffee": "Coffee", "cotton": "Cotton", "sugar": "Sugar",
+    "cocoa": "Cocoa",
+}
 
 # Avlinger der Euronext er primær COT-kilde (europeisk hjemmebørs)
 EURONEXT_PRIMARY = {"wheat", "canola", "corn"}
@@ -867,6 +875,28 @@ for region in regions:
 
     result_regions.append(region_out)
 
+# ── Last inn priser fra macro/latest.json (bot + Yahoo) ──────────
+macro_prices = {}
+try:
+    with open(MACRO_PRICES_FILE) as f:
+        macro_prices = json.load(f).get("prices", {})
+except Exception:
+    pass
+
+def _get_crop_price(crop_key):
+    """Hent pris for en avling fra macro/latest.json (bot-priser)."""
+    macro_key = CROP_PRICE_MAP.get(crop_key)
+    if not macro_key or macro_key not in macro_prices:
+        return None
+    p = macro_prices[macro_key]
+    return {
+        "value":  p.get("price"),
+        "chg1d":  p.get("chg1d", 0),
+        "chg5d":  p.get("chg5d", 0),
+        "chg20d": p.get("chg20d", 0),
+        "source": p.get("source", "yahoo"),
+    }
+
 # ── Per-avling sammendrag ─────────────────────────────────────────
 crop_summary = []
 
@@ -981,6 +1011,8 @@ for crop_key, meta in CROP_META.items():
         "yield_quality":      yield_rating,
         "yield_score":        avg_yield,
         "yield_hint":         yield_hint,
+        # Live-priser fra bot/macro
+        "price":              _get_crop_price(crop_key),
     })
     print(f"  {meta['ikon']} {meta['navn']:15} → {outlook['signal']:16} (vær={avg_wx_score:+.1f} COT={cot_score:+d} yield={avg_yield or '?'})")
 

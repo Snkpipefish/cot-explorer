@@ -107,6 +107,14 @@ BOT_KEY_MAP = {
     "XRP":     "XRP",
     "ADA":     "ADA",
     "DOGE":    "DOGE",
+    # Jordbruksråvarer (nye fra bot)
+    "Coffee":  "Coffee",
+    "Cotton":  "Cotton",
+    "Sugar":   "Sugar",
+    "Cocoa":   "Cocoa",
+    "Corn":    "Corn",
+    "Soybean": "Soybean",
+    "Wheat":   "Wheat",
 }
 
 
@@ -200,19 +208,20 @@ for key, sym in SYMBOLS.items():
         prices[key] = v
         print(f"  → {v['price']} ({v['chg1d']:+.2f}%)")
 
-# Legg til krypto fra bot
-for crypto_key in ("BTC", "ETH", "SOL", "XRP"):
-    if crypto_key in bot_prices and crypto_key not in prices:
-        new_price = bot_prices[crypto_key]["price"]
-        update_price_history(price_hist, crypto_key, new_price)
-        prices[crypto_key] = {
+# Legg til krypto og jordbruksråvarer fra bot
+for extra_key in ("BTC", "ETH", "SOL", "XRP", "ADA", "DOGE",
+                  "Corn", "Wheat", "Soybean", "Coffee", "Cotton", "Sugar", "Cocoa"):
+    if extra_key in bot_prices and extra_key not in prices:
+        new_price = bot_prices[extra_key]["price"]
+        update_price_history(price_hist, extra_key, new_price)
+        prices[extra_key] = {
             "price":  new_price,
-            "chg1d":  chg_from_history(price_hist, crypto_key, new_price, 24),
-            "chg5d":  chg_from_history(price_hist, crypto_key, new_price, 120),
-            "chg20d": chg_from_history(price_hist, crypto_key, new_price, 480),
+            "chg1d":  chg_from_history(price_hist, extra_key, new_price, 24),
+            "chg5d":  chg_from_history(price_hist, extra_key, new_price, 120),
+            "chg20d": chg_from_history(price_hist, extra_key, new_price, 480),
             "source": "bot",
         }
-        print(f"  {crypto_key:10} → {new_price} (bot)")
+        print(f"  {extra_key:10} → {new_price} (bot)")
 
 save_price_history(price_hist)
 

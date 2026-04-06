@@ -918,6 +918,7 @@ function renderAgri(d){
   h += '<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:500px">';
   h += '<thead><tr style="border-bottom:1px solid var(--b);color:var(--m);font-size:11px;text-transform:uppercase">';
   h += '<th style="text-align:left;padding:6px 8px">Avling</th>';
+  h += '<th style="text-align:right;padding:6px 8px">Pris</th>';
   h += '<th class="agri-col-season" style="text-align:center;padding:6px 8px">Sesong</th>';
   h += '<th style="text-align:center;padding:6px 8px">Prisretning</th>';
   h += '<th class="agri-col-wx" style="text-align:center;padding:6px 8px">Vær</th>';
@@ -959,8 +960,21 @@ function renderAgri(d){
       yTxt = '<span style="color:'+yc+';font-weight:600">'+c.yield_quality+'</span>';
     }
 
+    // Pris-celle
+    var priceTxt = '<span style="color:var(--m)">—</span>';
+    if(c.price && c.price.value){
+      var pv = c.price.value;
+      var pd = pv < 10 ? 4 : pv < 100 ? 2 : pv < 10000 ? 1 : 0;
+      var chg = c.price.chg1d || 0;
+      var chgCol = chg > 0 ? 'var(--bull)' : chg < 0 ? 'var(--bear)' : 'var(--m)';
+      var chgSign = chg > 0 ? '+' : '';
+      priceTxt = '<span style="font-weight:600">$'+pv.toFixed(pd)+'</span>';
+      priceTxt += '<br><span style="font-size:10px;color:'+chgCol+'">'+chgSign+chg.toFixed(1)+'%</span>';
+    }
+
     h += '<tr style="border-bottom:1px solid var(--b)">';
     h += '<td style="padding:8px;font-weight:600">' + c.ikon + ' ' + c.navn + '</td>';
+    h += '<td style="padding:8px;text-align:right;font-size:12px">' + priceTxt + '</td>';
     h += '<td class="agri-col-season" style="padding:8px;text-align:center;font-size:11px">' + seasonTxt + '</td>';
     h += '<td style="padding:8px;text-align:center;color:' + col + ';' + bold + '">' + sig + '</td>';
     h += '<td class="agri-col-wx" style="padding:8px;text-align:center;color:' + wxCol + '">' + wxIkon + ' ' + wxOut.toUpperCase();
@@ -988,6 +1002,24 @@ function renderAgri(d){
     h += '<div style="font-size:16px;font-weight:700">' + c.ikon + ' ' + c.navn + '</div>';
     h += '<div style="font-size:12px;font-weight:700;color:' + col + '">' + sig + '</div>';
     h += '</div>';
+
+    // ── Pris ──
+    if(c.price && c.price.value){
+      var pv = c.price.value;
+      var pd = pv < 10 ? 4 : pv < 100 ? 2 : pv < 10000 ? 1 : 0;
+      var ch1 = c.price.chg1d || 0;
+      var ch5 = c.price.chg5d || 0;
+      var ch1c = ch1 > 0 ? 'var(--bull)' : ch1 < 0 ? 'var(--bear)' : 'var(--m)';
+      var ch5c = ch5 > 0 ? 'var(--bull)' : ch5 < 0 ? 'var(--bear)' : 'var(--m)';
+      var ch1s = ch1 > 0 ? '+' : '';
+      var ch5s = ch5 > 0 ? '+' : '';
+      h += '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;padding:6px 8px;background:var(--b);border-radius:6px">';
+      h += '<span style="font-size:18px;font-weight:700">$'+pv.toFixed(pd)+'</span>';
+      h += '<span style="font-size:11px;color:'+ch1c+'">1d: '+ch1s+ch1.toFixed(1)+'%</span>';
+      h += '<span style="font-size:11px;color:'+ch5c+'">5d: '+ch5s+ch5.toFixed(1)+'%</span>';
+      h += '<span style="font-size:9px;color:var(--m);margin-left:auto">'+c.price.source+'</span>';
+      h += '</div>';
+    }
 
     // ── Vekstsyklus ──
     if(c.growth_stage){
