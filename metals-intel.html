@@ -81,6 +81,9 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .intel-cat.silver{color:var(--silver);border-color:var(--silver)}
 .intel-cat.copper{color:var(--copper);border-color:var(--copper)}
 .intel-cat.red{color:var(--bear);border-color:var(--bear)}
+.intel-cat.wheat{color:#d4a017;border-color:#d4a017}
+.intel-cat.green{color:var(--bull);border-color:var(--bull)}
+.intel-cat.blue{color:var(--blue);border-color:var(--blue)}
 .rcot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-bottom:20px}
 .rcot-card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:14px 16px}
 .rcot-name{font-weight:600;font-size:13px;margin-bottom:2px}
@@ -199,6 +202,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
       <div id="intelFeed"><div class="loading"><div class="spinner"></div>Laster nyheter...</div></div>
     </div>
 
+
     <div class="section">
       <div class="section-title">&#x1F5FA;&#xFE0F; Kart <span class="section-sub">Gruver og jordskjelv</span></div>
       <div class="tab-map-wrap" id="mapWrap-metals"></div>
@@ -219,6 +223,12 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
     <div class="section">
       <div class="section-title">&#x1F4CA; Landbruk COT <span class="section-sub">Spekulantposisjonering -- korn, bonner, bomull, kaffe</span></div>
       <div id="cotAgriCards"><div class="loading"><div class="spinner"></div>Laster...</div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">&#x1F4F0; Landbruksnyheter <span class="section-sub">Korn, kaffe, kakao, vaer og avlinger</span></div>
+      <div class="intel-filters" id="agriIntelFilters"><button class="intel-btn active" data-cat="all">Alle</button></div>
+      <div id="agriIntelFeed"><div class="loading"><div class="spinner"></div>Laster nyheter...</div></div>
     </div>
 
     <div class="section">
@@ -325,39 +335,73 @@ function renderComex(d){
 }
 
 // ── Intel Feed ──────────────────────────────────────────────
-var intelData=[], activeIntelCat='all', intelShowCount=10;
+var METAL_CATS=['gold','silver','copper','geopolitics'];
+var AGRI_CATS=['grains','softs','agri_weather'];
+
+// Metals intel
+var metalIntelData=[], activeMetalCat='all', metalShowCount=10;
 function renderIntelSection(d){
   if(!d||!d.articles){document.getElementById('intelFeed').innerHTML='<div class="loading">Ingen intel-data \u2013 kj\u00F8r fetch_intel.py</div>';return;}
-  intelData=d.articles;
+  var allArts=d.articles;
   var cats=d.categories||[];
-  var fh='<button class="intel-btn active" data-cat="all" onclick="filterIntel(\'all\',this)">Alle ('+intelData.length+')</button>';
-  cats.forEach(function(c){
-    var cnt=intelData.filter(function(a){return a.cat===c.id;}).length;
-    fh+='<button class="intel-btn" data-cat="'+c.id+'" onclick="filterIntel(\''+c.id+'\',this)">'+c.label+' ('+cnt+')</button>';
+  // Split: metals gets gold/silver/copper/geopolitics
+  metalIntelData=allArts.filter(function(a){return METAL_CATS.indexOf(a.cat)>=0;});
+  var metalCats=cats.filter(function(c){return METAL_CATS.indexOf(c.id)>=0;});
+  var fh='<button class="intel-btn active" data-cat="all" onclick="filterMetalIntel(\'all\',this)">Alle ('+metalIntelData.length+')</button>';
+  metalCats.forEach(function(c){
+    var cnt=metalIntelData.filter(function(a){return a.cat===c.id;}).length;
+    fh+='<button class="intel-btn" data-cat="'+c.id+'" onclick="filterMetalIntel(\''+c.id+'\',this)">'+c.label+' ('+cnt+')</button>';
   });
   document.getElementById('intelFilters').innerHTML=fh;
-  renderIntel();
-  var sumEl=document.getElementById('intelSummary');
-  if(sumEl) sumEl.textContent=intelData.length+' artikler \u00B7 gull, s\u00F8lv, kobber, energi';
+  renderMetalIntel();
+  // Agri intel
+  agriIntelData=allArts.filter(function(a){return AGRI_CATS.indexOf(a.cat)>=0;});
+  var agriCats=cats.filter(function(c){return AGRI_CATS.indexOf(c.id)>=0;});
+  var afh='<button class="intel-btn active" data-cat="all" onclick="filterAgriIntel(\'all\',this)">Alle ('+agriIntelData.length+')</button>';
+  agriCats.forEach(function(c){
+    var cnt=agriIntelData.filter(function(a){return a.cat===c.id;}).length;
+    afh+='<button class="intel-btn" data-cat="'+c.id+'" onclick="filterAgriIntel(\''+c.id+'\',this)">'+c.label+' ('+cnt+')</button>';
+  });
+  document.getElementById('agriIntelFilters').innerHTML=afh;
+  renderAgriIntel();
 }
-function filterIntel(cat,btn){
-  activeIntelCat=cat;
-  intelShowCount=10;
+function filterMetalIntel(cat,btn){
+  activeMetalCat=cat; metalShowCount=10;
   document.querySelectorAll('#intelFilters .intel-btn').forEach(function(b){b.classList.remove('active');});
   if(btn) btn.classList.add('active');
-  renderIntel();
+  renderMetalIntel();
 }
-function renderIntel(){
-  var arts=activeIntelCat==='all'?intelData:intelData.filter(function(a){return a.cat===activeIntelCat;});
+function renderMetalIntel(){
+  var arts=activeMetalCat==='all'?metalIntelData:metalIntelData.filter(function(a){return a.cat===activeMetalCat;});
   if(!arts.length){document.getElementById('intelFeed').innerHTML='<div class="loading">Ingen artikler</div>';return;}
-  var html=arts.slice(0,intelShowCount).map(function(a){
+  var html=arts.slice(0,metalShowCount).map(function(a){
     return '<div class="intel-item"><div class="intel-title"><a href="'+a.url+'" target="_blank" rel="noopener">'+a.title+'</a></div>'+
       '<div class="intel-meta"><span class="intel-cat '+(a.color||'')+'">'+a.cat.toUpperCase()+'</span><span>'+a.source+'</span><span>'+a.time+'</span></div></div>';
   }).join('');
-  if(arts.length>intelShowCount){
-    html+='<button class="news-toggle-btn" onclick="intelShowCount+=10;renderIntel()">Vis mer ('+(arts.length-intelShowCount)+' gjenstor)</button>';
+  if(arts.length>metalShowCount){
+    html+='<button class="news-toggle-btn" onclick="metalShowCount+=10;renderMetalIntel()">Vis mer ('+(arts.length-metalShowCount)+' gjenstor)</button>';
   }
   document.getElementById('intelFeed').innerHTML=html;
+}
+// Agri intel
+var agriIntelData=[], activeAgriCat='all', agriShowCount=10;
+function filterAgriIntel(cat,btn){
+  activeAgriCat=cat; agriShowCount=10;
+  document.querySelectorAll('#agriIntelFilters .intel-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  renderAgriIntel();
+}
+function renderAgriIntel(){
+  var arts=activeAgriCat==='all'?agriIntelData:agriIntelData.filter(function(a){return a.cat===activeAgriCat;});
+  if(!arts.length){document.getElementById('agriIntelFeed').innerHTML='<div class="loading">Ingen artikler</div>';return;}
+  var html=arts.slice(0,agriShowCount).map(function(a){
+    return '<div class="intel-item"><div class="intel-title"><a href="'+a.url+'" target="_blank" rel="noopener">'+a.title+'</a></div>'+
+      '<div class="intel-meta"><span class="intel-cat '+(a.color||'')+'">'+a.cat.toUpperCase()+'</span><span>'+a.source+'</span><span>'+a.time+'</span></div></div>';
+  }).join('');
+  if(arts.length>agriShowCount){
+    html+='<button class="news-toggle-btn" onclick="agriShowCount+=10;renderAgriIntel()">Vis mer ('+(arts.length-agriShowCount)+' gjenstor)</button>';
+  }
+  document.getElementById('agriIntelFeed').innerHTML=html;
 }
 
 // ── Ravare COT ──────────────────────────────────────────────
