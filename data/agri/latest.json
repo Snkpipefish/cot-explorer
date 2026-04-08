@@ -1,6 +1,6 @@
 {
-  "generated": "2026-04-08 17:31 UTC",
-  "cot_date": "2026-03-31",
+  "generated": "2026-04-08 17:32 UTC",
+  "cot_date": "2026-04-08",
   "source": "CFTC · Euronext · Open-Meteo · NOAA ENSO",
   "month": 4,
   "enso": {
@@ -16,11 +16,11 @@
       "outlook": {
         "signal": "STERKT BULLISH",
         "color": "bull",
-        "total_score": 3.5
+        "total_score": 4.2
       },
-      "avg_wx_score": 0.0,
+      "avg_wx_score": 0.7,
       "cot_score": 2,
-      "risk_regions": 0,
+      "risk_regions": 1,
       "total_regions": 3,
       "cot": {
         "market": "Soybeans",
@@ -34,17 +34,18 @@
         "source": "CFTC"
       },
       "drivers": [
+        "Værstress i USA Corn Belt (vått)",
         "COT: spekulanter øker long (net +21% av OI)",
         "Yield kritisk — risiko for lav produksjon"
       ],
       "worst_region": {
         "region": "us_cornbelt",
         "region_name": "USA Corn Belt",
-        "weather_score": 0,
-        "weather_outlook": "normalt",
-        "weather_summary": "Normalt: 23mm nedbør, 18°C maks",
-        "precip_7d": 22.7,
-        "temp_max_avg": 18.2,
+        "weather_score": 2,
+        "weather_outlook": "vått",
+        "weather_summary": "Over normalt nedbør: 42mm",
+        "precip_7d": 42.4,
+        "temp_max_avg": 19.1,
         "season_mult": 1.5,
         "growth_stage": {
           "stage": "planting",
@@ -89,13 +90,7 @@
       "yield_quality": "Kritisk",
       "yield_score": 38,
       "yield_hint": "Alvorlige problemer → forvent prisøkning",
-      "price": {
-        "value": 1167.26,
-        "chg1d": 0.11,
-        "chg5d": -0.53,
-        "chg20d": -0.53,
-        "source": "bot"
-      }
+      "price": null
     },
     {
       "crop_key": "canola",
@@ -111,20 +106,37 @@
       "risk_regions": 2,
       "total_regions": 3,
       "cot": {
-        "market": "Canola",
-        "net": 104132,
-        "net_pct": 28.4,
+        "market": "Rapeseed (Euronext ECO) + Canola",
+        "net": 163240,
+        "net_pct": 31.6,
         "change": 6671,
         "bias": "bull",
         "momentum": "BLANDET",
         "cot_score": 2,
-        "date": "2026-03-31",
-        "source": "CFTC"
+        "date": "2026-04-08",
+        "source": "Euronext+CFTC",
+        "sources_detail": {
+          "euronext": {
+            "net": 59108,
+            "net_pct": 39.4,
+            "oi": 149991,
+            "date": "2026-04-08",
+            "agrees": true
+          },
+          "cftc": {
+            "net": 104132,
+            "net_pct": 28.4,
+            "oi": 366175,
+            "date": "2026-03-31",
+            "agrees": true
+          }
+        },
+        "agrees": true
       },
       "drivers": [
         "Værstress i Canada – Prærier (frost)",
         "2 risiko-regioner",
-        "COT: bull BLANDET (net +28%)",
+        "COT: bull BLANDET (net +32%)",
         "Yield utmerket (tidlig) — god produksjon holder prisene nede"
       ],
       "worst_region": {
@@ -133,8 +145,8 @@
         "weather_score": 3,
         "weather_outlook": "frost",
         "weather_summary": "Frostrisiko: -3°C min",
-        "precip_7d": 4.9,
-        "temp_max_avg": 5.9,
+        "precip_7d": 5.0,
+        "temp_max_avg": 5.1,
         "season_mult": 1.5,
         "growth_stage": {
           "stage": "planting",
@@ -182,370 +194,15 @@
       "price": null
     },
     {
-      "crop_key": "coffee",
-      "navn": "Kaffe",
-      "ikon": "☕",
+      "crop_key": "sugar",
+      "navn": "Sukker",
+      "ikon": "🍬",
       "outlook": {
         "signal": "STERKT BULLISH",
         "color": "bull",
         "total_score": 3.0
       },
       "avg_wx_score": 1.5,
-      "cot_score": 2,
-      "risk_regions": 1,
-      "total_regions": 2,
-      "cot": {
-        "market": "Coffee C",
-        "net": 30711,
-        "net_pct": 17.5,
-        "change": 714,
-        "bias": "bull",
-        "momentum": "ØKER",
-        "cot_score": 2,
-        "date": "2026-03-31",
-        "source": "CFTC"
-      },
-      "drivers": [
-        "Værstress i Brasil – Kafferegionen (tørt)",
-        "COT: spekulanter øker long (net +18% av OI)",
-        "Yield utmerket — god produksjon holder prisene nede"
-      ],
-      "worst_region": {
-        "region": "brazil_coffee",
-        "region_name": "Brasil – Kafferegionen",
-        "weather_score": 3,
-        "weather_outlook": "tørt",
-        "weather_summary": "Tørt og varmt: 8mm / 28°C maks",
-        "precip_7d": 7.7,
-        "temp_max_avg": 27.8,
-        "season_mult": 1.5,
-        "growth_stage": {
-          "stage": "ripening",
-          "stage_no": "Modning",
-          "icon": "🌾",
-          "season_pct": 25,
-          "in_season": true,
-          "season_months": "jan–des",
-          "harvest_window": "jan–sep",
-          "season_start_month": 1,
-          "season_end_month": 12
-        },
-        "season_metrics": {
-          "gdd_accumulated": 1208,
-          "gdd_required": 3000,
-          "gdd_pct": 40.3,
-          "season_precip_mm": 795,
-          "ideal_precip_mm": 1400,
-          "precip_pct": 56.8,
-          "stress_days": 0,
-          "days_measured": 97
-        },
-        "yield_score": 100,
-        "yield_rating": "Utmerket (tidlig)",
-        "yield_hint": "Tidlig i sesongen — h��y produksjon → stabilt prisnivå",
-        "enso_impact": null,
-        "enso_adj": 0
-      },
-      "growth_stage": "Modning",
-      "growth_stage_icon": "🌾",
-      "growth_stage_pct": 25,
-      "in_season": true,
-      "season_months": "jan–des",
-      "harvest_window": "jan–sep",
-      "gdd_accumulated": 1208,
-      "gdd_required": 3000,
-      "gdd_pct": 40.3,
-      "season_precip_mm": 795,
-      "ideal_precip_mm": 1400,
-      "precip_pct": 56.8,
-      "stress_days": 0,
-      "yield_quality": "Utmerket",
-      "yield_score": 100,
-      "yield_hint": "Høy produksjon → stabilt prisnivå",
-      "price": {
-        "value": 294.96,
-        "chg1d": 0.0,
-        "chg5d": -3.08,
-        "chg20d": -3.08,
-        "source": "bot"
-      }
-    },
-    {
-      "crop_key": "corn",
-      "navn": "Mais",
-      "ikon": "🌽",
-      "outlook": {
-        "signal": "BULLISH",
-        "color": "bull",
-        "total_score": 1.5
-      },
-      "avg_wx_score": 0.0,
-      "cot_score": 1,
-      "risk_regions": 0,
-      "total_regions": 5,
-      "cot": {
-        "market": "Corn",
-        "net": 257952,
-        "net_pct": 14.1,
-        "change": -21678,
-        "bias": "bull",
-        "momentum": "BLANDET",
-        "cot_score": 1,
-        "date": "2026-03-31",
-        "source": "CFTC"
-      },
-      "drivers": [
-        "COT: bull BLANDET (net +14%)"
-      ],
-      "worst_region": {
-        "region": "us_cornbelt",
-        "region_name": "USA Corn Belt",
-        "weather_score": 0,
-        "weather_outlook": "normalt",
-        "weather_summary": "Normalt: 23mm nedbør, 18°C maks",
-        "precip_7d": 22.7,
-        "temp_max_avg": 18.2,
-        "season_mult": 1.5,
-        "growth_stage": {
-          "stage": "planting",
-          "stage_no": "Såing",
-          "icon": "🌱",
-          "season_pct": 22,
-          "in_season": true,
-          "season_months": "feb–okt",
-          "harvest_window": "sep–okt",
-          "season_start_month": 2,
-          "season_end_month": 10
-        },
-        "season_metrics": {
-          "gdd_accumulated": 52,
-          "gdd_required": 2700,
-          "gdd_pct": 1.9,
-          "season_precip_mm": 130,
-          "ideal_precip_mm": 500,
-          "precip_pct": 26.1,
-          "stress_days": 57,
-          "days_measured": 66
-        },
-        "yield_score": 38,
-        "yield_rating": "Kritisk (tidlig)",
-        "yield_hint": "Tidlig i sesongen — alvorlige problemer → forvent prisøkning",
-        "enso_impact": null,
-        "enso_adj": 0
-      },
-      "growth_stage": "Såing",
-      "growth_stage_icon": "🌱",
-      "growth_stage_pct": 22,
-      "in_season": true,
-      "season_months": "feb–okt",
-      "harvest_window": "sep–okt",
-      "gdd_accumulated": 52,
-      "gdd_required": 2700,
-      "gdd_pct": 1.9,
-      "season_precip_mm": 130,
-      "ideal_precip_mm": 500,
-      "precip_pct": 26.1,
-      "stress_days": 57,
-      "yield_quality": "Middels",
-      "yield_score": 61,
-      "yield_hint": "Noen utfordringer → mulig prispress oppover",
-      "price": {
-        "value": 455.73,
-        "chg1d": -0.01,
-        "chg5d": -0.47,
-        "chg20d": -0.47,
-        "source": "bot"
-      }
-    },
-    {
-      "crop_key": "wheat",
-      "navn": "Hvete",
-      "ikon": "🌾",
-      "outlook": {
-        "signal": "BULLISH",
-        "color": "bull",
-        "total_score": 1.5
-      },
-      "avg_wx_score": 1.0,
-      "cot_score": 1,
-      "risk_regions": 3,
-      "total_regions": 8,
-      "cot": {
-        "market": "Wheat",
-        "net": 7781,
-        "net_pct": 1.6,
-        "change": 8775,
-        "bias": "bull",
-        "momentum": "FALLER",
-        "cot_score": 1,
-        "date": "2026-03-31",
-        "source": "CFTC"
-      },
-      "drivers": [
-        "Værstress i Canada – Prærier (frost)",
-        "3 risiko-regioner",
-        "COT: bull FALLER (net +2%)",
-        "Yield utmerket — god produksjon holder prisene nede"
-      ],
-      "worst_region": {
-        "region": "canada_prairie",
-        "region_name": "Canada – Prærier",
-        "weather_score": 3,
-        "weather_outlook": "frost",
-        "weather_summary": "Frostrisiko: -3°C min",
-        "precip_7d": 4.9,
-        "temp_max_avg": 5.9,
-        "season_mult": 1.5,
-        "growth_stage": {
-          "stage": "planting",
-          "stage_no": "Såing",
-          "icon": "🌱",
-          "season_pct": 0,
-          "in_season": true,
-          "season_months": "apr–okt",
-          "harvest_window": "sep–okt",
-          "season_start_month": 4,
-          "season_end_month": 10
-        },
-        "season_metrics": {
-          "gdd_accumulated": 8,
-          "gdd_required": 2000,
-          "gdd_pct": 0.4,
-          "season_precip_mm": 5,
-          "ideal_precip_mm": 450,
-          "precip_pct": 1.1,
-          "stress_days": 3,
-          "days_measured": 7
-        },
-        "yield_score": 97,
-        "yield_rating": "Utmerket (tidlig)",
-        "yield_hint": "Tidlig i sesongen — h��y produksjon → stabilt prisnivå",
-        "enso_impact": null,
-        "enso_adj": 0
-      },
-      "growth_stage": "Aksing",
-      "growth_stage_icon": "🌾",
-      "growth_stage_pct": 25,
-      "in_season": true,
-      "season_months": "jan–des",
-      "harvest_window": "mai",
-      "gdd_accumulated": 1701,
-      "gdd_required": 2000,
-      "gdd_pct": 85.0,
-      "season_precip_mm": 127,
-      "ideal_precip_mm": 450,
-      "precip_pct": 28.2,
-      "stress_days": 0,
-      "yield_quality": "Utmerket",
-      "yield_score": 100,
-      "yield_hint": "Høy produksjon → stabilt prisnivå",
-      "price": {
-        "value": 604.09,
-        "chg1d": 0.05,
-        "chg5d": 1.02,
-        "chg20d": 1.02,
-        "source": "bot"
-      }
-    },
-    {
-      "crop_key": "cotton",
-      "navn": "Bomull",
-      "ikon": "☁️",
-      "outlook": {
-        "signal": "BULLISH",
-        "color": "bull",
-        "total_score": 2.0
-      },
-      "avg_wx_score": 1.5,
-      "cot_score": 1,
-      "risk_regions": 1,
-      "total_regions": 2,
-      "cot": {
-        "market": "Cotton No. 2",
-        "net": -9884,
-        "net_pct": -2.8,
-        "change": 23662,
-        "bias": "bear",
-        "momentum": "FALLER",
-        "cot_score": 1,
-        "date": "2026-03-31",
-        "source": "CFTC"
-      },
-      "drivers": [
-        "Værstress i USA Delta – Bomull & Ris (tørt)",
-        "COT: spekulanter øker short (net -3% av OI)",
-        "Yield utmerket (tidlig) — god produksjon holder prisene nede"
-      ],
-      "worst_region": {
-        "region": "us_delta_cotton",
-        "region_name": "USA Delta – Bomull & Ris",
-        "weather_score": 3,
-        "weather_outlook": "tørt",
-        "weather_summary": "Tørt og varmt: 0mm / 28°C maks",
-        "precip_7d": 0.0,
-        "temp_max_avg": 27.5,
-        "season_mult": 1.5,
-        "growth_stage": {
-          "stage": "planting",
-          "stage_no": "Såing",
-          "icon": "🌱",
-          "season_pct": 0,
-          "in_season": true,
-          "season_months": "apr–okt",
-          "harvest_window": "sep–okt",
-          "season_start_month": 4,
-          "season_end_month": 10
-        },
-        "season_metrics": {
-          "gdd_accumulated": 34,
-          "gdd_required": 2200,
-          "gdd_pct": 1.6,
-          "season_precip_mm": 25,
-          "ideal_precip_mm": 600,
-          "precip_pct": 4.2,
-          "stress_days": 2,
-          "days_measured": 7
-        },
-        "yield_score": 98,
-        "yield_rating": "Utmerket (tidlig)",
-        "yield_hint": "Tidlig i sesongen — h��y produksjon → stabilt prisnivå",
-        "enso_impact": null,
-        "enso_adj": 0
-      },
-      "growth_stage": "Såing",
-      "growth_stage_icon": "🌱",
-      "growth_stage_pct": 0,
-      "in_season": true,
-      "season_months": "apr–okt",
-      "harvest_window": "sep–okt",
-      "gdd_accumulated": 34,
-      "gdd_required": 2200,
-      "gdd_pct": 1.6,
-      "season_precip_mm": 25,
-      "ideal_precip_mm": 600,
-      "precip_pct": 4.2,
-      "stress_days": 2,
-      "yield_quality": "Utmerket (tidlig)",
-      "yield_score": 98,
-      "yield_hint": "Høy produksjon → stabilt prisnivå",
-      "price": {
-        "value": 72.92,
-        "chg1d": -0.42,
-        "chg5d": 0.91,
-        "chg20d": 0.91,
-        "source": "bot"
-      }
-    },
-    {
-      "crop_key": "sugar",
-      "navn": "Sukker",
-      "ikon": "🍬",
-      "outlook": {
-        "signal": "BULLISH",
-        "color": "bull",
-        "total_score": 2.5
-      },
-      "avg_wx_score": 1.0,
       "cot_score": 1,
       "risk_regions": 1,
       "total_regions": 2,
@@ -561,17 +218,17 @@
         "source": "CFTC"
       },
       "drivers": [
-        "Værstress i India – Punjab / Haryana (tørt)",
+        "Værstress i India – Punjab / Haryana (tørke)",
         "COT: spekulanter øker short (net -4% av OI)"
       ],
       "worst_region": {
         "region": "india_punjab",
         "region_name": "India – Punjab / Haryana",
-        "weather_score": 2,
-        "weather_outlook": "tørt",
-        "weather_summary": "Tørt og varmt: 2mm / 30°C maks",
-        "precip_7d": 1.7,
-        "temp_max_avg": 30.0,
+        "weather_score": 3,
+        "weather_outlook": "tørke",
+        "weather_summary": "Alvorlig tørke: 3mm / 31°C maks",
+        "precip_7d": 2.7,
+        "temp_max_avg": 30.9,
         "season_mult": 1.0,
         "growth_stage": {
           "stage": "heading",
@@ -616,13 +273,445 @@
       "yield_quality": "Middels",
       "yield_score": 57,
       "yield_hint": "Noen utfordringer → mulig prispress oppover",
-      "price": {
-        "value": 14.7,
-        "chg1d": 0.0,
-        "chg5d": -2.46,
-        "chg20d": -2.46,
-        "source": "bot"
-      }
+      "price": null
+    },
+    {
+      "crop_key": "coffee",
+      "navn": "Kaffe",
+      "ikon": "☕",
+      "outlook": {
+        "signal": "STERKT BULLISH",
+        "color": "bull",
+        "total_score": 3.5
+      },
+      "avg_wx_score": 2.0,
+      "cot_score": 2,
+      "risk_regions": 1,
+      "total_regions": 2,
+      "cot": {
+        "market": "Coffee C",
+        "net": 30711,
+        "net_pct": 17.5,
+        "change": 714,
+        "bias": "bull",
+        "momentum": "ØKER",
+        "cot_score": 2,
+        "date": "2026-03-31",
+        "source": "CFTC"
+      },
+      "drivers": [
+        "Værstress i Brasil – Kafferegionen (tørt)",
+        "COT: spekulanter øker long (net +18% av OI)",
+        "Yield utmerket — god produksjon holder prisene nede"
+      ],
+      "worst_region": {
+        "region": "brazil_coffee",
+        "region_name": "Brasil – Kafferegionen",
+        "weather_score": 3,
+        "weather_outlook": "tørt",
+        "weather_summary": "Tørt og varmt: 4mm / 27°C maks",
+        "precip_7d": 4.3,
+        "temp_max_avg": 27.3,
+        "season_mult": 1.5,
+        "growth_stage": {
+          "stage": "ripening",
+          "stage_no": "Modning",
+          "icon": "🌾",
+          "season_pct": 25,
+          "in_season": true,
+          "season_months": "jan–des",
+          "harvest_window": "jan–sep",
+          "season_start_month": 1,
+          "season_end_month": 12
+        },
+        "season_metrics": {
+          "gdd_accumulated": 1208,
+          "gdd_required": 3000,
+          "gdd_pct": 40.3,
+          "season_precip_mm": 795,
+          "ideal_precip_mm": 1400,
+          "precip_pct": 56.8,
+          "stress_days": 0,
+          "days_measured": 97
+        },
+        "yield_score": 100,
+        "yield_rating": "Utmerket (tidlig)",
+        "yield_hint": "Tidlig i sesongen — h��y produksjon → stabilt prisnivå",
+        "enso_impact": null,
+        "enso_adj": 0
+      },
+      "growth_stage": "Modning",
+      "growth_stage_icon": "🌾",
+      "growth_stage_pct": 25,
+      "in_season": true,
+      "season_months": "jan–des",
+      "harvest_window": "jan–sep",
+      "gdd_accumulated": 1208,
+      "gdd_required": 3000,
+      "gdd_pct": 40.3,
+      "season_precip_mm": 795,
+      "ideal_precip_mm": 1400,
+      "precip_pct": 56.8,
+      "stress_days": 0,
+      "yield_quality": "Utmerket",
+      "yield_score": 100,
+      "yield_hint": "Høy produksjon → stabilt prisnivå",
+      "price": null
+    },
+    {
+      "crop_key": "corn",
+      "navn": "Mais",
+      "ikon": "🌽",
+      "outlook": {
+        "signal": "BULLISH",
+        "color": "bull",
+        "total_score": 1.9
+      },
+      "avg_wx_score": 0.4,
+      "cot_score": 1,
+      "risk_regions": 1,
+      "total_regions": 5,
+      "cot": {
+        "market": "Corn/Maize (Euronext EMA) + Corn",
+        "net": 265367,
+        "net_pct": 14.2,
+        "change": -21678,
+        "bias": "bull",
+        "momentum": "BLANDET",
+        "cot_score": 1,
+        "date": "2026-04-08",
+        "source": "Euronext+CFTC",
+        "sources_detail": {
+          "euronext": {
+            "net": 7415,
+            "net_pct": 19.3,
+            "oi": 38489,
+            "date": "2026-04-08",
+            "agrees": true
+          },
+          "cftc": {
+            "net": 257952,
+            "net_pct": 14.1,
+            "oi": 1826697,
+            "date": "2026-03-31",
+            "agrees": true
+          }
+        },
+        "agrees": true
+      },
+      "drivers": [
+        "Værstress i USA Corn Belt (vått)",
+        "COT: bull BLANDET (net +14%)"
+      ],
+      "worst_region": {
+        "region": "us_cornbelt",
+        "region_name": "USA Corn Belt",
+        "weather_score": 2,
+        "weather_outlook": "vått",
+        "weather_summary": "Over normalt nedbør: 42mm",
+        "precip_7d": 42.4,
+        "temp_max_avg": 19.1,
+        "season_mult": 1.5,
+        "growth_stage": {
+          "stage": "planting",
+          "stage_no": "Såing",
+          "icon": "🌱",
+          "season_pct": 22,
+          "in_season": true,
+          "season_months": "feb–okt",
+          "harvest_window": "sep–okt",
+          "season_start_month": 2,
+          "season_end_month": 10
+        },
+        "season_metrics": {
+          "gdd_accumulated": 52,
+          "gdd_required": 2700,
+          "gdd_pct": 1.9,
+          "season_precip_mm": 130,
+          "ideal_precip_mm": 500,
+          "precip_pct": 26.1,
+          "stress_days": 57,
+          "days_measured": 66
+        },
+        "yield_score": 38,
+        "yield_rating": "Kritisk (tidlig)",
+        "yield_hint": "Tidlig i sesongen — alvorlige problemer → forvent prisøkning",
+        "enso_impact": null,
+        "enso_adj": 0
+      },
+      "growth_stage": "Såing",
+      "growth_stage_icon": "🌱",
+      "growth_stage_pct": 22,
+      "in_season": true,
+      "season_months": "feb–okt",
+      "harvest_window": "sep–okt",
+      "gdd_accumulated": 52,
+      "gdd_required": 2700,
+      "gdd_pct": 1.9,
+      "season_precip_mm": 130,
+      "ideal_precip_mm": 500,
+      "precip_pct": 26.1,
+      "stress_days": 57,
+      "yield_quality": "Middels",
+      "yield_score": 61,
+      "yield_hint": "Noen utfordringer → mulig prispress oppover",
+      "price": null
+    },
+    {
+      "crop_key": "wheat",
+      "navn": "Hvete",
+      "ikon": "🌾",
+      "outlook": {
+        "signal": "BULLISH",
+        "color": "bull",
+        "total_score": 1.6
+      },
+      "avg_wx_score": 1.1,
+      "cot_score": 1,
+      "risk_regions": 3,
+      "total_regions": 8,
+      "cot": {
+        "market": "Milling Wheat (Euronext EBM) + Wheat",
+        "net": 32100,
+        "net_pct": 3.2,
+        "change": 8775,
+        "bias": "bull",
+        "momentum": "FALLER",
+        "cot_score": 1,
+        "date": "2026-04-08",
+        "source": "Euronext+CFTC",
+        "sources_detail": {
+          "euronext": {
+            "net": 24319,
+            "net_pct": 4.7,
+            "oi": 522798,
+            "date": "2026-04-08",
+            "agrees": true
+          },
+          "cftc": {
+            "net": 7781,
+            "net_pct": 1.6,
+            "oi": 488618,
+            "date": "2026-03-31",
+            "agrees": true
+          }
+        },
+        "agrees": true
+      },
+      "drivers": [
+        "Værstress i India – Punjab / Haryana (tørke)",
+        "3 risiko-regioner",
+        "COT: bull FALLER (net +3%)",
+        "Yield utmerket — god produksjon holder prisene nede"
+      ],
+      "worst_region": {
+        "region": "india_punjab",
+        "region_name": "India – Punjab / Haryana",
+        "weather_score": 4,
+        "weather_outlook": "tørke",
+        "weather_summary": "Alvorlig tørke: 3mm / 31°C maks",
+        "precip_7d": 2.7,
+        "temp_max_avg": 30.9,
+        "season_mult": 1.5,
+        "growth_stage": {
+          "stage": "heading",
+          "stage_no": "Aksing",
+          "icon": "🌾",
+          "season_pct": 25,
+          "in_season": true,
+          "season_months": "jan–des",
+          "harvest_window": "mai",
+          "season_start_month": 1,
+          "season_end_month": 12
+        },
+        "season_metrics": {
+          "gdd_accumulated": 1701,
+          "gdd_required": 2000,
+          "gdd_pct": 85.0,
+          "season_precip_mm": 127,
+          "ideal_precip_mm": 450,
+          "precip_pct": 28.2,
+          "stress_days": 0,
+          "days_measured": 97
+        },
+        "yield_score": 100,
+        "yield_rating": "Utmerket (tidlig)",
+        "yield_hint": "Tidlig i sesongen — h��y produksjon → stabilt prisnivå",
+        "enso_impact": null,
+        "enso_adj": 0
+      },
+      "growth_stage": "Aksing",
+      "growth_stage_icon": "🌾",
+      "growth_stage_pct": 25,
+      "in_season": true,
+      "season_months": "jan–des",
+      "harvest_window": "mai",
+      "gdd_accumulated": 1701,
+      "gdd_required": 2000,
+      "gdd_pct": 85.0,
+      "season_precip_mm": 127,
+      "ideal_precip_mm": 450,
+      "precip_pct": 28.2,
+      "stress_days": 0,
+      "yield_quality": "Utmerket",
+      "yield_score": 100,
+      "yield_hint": "Høy produksjon → stabilt prisnivå",
+      "price": null
+    },
+    {
+      "crop_key": "cotton",
+      "navn": "Bomull",
+      "ikon": "☁️",
+      "outlook": {
+        "signal": "BULLISH",
+        "color": "bull",
+        "total_score": 2.0
+      },
+      "avg_wx_score": 1.5,
+      "cot_score": 1,
+      "risk_regions": 1,
+      "total_regions": 2,
+      "cot": {
+        "market": "Cotton No. 2",
+        "net": -9884,
+        "net_pct": -2.8,
+        "change": 23662,
+        "bias": "bear",
+        "momentum": "FALLER",
+        "cot_score": 1,
+        "date": "2026-03-31",
+        "source": "CFTC"
+      },
+      "drivers": [
+        "Værstress i USA Delta – Bomull & Ris (tørt)",
+        "COT: spekulanter øker short (net -3% av OI)",
+        "Yield utmerket (tidlig) — god produksjon holder prisene nede"
+      ],
+      "worst_region": {
+        "region": "us_delta_cotton",
+        "region_name": "USA Delta – Bomull & Ris",
+        "weather_score": 3,
+        "weather_outlook": "tørt",
+        "weather_summary": "Tørt og varmt: 0mm / 28°C maks",
+        "precip_7d": 0.0,
+        "temp_max_avg": 27.6,
+        "season_mult": 1.5,
+        "growth_stage": {
+          "stage": "planting",
+          "stage_no": "Såing",
+          "icon": "🌱",
+          "season_pct": 0,
+          "in_season": true,
+          "season_months": "apr–okt",
+          "harvest_window": "sep–okt",
+          "season_start_month": 4,
+          "season_end_month": 10
+        },
+        "season_metrics": {
+          "gdd_accumulated": 34,
+          "gdd_required": 2200,
+          "gdd_pct": 1.6,
+          "season_precip_mm": 25,
+          "ideal_precip_mm": 600,
+          "precip_pct": 4.2,
+          "stress_days": 2,
+          "days_measured": 7
+        },
+        "yield_score": 98,
+        "yield_rating": "Utmerket (tidlig)",
+        "yield_hint": "Tidlig i sesongen — h��y produksjon → stabilt prisnivå",
+        "enso_impact": null,
+        "enso_adj": 0
+      },
+      "growth_stage": "Såing",
+      "growth_stage_icon": "🌱",
+      "growth_stage_pct": 0,
+      "in_season": true,
+      "season_months": "apr–okt",
+      "harvest_window": "sep–okt",
+      "gdd_accumulated": 34,
+      "gdd_required": 2200,
+      "gdd_pct": 1.6,
+      "season_precip_mm": 25,
+      "ideal_precip_mm": 600,
+      "precip_pct": 4.2,
+      "stress_days": 2,
+      "yield_quality": "Utmerket (tidlig)",
+      "yield_score": 98,
+      "yield_hint": "Høy produksjon → stabilt prisnivå",
+      "price": null
+    },
+    {
+      "crop_key": "cocoa",
+      "navn": "Kakao",
+      "ikon": "🍫",
+      "outlook": {
+        "signal": "NØYTRAL",
+        "color": "neutral",
+        "total_score": 0.0
+      },
+      "avg_wx_score": 1.0,
+      "cot_score": -1,
+      "risk_regions": 0,
+      "total_regions": 1,
+      "cot": {
+        "market": "Cocoa",
+        "net": -10132,
+        "net_pct": -5.0,
+        "change": -1018,
+        "bias": "bear",
+        "momentum": "FALLER",
+        "cot_score": -1,
+        "date": "2026-03-31",
+        "source": "CFTC"
+      },
+      "drivers": [
+        "COT: spekulanter øker short (net -5% av OI)"
+      ],
+      "worst_region": {
+        "region": "west_africa_cocoa",
+        "region_name": "Vest-Afrika – Kakao",
+        "weather_score": 1,
+        "weather_outlook": "vått",
+        "weather_summary": "Over normalt nedbør: 41mm",
+        "precip_7d": 40.6,
+        "temp_max_avg": 33.6,
+        "season_mult": 1.0,
+        "growth_stage": {
+          "stage": "post-harvest",
+          "stage_no": "Etter høst",
+          "icon": "📦",
+          "season_pct": 0,
+          "in_season": false,
+          "season_months": "mai–okt",
+          "harvest_window": null,
+          "season_start_month": 5,
+          "season_end_month": 10
+        },
+        "season_metrics": null,
+        "yield_score": null,
+        "yield_rating": null,
+        "yield_hint": null,
+        "enso_impact": null,
+        "enso_adj": 0
+      },
+      "growth_stage": "Etter høst",
+      "growth_stage_icon": "📦",
+      "growth_stage_pct": 0,
+      "in_season": false,
+      "season_months": "mai–okt",
+      "harvest_window": null,
+      "gdd_accumulated": null,
+      "gdd_required": null,
+      "gdd_pct": null,
+      "season_precip_mm": null,
+      "ideal_precip_mm": null,
+      "precip_pct": null,
+      "stress_days": null,
+      "yield_quality": null,
+      "yield_score": null,
+      "yield_hint": null,
+      "price": null
     },
     {
       "crop_key": "palm",
@@ -631,9 +720,9 @@
       "outlook": {
         "signal": "NØYTRAL",
         "color": "neutral",
-        "total_score": 0.5
+        "total_score": -0.5
       },
-      "avg_wx_score": 1.0,
+      "avg_wx_score": 0.0,
       "cot_score": 0,
       "risk_regions": 0,
       "total_regions": 1,
@@ -644,11 +733,11 @@
       "worst_region": {
         "region": "sea_palm",
         "region_name": "Sørøst-Asia – Palmeolje",
-        "weather_score": 1,
-        "weather_outlook": "tørt",
-        "weather_summary": "Noe tørt: 10mm nedbør",
-        "precip_7d": 10.4,
-        "temp_max_avg": 34.6,
+        "weather_score": 0,
+        "weather_outlook": "normalt",
+        "weather_summary": "Normalt: 20mm nedbør, 34°C maks",
+        "precip_7d": 20.0,
+        "temp_max_avg": 34.4,
         "season_mult": 1.0,
         "growth_stage": {
           "stage": "moderate",
@@ -702,9 +791,9 @@
       "outlook": {
         "signal": "NØYTRAL",
         "color": "neutral",
-        "total_score": -0.5
+        "total_score": 0.0
       },
-      "avg_wx_score": 2.0,
+      "avg_wx_score": 2.5,
       "cot_score": -2,
       "risk_regions": 2,
       "total_regions": 2,
@@ -720,7 +809,7 @@
         "source": "CFTC"
       },
       "drivers": [
-        "Værstress i India – Punjab / Haryana (tørt)",
+        "Værstress i India – Punjab / Haryana (tørke)",
         "2 risiko-regioner",
         "COT: spekulanter øker short (net -27% av OI)",
         "Yield utmerket — god produksjon holder prisene nede"
@@ -728,11 +817,11 @@
       "worst_region": {
         "region": "india_punjab",
         "region_name": "India – Punjab / Haryana",
-        "weather_score": 2,
-        "weather_outlook": "tørt",
-        "weather_summary": "Tørt og varmt: 2mm / 30°C maks",
-        "precip_7d": 1.7,
-        "temp_max_avg": 30.0,
+        "weather_score": 3,
+        "weather_outlook": "tørke",
+        "weather_summary": "Alvorlig tørke: 3mm / 31°C maks",
+        "precip_7d": 2.7,
+        "temp_max_avg": 30.9,
         "season_mult": 1.0,
         "growth_stage": {
           "stage": "heading",
@@ -778,84 +867,6 @@
       "yield_score": 99,
       "yield_hint": "Høy produksjon → stabilt prisnivå",
       "price": null
-    },
-    {
-      "crop_key": "cocoa",
-      "navn": "Kakao",
-      "ikon": "🍫",
-      "outlook": {
-        "signal": "BEARISH",
-        "color": "bear",
-        "total_score": -1.0
-      },
-      "avg_wx_score": 0.0,
-      "cot_score": -1,
-      "risk_regions": 0,
-      "total_regions": 1,
-      "cot": {
-        "market": "Cocoa",
-        "net": -10132,
-        "net_pct": -5.0,
-        "change": -1018,
-        "bias": "bear",
-        "momentum": "FALLER",
-        "cot_score": -1,
-        "date": "2026-03-31",
-        "source": "CFTC"
-      },
-      "drivers": [
-        "COT: spekulanter øker short (net -5% av OI)"
-      ],
-      "worst_region": {
-        "region": "west_africa_cocoa",
-        "region_name": "Vest-Afrika – Kakao",
-        "weather_score": 0,
-        "weather_outlook": "normalt",
-        "weather_summary": "Normalt: 20mm nedbør, 34°C maks",
-        "precip_7d": 20.3,
-        "temp_max_avg": 33.9,
-        "season_mult": 1.0,
-        "growth_stage": {
-          "stage": "post-harvest",
-          "stage_no": "Etter høst",
-          "icon": "📦",
-          "season_pct": 0,
-          "in_season": false,
-          "season_months": "mai–okt",
-          "harvest_window": null,
-          "season_start_month": 5,
-          "season_end_month": 10
-        },
-        "season_metrics": null,
-        "yield_score": null,
-        "yield_rating": null,
-        "yield_hint": null,
-        "enso_impact": null,
-        "enso_adj": 0
-      },
-      "growth_stage": "Etter høst",
-      "growth_stage_icon": "📦",
-      "growth_stage_pct": 0,
-      "in_season": false,
-      "season_months": "mai–okt",
-      "harvest_window": null,
-      "gdd_accumulated": null,
-      "gdd_required": null,
-      "gdd_pct": null,
-      "season_precip_mm": null,
-      "ideal_precip_mm": null,
-      "precip_pct": null,
-      "stress_days": null,
-      "yield_quality": null,
-      "yield_score": null,
-      "yield_hint": null,
-      "price": {
-        "value": 2989.0,
-        "chg1d": 0.0,
-        "chg5d": -7.32,
-        "chg20d": -7.32,
-        "source": "bot"
-      }
     }
   ],
   "regions": [
@@ -882,30 +893,47 @@
       "crops_outlook": {
         "corn": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 2,
+            "raw_score": 1,
             "season_mult": 1.5,
-            "outlook": "normalt",
-            "precip_7d": 22.7,
-            "temp_max_avg": 18.2,
-            "temp_min_avg": 8.4,
-            "summary": "Normalt: 23mm nedbør, 18°C maks"
+            "outlook": "vått",
+            "precip_7d": 42.4,
+            "temp_max_avg": 19.1,
+            "temp_min_avg": 8.8,
+            "summary": "Over normalt nedbør: 42mm"
           },
           "cot": {
-            "market": "Corn",
-            "net": 257952,
-            "net_pct": 14.1,
+            "market": "Corn/Maize (Euronext EMA) + Corn",
+            "net": 265367,
+            "net_pct": 14.2,
             "change": -21678,
             "bias": "bull",
             "momentum": "BLANDET",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 7415,
+                "net_pct": 19.3,
+                "oi": 38489,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 257952,
+                "net_pct": 14.1,
+                "oi": 1826697,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
-            "signal": "BULLISH",
+            "signal": "STERKT BULLISH",
             "color": "bull",
-            "total_score": 2.5
+            "total_score": 4.5
           },
           "season_metrics": {
             "gdd_accumulated": 52,
@@ -923,14 +951,14 @@
         },
         "soybeans": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 2,
+            "raw_score": 1,
             "season_mult": 1.5,
-            "outlook": "normalt",
-            "precip_7d": 22.7,
-            "temp_max_avg": 18.2,
-            "temp_min_avg": 8.4,
-            "summary": "Normalt: 23mm nedbør, 18°C maks"
+            "outlook": "vått",
+            "precip_7d": 42.4,
+            "temp_max_avg": 19.1,
+            "temp_min_avg": 8.8,
+            "summary": "Over normalt nedbør: 42mm"
           },
           "cot": {
             "market": "Soybeans",
@@ -946,7 +974,7 @@
           "outlook": {
             "signal": "STERKT BULLISH",
             "color": "bull",
-            "total_score": 3.5
+            "total_score": 5.5
           },
           "season_metrics": {
             "gdd_accumulated": 52,
@@ -965,10 +993,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 2.8,
+        "temp": 19.4,
         "precip": 0.0,
-        "wind": 27.4,
-        "humidity": 66
+        "wind": 49.5,
+        "humidity": 41
       }
     },
     {
@@ -997,21 +1025,38 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 11.4,
-            "temp_max_avg": 24.9,
-            "temp_min_avg": 14.1,
-            "summary": "Normalt: 11mm nedbør, 25°C maks"
+            "precip_7d": 23.4,
+            "temp_max_avg": 25.0,
+            "temp_min_avg": 14.5,
+            "summary": "Normalt: 23mm nedbør, 25°C maks"
           },
           "cot": {
-            "market": "Wheat",
-            "net": 7781,
-            "net_pct": 1.6,
+            "market": "Milling Wheat (Euronext EBM) + Wheat",
+            "net": 32100,
+            "net_pct": 3.2,
             "change": 8775,
             "bias": "bull",
             "momentum": "FALLER",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 24319,
+                "net_pct": 4.7,
+                "oi": 522798,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 7781,
+                "net_pct": 1.6,
+                "oi": 488618,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "NØYTRAL",
@@ -1035,10 +1080,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 13.7,
+        "temp": 21.8,
         "precip": 0.0,
-        "wind": 34.7,
-        "humidity": 37
+        "wind": 47.2,
+        "humidity": 28
       }
     },
     {
@@ -1070,10 +1115,10 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 34.5,
-            "temp_max_avg": 29.5,
-            "temp_min_avg": 22.5,
-            "summary": "Normalt: 34mm nedbør, 30°C maks"
+            "precip_7d": 24.5,
+            "temp_max_avg": 29.7,
+            "temp_min_avg": 22.6,
+            "summary": "Normalt: 25mm nedbør, 30°C maks"
           },
           "cot": {
             "market": "Soybeans",
@@ -1102,21 +1147,38 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 34.5,
-            "temp_max_avg": 29.5,
-            "temp_min_avg": 22.5,
-            "summary": "Normalt: 34mm nedbør, 30°C maks"
+            "precip_7d": 24.5,
+            "temp_max_avg": 29.7,
+            "temp_min_avg": 22.6,
+            "summary": "Normalt: 25mm nedbør, 30°C maks"
           },
           "cot": {
-            "market": "Corn",
-            "net": 257952,
-            "net_pct": 14.1,
+            "market": "Corn/Maize (Euronext EMA) + Corn",
+            "net": 265367,
+            "net_pct": 14.2,
             "change": -21678,
             "bias": "bull",
             "momentum": "BLANDET",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 7415,
+                "net_pct": 19.3,
+                "oi": 38489,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 257952,
+                "net_pct": 14.1,
+                "oi": 1826697,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "BULLISH",
@@ -1134,10 +1196,10 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 34.5,
-            "temp_max_avg": 29.5,
-            "temp_min_avg": 22.5,
-            "summary": "Normalt: 34mm nedbør, 30°C maks"
+            "precip_7d": 24.5,
+            "temp_max_avg": 29.7,
+            "temp_min_avg": 22.6,
+            "summary": "Normalt: 25mm nedbør, 30°C maks"
           },
           "cot": {
             "market": "Cotton No. 2",
@@ -1166,10 +1228,10 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 34.5,
-            "temp_max_avg": 29.5,
-            "temp_min_avg": 22.5,
-            "summary": "Normalt: 34mm nedbør, 30°C maks"
+            "precip_7d": 24.5,
+            "temp_max_avg": 29.7,
+            "temp_min_avg": 22.6,
+            "summary": "Normalt: 25mm nedbør, 30°C maks"
           },
           "cot": {
             "market": "Sugar No. 11",
@@ -1195,10 +1257,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 23.9,
+        "temp": 31.5,
         "precip": 0.0,
-        "wind": 1.6,
-        "humidity": 84
+        "wind": 7.2,
+        "humidity": 55
       }
     },
     {
@@ -1229,10 +1291,10 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 2.4,
-            "temp_max_avg": 22.3,
-            "temp_min_avg": 13.6,
-            "summary": "Normalt: 2mm nedbør, 22°C maks"
+            "precip_7d": 0.6,
+            "temp_max_avg": 22.0,
+            "temp_min_avg": 13.2,
+            "summary": "Normalt: 1mm nedbør, 22°C maks"
           },
           "cot": {
             "market": "Soybeans",
@@ -1261,21 +1323,38 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 2.4,
-            "temp_max_avg": 22.3,
-            "temp_min_avg": 13.6,
-            "summary": "Normalt: 2mm nedbør, 22°C maks"
+            "precip_7d": 0.6,
+            "temp_max_avg": 22.0,
+            "temp_min_avg": 13.2,
+            "summary": "Normalt: 1mm nedbør, 22°C maks"
           },
           "cot": {
-            "market": "Wheat",
-            "net": 7781,
-            "net_pct": 1.6,
+            "market": "Milling Wheat (Euronext EBM) + Wheat",
+            "net": 32100,
+            "net_pct": 3.2,
             "change": 8775,
             "bias": "bull",
             "momentum": "FALLER",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 24319,
+                "net_pct": 4.7,
+                "oi": 522798,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 7781,
+                "net_pct": 1.6,
+                "oi": 488618,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "BULLISH",
@@ -1293,21 +1372,38 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 2.4,
-            "temp_max_avg": 22.3,
-            "temp_min_avg": 13.6,
-            "summary": "Normalt: 2mm nedbør, 22°C maks"
+            "precip_7d": 0.6,
+            "temp_max_avg": 22.0,
+            "temp_min_avg": 13.2,
+            "summary": "Normalt: 1mm nedbør, 22°C maks"
           },
           "cot": {
-            "market": "Corn",
-            "net": 257952,
-            "net_pct": 14.1,
+            "market": "Corn/Maize (Euronext EMA) + Corn",
+            "net": 265367,
+            "net_pct": 14.2,
             "change": -21678,
             "bias": "bull",
             "momentum": "BLANDET",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 7415,
+                "net_pct": 19.3,
+                "oi": 38489,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 257952,
+                "net_pct": 14.1,
+                "oi": 1826697,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "BULLISH",
@@ -1322,10 +1418,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 13.7,
+        "temp": 20.0,
         "precip": 0.0,
-        "wind": 14.3,
-        "humidity": 92
+        "wind": 13.8,
+        "humidity": 67
       }
     },
     {
@@ -1355,21 +1451,38 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 7.0,
-            "temp_max_avg": 9.9,
+            "precip_7d": 8.3,
+            "temp_max_avg": 10.0,
             "temp_min_avg": 2.4,
-            "summary": "Normalt: 7mm nedbør, 10°C maks"
+            "summary": "Normalt: 8mm nedbør, 10°C maks"
           },
           "cot": {
-            "market": "Wheat",
-            "net": 7781,
-            "net_pct": 1.6,
+            "market": "Milling Wheat (Euronext EBM) + Wheat",
+            "net": 32100,
+            "net_pct": 3.2,
             "change": 8775,
             "bias": "bull",
             "momentum": "FALLER",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 24319,
+                "net_pct": 4.7,
+                "oi": 522798,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 7781,
+                "net_pct": 1.6,
+                "oi": 488618,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "NØYTRAL",
@@ -1396,21 +1509,38 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 7.0,
-            "temp_max_avg": 9.9,
+            "precip_7d": 8.3,
+            "temp_max_avg": 10.0,
             "temp_min_avg": 2.4,
-            "summary": "Normalt: 7mm nedbør, 10°C maks"
+            "summary": "Normalt: 8mm nedbør, 10°C maks"
           },
           "cot": {
-            "market": "Corn",
-            "net": 257952,
-            "net_pct": 14.1,
+            "market": "Corn/Maize (Euronext EMA) + Corn",
+            "net": 265367,
+            "net_pct": 14.2,
             "change": -21678,
             "bias": "bull",
             "momentum": "BLANDET",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 7415,
+                "net_pct": 19.3,
+                "oi": 38489,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 257952,
+                "net_pct": 14.1,
+                "oi": 1826697,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "BULLISH",
@@ -1434,10 +1564,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 4.3,
+        "temp": 4.0,
         "precip": 0.0,
-        "wind": 14.8,
-        "humidity": 74
+        "wind": 8.9,
+        "humidity": 86
       }
     },
     {
@@ -1467,21 +1597,38 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 27.0,
-            "temp_max_avg": 17.1,
-            "temp_min_avg": 6.4,
-            "summary": "Normalt: 27mm nedbør, 17°C maks"
+            "precip_7d": 18.9,
+            "temp_max_avg": 17.7,
+            "temp_min_avg": 6.3,
+            "summary": "Normalt: 19mm nedbør, 18°C maks"
           },
           "cot": {
-            "market": "Wheat",
-            "net": 7781,
-            "net_pct": 1.6,
+            "market": "Milling Wheat (Euronext EBM) + Wheat",
+            "net": 32100,
+            "net_pct": 3.2,
             "change": 8775,
             "bias": "bull",
             "momentum": "FALLER",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 24319,
+                "net_pct": 4.7,
+                "oi": 522798,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 7781,
+                "net_pct": 1.6,
+                "oi": 488618,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "NØYTRAL",
@@ -1508,21 +1655,38 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 27.0,
-            "temp_max_avg": 17.1,
-            "temp_min_avg": 6.4,
-            "summary": "Normalt: 27mm nedbør, 17°C maks"
+            "precip_7d": 18.9,
+            "temp_max_avg": 17.7,
+            "temp_min_avg": 6.3,
+            "summary": "Normalt: 19mm nedbør, 18°C maks"
           },
           "cot": {
-            "market": "Canola",
-            "net": 104132,
-            "net_pct": 28.4,
+            "market": "Rapeseed (Euronext ECO) + Canola",
+            "net": 163240,
+            "net_pct": 31.6,
             "change": 6671,
             "bias": "bull",
             "momentum": "BLANDET",
             "cot_score": 2,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 59108,
+                "net_pct": 39.4,
+                "oi": 149991,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 104132,
+                "net_pct": 28.4,
+                "oi": 366175,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "BULLISH",
@@ -1546,10 +1710,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 7.6,
+        "temp": 20.9,
         "precip": 0.0,
-        "wind": 6.8,
-        "humidity": 82
+        "wind": 7.7,
+        "humidity": 41
       }
     },
     {
@@ -1579,21 +1743,38 @@
             "raw_score": 2,
             "season_mult": 1.5,
             "outlook": "frost",
-            "precip_7d": 4.9,
-            "temp_max_avg": 5.9,
-            "temp_min_avg": -2.9,
+            "precip_7d": 5.0,
+            "temp_max_avg": 5.1,
+            "temp_min_avg": -3.2,
             "summary": "Frostrisiko: -3°C min"
           },
           "cot": {
-            "market": "Wheat",
-            "net": 7781,
-            "net_pct": 1.6,
+            "market": "Milling Wheat (Euronext EBM) + Wheat",
+            "net": 32100,
+            "net_pct": 3.2,
             "change": 8775,
             "bias": "bull",
             "momentum": "FALLER",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 24319,
+                "net_pct": 4.7,
+                "oi": 522798,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 7781,
+                "net_pct": 1.6,
+                "oi": 488618,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "STERKT BULLISH",
@@ -1620,21 +1801,38 @@
             "raw_score": 2,
             "season_mult": 1.5,
             "outlook": "frost",
-            "precip_7d": 4.9,
-            "temp_max_avg": 5.9,
-            "temp_min_avg": -2.9,
+            "precip_7d": 5.0,
+            "temp_max_avg": 5.1,
+            "temp_min_avg": -3.2,
             "summary": "Frostrisiko: -3°C min"
           },
           "cot": {
-            "market": "Canola",
-            "net": 104132,
-            "net_pct": 28.4,
+            "market": "Rapeseed (Euronext ECO) + Canola",
+            "net": 163240,
+            "net_pct": 31.6,
             "change": 6671,
             "bias": "bull",
             "momentum": "BLANDET",
             "cot_score": 2,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 59108,
+                "net_pct": 39.4,
+                "oi": 149991,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 104132,
+                "net_pct": 28.4,
+                "oi": 366175,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "STERKT BULLISH",
@@ -1658,10 +1856,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": -4.1,
-        "precip": 0.1,
-        "wind": 20.6,
-        "humidity": 92
+        "temp": -4.7,
+        "precip": 0.0,
+        "wind": 17.3,
+        "humidity": 79
       }
     },
     {
@@ -1691,21 +1889,38 @@
             "raw_score": 2,
             "season_mult": 1.0,
             "outlook": "tørt",
-            "precip_7d": 3.9,
-            "temp_max_avg": 26.6,
-            "temp_min_avg": 14.6,
-            "summary": "Tørt og varmt: 4mm / 27°C maks"
+            "precip_7d": 0.3,
+            "temp_max_avg": 27.4,
+            "temp_min_avg": 16.8,
+            "summary": "Tørt og varmt: 0mm / 27°C maks"
           },
           "cot": {
-            "market": "Wheat",
-            "net": 7781,
-            "net_pct": 1.6,
+            "market": "Milling Wheat (Euronext EBM) + Wheat",
+            "net": 32100,
+            "net_pct": 3.2,
             "change": 8775,
             "bias": "bull",
             "momentum": "FALLER",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 24319,
+                "net_pct": 4.7,
+                "oi": 522798,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 7781,
+                "net_pct": 1.6,
+                "oi": 488618,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "STERKT BULLISH",
@@ -1723,21 +1938,38 @@
             "raw_score": 2,
             "season_mult": 1.0,
             "outlook": "tørt",
-            "precip_7d": 3.9,
-            "temp_max_avg": 26.6,
-            "temp_min_avg": 14.6,
-            "summary": "Tørt og varmt: 4mm / 27°C maks"
+            "precip_7d": 0.3,
+            "temp_max_avg": 27.4,
+            "temp_min_avg": 16.8,
+            "summary": "Tørt og varmt: 0mm / 27°C maks"
           },
           "cot": {
-            "market": "Canola",
-            "net": 104132,
-            "net_pct": 28.4,
+            "market": "Rapeseed (Euronext ECO) + Canola",
+            "net": 163240,
+            "net_pct": 31.6,
             "change": 6671,
             "bias": "bull",
             "momentum": "BLANDET",
             "cot_score": 2,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 59108,
+                "net_pct": 39.4,
+                "oi": 149991,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 104132,
+                "net_pct": 28.4,
+                "oi": 366175,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "STERKT BULLISH",
@@ -1752,10 +1984,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 22.7,
+        "temp": 12.6,
         "precip": 0.0,
-        "wind": 16.1,
-        "humidity": 40
+        "wind": 5.4,
+        "humidity": 82
       }
     },
     {
@@ -1782,30 +2014,47 @@
       "crops_outlook": {
         "wheat": {
           "weather": {
-            "score": 3,
-            "raw_score": 2,
+            "score": 4,
+            "raw_score": 3,
             "season_mult": 1.5,
-            "outlook": "tørt",
-            "precip_7d": 1.7,
-            "temp_max_avg": 30.0,
-            "temp_min_avg": 16.9,
-            "summary": "Tørt og varmt: 2mm / 30°C maks"
+            "outlook": "tørke",
+            "precip_7d": 2.7,
+            "temp_max_avg": 30.9,
+            "temp_min_avg": 16.6,
+            "summary": "Alvorlig tørke: 3mm / 31°C maks"
           },
           "cot": {
-            "market": "Wheat",
-            "net": 7781,
-            "net_pct": 1.6,
+            "market": "Milling Wheat (Euronext EBM) + Wheat",
+            "net": 32100,
+            "net_pct": 3.2,
             "change": 8775,
             "bias": "bull",
             "momentum": "FALLER",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 24319,
+                "net_pct": 4.7,
+                "oi": 522798,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 7781,
+                "net_pct": 1.6,
+                "oi": 488618,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "STERKT BULLISH",
             "color": "bull",
-            "total_score": 3.5
+            "total_score": 4.5
           },
           "season_metrics": {
             "gdd_accumulated": 1701,
@@ -1823,14 +2072,14 @@
         },
         "rice": {
           "weather": {
-            "score": 2,
-            "raw_score": 2,
+            "score": 3,
+            "raw_score": 3,
             "season_mult": 1.0,
-            "outlook": "tørt",
-            "precip_7d": 1.7,
-            "temp_max_avg": 30.0,
-            "temp_min_avg": 16.9,
-            "summary": "Tørt og varmt: 2mm / 30°C maks"
+            "outlook": "tørke",
+            "precip_7d": 2.7,
+            "temp_max_avg": 30.9,
+            "temp_min_avg": 16.6,
+            "summary": "Alvorlig tørke: 3mm / 31°C maks"
           },
           "cot": {
             "market": "Rough Rice",
@@ -1846,7 +2095,7 @@
           "outlook": {
             "signal": "NØYTRAL",
             "color": "neutral",
-            "total_score": -0.5
+            "total_score": 0.5
           },
           "season_metrics": {
             "gdd_accumulated": 737,
@@ -1864,14 +2113,14 @@
         },
         "sugar": {
           "weather": {
-            "score": 2,
-            "raw_score": 2,
+            "score": 3,
+            "raw_score": 3,
             "season_mult": 1.0,
-            "outlook": "tørt",
-            "precip_7d": 1.7,
-            "temp_max_avg": 30.0,
-            "temp_min_avg": 16.9,
-            "summary": "Tørt og varmt: 2mm / 30°C maks"
+            "outlook": "tørke",
+            "precip_7d": 2.7,
+            "temp_max_avg": 30.9,
+            "temp_min_avg": 16.6,
+            "summary": "Alvorlig tørke: 3mm / 31°C maks"
           },
           "cot": {
             "market": "Sugar No. 11",
@@ -1887,7 +2136,7 @@
           "outlook": {
             "signal": "STERKT BULLISH",
             "color": "bull",
-            "total_score": 3.5
+            "total_score": 4.5
           },
           "season_metrics": {
             "gdd_accumulated": 363,
@@ -1906,10 +2155,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 21.2,
+        "temp": 17.1,
         "precip": 0.0,
-        "wind": 4.0,
-        "humidity": 66
+        "wind": 8.2,
+        "humidity": 86
       }
     },
     {
@@ -1934,20 +2183,20 @@
       "crops_outlook": {
         "palm": {
           "weather": {
-            "score": 1,
-            "raw_score": 1,
+            "score": 0,
+            "raw_score": 0,
             "season_mult": 1.0,
-            "outlook": "tørt",
-            "precip_7d": 10.4,
-            "temp_max_avg": 34.6,
-            "temp_min_avg": 24.6,
-            "summary": "Noe tørt: 10mm nedbør"
+            "outlook": "normalt",
+            "precip_7d": 20.0,
+            "temp_max_avg": 34.4,
+            "temp_min_avg": 24.8,
+            "summary": "Normalt: 20mm nedbør, 34°C maks"
           },
           "cot": null,
           "outlook": {
             "signal": "NØYTRAL",
             "color": "neutral",
-            "total_score": 0.5
+            "total_score": -0.5
           },
           "season_metrics": {
             "gdd_accumulated": 789,
@@ -1966,10 +2215,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 33.6,
+        "temp": 25.4,
         "precip": 0.0,
-        "wind": 6.2,
-        "humidity": 56
+        "wind": 0.5,
+        "humidity": 97
       }
     },
     {
@@ -1995,14 +2244,14 @@
       "crops_outlook": {
         "cocoa": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 1,
+            "raw_score": 1,
             "season_mult": 1.0,
-            "outlook": "normalt",
-            "precip_7d": 20.3,
-            "temp_max_avg": 33.9,
-            "temp_min_avg": 23.8,
-            "summary": "Normalt: 20mm nedbør, 34°C maks"
+            "outlook": "vått",
+            "precip_7d": 40.6,
+            "temp_max_avg": 33.6,
+            "temp_min_avg": 23.9,
+            "summary": "Over normalt nedbør: 41mm"
           },
           "cot": {
             "market": "Cocoa",
@@ -2016,9 +2265,9 @@
             "source": "CFTC"
           },
           "outlook": {
-            "signal": "BEARISH",
-            "color": "bear",
-            "total_score": -1
+            "signal": "NØYTRAL",
+            "color": "neutral",
+            "total_score": 0
           },
           "season_metrics": null,
           "yield_quality": null,
@@ -2027,14 +2276,14 @@
         },
         "coffee": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 1,
+            "raw_score": 1,
             "season_mult": 1.0,
-            "outlook": "normalt",
-            "precip_7d": 20.3,
-            "temp_max_avg": 33.9,
-            "temp_min_avg": 23.8,
-            "summary": "Normalt: 20mm nedbør, 34°C maks"
+            "outlook": "vått",
+            "precip_7d": 40.6,
+            "temp_max_avg": 33.6,
+            "temp_min_avg": 23.9,
+            "summary": "Over normalt nedbør: 41mm"
           },
           "cot": {
             "market": "Coffee C",
@@ -2048,9 +2297,9 @@
             "source": "CFTC"
           },
           "outlook": {
-            "signal": "BULLISH",
+            "signal": "STERKT BULLISH",
             "color": "bull",
-            "total_score": 2
+            "total_score": 3
           },
           "season_metrics": null,
           "yield_quality": null,
@@ -2060,10 +2309,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 23.1,
-        "precip": 0.0,
-        "wind": 3.1,
-        "humidity": 95
+        "temp": 28.2,
+        "precip": 0.2,
+        "wind": 8.1,
+        "humidity": 78
       }
     },
     {
@@ -2092,10 +2341,10 @@
             "raw_score": 2,
             "season_mult": 1.5,
             "outlook": "tørt",
-            "precip_7d": 7.7,
-            "temp_max_avg": 27.8,
-            "temp_min_avg": 18.0,
-            "summary": "Tørt og varmt: 8mm / 28°C maks"
+            "precip_7d": 4.3,
+            "temp_max_avg": 27.3,
+            "temp_min_avg": 18.1,
+            "summary": "Tørt og varmt: 4mm / 27°C maks"
           },
           "cot": {
             "market": "Coffee C",
@@ -2130,10 +2379,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 19.8,
+        "temp": 28.8,
         "precip": 0.0,
-        "wind": 3.1,
-        "humidity": 92
+        "wind": 10.6,
+        "humidity": 60
       }
     },
     {
@@ -2164,8 +2413,8 @@
             "season_mult": 1.5,
             "outlook": "tørt",
             "precip_7d": 0.0,
-            "temp_max_avg": 27.5,
-            "temp_min_avg": 15.2,
+            "temp_max_avg": 27.6,
+            "temp_min_avg": 15.4,
             "summary": "Tørt og varmt: 0mm / 28°C maks"
           },
           "cot": {
@@ -2205,8 +2454,8 @@
             "season_mult": 1.0,
             "outlook": "tørt",
             "precip_7d": 0.0,
-            "temp_max_avg": 27.5,
-            "temp_min_avg": 15.2,
+            "temp_max_avg": 27.6,
+            "temp_min_avg": 15.4,
             "summary": "Tørt og varmt: 0mm / 28°C maks"
           },
           "cot": {
@@ -2242,10 +2491,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 15.1,
+        "temp": 24.0,
         "precip": 0.0,
-        "wind": 9.5,
-        "humidity": 53
+        "wind": 23.1,
+        "humidity": 38
       }
     },
     {
@@ -2275,21 +2524,38 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 13.7,
-            "temp_max_avg": 21.5,
-            "temp_min_avg": 12.9,
-            "summary": "Normalt: 14mm nedbør, 21°C maks"
+            "precip_7d": 2.1,
+            "temp_max_avg": 21.2,
+            "temp_min_avg": 12.4,
+            "summary": "Normalt: 2mm nedbør, 21°C maks"
           },
           "cot": {
-            "market": "Wheat",
-            "net": 7781,
-            "net_pct": 1.6,
+            "market": "Milling Wheat (Euronext EBM) + Wheat",
+            "net": 32100,
+            "net_pct": 3.2,
             "change": 8775,
             "bias": "bull",
             "momentum": "FALLER",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 24319,
+                "net_pct": 4.7,
+                "oi": 522798,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 7781,
+                "net_pct": 1.6,
+                "oi": 488618,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "NØYTRAL",
@@ -2316,21 +2582,38 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 13.7,
-            "temp_max_avg": 21.5,
-            "temp_min_avg": 12.9,
-            "summary": "Normalt: 14mm nedbør, 21°C maks"
+            "precip_7d": 2.1,
+            "temp_max_avg": 21.2,
+            "temp_min_avg": 12.4,
+            "summary": "Normalt: 2mm nedbør, 21°C maks"
           },
           "cot": {
-            "market": "Corn",
-            "net": 257952,
-            "net_pct": 14.1,
+            "market": "Corn/Maize (Euronext EMA) + Corn",
+            "net": 265367,
+            "net_pct": 14.2,
             "change": -21678,
             "bias": "bull",
             "momentum": "BLANDET",
             "cot_score": 1,
-            "date": "2026-03-31",
-            "source": "CFTC"
+            "date": "2026-04-08",
+            "source": "Euronext+CFTC",
+            "sources_detail": {
+              "euronext": {
+                "net": 7415,
+                "net_pct": 19.3,
+                "oi": 38489,
+                "date": "2026-04-08",
+                "agrees": true
+              },
+              "cftc": {
+                "net": 257952,
+                "net_pct": 14.1,
+                "oi": 1826697,
+                "date": "2026-03-31",
+                "agrees": true
+              }
+            },
+            "agrees": true
           },
           "outlook": {
             "signal": "BULLISH",
@@ -2354,10 +2637,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 13.0,
-        "precip": 0.2,
-        "wind": 12.9,
-        "humidity": 87
+        "temp": 11.2,
+        "precip": 0.0,
+        "wind": 6.2,
+        "humidity": 94
       }
     }
   ]
