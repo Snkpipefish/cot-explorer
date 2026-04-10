@@ -3,9 +3,10 @@
 fetch_comex.py — Henter COMEX lagerdata
 
 Kilder (i prioritert rekkefølge):
-  1. heavymetalstats.com — gull, sølv, kobber (Next.js RSC push #12)
-  2. goldsilver.ai       — sølv (fallback / historikk)
-  3. Eksisterende latest.json
+  1. metalcharts.org  — JSON API, gull/sølv/kobber (daglig oppdatert)
+  2. heavymetalstats.com — gull, sølv, kobber (Next.js RSC push)
+  3. goldsilver.ai       — sølv (fallback)
+  4. Eksisterende latest.json
 
 Stress-indeks 0–100:
   - Basert på andel registered av total (lav = mer stress)
@@ -53,6 +54,11 @@ def fetch_html(url):
     with urllib.request.urlopen(req, timeout=15) as r:
         return r.read().decode("utf-8", errors="ignore")
 
+def fetch_json(url, headers=None):
+    req = urllib.request.Request(url, headers=headers or HEADERS)
+    with urllib.request.urlopen(req, timeout=15) as r:
+        return json.loads(r.read())
+
 def extract_json_object(text, start_pattern):
     """Finn og ekstraher et komplett JSON-objekt fra en streng via brace-matching."""
     idx = text.find(start_pattern)
@@ -75,46 +81,101 @@ def get_rsc_pushes(html):
     """Hent alle RSC push-blokker fra Next.js HTML."""
     return re.findall(r'self\.__next_f\.push\(\[1,"(.*?)"\]\)', html, re.DOTALL)
 
-# ── 1. heavymetalstats.com ────────────────────────────────────────────
+
 fetched = {}
 source_used = "fallback"
-hms_date = None
+report_date = None
+
+# ── 1. metalcharts.org — JSON API (primær) ────────────────────────────
+MC_BASE = "https://metalcharts.org"
+MC_HEADERS = {
+    "User-Agent":        HEADERS["User-Agent"],
+    "X-Requested-With":  "XMLHttpRequest",
+    "Accept":            "application/json",
+}
+MC_SYMBOLS = [
+    ("XAU", "gold", "oz", "troy oz"),
+    ("XAG", "silver", "oz", "troy oz"),
+    ("HG",  "copper", "st", "short tons"),
+]
 
 try:
-    html = fetch_html("https://www.heavymetalstats.com/")
-    pushes = get_rsc_pushes(html)
-    print(f"  heavymetalstats: {len(pushes)} RSC-blokker funnet")
+    token_data = fetch_json(f"{MC_BASE}/api/security/token", MC_HEADERS)
+    MC_HEADERS["X-MC-Token"] = token_data.get("token", "")
+    print(f"  metalcharts: token OK")
 
-    # Finn den største push-blokken (inneholder all data)
-    biggest = max(pushes, key=len) if pushes else ""
-    raw = biggest.replace('\\"', '"').replace('\\n', '\n').replace('\\\\', '\\')
+    for sym, metal, _, _ in MC_SYMBOLS:
+        try:
+            resp = fetch_json(f"{MC_BASE}/api/comex/inventory?symbol={sym}&type=latest", MC_HEADERS)
+            if not resp.get("success"):
+                print(f"  metalcharts {metal}: API returnerte success=false")
+                continue
+            d = resp.get("data", {})
+            reg  = round(d.get("registered") or 0)
+            elig = round(d.get("eligible") or 0)
+            total = round(d.get("total") or 0)
+            prev_reg = round(d.get("prevRegistered") or 0) if d.get("prevRegistered") else reg
+            date = (d.get("date") or "")[:10]
 
-    data_obj = extract_json_object(raw, '{"data":{"Aluminum":')
-    if data_obj:
-        metals = data_obj.get("data", {})
-        for metal_key, out_key in [("Gold", "gold"), ("Silver", "silver"), ("Copper", "copper")]:
-            m = metals.get(metal_key, {})
-            totals = m.get("totals", {})
-            reg  = totals.get("registered", 0)
-            elig = totals.get("eligible", 0)
-            prev = m.get("previous_registered", reg)
-            date = m.get("report_date") or m.get("activity_date", "")
-            # Rydd opp dato ($D-prefix fra RSC) og avrund til heltall
-            date = re.sub(r'^\$D', '', str(date))[:10]
-            reg, elig, prev = round(reg), round(elig), round(prev)
-            if reg > 0 or elig > 0:
-                fetched[out_key] = {"registered": reg, "eligible": elig, "prev": prev, "date": date}
-                print(f"  heavymetalstats {out_key}: registered={reg:,} eligible={elig:,} dato={date}")
-                source_used = "heavymetalstats.com"
-                hms_date = date
-        if not fetched:
-            print("  heavymetalstats: JSON funnet men ingen metalldata")
-    else:
-        print("  heavymetalstats: fant ikke {'data':{'Aluminum':...}} i RSC-payload")
+            # Kobber: metalcharts sier "pounds" men verdien er faktisk short tons
+            # (typisk COMEX kobber: 30K-80K st). Ingen reg/elig breakdown.
+            if sym == "HG" and reg == 0 and elig == 0 and total > 0:
+                prev_total = round(d.get("prevTotal") or total)
+                fetched[metal] = {
+                    "registered": total,  # Hele lageret (CME har fjernet reg/elig-skillet for kobber)
+                    "eligible": 0,
+                    "prev": prev_total,
+                    "date": date,
+                }
+                print(f"  metalcharts {metal}: total={total:,} st dato={date}")
+            else:
+                fetched[metal] = {"registered": reg, "eligible": elig, "prev": prev_reg, "date": date}
+                print(f"  metalcharts {metal}: registered={reg:,} eligible={elig:,} dato={date}")
+
+            source_used = "metalcharts.org"
+            report_date = date
+        except Exception as e:
+            print(f"  metalcharts {metal} FEIL: {e}")
 except Exception as e:
-    print(f"  heavymetalstats FEIL: {e}")
+    print(f"  metalcharts FEIL: {e}")
 
-# ── 2. goldsilver.ai — sølv (fallback eller supplement) ───────────────
+# ── 2. heavymetalstats.com (fallback) ─────────────────────────────────
+if len(fetched) < 3:
+    try:
+        html = fetch_html("https://www.heavymetalstats.com/")
+        pushes = get_rsc_pushes(html)
+        print(f"  heavymetalstats: {len(pushes)} RSC-blokker funnet")
+
+        biggest = max(pushes, key=len) if pushes else ""
+        raw = biggest.replace('\\"', '"').replace('\\n', '\n').replace('\\\\', '\\')
+
+        data_obj = extract_json_object(raw, '{"data":{"Aluminum":')
+        if data_obj:
+            metals = data_obj.get("data", {})
+            for metal_key, out_key in [("Gold", "gold"), ("Silver", "silver"), ("Copper", "copper")]:
+                if out_key in fetched:
+                    continue  # Allerede hentet fra metalcharts
+                m = metals.get(metal_key, {})
+                totals = m.get("totals", {})
+                reg  = totals.get("registered", 0)
+                elig = totals.get("eligible", 0)
+                prev = m.get("previous_registered", reg)
+                date = m.get("report_date") or m.get("activity_date", "")
+                date = re.sub(r'^\$D', '', str(date))[:10]
+                reg, elig, prev = round(reg), round(elig), round(prev)
+                if reg > 0 or elig > 0:
+                    fetched[out_key] = {"registered": reg, "eligible": elig, "prev": prev, "date": date}
+                    print(f"  heavymetalstats {out_key}: registered={reg:,} eligible={elig:,} dato={date}")
+                    if source_used == "fallback":
+                        source_used = "heavymetalstats.com"
+                    if not report_date:
+                        report_date = date
+        else:
+            print("  heavymetalstats: fant ikke data i RSC-payload")
+    except Exception as e:
+        print(f"  heavymetalstats FEIL: {e}")
+
+# ── 3. goldsilver.ai — sølv (fallback) ────────────────────────────────
 if "silver" not in fetched:
     try:
         html = fetch_html("https://goldsilver.ai/metal-prices/comex-silver")
@@ -174,7 +235,7 @@ copper_block = oz_block("copper", fetched, existing, "st", "short tons")
 result = {
     "updated":      datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     "source":       source_used,
-    "report_date":  hms_date or fetched.get("silver", {}).get("date", ""),
+    "report_date":  report_date or fetched.get("silver", {}).get("date", ""),
     "gold":         gold_block,
     "silver":       silver_block,
     "copper":       copper_block,
