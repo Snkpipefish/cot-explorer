@@ -23,7 +23,8 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .card{background:var(--s);border:1px solid var(--b);border-radius:8px;padding:16px 18px}
 .panel{display:none}.panel.active{display:block}
 .section{margin-bottom:28px}
-.section-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.section-date{font-family:'DM Mono',monospace;font-size:10px;font-weight:400;color:var(--m);margin-left:auto}
 .section-sub{font-size:12px;color:var(--m);font-family:'DM Sans',sans-serif;font-weight:400}
 .loading{color:var(--m);font-size:12px;padding:16px;text-align:center}
 .spinner{width:26px;height:26px;border:2px solid var(--b);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
@@ -153,17 +154,17 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
     <div class="section" id="energyBanner"></div>
 
     <div class="section">
-      <div class="section-title">&#x26FD; Olje & Gass <span class="section-sub">Priser, COT og markedssignal</span></div>
+      <div class="section-title">&#x26FD; Olje & Gass <span class="section-sub">Priser, COT og markedssignal</span> <span class="section-date" id="oilgasDate"></span></div>
       <div id="oilgasContent"><div class="loading"><div class="spinner"></div>Laster energidata...</div></div>
     </div>
 
     <div class="section">
-      <div class="section-title">&#x1F6A2; Shipping <span class="section-sub">Indekser, ruter og risiko</span></div>
+      <div class="section-title">&#x1F6A2; Shipping <span class="section-sub">Indekser, ruter og risiko</span> <span class="section-date" id="shippingDate"></span></div>
       <div id="shippingContent"><div class="loading"><div class="spinner"></div>Laster shipping-data...</div></div>
     </div>
 
     <div class="section">
-      <div class="section-title">&#x1F4CA; Energi COT <span class="section-sub">Spekulantposisjonering -- olje, gass, energi</span></div>
+      <div class="section-title">&#x1F4CA; Energi COT <span class="section-sub">Spekulantposisjonering -- olje, gass, energi</span> <span class="section-date" id="cotEnergyDate"></span></div>
       <div id="cotEnergyCards"><div class="loading"><div class="spinner"></div>Laster...</div></div>
     </div>
 
@@ -180,7 +181,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
     <div class="section" id="metalsBanner"></div>
 
     <div class="section">
-      <div class="section-title">&#x1F3E6; COMEX Lager <span class="section-sub">Metallbeholdning og stress-indeks</span></div>
+      <div class="section-title">&#x1F3E6; COMEX Lager <span class="section-sub">Metallbeholdning og stress-indeks</span> <span class="section-date" id="comexDate"></span></div>
       <div class="comex-grid" id="comexCards"><div class="loading"><div class="spinner"></div>Laster COMEX-data...</div></div>
       <div class="card" style="margin-bottom:16px">
         <div class="ct">Stress-indeks (0=trygg &middot; 100=ekstremt press)</div>
@@ -192,12 +193,12 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
     </div>
 
     <div class="section">
-      <div class="section-title">&#x1F4CA; Metall COT <span class="section-sub">Spekulantposisjonering -- gull, solv, kobber, platina</span></div>
+      <div class="section-title">&#x1F4CA; Metall COT <span class="section-sub">Spekulantposisjonering -- gull, solv, kobber, platina</span> <span class="section-date" id="cotMetalDate"></span></div>
       <div id="cotMetalCards"><div class="loading"><div class="spinner"></div>Laster...</div></div>
     </div>
 
     <div class="section">
-      <div class="section-title">&#x1F4F0; Intel Feed <span class="section-sub">Nyheter om metaller og geopolitikk</span></div>
+      <div class="section-title">&#x1F4F0; Intel Feed <span class="section-sub">Nyheter om metaller og geopolitikk</span> <span class="section-date" id="intelDate"></span></div>
       <div class="intel-filters" id="intelFilters"><button class="intel-btn active" data-cat="all">Alle</button></div>
       <div id="intelFeed"><div class="loading"><div class="spinner"></div>Laster nyheter...</div></div>
     </div>
@@ -216,17 +217,17 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
     <div class="section" id="agriBanner"></div>
 
     <div class="section">
-      <div class="section-title">&#x1F33E; Avlings-analyse <span class="section-sub">Vaer, COT og prisretning</span></div>
+      <div class="section-title">&#x1F33E; Avlings-analyse <span class="section-sub">Vaer, COT og prisretning</span> <span class="section-date" id="agriDate"></span></div>
       <div id="agriContent"><div class="loading"><div class="spinner"></div>Laster avlingsdata...</div></div>
     </div>
 
     <div class="section">
-      <div class="section-title">&#x1F4CA; Landbruk COT <span class="section-sub">Spekulantposisjonering -- korn, bonner, bomull, kaffe</span></div>
+      <div class="section-title">&#x1F4CA; Landbruk COT <span class="section-sub">Spekulantposisjonering -- korn, bonner, bomull, kaffe</span> <span class="section-date" id="cotAgriDate"></span></div>
       <div id="cotAgriCards"><div class="loading"><div class="spinner"></div>Laster...</div></div>
     </div>
 
     <div class="section">
-      <div class="section-title">&#x1F4F0; Landbruksnyheter <span class="section-sub">Korn, kaffe, kakao, vaer og avlinger</span></div>
+      <div class="section-title">&#x1F4F0; Landbruksnyheter <span class="section-sub">Korn, kaffe, kakao, vaer og avlinger</span> <span class="section-date" id="agriIntelDate"></span></div>
       <div class="intel-filters" id="agriIntelFilters"><button class="intel-btn active" data-cat="all">Alle</button></div>
       <div id="agriIntelFeed"><div class="loading"><div class="spinner"></div>Laster nyheter...</div></div>
     </div>
@@ -295,6 +296,8 @@ function showCropDetail(idx){
 }
 
 function toNO(str){if(!str||str==='-')return str||'-';var m=str.match(/(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);if(!m)return str;try{var dt=new Date(m[1]+'T'+m[2]+':00Z');return dt.toLocaleString('nb-NO',{timeZone:'Europe/Oslo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return str;}}
+function fmtDate(str){if(!str)return'';var m=str.match(/(\d{4})-(\d{2})-(\d{2})/);if(!m)return str;return m[3]+'.'+m[2]+'.'+m[1];}
+function setDate(id,txt){var el=document.getElementById(id);if(el&&txt)el.textContent=txt;}
 function fmtOz(n){if(!n)return '0';if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+' Moz';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(0)+'K oz';return n.toLocaleString()+' oz';}
 function fmtSt(n){if(!n)return '0';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(1)+'K st';return n.toLocaleString()+' st';}
 function fmtChg(n,isOz){if(!n)return '';var s=(n>0?'+':'')+(isOz?fmtOz(n):fmtSt(n));return '<span class="comex-chg '+(n>0?'pos':'neg')+'">'+s+'</span>';}
@@ -1500,6 +1503,21 @@ Promise.all([
   // Update timestamp
   var ts = (og && og.generated) || (ship && ship.generated) || (agri && agri.generated) || '-';
   document.getElementById('updLabel').textContent = 'Oppdatert: ' + toNO(ts);
+
+  // COT-dato fra combined (tirsdagsdata)
+  var cotDate = '';
+  if(cot && Array.isArray(cot) && cot.length>0) cotDate = fmtDate(cot[0].date);
+
+  // Sett datoer per seksjon
+  setDate('oilgasDate', 'Priser: '+toNO(og&&og.generated)+' · COT: '+fmtDate(og&&og.cot_date));
+  setDate('shippingDate', 'BDI: '+fmtDate(ship&&ship.bdi_date)+' · Hentet: '+toNO(ship&&ship.generated));
+  setDate('cotEnergyDate', 'COT-data fra tirsdag '+fmtDate(og&&og.cot_date));
+  setDate('comexDate', 'Rapport: '+fmtDate(comex&&comex.report_date)+' · Hentet: '+toNO(comex&&comex.updated));
+  setDate('cotMetalDate', 'COT-data fra tirsdag '+(cotDate||fmtDate(og&&og.cot_date)));
+  setDate('intelDate', 'Hentet: '+toNO(intel&&intel.updated));
+  setDate('agriDate', 'Hentet: '+toNO(agri&&agri.generated)+' · COT: '+fmtDate(agri&&agri.cot_date));
+  setDate('cotAgriDate', 'COT-data fra tirsdag '+fmtDate(agri&&agri.cot_date));
+  setDate('agriIntelDate', 'Hentet: '+toNO(intel&&intel.updated));
 
   // Bannere per tab
   renderOverview(comex, ship, og, agri);

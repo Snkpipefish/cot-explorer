@@ -998,7 +998,9 @@ function renderCot(){
   var filtered=!q?COT:COT.filter(function(d){
     return(d.navn_no+d.market+d.symbol+d.kategori).toLowerCase().indexOf(q)>=0;
   });
-  document.getElementById('cotCnt').textContent=filtered.length+' markeder';
+  var cotDateTxt=filtered.length+' markeder';
+  if(M&&M.cot_date) cotDateTxt+=' · COT-data fra tirsdag '+M.cot_date;
+  document.getElementById('cotCnt').textContent=cotDateTxt;
   var grouped={};
   COT_GROUPS.forEach(function(g){grouped[g.key]=[];});
   filtered.forEach(function(d){var k=d.kategori||'annet';if(!grouped[k])grouped[k]=[];grouped[k].push(d);});
@@ -1113,7 +1115,9 @@ function renderKorrelasjoner(corr){
 function renderSignallogg(log){
   if(!log)return;
   var entries=log.entries||[];
-  document.getElementById('logCnt').textContent=entries.length+' bot-trades';
+  var logDateTxt=entries.length+' bot-trades';
+  if(entries.length>0){var lastEntry=entries[entries.length-1];if(lastEntry.opened)logDateTxt+=' · Siste: '+toNO(lastEntry.opened);}
+  document.getElementById('logCnt').textContent=logDateTxt;
 
   var wins=entries.filter(function(e){return e.result==='win';}).length;
   var losses=entries.filter(function(e){return e.result==='loss';}).length;

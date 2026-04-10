@@ -22,6 +22,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .section{margin-bottom:28px}
 .section-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:10px}
 .section-sub{font-size:12px;color:var(--m);font-family:'DM Sans',sans-serif;font-weight:400}
+.section-date{font-family:'DM Mono',monospace;font-size:10px;font-weight:400;color:var(--m);margin-left:auto}
 .loading{padding:40px;text-align:center;color:var(--m);font-size:13px}
 .spinner{width:26px;height:26px;border:2px solid var(--b);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -142,6 +143,7 @@ function fp(n){return(n>0?'+':'')+n.toFixed(2)+'%';}
 function fm(n){if(!n&&n!==0)return'-';var a=Math.abs(n);if(a>=1e12)return'$'+(n/1e12).toFixed(2)+'T';if(a>=1e9)return'$'+(n/1e9).toFixed(1)+'B';if(a>=1e6)return'$'+(n/1e6).toFixed(1)+'M';return'$'+String(Math.round(n));}
 function cc(n){return n>0?'var(--bull)':n<0?'var(--bear)':'var(--m)';}
 function toNO(str){if(!str||str==='-')return str||'-';var m=str.match(/(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);if(!m)return str;try{var dt=new Date(m[1]+'T'+m[2]+':00Z');return dt.toLocaleString('nb-NO',{timeZone:'Europe/Oslo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return str;}}
+function fmtDate(str){if(!str)return'';var m=str.match(/(\d{4})-(\d{2})-(\d{2})/);if(!m)return str;return m[3]+'.'+m[2]+'.'+m[1];}
 function fmtPrice(v){
   if(!v&&v!==0)return'-';
   if(v>=1000)return v.toLocaleString('no-NO',{maximumFractionDigits:0});
@@ -238,7 +240,7 @@ function renderPage(d){
   // SEKSJON 2: Priser
   // ═══════════════════════════════════════════════════════════════
   h += '<div class="section">';
-  h += '<div class="section-title">💰 Priser <span class="section-sub">Oppdateres hver time fra trading-bot</span></div>';
+  h += '<div class="section-title" style="flex-wrap:wrap">💰 Priser <span class="section-sub">Oppdateres hver time fra trading-bot</span><span class="section-date">Hentet: '+toNO(d.updated)+'</span></div>';
   h += '<div class="pcg">';
   ['BTC','ETH','SOL','XRP','BNB','ADA','DOGE','AVAX'].forEach(function(k){
     var v=prices[k]; if(!v)return;
@@ -271,7 +273,7 @@ function renderPage(d){
   // SEKSJON 3: Stemning & Dominans (side om side)
   // ═══════════════════════════════════════════════════════════════
   h += '<div class="section">';
-  h += '<div class="section-title">📊 Stemning & markedsbalanse</div>';
+  h += '<div class="section-title" style="flex-wrap:wrap">📊 Stemning & markedsbalanse <span class="section-date">Fear & Greed: '+(fg.timestamp?toNO(fg.timestamp):toNO(d.updated))+'</span></div>';
   h += '<div class="g2-wrap" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
 
   // Fear & Greed
@@ -317,7 +319,8 @@ function renderPage(d){
   // SEKSJON 4: Profesjonelle investorer (COT)
   // ═══════════════════════════════════════════════════════════════
   h += '<div class="section">';
-  h += '<div class="section-title">🏦 Hva gjør de profesjonelle?</div>';
+  var cotDateStr=cot.date?'COT-data fra tirsdag '+fmtDate(cot.date):'Hentet: '+toNO(d.updated);
+  h += '<div class="section-title" style="flex-wrap:wrap">🏦 Hva gjør de profesjonelle? <span class="section-date">'+cotDateStr+'</span></div>';
   if(cot.net!==undefined || cot.net===0){
     var net=cot.net||0, oi=cot.oi||1, chg=cot.chg||0, pct=cot.pct||0;
     var cotLong=cot.long||0, cotShort=cot.short||0;
@@ -399,7 +402,7 @@ function renderPage(d){
   // SEKSJON 5: Sammenhenger (forenklet)
   // ═══════════════════════════════════════════════════════════════
   h += '<div class="section">';
-  h += '<div class="section-title">🔗 Hvordan henger krypto sammen med resten?</div>';
+  h += '<div class="section-title" style="flex-wrap:wrap">🔗 Hvordan henger krypto sammen med resten? <span class="section-date">20-dagers korrelasjon · '+toNO(d.updated)+'</span></div>';
   h += '<p style="font-size:12px;color:var(--m);margin-bottom:14px">Krypto påvirkes av aksjemarkedet, gull og intern dynamikk. Her er hva som gjelder akkurat nå.</p>';
   h += '<div class="insights-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">';
 
@@ -446,7 +449,7 @@ function renderPage(d){
   // SEKSJON 6: Nyheter
   // ═══════════════════════════════════════════════════════════════
   h += '<div class="section">';
-  h += '<div class="section-title">📰 Siste nytt <span class="section-sub">'+news.length+' artikler</span></div>';
+  h += '<div class="section-title" style="flex-wrap:wrap">📰 Siste nytt <span class="section-sub">'+news.length+' artikler</span><span class="section-date">Hentet: '+toNO(d.updated)+'</span></div>';
   var CAT_COLORS={'Bitcoin':'var(--btc)','Ethereum':'var(--eth)','DeFi / Ethereum':'var(--eth)','Regulering':'var(--blue)','Altcoins':'var(--bull)','Makro':'var(--warn)'};
   if(news.length){
     h += '<div class="card">';
