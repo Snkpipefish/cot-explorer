@@ -566,7 +566,7 @@ function renderAgri(d){
     return 'var(--m)';
   }
 
-  // ── ENSO-banner ──
+  // ── ENSO-banner (nåværende fase + prognose) ──
   if(d.enso){
     var ensoIcon = d.enso.phase==='El Ni\u00F1o' ? '\u{1F321}\uFE0F' : d.enso.phase==='La Ni\u00F1a' ? '\u2744\uFE0F' : '\u{1F30A}';
     var ensoBg = d.enso.phase==='El Ni\u00F1o' ? 'rgba(210,153,34,.12)' : d.enso.phase==='La Ni\u00F1a' ? 'rgba(88,166,255,.12)' : 'var(--s2)';
@@ -583,6 +583,75 @@ function renderAgri(d){
     h += '<span style="font-size:11px;color:var(--m)">ENSO-fase \u00B7 ONI '+(d.enso.oni_value>0?'+':'')+d.enso.oni_value.toFixed(2)+' \u00B7 '+d.enso.period+'</span>';
     h += '</div>';
     h += '<div style="font-size:12px;color:var(--m)">'+(ensoDesc[d.enso.phase]||'')+'</div>';
+    h += '</div>';
+  }
+
+  // ── ENSO-prognose (IRI + ECMWF SEAS5) ──
+  var ef = d.enso_forecast;
+  if(ef){
+    var fIcon = (ef.outlook||'').indexOf('El Ni')>=0 ? '\u{1F525}' : (ef.outlook||'').indexOf('La Ni')>=0 ? '\u2744\uFE0F' : '\u{1F30D}';
+    var fCol = (ef.outlook||'').indexOf('El Ni')>=0 ? 'var(--warn)' : (ef.outlook||'').indexOf('La Ni')>=0 ? 'var(--blue)' : 'var(--m)';
+    var fBg = (ef.outlook||'').indexOf('El Ni')>=0 ? 'rgba(210,153,34,.08)' : (ef.outlook||'').indexOf('La Ni')>=0 ? 'rgba(88,166,255,.08)' : 'var(--s2)';
+    h += '<div class="card" style="margin-bottom:20px;border-color:'+fCol+'">';
+    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
+    h += '<span style="font-size:16px">'+fIcon+'</span>';
+    h += '<span style="font-size:14px;font-weight:700;color:'+fCol+'">'+(ef.outlook||'Prognose utilgjengelig')+'</span>';
+    if(ef.seas5_trend) h += '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:'+fBg+';color:'+fCol+';margin-left:auto">ECMWF: '+ef.seas5_trend+'</span>';
+    h += '</div>';
+    if(ef.outlook_detail) h += '<div style="font-size:12px;color:var(--m);margin-bottom:12px">'+ef.outlook_detail+' (kilde: IRI Columbia + ECMWF SEAS5)</div>';
+
+    // IRI sannsynlighetstabell
+    if(ef.iri_probabilities && ef.iri_probabilities.length){
+      var SEASON_NO = {MAM:'Mar-Mai',AMJ:'Apr-Jun',MJJ:'Mai-Jul',JJA:'Jun-Aug',JAS:'Jul-Sep',ASO:'Aug-Okt',SON:'Sep-Nov',OND:'Okt-Des',NDJ:'Nov-Jan',DJF:'Des-Feb',JFM:'Jan-Mar',FMA:'Feb-Apr'};
+      h += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:6px">Sannsynlighet neste 9 m\u00E5neder (IRI Columbia)</div>';
+      h += '<div style="display:flex;gap:4px;margin-bottom:6px;overflow-x:auto">';
+      ef.iri_probabilities.forEach(function(p){
+        var maxP = Math.max(p.el_nino_pct, p.la_nina_pct, p.neutral_pct);
+        var barCol = p.el_nino_pct===maxP ? 'var(--warn)' : p.la_nina_pct===maxP ? 'var(--blue)' : 'var(--m)';
+        h += '<div style="flex:1;min-width:60px;text-align:center;background:var(--s2);border-radius:6px;padding:6px 4px;border:1px solid var(--b)">';
+        h += '<div style="font-size:9px;color:var(--m);margin-bottom:4px">'+(SEASON_NO[p.season]||p.season)+'</div>';
+        // Stacked bar
+        h += '<div style="height:40px;display:flex;flex-direction:column;border-radius:3px;overflow:hidden;margin-bottom:4px">';
+        h += '<div style="height:'+p.el_nino_pct+'%;background:var(--warn)" title="El Ni\u00F1o '+p.el_nino_pct+'%"></div>';
+        h += '<div style="height:'+p.neutral_pct+'%;background:var(--b2)" title="N\u00F8ytral '+p.neutral_pct+'%"></div>';
+        h += '<div style="height:'+p.la_nina_pct+'%;background:var(--blue)" title="La Ni\u00F1a '+p.la_nina_pct+'%"></div>';
+        h += '</div>';
+        h += '<div style="font-size:10px;font-weight:700;color:'+barCol+'">'+(p.el_nino_pct>p.la_nina_pct?p.el_nino_pct+'%':p.la_nina_pct>5?p.la_nina_pct+'%':p.neutral_pct+'%')+'</div>';
+        h += '</div>';
+      });
+      h += '</div>';
+      h += '<div style="display:flex;gap:12px;font-size:10px;color:var(--m);margin-bottom:8px">';
+      h += '<span><span style="display:inline-block;width:8px;height:8px;background:var(--warn);border-radius:2px;margin-right:3px"></span>El Ni\u00F1o</span>';
+      h += '<span><span style="display:inline-block;width:8px;height:8px;background:var(--b2);border-radius:2px;margin-right:3px"></span>N\u00F8ytral</span>';
+      h += '<span><span style="display:inline-block;width:8px;height:8px;background:var(--blue);border-radius:2px;margin-right:3px"></span>La Ni\u00F1a</span>';
+      h += '</div>';
+    }
+
+    // ECMWF SEAS5 SST anomali-graf
+    if(ef.seas5_sst && ef.seas5_sst.length){
+      var MND_NO = {1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'Mai',6:'Jun',7:'Jul',8:'Aug',9:'Sep',10:'Okt',11:'Nov',12:'Des'};
+      h += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin:8px 0 6px">ECMWF SEAS5 \u2014 Ni\u00F1o 3.4 SST-anomali (\u00B0C)</div>';
+      var maxAbs = Math.max.apply(null, ef.seas5_sst.map(function(s){return Math.abs(s.anomaly);}));
+      if(maxAbs<0.5) maxAbs=0.5;
+      h += '<div style="display:flex;align-items:flex-end;gap:6px;height:80px;padding:0 4px">';
+      ef.seas5_sst.forEach(function(s){
+        var m = parseInt(s.month.slice(5));
+        var barH = Math.max(4, Math.round(Math.abs(s.anomaly)/maxAbs*60));
+        var barCol = s.anomaly>0.5 ? 'var(--warn)' : s.anomaly<-0.5 ? 'var(--blue)' : 'var(--m)';
+        h += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">';
+        h += '<div style="font-size:9px;font-weight:600;color:'+barCol+'">'+(s.anomaly>0?'+':'')+s.anomaly.toFixed(1)+'</div>';
+        h += '<div style="width:100%;height:'+barH+'px;background:'+barCol+';border-radius:3px"></div>';
+        h += '<div style="font-size:9px;color:var(--m)">'+(MND_NO[m]||m)+'</div>';
+        h += '</div>';
+      });
+      h += '</div>';
+      // Forklaring
+      h += '<div style="font-size:11px;color:var(--m);margin-top:8px;line-height:1.5">';
+      h += 'El Ni\u00F1o: anomali > +0.5\u00B0C \u00B7 La Ni\u00F1a: anomali < -0.5\u00B0C<br>';
+      h += 'Sterk El Ni\u00F1o (>+1.5\u00B0C) \u00F8ker t\u00F8rkerisiko i Australia/Asia og gir mer nedb\u00F8r i Amerika. P\u00E5virker mais, hvete, sukker og kaffe.';
+      h += '</div>';
+    }
+
     h += '</div>';
   }
 

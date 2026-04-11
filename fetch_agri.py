@@ -431,6 +431,136 @@ def fetch_enso():
         return None
 
 
+def fetch_enso_forecast():
+    """
+    Henter ENSO-prognose fra to kilder:
+    1. IRI/Columbia — offisielle sannsynligheter (La Niña/Nøytral/El Niño) per sesong
+    2. ECMWF SEAS5 via Open-Meteo — SST-forecast for Niño 3.4-regionen
+    """
+    import re
+    from collections import defaultdict
+
+    result = {"iri_probabilities": [], "seas5_sst": [], "outlook": None, "outlook_detail": None}
+
+    # ── 1. IRI/Columbia ENSO-sannsynligheter ─────────────────────
+    try:
+        url = "https://iri.columbia.edu/our-expertise/climate/forecasts/enso/current/"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            html = r.read().decode("utf-8", errors="replace")
+        tables = re.findall(r'<table[^>]*>.*?</table>', html, re.DOTALL | re.IGNORECASE)
+        for t in tables:
+            rows = re.findall(r'<tr[^>]*>(.*?)</tr>', t, re.DOTALL)
+            header = None
+            for row in rows:
+                cells = re.findall(r'<t[hd][^>]*>(.*?)</t[hd]>', row, re.DOTALL)
+                cells = [re.sub(r'<[^>]+>', '', c).strip() for c in cells]
+                if not cells or len(cells) < 4:
+                    continue
+                if cells[0].lower() == "season":
+                    header = cells
+                    continue
+                if header and len(cells) >= 4:
+                    try:
+                        la_nina = int(cells[1])
+                        neutral = int(cells[2])
+                        el_nino = int(cells[3])
+                        result["iri_probabilities"].append({
+                            "season": cells[0],
+                            "la_nina_pct": la_nina,
+                            "neutral_pct": neutral,
+                            "el_nino_pct": el_nino,
+                        })
+                    except (ValueError, IndexError):
+                        continue
+            if result["iri_probabilities"]:
+                break  # Bruk første tabell som har data
+        if result["iri_probabilities"]:
+            print(f"  ENSO forecast (IRI): {len(result['iri_probabilities'])} sesonger")
+        else:
+            print("  ENSO forecast (IRI): ingen data funnet")
+    except Exception as e:
+        print(f"  ENSO forecast (IRI) FEIL: {e}")
+
+    # ── 2. ECMWF SEAS5 SST via Open-Meteo ───────────────────────
+    # Niño 3.4 region: 5°N-5°S, 170°W-120°W. Bruk 3 punkter for snitt.
+    NINO34_POINTS = [(0, -145), (2, -155), (-2, -130)]
+    # Klimatologi Niño 3.4 (mnd-snitt, ERA5 1991-2020)
+    CLIM = {1: 26.4, 2: 26.6, 3: 27.0, 4: 27.4, 5: 27.5, 6: 27.2,
+            7: 26.6, 8: 26.0, 9: 25.8, 10: 26.0, 11: 26.3, 12: 26.4}
+
+    try:
+        all_sst = defaultdict(list)
+        for lat, lon in NINO34_POINTS:
+            url = (f"https://seasonal-api.open-meteo.com/v1/seasonal?"
+                   f"latitude={lat}&longitude={lon}&daily=sea_surface_temperature_max"
+                   f"&models=ecmwf_seas5&forecast_days=210")
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=20) as r:
+                data = json.loads(r.read())
+            daily = data.get("daily", {})
+            dates = daily.get("time", [])
+            sst = daily.get("sea_surface_temperature_max", [])
+            for d, v in zip(dates, sst):
+                if v is not None:
+                    all_sst[d[:7]].append(v)
+            time.sleep(0.3)
+
+        for month_key in sorted(all_sst):
+            vals = all_sst[month_key]
+            avg_sst = sum(vals) / len(vals)
+            m = int(month_key[5:7])
+            anomaly = round(avg_sst - CLIM.get(m, 26.5), 2)
+            result["seas5_sst"].append({
+                "month": month_key,
+                "sst": round(avg_sst, 2),
+                "climatology": CLIM.get(m, 26.5),
+                "anomaly": anomaly,
+            })
+        if result["seas5_sst"]:
+            print(f"  ECMWF SEAS5 SST: {len(result['seas5_sst'])} måneder, "
+                  f"anomali nå={result['seas5_sst'][0]['anomaly']:+.2f}°C → "
+                  f"om 6 mnd={result['seas5_sst'][-1]['anomaly']:+.2f}°C")
+    except Exception as e:
+        print(f"  ECMWF SEAS5 FEIL: {e}")
+
+    # ── Beregn samlet outlook ────────────────────────────────────
+    # Bruk IRI-sannsynligheter 3-6 mnd frem som primær
+    if len(result["iri_probabilities"]) >= 3:
+        future = result["iri_probabilities"][2]  # ~3 mnd frem
+        el = future["el_nino_pct"]
+        la = future["la_nina_pct"]
+        if el >= 60:
+            result["outlook"] = "El Niño sannsynlig"
+            result["outlook_detail"] = f"{el}% sjanse for El Niño innen {future['season']}"
+        elif el >= 40:
+            result["outlook"] = "El Niño mulig"
+            result["outlook_detail"] = f"{el}% sjanse for El Niño innen {future['season']}"
+        elif la >= 60:
+            result["outlook"] = "La Niña sannsynlig"
+            result["outlook_detail"] = f"{la}% sjanse for La Niña innen {future['season']}"
+        elif la >= 40:
+            result["outlook"] = "La Niña mulig"
+            result["outlook_detail"] = f"{la}% sjanse for La Niña innen {future['season']}"
+        else:
+            result["outlook"] = "Nøytral forventet"
+            result["outlook_detail"] = f"Verken El Niño eller La Niña dominerer ({future['season']})"
+
+    # Kryss-sjekk med SEAS5 anomali
+    if result["seas5_sst"] and len(result["seas5_sst"]) >= 3:
+        future_anom = result["seas5_sst"][-1]["anomaly"]
+        if future_anom > 0.5:
+            result["seas5_trend"] = "El Niño-signal"
+        elif future_anom < -0.5:
+            result["seas5_trend"] = "La Niña-signal"
+        else:
+            result["seas5_trend"] = "Nøytral"
+    else:
+        result["seas5_trend"] = None
+
+    return result if (result["iri_probabilities"] or result["seas5_sst"]) else None
+
+
 def score_weather(w, crop_key, lat):
     """
     Returnerer:
@@ -749,6 +879,20 @@ else:
     else:
         print("  ENSO: ikke tilgjengelig")
 
+# Hent ENSO-prognose (IRI + ECMWF SEAS5) — cache 1x/dag
+enso_forecast = None
+if cache_hit and "enso_forecast" in season_cache:
+    enso_forecast = season_cache["enso_forecast"]
+    outlook = enso_forecast.get("outlook", "?")
+    print(f"  ENSO forecast (cache): {outlook}")
+else:
+    print("  Henter ENSO-prognose (IRI + ECMWF SEAS5)...")
+    enso_forecast = fetch_enso_forecast()
+    if enso_forecast:
+        print(f"  ENSO outlook: {enso_forecast.get('outlook', '?')}")
+    else:
+        print("  ENSO forecast: ikke tilgjengelig")
+
 # Per-avling aggregering
 crop_region_data  = {}   # crop_key → liste med region-scores
 crop_cot_cache    = {}   # crop_key → COT-data (hent én gang)
@@ -1026,9 +1170,10 @@ _cot_date  = max(_cot_dates) if _cot_dates else None
 output = {
     "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     "cot_date":  _cot_date,
-    "source":    "CFTC · Euronext · Open-Meteo · NOAA ENSO",
+    "source":    "CFTC · Euronext · Open-Meteo · NOAA ENSO · IRI Columbia · ECMWF SEAS5",
     "month":     MONTH,
     "enso":      enso_data,
+    "enso_forecast": enso_forecast,
     "crop_summary": crop_summary,
     "regions":   result_regions,
 }
@@ -1042,6 +1187,7 @@ if not cache_hit:
         cache_out = {
             "date": today_date,
             "enso": enso_data,
+            "enso_forecast": enso_forecast,
             "archives": {rid: data for rid, data in archive_cache.items() if data},
         }
         with open(CACHE_FILE, "w") as f:
