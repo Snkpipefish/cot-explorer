@@ -942,7 +942,7 @@ for region in regions:
         "crops_outlook": {},
     }
 
-    # ENSO-impakt for denne regionen
+    # ENSO-impakt for denne regionen (nåværende + prognose)
     enso_impact = None
     enso_adj = 0
     if enso_data and enso_data["phase"] != "Nøytral":
@@ -950,6 +950,19 @@ for region in regions:
         if eff:
             enso_impact = f"{enso_data['phase']}: {eff['impact']}"
             enso_adj = eff["adj"]
+    # Legg til prognose-effekt (halvparten av full ENSO-adj, fordi det er forventet, ikke aktivt)
+    if not enso_impact and enso_forecast and enso_forecast.get("outlook"):
+        fo = enso_forecast["outlook"]
+        forecast_phase = None
+        if "El Niño sannsynlig" in fo:
+            forecast_phase = "El Niño"
+        elif "La Niña sannsynlig" in fo:
+            forecast_phase = "La Niña"
+        if forecast_phase:
+            eff = ENSO_IMPACTS.get((forecast_phase, rid))
+            if eff:
+                enso_impact = f"Prognose {forecast_phase}: {eff['impact']}"
+                enso_adj = eff["adj"] * 0.5  # Halvparten fordi det er prognose
     region_out["enso_impact"] = enso_impact
 
     # Lagre current weather summary (felles for alle avlinger i regionen)
@@ -1121,10 +1134,43 @@ for crop_key, meta in CROP_META.items():
         drivers.append(f"Yield {yield_rating.lower()} — risiko for lav produksjon")
     elif yield_rating and "Utmerket" in yield_rating:
         drivers.append(f"Yield {yield_rating.lower()} — god produksjon holder prisene nede")
-    # ENSO-driver
+    # ENSO-driver (nåværende fase)
     enso_impacts_crop = [r.get("enso_impact") for r in region_list if r.get("enso_impact")]
     if enso_impacts_crop:
-        drivers.append(enso_impacts_crop[0])  # bruk første match
+        drivers.append(enso_impacts_crop[0])
+    # ENSO-prognose driver (kommende fase)
+    if enso_forecast and enso_forecast.get("outlook"):
+        fo = enso_forecast["outlook"]
+        if "El Niño" in fo:
+            # Sjekk om denne avlingen har regioner som påvirkes av El Niño
+            affected = [rid for rid in [r["region"] for r in region_list]
+                        if ("El Niño", rid) in ENSO_IMPACTS]
+            if affected:
+                impacts = [ENSO_IMPACTS[("El Niño", rid)]["impact"] for rid in affected]
+                drivers.append(f"ECMWF: {fo} — {impacts[0]} forventet")
+        elif "La Niña" in fo:
+            affected = [rid for rid in [r["region"] for r in region_list]
+                        if ("La Niña", rid) in ENSO_IMPACTS]
+            if affected:
+                impacts = [ENSO_IMPACTS[("La Niña", rid)]["impact"] for rid in affected]
+                drivers.append(f"ECMWF: {fo} — {impacts[0]} forventet")
+
+    # Regioner for denne avlingen (forenklet for frontend)
+    crop_regions_out = []
+    for r in region_list:
+        crop_regions_out.append({
+            "name":             r["region_name"],
+            "id":               r["region"],
+            "weather_score":    r["weather_score"],
+            "weather_outlook":  r["weather_outlook"],
+            "weather_summary":  r["weather_summary"],
+            "precip_7d":        r["precip_7d"],
+            "temp_max_avg":     r["temp_max_avg"],
+            "in_season":        r.get("growth_stage", {}).get("in_season", False),
+            "stage":            r.get("growth_stage", {}).get("stage_no"),
+            "yield_rating":     r.get("yield_rating"),
+            "enso_impact":      r.get("enso_impact"),
+        })
 
     crop_summary.append({
         "crop_key":       crop_key,
@@ -1138,6 +1184,7 @@ for crop_key, meta in CROP_META.items():
         "cot":            cot,
         "drivers":        drivers,
         "worst_region":   worst_region,
+        "regions":        crop_regions_out,
         # Nye felter
         "growth_stage":       best_growth.get("stage_no") if best_growth else None,
         "growth_stage_icon":  best_growth.get("icon") if best_growth else None,
