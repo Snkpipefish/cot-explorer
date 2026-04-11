@@ -1117,22 +1117,19 @@ for crop_key, meta in CROP_META.items():
     outlook = combine_outlook(avg_wx_score, cot_score, crop_key, 45,
                               yield_score=avg_yield, enso_adj=avg_enso_adj)
 
-    # Yield-rating basert på gjennomsnittlig score
+    # Yield-rating via estimate_yield_quality (konsistent med per-region)
     yield_rating = None
     yield_hint = None
-    if avg_yield is not None:
-        if avg_yield >= 85:
-            yield_rating, yield_hint = "Utmerket", "Høy produksjon → stabilt prisnivå"
-        elif avg_yield >= 70:
-            yield_rating, yield_hint = "God", "Normal produksjon → moderate priser"
-        elif avg_yield >= 55:
-            yield_rating, yield_hint = "Middels", "Noen utfordringer → mulig prispress oppover"
-        elif avg_yield >= 40:
-            yield_rating, yield_hint = "Svak", "Dårlige forhold → potensielt høyere priser"
-        else:
-            yield_rating, yield_hint = "Kritisk", "Alvorlige problemer → forvent prisøkning"
-        if best_growth and best_growth.get("season_pct", 0) < 20:
-            yield_rating = f"{yield_rating} (tidlig)"
+    if best_metrics and best_growth:
+        agg_wx = {"score": avg_wx_score, "outlook": worst_region["weather_outlook"]} if worst_region else None
+        _, yield_rating, yield_hint = estimate_yield_quality(
+            best_metrics, best_growth.get("season_pct", 0),
+            weather_7d=agg_wx, enso_adj=avg_enso_adj)
+    elif avg_yield is not None:
+        # Fallback hvis metrics mangler men score finnes fra regionene
+        _, yield_rating, yield_hint = estimate_yield_quality(
+            {"gdd_pct": avg_yield, "precip_pct": avg_yield, "stress_days": 0},
+            best_growth.get("season_pct", 50) if best_growth else 50)
 
     # Bygg prisdriver-tekst
     drivers = []
