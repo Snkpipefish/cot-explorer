@@ -336,9 +336,10 @@ def calculate_season_metrics(archive_data, crop_key):
     }
 
 
-def estimate_yield_quality(metrics, season_pct):
+def estimate_yield_quality(metrics, season_pct, weather_7d=None, enso_adj=0):
     """
-    Estimerer yield-kvalitet basert på sesongmetrikker.
+    Estimerer yield-kvalitet basert på sesongmetrikker,
+    7-dagers værprognose og ENSO-forecast.
     Returnerer score (0-100) og norsk rating-tekst.
     """
     if not metrics:
@@ -382,7 +383,22 @@ def estimate_yield_quality(metrics, season_pct):
     # Stress-faktor
     score -= stress * (2 if not early else 1)
 
-    score = max(0, min(100, score))
+    # 7-dagers værprognose-justering
+    if weather_7d and isinstance(weather_7d, dict):
+        wo = weather_7d.get("outlook", "")
+        if wo in ("tørke", "flom"):
+            score -= 10
+        elif wo in ("tørt", "frost", "våt"):
+            score -= 5
+        elif wo == "utmerket":
+            score += 3
+
+    # ENSO-forecast justering (positiv enso_adj = tørkerisiko = lavere yield)
+    if enso_adj and season_pct < 100:
+        remaining_pct = (100 - season_pct) / 100
+        score -= enso_adj * 20 * remaining_pct
+
+    score = max(0, min(100, round(score)))
 
     if score >= 85:
         rating, price_hint = "Utmerket", "H��y produksjon → stabilt prisnivå"
@@ -993,7 +1009,8 @@ for region in regions:
             season_metrics = calculate_season_metrics(archive_data, crop_key)
             if season_metrics:
                 yield_score_val, yield_rating, yield_hint = estimate_yield_quality(
-                    season_metrics, growth_info["season_pct"])
+                    season_metrics, growth_info["season_pct"],
+                    weather_7d=wx, enso_adj=enso_adj)
 
         cot_score = cot["cot_score"] if cot else 0
         outlook = combine_outlook(wx["score"], cot_score, crop_key, lat,
