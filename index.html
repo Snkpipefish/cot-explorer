@@ -1154,7 +1154,7 @@ function renderSignallogg(log){
       ?'<td class="mob-hide" style="font-size:11px;color:var(--m)">'+(e.exit_reason||'–')+'</td>'
       :'<td class="mob-hide" style="font-size:11px;color:var(--m)">–</td>';
     rows+='<tr>'+
-      '<td style="font-size:11px;color:var(--m)">'+((e.timestamp||'').slice(0,16))+'</td>'+
+      '<td style="font-size:11px;color:var(--m)">'+toNO(e.timestamp||'')+'</td>'+
       '<td><strong>'+(sig.instrument||'–')+'</strong></td>'+
       '<td><span class="sp2 '+(dir==='BUY'?'bull-mild':'bear-mild')+'">'+dir+'</span></td>'+
       '<td class="tdr" style="font-family:monospace;font-size:11px">'+(sig.entry||'–')+'</td>'+
