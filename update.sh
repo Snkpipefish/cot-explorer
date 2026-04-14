@@ -102,6 +102,9 @@ python3 fetch_crypto.py  >> "$LOG" 2>&1 && echo "  krypto OK"   >> "$LOG" || ech
 # Push signaler — kjøres alltid (skriver signals.json og signal_log.json)
 python3 push_signals.py >> "$LOG" 2>&1 && echo "  signals OK" >> "$LOG" || echo "  signals FEIL" >> "$LOG"
 
+# Push agri-signaler (avlingsbaserte trading-setups)
+python3 push_agri_signals.py >> "$LOG" 2>&1 && echo "  agri-signals OK" >> "$LOG" || echo "  agri-signals FEIL" >> "$LOG"
+
 # Push data-filer til GitHub (oppdaterer GitHub Pages)
 git add data/ 2>/dev/null || true
 if git diff --cached --quiet; then
