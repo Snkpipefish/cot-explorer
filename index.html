@@ -610,7 +610,8 @@ function renderDashboard(macro,signals,logData,cotData){
   // ── Section D: Top 3 Active Signals ──
   var sigs=(signals&&signals.signals)||[];
   if(sigs.length){
-    html+='<div class="sh" style="margin-top:4px"><div class="sh-t">Topp signaler</div></div>';
+    var sigTs=signals.generated||'';
+    html+='<div class="sh" style="margin-top:4px"><div class="sh-t" style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">Topp signaler<span class="section-date" style="font-family:\'DM Mono\';font-size:10px;color:var(--m);margin-left:auto">'+sigTs+'</span></div></div>';
     var top3=sigs.slice(0,3);
     top3.forEach(function(s){
       var isBull=(s.action||'').toUpperCase().indexOf('BUY')>=0||(s.action||'').toUpperCase().indexOf('LONG')>=0||(s.direction||'').toUpperCase().indexOf('BUY')>=0;
