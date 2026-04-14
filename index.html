@@ -610,7 +610,7 @@ function renderDashboard(macro,signals,logData,cotData){
   // ── Section D: Top 3 Active Signals ──
   var sigs=(signals&&signals.signals)||[];
   if(sigs.length){
-    var sigTs=signals.generated||'';
+    var sigTs=toNO(signals.generated||'');
     html+='<div class="sh" style="margin-top:4px"><div class="sh-t" style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">Topp signaler<span class="section-date" style="font-family:\'DM Mono\';font-size:10px;color:var(--m);margin-left:auto">'+sigTs+'</span></div></div>';
     var top3=sigs.slice(0,3);
     top3.forEach(function(s){
