@@ -103,7 +103,7 @@ python3 fetch_crypto.py  >> "$LOG" 2>&1 && echo "  krypto OK"   >> "$LOG" || ech
 python3 push_signals.py >> "$LOG" 2>&1 && echo "  signals OK" >> "$LOG" || echo "  signals FEIL" >> "$LOG"
 
 # Push data-filer til GitHub (oppdaterer GitHub Pages)
-git add -u data/ 2>/dev/null || true
+git add data/ 2>/dev/null || true
 if git diff --cached --quiet; then
     echo "  git: ingen nye data å pushe" >> "$LOG"
 else
