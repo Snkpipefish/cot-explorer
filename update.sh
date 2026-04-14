@@ -5,6 +5,10 @@
 set -e
 cd "$(dirname "$0")"
 
+# Filbasert lås — hindrer kollisjon med trading-bot push
+exec 9>.git/bot_push.lock
+flock -x 9
+
 # Last inn miljøvariabler (FRED_API_KEY, TWELVEDATA_API_KEY, FINNHUB_API_KEY, osv.)
 # systemd laster ikke ~/.bashrc automatisk, så vi gjør det eksplisitt her
 if [ -f "$HOME/.cot-env" ]; then
