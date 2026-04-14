@@ -367,7 +367,9 @@ footer a{color:var(--blue);text-decoration:none}
     <div class="sh"><div class="sh-t">Markedspriser</div><div class="sh-b" id="priserDate">Kilde: Skilling bot · Yahoo Finance</div></div>
     <div class="ct">Indekser</div><div class="pcg" id="pInd"></div>
     <div class="ct" style="margin-top:16px">Valuta</div><div class="pcg" id="pVal"></div>
-    <div class="ct" style="margin-top:16px">Ravarer</div><div class="pcg" id="pRav"></div>
+    <div class="ct" style="margin-top:16px">Energi & Metaller</div><div class="pcg" id="pRav"></div>
+    <div class="ct" style="margin-top:16px">Jordbruk</div><div class="pcg" id="pAgri"></div>
+    <div class="ct" style="margin-top:16px">Krypto</div><div class="pcg" id="pCrypto"></div>
     <hr class="section-divider">
     <div class="sh"><div class="sh-t">Okonomisk kalender</div><div class="sh-b" id="calDate">Denne uken · Kilde: ForexFactory</div></div>
     <div class="g2">
@@ -1069,9 +1071,11 @@ function renderCal(cal){
 
 function renderPrices(p){
   var grps=[
-    ['pInd',[['S&P 500','SPX'],['Nasdaq','NAS100'],['VIX','VIX'],['Gull','Gold'],['Solv','Silver']]],
+    ['pInd',[['S&P 500','SPX'],['Nasdaq','NAS100'],['VIX','VIX']]],
     ['pVal',[['EUR/USD','EURUSD'],['USD/JPY','USDJPY'],['GBP/USD','GBPUSD'],['USD/CHF','USDCHF'],['AUD/USD','AUDUSD'],['DXY','DXY'],['USD/NOK','USDNOK']]],
-    ['pRav',[['Brent','Brent'],['WTI','WTI'],['HYG','HYG'],['TIP','TIP']]]
+    ['pRav',[['Brent','Brent'],['WTI','WTI'],['Gull','Gold'],['Solv','Silver'],['HYG','HYG'],['TIP','TIP']]],
+    ['pAgri',[['Mais','Corn'],['Hvete','Wheat'],['Soyabonn','Soybean'],['Kaffe','Coffee'],['Bomull','Cotton'],['Sukker','Sugar'],['Kakao','Cocoa']]],
+    ['pCrypto',[['BTC','BTC'],['ETH','ETH'],['SOL','SOL'],['XRP','XRP'],['ADA','ADA'],['DOGE','DOGE']]]
   ];
   grps.forEach(function(grp){
     var html='';
