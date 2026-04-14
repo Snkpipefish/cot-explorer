@@ -598,7 +598,7 @@ function renderDashboard(macro,signals,logData,cotData){
   var botLosses=botEntries.filter(function(e){return e.result==='loss';}).length;
   var botOpen=botEntries.filter(function(e){return !e.result;}).length;
   var botWR=botWins+botLosses>0?Math.round(botWins/(botWins+botLosses)*100):null;
-  var lastTrade=botEntries.length?botEntries[botEntries.length-1]:null;
+  var lastTrade=botEntries.length?botEntries[0]:null;
   var lastResult=lastTrade?(lastTrade.result==='win'?'Siste: WIN':'Siste: '+(lastTrade.result||'APEN').toUpperCase()):'Ingen trades enna';
   html+='<div class="now-card"><div class="now-top"><span class="now-icon">🤖</span><span class="now-title">Boten</span></div>'+
     '<div class="now-price">'+(botWR!=null?botWR+'%':'–')+'</div>'+
@@ -1121,7 +1121,7 @@ function renderSignallogg(log){
   if(!log)return;
   var entries=log.entries||[];
   var logDateTxt=entries.length+' bot-trades';
-  if(entries.length>0){var lastEntry=entries[entries.length-1];if(lastEntry.opened)logDateTxt+=' · Siste: '+toNO(lastEntry.opened);}
+  if(entries.length>0){var lastEntry=entries[0];if(lastEntry.timestamp)logDateTxt+=' · Siste: '+toNO(lastEntry.timestamp);}
   document.getElementById('logCnt').textContent=logDateTxt;
 
   var wins=entries.filter(function(e){return e.result==='win';}).length;
