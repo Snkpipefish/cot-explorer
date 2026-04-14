@@ -80,6 +80,21 @@ if MACRO_FILE.exists():
 vix_obj    = macro.get("vix_regime") or {}
 vix_regime = vix_obj.get("regime", "normal")
 
+# Hent bot-priser (mest oppdaterte agri-priser)
+BOT_HISTORY = BASE / "data" / "prices" / "bot_history.json"
+bot_prices = {}
+if BOT_HISTORY.exists():
+    try:
+        with open(BOT_HISTORY) as f:
+            bh = json.load(f)
+        for k, v in bh.items():
+            if isinstance(v, dict) and "price" in v:
+                bot_prices[k.lower()] = v["price"]
+            elif isinstance(v, list) and v:
+                bot_prices[k.lower()] = v[-1].get("price")
+    except Exception:
+        pass
+
 # Geo-status fra makro
 sentiment  = macro.get("sentiment") or {}
 news       = sentiment.get("news") or {}
@@ -219,11 +234,14 @@ for crop in agri.get("crop_summary", []):
     if not instrument:
         continue  # Ikke tradeable
 
-    # Trenger pris
+    # Trenger pris — sjekk 3 kilder
     price_data = crop.get("price") or {}
     price = price_data.get("value")
     if not price:
-        # Prøv macro-priser
+        # Bot-priser (mest oppdaterte)
+        price = bot_prices.get(instrument.lower()) or bot_prices.get(crop_key)
+    if not price:
+        # Macro-priser (fallback)
         macro_prices = macro.get("prices", {})
         p = macro_prices.get(instrument, {})
         price = p.get("price")
