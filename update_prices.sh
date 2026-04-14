@@ -29,24 +29,41 @@ python3 fetch_oilgas.py >> "$LOG" 2>&1 \
     && echo "  oilgas OK" >> "$LOG" \
     || echo "  oilgas FEIL" >> "$LOG"
 
-# Patch agri-priser fra macro (lettvekts — ingen API-kall)
+# Patch agri-priser fra bot_history + macro (lettvekts — ingen API-kall)
 python3 -c "
 import json, os
 AGRI = os.path.expanduser('~/cot-explorer/data/agri/latest.json')
 MACRO = os.path.expanduser('~/cot-explorer/data/macro/latest.json')
+BOT_H = os.path.expanduser('~/cot-explorer/data/prices/bot_history.json')
 CROP_MAP = {'corn':'Corn','wheat':'Wheat','soybeans':'Soybean','coffee':'Coffee','cotton':'Cotton','sugar':'Sugar','cocoa':'Cocoa'}
 try:
     agri = json.load(open(AGRI))
-    prices = json.load(open(MACRO)).get('prices', {})
+    macro_prices = json.load(open(MACRO)).get('prices', {})
+    bot_prices = {}
+    if os.path.exists(BOT_H):
+        bh = json.load(open(BOT_H))
+        for k, v in bh.items():
+            if isinstance(v, dict) and 'price' in v:
+                bot_prices[k] = v
+            elif isinstance(v, list) and v and 'price' in v[-1]:
+                bot_prices[k] = v[-1]
+    patched = 0
     for c in agri.get('crop_summary', []):
         pk = CROP_MAP.get(c.get('crop_key',''))
-        if pk and pk in prices:
-            p = prices[pk]
-            c['price'] = {'value': p.get('price'), 'chg1d': p.get('chg1d',0), 'chg5d': p.get('chg5d',0), 'chg20d': p.get('chg20d',0), 'source': p.get('source','bot')}
+        if not pk: continue
+        # Bot-priser prioriteres (ferske fra cTrader)
+        bp = bot_prices.get(pk)
+        mp = macro_prices.get(pk, {})
+        if bp:
+            c['price'] = {'value': bp['price'], 'chg1d': mp.get('chg1d',0), 'chg5d': mp.get('chg5d',0), 'chg20d': mp.get('chg20d',0), 'source': 'bot'}
+            patched += 1
+        elif mp.get('price'):
+            c['price'] = {'value': mp['price'], 'chg1d': mp.get('chg1d',0), 'chg5d': mp.get('chg5d',0), 'chg20d': mp.get('chg20d',0), 'source': mp.get('source','macro')}
+            patched += 1
     from datetime import datetime, timezone
     agri['generated'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
     json.dump(agri, open(AGRI,'w'), ensure_ascii=False, indent=2)
-    print('  agri-priser patched')
+    print(f'  agri-priser patched ({patched} avlinger)')
 except Exception as e:
     print(f'  agri-priser FEIL: {e}')
 " >> "$LOG" 2>&1
