@@ -1000,6 +1000,84 @@ function renderIdeer(m){
   document.getElementById('ideGrid').innerHTML=html;
 }
 
+function renderAgriSetups(agri){
+  if(!agri||!agri.signals||!agri.signals.length)return;
+  var el=document.getElementById('ideGrid');
+  if(!el)return;
+
+  var html='<div class="sh" style="margin-top:18px"><div class="sh-t">🌾 Agri-fundamentale setups</div>'+
+    '<div class="section-date" style="font-size:10px;color:var(--m)">'+toNO(agri.generated||'')+' · ENSO: '+(agri.enso_phase||'?')+'</div></div>';
+
+  agri.signals.forEach(function(s,i){
+    var isBuy=s.action==='BUY';
+    var gc=isBuy?'bull':'bear';
+    var dirLabel=isBuy?'KJØP':'SALG';
+    var gradeCol=s.grade==='A'?'bull':s.grade==='B'?'warn':'bear';
+    var idx=1000+i; // unique ID offset for toggling
+
+    // Drivers as tags
+    var driverTags=(s.drivers||[]).map(function(d){
+      return '<span class="why-tag info">'+d+'</span>';
+    }).join('');
+
+    // Yield bar
+    var yieldScore=s.yield_score||0;
+    var yieldCol=yieldScore<40?'var(--bear)':yieldScore<55?'var(--warn)':yieldScore<70?'var(--blue)':'var(--bull)';
+    var yieldBar='<div class="score-bar-wrap" style="margin:4px 0"><div class="score-bar"><div class="score-fill" style="width:'+yieldScore+'%;background:'+yieldCol+'"></div></div></div>';
+
+    html+=
+      '<div class="tic">'+
+        '<div class="tic-head" onclick="togIde('+idx+')">'+
+          '<span class="tcls" style="background:var(--s);border-color:var(--b2)">🌾</span>'+
+          '<div><div class="tname">'+s.name+'</div><div class="tsub">Agri-fundamental · '+(s.growth_stage||'')+'</div></div>'+
+          '<span class="tgrade '+gradeCol+'">'+s.grade+' '+s.score.toFixed(1)+'</span>'+
+          '<span class="tgrade '+gc+'">'+dirLabel+'</span>'+
+          '<span class="tprice">'+fmtP(s.current)+'</span>'+
+        '</div>'+
+        '<div id="tdet'+idx+'" class="tdet">'+
+          '<div class="why-box">'+
+            '<div class="why-dir" style="color:var(--'+(isBuy?'bull':'bear')+')">'+(isBuy?'📈 KJØP':'📉 SALG')+'</div>'+
+            '<div class="why-line">'+s.name+' har '+(isBuy?'bullish':'bearish')+' fundamental utsikt. '+
+              'Avlingskvalitet: <strong>'+(s.yield_quality||'?')+'</strong>'+
+              (s.weather_outlook?' · Vær: <strong>'+s.weather_outlook+'</strong>':'')+
+              (s.season_pct!=null?' · Sesong: '+s.season_pct+'%':'')+
+            '</div>'+
+            '<div class="why-tags">'+driverTags+'</div>'+
+          '</div>'+
+          '<div class="setup-grid" style="grid-template-columns:1fr">'+
+            '<div class="setup-side">'+
+              '<div class="stitle" style="color:var(--'+gc+')">'+dirLabel+' Setup</div>'+
+              '<div class="lr"><span class="ln">Entry</span><span class="lv" style="color:var(--blue)">'+fmtP(s.entry)+'</span></div>'+
+              '<div class="lr"><span class="ln">Stop Loss</span><span class="lv" style="color:var(--bear)">'+fmtP(s.sl)+'</span></div>'+
+              '<div class="lr"><span class="ln">T1</span><span class="lv" style="color:var(--bull)">'+fmtP(s.t1)+'</span></div>'+
+              (s.t2?'<div class="lr"><span class="ln">T2</span><span class="lv" style="color:var(--bull)">'+fmtP(s.t2)+'</span></div>':'')+
+              '<div class="lr"><span class="ln">R:R T1</span><span class="lv" style="color:var(--warn)">1:'+s.rr_t1+'</span></div>'+
+              (s.rr_t2?'<div class="lr"><span class="ln">R:R T2</span><span class="lv">1:'+s.rr_t2+'</span></div>':'')+
+              '<div class="lr"><span class="ln">ATR est.</span><span class="lv">'+fmtP(s.atr_est)+'</span></div>'+
+            '</div>'+
+          '</div>'+
+          '<div class="score-section">'+
+            '<div class="ct">Avlingsscore (yield)</div>'+
+            yieldBar+
+            '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--m);margin-top:4px">'+
+              '<span>Yield: '+(s.yield_score||'?')+'</span>'+
+              '<span>Kvalitet: '+(s.yield_quality||'?')+'</span>'+
+              '<span>Vær: '+(s.weather_outlook||'?')+'</span>'+
+            '</div>'+
+          '</div>'+
+          '<div class="tmeta">'+
+            '<div><div class="ml">COT-bias</div><div class="mv '+(s.cot_bias==='bull'?'bull':s.cot_bias==='bear'?'bear':'neutral')+'">'+(s.cot_bias||'-')+'</div></div>'+
+            '<div><div class="ml">COT-posisjon</div><div class="mv">'+(s.cot_pct!=null?s.cot_pct.toFixed(1)+'% av OI':'-')+'</div></div>'+
+            '<div><div class="ml">Vekstfase</div><div class="mv">'+(s.growth_stage||'-')+'</div></div>'+
+            '<div><div class="ml">Sesong</div><div class="mv">'+(s.season_pct!=null?s.season_pct+'%':'-')+'</div></div>'+
+            '<div><div class="ml">SL-type</div><div class="mv">'+(s.sl_type||'-')+'</div></div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  });
+  el.innerHTML+=html;
+}
+
 function sparkline(history, w, h){
   if(!history||history.length<2)return'<span style="color:var(--m);font-size:10px">–</span>';
   var min=Math.min.apply(null,history),max=Math.max.apply(null,history);
@@ -1228,6 +1306,11 @@ async function loadAll(){
   try{
     var r4=await fetch('data/signals.json');
     signalsData=await r4.json();
+  }catch(e){console.error(e);}
+  try{
+    var r5=await fetch('data/agri_signals.json');
+    var agriData=await r5.json();
+    renderAgriSetups(agriData);
   }catch(e){console.error(e);}
   renderDashboard(M, signalsData, logData, COT);
 }
