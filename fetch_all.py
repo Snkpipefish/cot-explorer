@@ -422,7 +422,7 @@ def determine_horizon(criteria, nearest_level_weight):
     has_cot     = criteria.get("cot_confirms", False)
     has_level   = criteria.get("price_at_level", False)
     raw_count   = sum(1 for v in criteria.values() if v)
-    if raw_count >= 9 and has_cot and nearest_level_weight >= 4:
+    if raw_count >= 8 and has_cot and nearest_level_weight >= 4:
         return "MAKRO"
     elif raw_count >= 6 and nearest_level_weight >= 3:
         return "SWING"
@@ -1304,10 +1304,49 @@ for inst in INSTRUMENTS:
         (klasse == "C" and "NY" in session_now["label"])
     )
 
-    dir_color    = "bull" if (above_sma and chg5>0) else "bear" if (not above_sma and chg5<0) else ("bull" if above_sma else "bear")
+    # ── Sammensatt retningsbestemmelse ──────────────────────
+    # Flere signaler stemmer → sterkere overbevisning
+    dir_score = 0.0
+    # SMA200: tung faktor — definerer lang trend
+    dir_score += 1.5 if above_sma else -1.5
+    # 5d momentum: kort sikt, men kun sterk hvis > 0.3% for å unngå flip rundt 0
+    if abs(chg5) > 0.3:
+        dir_score += 1.0 if chg5 > 0 else -1.0
+    elif abs(chg5) > 0.1:
+        dir_score += 0.5 if chg5 > 0 else -0.5
+    # 20d momentum: mellomlangt
+    if abs(chg20) > 1.0:
+        dir_score += 1.0 if chg20 > 0 else -1.0
+    elif abs(chg20) > 0.3:
+        dir_score += 0.5 if chg20 > 0 else -0.5
+    # COT: store aktørers posisjonering
+    if cot_bias == "LONG":
+        dir_score += 1.0
+    elif cot_bias == "SHORT":
+        dir_score -= 1.0
+    # COT momentum: ukentlig endring forsterker
+    if abs(_cot_chg) > 0:
+        dir_score += 0.5 if _cot_chg > 0 else -0.5
+    # DXY-bias for USD-par (før dxy_conflict-penalty)
+    key = inst["key"]
+    if dxy_dir_color and key != "DXY":
+        if key in USD_QUOTE_PAIRS:
+            # USDJPY: sterk USD = bull → følg DXY
+            dir_score += 0.5 if dxy_dir_color == "bull" else -0.5
+        elif key in USD_BASE_PAIRS:
+            # EURUSD: sterk USD = bear → invers DXY
+            dir_score += -0.5 if dxy_dir_color == "bull" else 0.5
+
+    # Hysterese: krever dir_score > 0.5 for bull, < -0.5 for bear
+    # Mellom -0.5 og 0.5: fall tilbake til SMA200
+    if dir_score > 0.5:
+        dir_color = "bull"
+    elif dir_score < -0.5:
+        dir_color = "bear"
+    else:
+        dir_color = "bull" if above_sma else "bear"
 
     # Lagre DXY-retning for bruk i USD-par
-    key = inst["key"]
     if key == "DXY":
         dxy_dir_color = dir_color
 
@@ -1378,8 +1417,18 @@ for inst in INSTRUMENTS:
     # SMC samlet — BOS + struktur begge kreves
     smc_confirms_ok = bos_confirms and smc_struct_confirms
 
-    # VIX termstruktur — contango = normalt/rolig marked
-    vix_term_ok = (vix_term_structure or {}).get("regime") == "contango"
+    # VIX termstruktur — contango = normalt, backwardation = frykt/volatilitet
+    # Safe havens (gull, JPY, CHF) tjener på frykt → backwardation er bullish
+    vix_regime = (vix_term_structure or {}).get("regime")
+    SAFE_HAVENS = {"Gold", "Silver", "USDJPY", "USDCHF"}
+    if key in SAFE_HAVENS:
+        # Contango = rolig → nøytral for safe havens
+        # Backwardation = frykt → bullish for safe havens (når dir_color == bull)
+        vix_term_ok = (vix_regime == "backwardation" and dir_color == "bull") or \
+                      (vix_regime == "contango" and dir_color == "bear")
+    else:
+        # Risk assets: contango = normalt/rolig → bullish
+        vix_term_ok = vix_regime == "contango"
 
     # ADR utilization — mest av daglig range brukt opp?
     adr = get_adr_utilization(rows_15m, atr_d)
@@ -1409,17 +1458,8 @@ for inst in INSTRUMENTS:
     horizon = determine_horizon(criteria, nearest_level_weight)
     score, max_score, score_details = calculate_weighted_score(criteria, horizon)
 
-    # DXY-konsistens: trekk fra poeng hvis valutapar konflikter med DXY-retning
-    if dxy_conflict:
-        dxy_penalty = 1.5
-        score = max(0, round(score - dxy_penalty, 1))
-        score_details.append({
-            "kryss": "DXY-konflikt",
-            "id":    "dxy_conflict",
-            "verdi": True,
-            "vekt":  -dxy_penalty,
-            "poeng": -dxy_penalty,
-        })
+    # DXY-konflikt er nå bakt inn i dir_score — ingen ekstra penalty
+    # dxy_conflict beholdes kun som info-felt for display
 
     grade, grade_color = get_grade(score, horizon)
     timeframe_bias = horizon  # Bakoverkompatibilitet
