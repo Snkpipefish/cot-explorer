@@ -63,20 +63,90 @@ def active_setup(d):
     return d.get("setup_long") if d.get("dir_color") == "bull" else d.get("setup_short")
 
 
-# ── Filtrer og sorter ──────────────────────────────────────
-def score_key(item):
-    _, d = item
-    tf_rank = {"MAKRO": 3, "SWING": 2, "SCALP": 1, "WATCHLIST": 0}
-    return (tf_rank.get(d.get("timeframe_bias", "WATCHLIST"), 0), d.get("score", 0))
+# ── Horisont-baserte terskler ────────────────────────────────
+PUSH_THRESHOLDS = {"SCALP": 5.5, "SWING": 7.5, "MAKRO": 8.5}
+HORIZON_PRIORITY = {"MAKRO": 0, "SWING": 1, "SCALP": 2, "WATCHLIST": 3}
+
+HORIZON_CONFIGS = {
+    "SCALP": {
+        "confirmation_tf": "5min",
+        "confirmation_max_candles": 6,
+        "confirmation_escape_atr_factor": 0.5,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0015,
+        "exit_t1_close_pct": 0.50,
+        "exit_t2_close_pct": None,
+        "exit_trail_tf": "5min",
+        "exit_trail_atr_mult": {"fx": 2.0, "gold": 2.5, "silver": 2.5, "oil": 2.5, "index": 2.0},
+        "exit_ema_tf": "5min",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 8,
+        "exit_timeout_partial_pct": 0.50,
+        "exit_timeout_full_candles": 16,
+        "exit_geo_spike_atr_mult": 2.0,
+        "sizing_base_risk_usd": 20,
+    },
+    "SWING": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {"fx": 3.0, "gold": 4.0, "silver": 4.0, "oil": 3.5, "index": 3.0},
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_be_timeout_hours": 48,
+        "exit_timeout_full_hours": 120,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40,
+    },
+    "MAKRO": {
+        "confirmation_tf": "1H",
+        "confirmation_max_candles": 6,
+        "confirmation_escape_atr_factor": 1.0,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0040,
+        "exit_t1_close_pct": 0.25,
+        "exit_t2_close_pct": 0.25,
+        "exit_trail_tf": "D1",
+        "exit_trail_atr_mult": {"fx": 2.0, "gold": 2.5, "silver": 2.5, "oil": 2.5, "index": 2.0},
+        "exit_ema_tf": "D1",
+        "exit_ema_period": 9,
+        "exit_timeout_days": 15,
+        "exit_score_deterioration": 6.0,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 60,
+    },
+}
+
+
+def should_push(d):
+    horizon = d.get("horizon", d.get("timeframe_bias", "WATCHLIST"))
+    if horizon == "WATCHLIST":
+        return False
+    if d.get("dir_color") not in ("bull", "bear"):
+        return False
+    if not active_setup(d):
+        return False
+    threshold = PUSH_THRESHOLDS.get(horizon, 999)
+    return d.get("score", 0) >= threshold
+
 
 candidates = [
     (key, d) for key, d in levels.items()
-    if d.get("score", 0) >= MIN_SCORE
-    and d.get("dir_color") in ("bull", "bear")
-    and active_setup(d) is not None
-    and key not in ("DXY",)   # ikke-tradeable indekser
+    if should_push(d) and key not in ("DXY",)
 ]
-candidates.sort(key=score_key, reverse=True)
+candidates.sort(key=lambda item: (
+    HORIZON_PRIORITY.get(item[1].get("horizon", "WATCHLIST"), 3),
+    -item[1].get("score", 0),
+))
 top = candidates[:MAX_SIGNALS]
 
 
@@ -125,13 +195,18 @@ for key, d in top:
         continue
     p   = 5 if (d.get("current") or 0) < 100 else 2
     cot = d.get("cot", {})
+    horizon = d.get("horizon", d.get("timeframe_bias", "SWING"))
     signals_json["signals"].append({
         "key":      key,
         "name":     d.get("name", key),
         "action":   "BUY" if d.get("dir_color") == "bull" else "SELL",
-        "timeframe":d.get("timeframe_bias", "SWING"),
+        "timeframe": horizon,
+        "horizon":   horizon,
         "grade":    d.get("grade", "?"),
         "score":    d.get("score", 0),
+        "max_score": d.get("max_score", 14),
+        "score_pct": d.get("score_pct", 0),
+        "score_details": d.get("score_details", {}),
         "current":  d.get("current"),
         "entry":    setup.get("entry"),
         "sl":       setup.get("sl"),
@@ -142,12 +217,15 @@ for key, d in top:
         "sl_type":  setup.get("sl_type"),
         "cot_bias": cot.get("bias"),
         "cot_pct":  cot.get("pct"),
+        "correlation_group": d.get("correlation_group"),
+        "adr_utilization":   d.get("adr_utilization"),
+        "horizon_config":    HORIZON_CONFIGS.get(horizon, {}),
     })
 
 SIGNALS_OUT.parent.mkdir(parents=True, exist_ok=True)
 with open(SIGNALS_OUT, "w") as f:
     json.dump(signals_json, f, ensure_ascii=False, indent=2)
-print(f"signals.json → {len(signals_json['signals'])} signaler (score>={MIN_SCORE}/12)")
+print(f"signals.json → {len(signals_json['signals'])} signaler (horisont-basert filtrering)")
 if oil_geo:
     print(f"  ⚠️  OLJE GEO-ADVARSEL: {oil_warn_str} → boten blokkerer smale SL på olje")
 if geo_active:
@@ -253,9 +331,10 @@ print(f"signal_log.json → {len(signal_log.get('entries',[]))} bot-trades (mana
 # ── Formater melding ───────────────────────────────────────
 def fmt_signal(key, d):
     direction = "LONG  ▲" if d.get("dir_color") == "bull" else "SHORT ▼"
-    tf        = d.get("timeframe_bias", "SWING")
+    tf        = d.get("horizon", d.get("timeframe_bias", "SWING"))
     grade     = d.get("grade", "?")
     score     = d.get("score", 0)
+    max_sc    = d.get("max_score", 14)
     curr      = d.get("current", 0)
     p         = 5 if curr < 100 else 2
     cot       = d.get("cot", {})
@@ -265,7 +344,7 @@ def fmt_signal(key, d):
 
     lines = [
         f"── {d.get('name', key)} [{tf}] ──",
-        f"{direction}  {grade}({score}/12)  VIX:{vix_price:.1f} → {pos_size}",
+        f"{direction}  {grade}({score:.1f}/{max_sc:.1f})  VIX:{vix_price:.1f} → {pos_size}",
     ]
     if setup:
         risk_desc = f"{setup.get('risk_atr_d','?')}×ATRd ({setup.get('sl_type','?')} SL)"
@@ -343,7 +422,14 @@ def push_flask(signals):
     if not SCALP_API_KEY:
         return
     url     = f"{FLASK_URL}/push-alert"
-    payload = json.dumps({"signals": signals, "generated": generated}).encode()
+    payload = json.dumps({
+        "signals":   signals,
+        "generated": generated,
+        "global_state": {
+            "vix_regime": vix_regime,
+            "geo_active": geo_active,
+        },
+    }).encode()
     req = urllib.request.Request(
         url, data=payload,
         headers={"Content-Type": "application/json", "X-API-Key": SCALP_API_KEY},
@@ -361,10 +447,14 @@ push_discord(message)
 push_flask([{
     "key":            key,
     "name":           d.get("name", key),
-    "timeframe_bias": d.get("timeframe_bias", "SWING"),
+    "horizon":        d.get("horizon", d.get("timeframe_bias", "SWING")),
     "direction":      d.get("dir_color", "?"),
     "grade":          d.get("grade", "?"),
     "score":          d.get("score", 0),
+    "max_score":      d.get("max_score", 14),
     "setup":          active_setup(d),
     "cot":            d.get("cot", {}),
+    "correlation_group": d.get("correlation_group"),
+    "horizon_config": HORIZON_CONFIGS.get(
+        d.get("horizon", d.get("timeframe_bias", "SWING")), {}),
 } for key, d in top])

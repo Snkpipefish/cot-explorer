@@ -622,11 +622,13 @@ function renderDashboard(macro,signals,logData,cotData){
       var t1=s.t1||s.target1?fmtP(s.t1||s.target1):'-';
       var gradeCol=s.grade==='A+'||s.grade==='A'?'bull':s.grade==='B'?'warn':'bear';
       var desc='Venter pa at prisen treffer '+entry+' for a '+(isBull?'kjope':'selge');
+      var horizon=s.horizon||s.timeframe||'SWING';
       html+='<div class="sig-card">'+
         '<div class="sig-top">'+
           '<span class="sig-name">'+(s.name||s.instrument||'-')+'</span>'+
           '<span class="sig-dir '+dirCol+'">'+dirLabel+'</span>'+
-          '<span class="tgrade '+gradeCol+'">'+(s.grade||'-')+'</span>'+
+          '<span class="tgrade '+gradeCol+'">'+(s.grade||'-')+' '+(s.score||0)+'/'+(s.max_score||14)+'</span>'+
+          '<span class="tgrade" style="background:var(--s);font-size:10px">'+horizon+'</span>'+
         '</div>'+
         '<div class="sig-levels">'+
           '<span>Entry: <span style="color:var(--blue)">'+entry+'</span></span>'+
@@ -782,11 +784,26 @@ function renderSetupSide(setup, type, nearLevels){
 
 // ── Plain-language forklaring per setup ─────────────────────────────
 var SCORE_NO = {
+  'Over SMA200':                {t:'Over 200-dagers trend',        c:'bull'},
+  'Momentum 20d':               {t:'Momentum peker riktig vei',     c:'bull'},
+  'COT bekrefter':              {t:'Store tradere enige',           c:'bull'},
+  'COT sterk (>10%)':           {t:'Sterk institusjonell posisjon', c:'bull'},
+  'COT momentum Δ':             {t:'Ukentlig endring i posisjon',   c:'bull'},
+  'Pris ved nivå':              {t:'Pris på viktig nivå nå',        c:'info'},
+  'HTF-nivå nær':               {t:'Sterkt ukentlig/daglig nivå',   c:'info'},
+  'D1+4H kongruent':            {t:'Daglig og 4H-trend peker likt', c:'bull'},
+  'Ingen event-risiko':         {t:'Ingen store nyheter',           c:'info'},
+  'Nyhetssentiment':            {t:'Nyheter støtter retningen',     c:'bull'},
+  'FRED fundamental':           {t:'Makrotall støtter retningen',   c:'bull'},
+  'SMC bekrefter':              {t:'Markedsstruktur+BOS bekreftet', c:'bull'},
+  'VIX term structure':         {t:'VIX-kurve normal',              c:'info'},
+  'ADR < 70%':                  {t:'Dagsrange har plass igjen',     c:'info'},
+  // Bakoverkompatibilitet med gamle nøkler
   'Over SMA200 (D1 trend)':                    {t:'Over 200-dagers trend',        c:'bull'},
   'Momentum 20d bekrefter retning':            {t:'Momentum peker riktig vei',     c:'bull'},
   'COT bekrefter retning':                     {t:'Store tradere enige',           c:'bull'},
-  'COT sterk posisjonering (>10% av OI)':      {t:'Sterk institusjonell kjøp/salg',c:'bull'},
-  'Pris VED HTF-nivå nå':                      {t:'Pris på viktig nivå akkurat nå',c:'info'},
+  'COT sterk posisjonering (>10% av OI)':      {t:'Sterk institusjonell posisjon', c:'bull'},
+  'Pris VED HTF-nivå nå':                      {t:'Pris på viktig nivå nå',        c:'info'},
   'HTF-nivå D1/Ukentlig i nærheten':           {t:'Sterkt ukentlig/daglig nivå',   c:'info'},
   'D1 + 4H trend kongruent (EMA9)':            {t:'Daglig og 4H-trend peker likt', c:'bull'},
   'Ingen event-risiko (4t)':                   {t:'Ingen store nyheter',           c:'info'},
@@ -810,7 +827,8 @@ function buildExplain(lv){
   var gradeWord={'A+':'veldig sterk signal','A':'sterk signal','B':'middels signal','C':'svakt signal'}[grade]||'signal';
 
   // Main sentence
-  var main=lv.name+' ser ut til å <strong>'+dirNorsk+'</strong> '+tfWord+'. Samlet styrke: <strong>'+score+'/12</strong> — '+gradeWord+'.';
+  var maxScore=lv.max_score||14;
+  var main=lv.name+' ser ut til å <strong>'+dirNorsk+'</strong> '+tfWord+'. Samlet styrke: <strong>'+score+'/'+maxScore+'</strong> — '+gradeWord+'.';
 
   // Top 3 true criteria as tags
   var trueTags=sd.filter(function(s){return s.verdi;}).slice(0,4).map(function(s){
@@ -911,7 +929,10 @@ function renderIdeer(m){
     // Score dots
     var scoreDots='';
     (lv.score_details||[]).forEach(function(sd){
-      scoreDots+='<div class="score-item"><div class="score-dot" style="background:'+(sd.verdi?'var(--bull)':'var(--b2)')+'"></div>'+sd.kryss+'</div>';
+      var wt=sd.vekt||0, pts=sd.poeng||0;
+      var dotCol=sd.verdi?'var(--bull)':'var(--b2)';
+      var wtLabel=wt>0?' ('+pts.toFixed(1)+'/'+wt.toFixed(1)+')':'';
+      scoreDots+='<div class="score-item"><div class="score-dot" style="background:'+dotCol+'"></div>'+sd.kryss+wtLabel+'</div>';
     });
 
     // Binary risk warning
@@ -926,7 +947,7 @@ function renderIdeer(m){
         '<div class="tic-head" onclick="togIde('+i+')">'+
           '<span class="tcls">'+clsLv+'</span>'+
           '<div><div class="tname">'+lv.name+'</div><div class="tsub">'+(lv.label||'')+'</div></div>'+
-          '<span class="tgrade '+gc+'">'+lv.grade+' '+lv.score+'/12</span>'+
+          '<span class="tgrade '+gc+'">'+lv.grade+' '+(lv.score||0)+'/'+(lv.max_score||14)+'</span>'+
           '<span class="tgrade '+tfCol+'">'+tf+'</span>'+
           '<span class="tbias '+(lv.dir_color||'neutral')+'">'+biasText+'</span>'+
           '<span class="tprice">'+fmtP(curr)+'</span>'+
@@ -940,7 +961,7 @@ function renderIdeer(m){
             '<div class="setup-side">'+renderSetupSide(lv.setup_short,'SHORT',lv.resistances)+'</div>'+
           '</div>'+
           '<div class="score-section">'+
-            '<div class="ct">Styrkeindikator — '+lv.score+' av 12 kriterier oppfylt ('+lv.score_pct+'%)</div>'+
+            '<div class="ct">Styrkeindikator — '+(lv.score||0)+' av '+(lv.max_score||14)+' ('+(lv.score_pct||0)+'%) — '+(lv.horizon||lv.timeframe_bias||'?')+'</div>'+
             '<div class="score-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:'+lv.score_pct+'%;background:'+(gc==='bull'?'var(--bull)':gc==='warn'?'var(--warn)':'var(--bear)')+'"></div></div></div>'+
             '<div class="score-items">'+scoreDots+'</div>'+
           '</div>'+
