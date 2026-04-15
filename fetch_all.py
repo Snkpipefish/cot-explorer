@@ -52,6 +52,131 @@ TWELVEDATA_MAP = {
 TD_INTERVAL = {"1d": "1day", "15m": "15min", "60m": "1h"}
 TD_SIZE     = {"1y": 365, "5d": 500, "60d": 500, "30d": 35}
 
+# ─── VEKTER PER KRITERIUM PER HORISONT ───────────────────────────
+# 14 kriterier, vektet ulikt per handelshorisont
+SCORE_WEIGHTS = {
+    "sma200":             {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
+    "momentum_20d":       {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
+    "cot_confirms":       {"SCALP": 0,    "SWING": 1.0,  "MAKRO": 1.0},
+    "cot_strong":         {"SCALP": 0,    "SWING": 0.5,  "MAKRO": 1.0},
+    "cot_momentum":       {"SCALP": 0,    "SWING": 1.0,  "MAKRO": 1.0},
+    "price_at_level":     {"SCALP": 1.5,  "SWING": 1.5,  "MAKRO": 1.5},
+    "htf_level_weight":   {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
+    "d1_4h_congruent":    {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
+    "no_event_risk":      {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
+    "news_sentiment":     {"SCALP": 0.5,  "SWING": 0.5,  "MAKRO": 0.5},
+    "fred_fundamental":   {"SCALP": 0,    "SWING": 0.5,  "MAKRO": 1.0},
+    "smc_confirms":       {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
+    "vix_term_structure": {"SCALP": 0,    "SWING": 0.5,  "MAKRO": 1.0},
+    "adr_utilization":    {"SCALP": 1.0,  "SWING": 0,    "MAKRO": 0},
+}
+# MAX: SCALP=9.0, SWING=12.0, MAKRO=13.0
+MAX_WEIGHTED_SCORE = {
+    h: sum(w[h] for w in SCORE_WEIGHTS.values())
+    for h in ("SCALP", "SWING", "MAKRO")
+}
+
+GRADE_THRESHOLDS = {
+    "SCALP": {"A+": 8.0, "A": 6.5, "B": 4.5},
+    "SWING": {"A+": 10.0, "A": 8.5, "B": 6.5},
+    "MAKRO": {"A+": 11.5, "A": 9.5, "B": 7.5},
+}
+
+PUSH_THRESHOLDS = {
+    "SCALP": 5.5,
+    "SWING": 7.5,
+    "MAKRO": 8.5,
+}
+
+SCORE_LABELS_NO = {
+    "sma200":             "Over SMA200",
+    "momentum_20d":       "Momentum 20d",
+    "cot_confirms":       "COT bekrefter",
+    "cot_strong":         "COT sterk (>10%)",
+    "cot_momentum":       "COT momentum Δ",
+    "price_at_level":     "Pris VED nivå",
+    "htf_level_weight":   "HTF-nivå ≥ 3",
+    "d1_4h_congruent":    "D1+4H kongruent",
+    "no_event_risk":      "Ingen event-risiko",
+    "news_sentiment":     "Nyhetssentiment",
+    "fred_fundamental":   "Fundamental",
+    "smc_confirms":       "SMC bekrefter",
+    "vix_term_structure": "VIX termstruktur",
+    "adr_utilization":    "ADR < 70%",
+}
+
+# ─── KORRELASJONSGRUPPER (for bot max-posisjoner) ────────────────
+CORRELATION_GROUPS = {
+    "EURUSD": "usd_pairs", "GBPUSD": "usd_pairs",
+    "USDJPY": "usd_pairs", "AUDUSD": "usd_pairs",
+    "Gold": "precious_metals", "Silver": "precious_metals",
+    "Brent": "energy", "WTI": "energy",
+    "SPX": "us_indices", "NAS100": "us_indices",
+}
+MAX_CONCURRENT = {
+    "precious_metals": 2, "us_indices": 1, "energy": 1, "usd_pairs": 2,
+}
+
+# ─── HORISONT-CONFIG (sendes til boten via signal_server) ────────
+HORIZON_CONFIGS = {
+    "SCALP": {
+        "confirmation_tf": "5min",
+        "confirmation_max_candles": 6,
+        "confirmation_escape_atr_factor": 0.5,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0015,
+        "exit_t1_close_pct": 0.50,
+        "exit_t2_close_pct": None,
+        "exit_trail_tf": "5min",
+        "exit_trail_atr_mult": {"fx": 2.0, "gold": 2.5, "silver": 2.5, "oil": 2.5, "index": 2.0},
+        "exit_ema_tf": "5min",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 8,
+        "exit_timeout_partial_pct": 0.50,
+        "exit_timeout_full_candles": 16,
+        "exit_geo_spike_atr_mult": 2.0,
+        "sizing_base_risk_usd": 20,
+    },
+    "SWING": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {"fx": 3.0, "gold": 4.0, "silver": 4.0, "oil": 3.5, "index": 3.0},
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_be_timeout_hours": 48,
+        "exit_timeout_full_hours": 120,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40,
+    },
+    "MAKRO": {
+        "confirmation_tf": "1H",
+        "confirmation_max_candles": 6,
+        "confirmation_escape_atr_factor": 1.0,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0040,
+        "exit_t1_close_pct": 0.25,
+        "exit_t2_close_pct": 0.25,
+        "exit_trail_tf": "D1",
+        "exit_trail_atr_mult": {"fx": 2.0, "gold": 2.5, "silver": 2.5, "oil": 2.5, "index": 2.0},
+        "exit_ema_tf": "D1",
+        "exit_ema_period": 9,
+        "exit_timeout_days": 15,
+        "exit_score_deterioration": 6.0,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 60,
+    },
+}
+
 # Stooq-symboler (ingen API-nøkkel, nær sanntid i markedstid)
 STOOQ_MAP = {
     "EURUSD=X":  "eurusd",
@@ -264,6 +389,62 @@ def calc_ema(closes, n=9):
     for c in closes[n:]:
         ema = c*k + ema*(1-k)
     return ema
+
+def get_adr_utilization(rows_15m, atr_d):
+    """Prosentandel av daglig ATR brukt i dag (basert på 15min high/low)."""
+    if not rows_15m or not atr_d or atr_d <= 0:
+        return {"pct": None, "ok_for_scalp": True, "available": False}
+    # rows = (high, low, close)  — bruk siste ~26 bars (ca 6.5 timer)
+    today_bars = rows_15m[-26:]
+    today_high = max(r[0] for r in today_bars)
+    today_low  = min(r[1] for r in today_bars)
+    used = today_high - today_low
+    pct = round(used / atr_d * 100, 1)
+    return {"pct": pct, "ok_for_scalp": pct < 70, "available": True}
+
+
+def determine_horizon(criteria, nearest_level_weight):
+    """Bestem horisont basert på rå bool-kriterier og nivå-vekt."""
+    has_cot     = criteria.get("cot_confirms", False)
+    has_level   = criteria.get("price_at_level", False)
+    raw_count   = sum(1 for v in criteria.values() if v)
+    if raw_count >= 9 and has_cot and nearest_level_weight >= 4:
+        return "MAKRO"
+    elif raw_count >= 6 and nearest_level_weight >= 3:
+        return "SWING"
+    elif raw_count >= 4 and has_level:
+        return "SCALP"
+    return "WATCHLIST"
+
+
+def calculate_weighted_score(criteria, horizon):
+    """Beregn vektet score. Returnerer (score, max, details_list)."""
+    h = horizon if horizon != "WATCHLIST" else "SCALP"
+    score = 0.0
+    details = []
+    for crit_id, passed in criteria.items():
+        weight = SCORE_WEIGHTS.get(crit_id, {}).get(h, 0)
+        earned = weight if passed else 0
+        details.append({
+            "kryss":  SCORE_LABELS_NO.get(crit_id, crit_id),
+            "id":     crit_id,
+            "verdi":  passed,
+            "vekt":   weight,
+            "poeng":  earned,
+        })
+        score += earned
+    return round(score, 1), MAX_WEIGHTED_SCORE[h], details
+
+
+def get_grade(score, horizon):
+    if horizon == "WATCHLIST":
+        return "C", "bear"
+    t = GRADE_THRESHOLDS[horizon]
+    if score >= t["A+"]:  return "A+", "bull"
+    elif score >= t["A"]: return "A",  "bull"
+    elif score >= t["B"]: return "B",  "warn"
+    return "C", "bear"
+
 
 def to_4h(rows_1h):
     out = []
@@ -801,6 +982,14 @@ if fg: print(f"  → {fg['score']} ({fg['rating']})")
 print("Henter nyhetssentiment...")
 news_sentiment = fetch_news_sentiment()
 
+# ── Hent VIX termstruktur (trengs i scoring-loop) ────────────
+print("Henter VIX term-struktur (^VIX9D, ^VIX3M)...")
+_vix9d_rows = fetch_yahoo("^VIX9D", "1d", "5d")
+_vix3m_rows = fetch_yahoo("^VIX3M", "1d", "5d")
+_vix9d = round(_vix9d_rows[-1][2], 2) if _vix9d_rows else None
+_vix3m = round(_vix3m_rows[-1][2], 2) if _vix3m_rows else None
+vix_term_structure = None  # Beregnes etter VIX-pris er tilgjengelig
+
 # ── Priser og setups ──────────────────────────────────────
 prices, levels = {}, {}
 CORR_KEYS = ["EURUSD", "Gold", "NAS100", "Brent"]
@@ -845,7 +1034,20 @@ for inst in INSTRUMENTS:
         "chg20d": round((curr/c20-1)*100, 2),
     }
 
-    if inst["key"] == "VIX": continue
+    if inst["key"] == "VIX":
+        # Beregn termstruktur nå som VIX-pris er tilgjengelig
+        _vix_spot = prices["VIX"]["price"]
+        if _vix_spot and _vix9d and _vix3m:
+            s9  = round((_vix9d / _vix_spot - 1) * 100, 1)
+            s3m = round((_vix3m / _vix_spot - 1) * 100, 1)
+            regime = ("backwardation" if _vix9d < _vix_spot * 0.98 else
+                      "flat" if abs(s9) < 2 else "contango")
+            vix_term_structure = {
+                "spot": _vix_spot, "vix9d": _vix9d, "vix3m": _vix3m,
+                "spot_to_9d_pct": s9, "spot_to_3m_pct": s3m, "regime": regime,
+            }
+            print(f"  VIX9D={_vix9d:.2f}  VIX3M={_vix3m:.2f}  regime={regime}")
+        continue
     if inst.get("prices_only"): continue
 
     # ── SMC analyse (15m, 1H, 4H) ────────────────────────
@@ -1117,34 +1319,45 @@ for inst in INSTRUMENTS:
     fund_confirms   = (inst_fund_score > 0.3 and dir_color == "bull") or \
                       (inst_fund_score < -0.3 and dir_color == "bear")
 
-    score_details = [
-        {"kryss": "Over SMA200 (D1 trend)",         "verdi": above_sma},
-        {"kryss": "Momentum 20d bekrefter",          "verdi": (chg20 > 0 if dir_color == "bull" else chg20 < 0)},
-        {"kryss": "COT bekrefter retning",           "verdi": cot_confirms},
-        {"kryss": "COT sterk posisjonering (>10%)",  "verdi": cot_strong},
-        {"kryss": "Pris VED HTF-nivå nå",            "verdi": at_level_now},
-        {"kryss": "HTF-nivå D1/Ukentlig",            "verdi": htf_level_nearby},
-        {"kryss": "D1 + 4H trend kongruent",         "verdi": align in ("bull","bear")},
-        {"kryss": "Ingen event-risiko (4t)",          "verdi": no_event_risk},
-        {"kryss": "Nyhetssentiment bekrefter",        "verdi": news_confirms_dir},
-        {"kryss": "Fundamental bekrefter",            "verdi": fund_confirms},
-        {"kryss": "BOS 1H/4H bekrefter retning",      "verdi": bos_confirms},
-        {"kryss": "SMC 1H struktur bekrefter",         "verdi": smc_struct_confirms},
-    ]
-    score       = sum(1 for s in score_details if s["verdi"])
-    max_score   = len(score_details)
-    grade       = "A+" if score>=11 else "A" if score>=9 else "B" if score>=6 else "C"
-    grade_color = "bull" if score>=11 else "warn" if score>=9 else "bear"
+    # COT momentum Δ — ukentlig endring bekrefter retning
+    cot_momentum_ok = (_cot_chg > 0 and dir_color == "bull") or \
+                      (_cot_chg < 0 and dir_color == "bear")
 
-    # Tidshorisonts-klassifisering — hvilken type trader kan bruke dette nå
-    if score >= 6 and cot_confirms and htf_level_nearby:
-        timeframe_bias = "MAKRO"      # COT + HTF struktur → hold dager/uker
-    elif score >= 4 and htf_level_nearby:
-        timeframe_bias = "SWING"      # HTF-nivå gyldig → hold timer/dager
-    elif score >= 2 and at_level_now and sesjon_aktiv:
-        timeframe_bias = "SCALP"      # Pris VED nivå i aktiv sesjon → minutter
-    else:
-        timeframe_bias = "WATCHLIST"  # Ikke klar ennå
+    # SMC samlet — BOS + struktur begge kreves
+    smc_confirms_ok = bos_confirms and smc_struct_confirms
+
+    # VIX termstruktur — contango = normalt/rolig marked
+    vix_term_ok = (vix_term_structure or {}).get("regime") == "contango"
+
+    # ADR utilization — mest av daglig range brukt opp?
+    adr = get_adr_utilization(rows_15m, atr_d)
+    adr_ok = adr.get("ok_for_scalp", True)
+
+    # Nearest level weight (brukes for horisont-bestemmelse)
+    nearest_level_weight = max(nearest_sup_w, nearest_res_w)
+
+    # ── 14-punkt vektet scoring ──────────────────────────
+    criteria = {
+        "sma200":             above_sma,
+        "momentum_20d":       (chg20 > 0 if dir_color == "bull" else chg20 < 0),
+        "cot_confirms":       cot_confirms,
+        "cot_strong":         cot_strong,
+        "cot_momentum":       cot_momentum_ok,
+        "price_at_level":     at_level_now,
+        "htf_level_weight":   htf_level_nearby,
+        "d1_4h_congruent":    align in ("bull", "bear"),
+        "no_event_risk":      no_event_risk,
+        "news_sentiment":     news_confirms_dir,
+        "fred_fundamental":   fund_confirms,
+        "smc_confirms":       smc_confirms_ok,
+        "vix_term_structure": vix_term_ok,
+        "adr_utilization":    adr_ok,
+    }
+
+    horizon = determine_horizon(criteria, nearest_level_weight)
+    score, max_score, score_details = calculate_weighted_score(criteria, horizon)
+    grade, grade_color = get_grade(score, horizon)
+    timeframe_bias = horizon  # Bakoverkompatibilitet
 
     vix_price = (prices.get("VIX") or {}).get("price", 20)
     pos_size  = "Full" if vix_price<20 else "Halv" if vix_price<30 else "Kvart"
@@ -1224,8 +1437,12 @@ for inst in INSTRUMENTS:
         "grade":         grade,
         "grade_color":   grade_color,
         "score":         score,
-        "score_pct":     round(score/max_score*100),
+        "max_score":     max_score,
+        "score_pct":     round(score/max_score*100) if max_score else 0,
         "score_details": score_details,
+        "horizon":       horizon,
+        "adr_utilization": adr,
+        "correlation_group": CORRELATION_GROUPS.get(inst["key"]),
         "news_headwind": news_headwind,
         "news_sentiment_label": ns_label,
         "open_interest": oi,
@@ -1285,18 +1502,14 @@ for inst in INSTRUMENTS:
         },
     }
 
-# ── VIX term-struktur (contango / backwardation) ────────────
-print("Henter VIX term-struktur (^VIX9D, ^VIX3M)...")
-_vix9d_rows = fetch_yahoo("^VIX9D", "1d", "5d")
-_vix3m_rows = fetch_yahoo("^VIX3M", "1d", "5d")
-_vix_spot   = (prices.get("VIX") or {}).get("price")
-_vix9d  = round(_vix9d_rows[-1][2], 2) if _vix9d_rows else None
-_vix3m  = round(_vix3m_rows[-1][2], 2) if _vix3m_rows else None
-vix_term_structure = None
-if _vix_spot and _vix9d and _vix3m:
-    s9  = round((_vix9d / _vix_spot - 1) * 100, 1)
-    s3m = round((_vix3m / _vix_spot - 1) * 100, 1)
-    regime = ("backwardation" if _vix9d < _vix_spot * 0.98 else
+# ── VIX term-struktur (allerede beregnet i loopen) ───────────
+# Fallback hvis VIX ble hoppet over
+if vix_term_structure is None and _vix9d and _vix3m:
+    _vix_spot = (prices.get("VIX") or {}).get("price")
+    if _vix_spot:
+        s9  = round((_vix9d / _vix_spot - 1) * 100, 1)
+        s3m = round((_vix3m / _vix_spot - 1) * 100, 1)
+        regime = ("backwardation" if _vix9d < _vix_spot * 0.98 else
               "flat"          if abs(s9) < 2 else "contango")
     vix_term_structure = {
         "spot": _vix_spot, "vix9d": _vix9d, "vix3m": _vix3m,
