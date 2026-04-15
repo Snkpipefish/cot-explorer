@@ -57,8 +57,8 @@ For hvert av 14 instrumenter (10 tradeable + 4 kun-pris) hentes prisdata fra 3 k
 
 Fra prisdata beregnes:
 
-- **ATR(14)** på D1 og 15min — volatilitetsmål
-- **EMA(9)** på 15min og D1 — kortsiktig/langsiktig trend
+- **ATR(14)** på D1, 4H og 15min — volatilitetsmål
+- **EMA(9)** på D1, 4H og 15min — trend per tidsramme
 - **SMA(200)** på D1 — langsiktig trend
 - **PDH/PDL/PDC** — Previous Day High/Low/Close
 - **PWH/PWL** — Previous Week High/Low
@@ -74,7 +74,9 @@ Hentes FØR instrument-loopen (VIX9D, VIX, VIX3M fra Yahoo Finance):
 | Backwardation | VIX9D > VIX > VIX3M | Frykt — kortsiktig stress |
 | Flat | Spreaden < 5% | Nøytralt |
 
-Brukes som kriterium 13 i scoring.
+Brukes som kriterium 13 i scoring, men **ikke gratis poeng**:
+- **Risk assets**: contango gir kun poeng hvis VIX < 20 (ekte rolig marked)
+- **Safe havens** (Gold, Silver, USDJPY, USDCHF): backwardation = bullish, contango + VIX < 18 = bearish
 
 ### 1.4 ADR-utnyttelse
 
@@ -85,7 +87,7 @@ today_range = 15min high - 15min low (siste 26 bars)
 adr_utilization = today_range / ATR(D1)
 ```
 
-ADR < 70% = OK for scalp (fortsatt rom for bevegelse).
+ADR < 70% = OK for scalp (fortsatt rom for bevegelse). Manglende 15min-data gir **ikke** poeng (default False).
 
 ### 1.5 Nivåer (Support & Resistance)
 
@@ -149,9 +151,12 @@ COT-kilder per instrument:
 
 ### 1.8 Nyhetssentiment
 
-Hentes fra Finnhub:
-- Siste 50 markedsnyheter
-- Klassifiseres som `risk_on`, `risk_off`, eller `neutral`
+Hentes fra Google News RSS + BBC RSS:
+- Siste 30 overskrifter scores mot risk_on/risk_off nøkkelordlister
+- Net score: (risk_on_count - risk_off_count) / total → -1.0 til +1.0
+- Label: risk_on hvis ≥ 0.3, risk_off hvis ≤ -0.3, ellers neutral
+- **Sterk konsensus krevd** for scoring-poeng: |score| ≥ 0.5
+- **Nyhetsmotvind**: |score| ≥ 0.4 og mot retning → -1.0 score-penalty
 - Sjekkes for krigs-/sanksjonsord → `geo_active`
 
 ### 1.9 Fundamentals
@@ -168,51 +173,68 @@ Fra `data/fundamentals/latest.json`:
 
 ---
 
-## Steg 2: Vektet Scoring (fetch_all.py)
+## Steg 2: Retningsbestemmelse og Vektet Scoring (fetch_all.py)
+
+### Sammensatt retningsbestemmelse (dir_color)
+
+En vektet `dir_score` bestemmer bull/bear-retning per instrument:
+
+| Signal | Vekt | Betingelse |
+|--------|------|------------|
+| SMA200 | ±1.5 | Over = bull, under = bear |
+| chg5d | ±0.5 / ±1.0 | Kun hvis \|chg5\| > 0.1% / 0.3% |
+| chg20d | ±0.5 / ±1.0 | Kun hvis \|chg20\| > 0.3% / 1.0% |
+| COT bias | ±1.0 | LONG / SHORT |
+| COT momentum | ±0.5 | Ukentlig change_spec_net |
+| DXY-bias | ±0.5 | XXXUSD: invers DXY. USDXXX: følger DXY |
+| Momentum-divergens | -0.5 | Straff når chg5 og chg20 peker motsatt (>0.3%) |
+
+**Hysterese:** dir_score > 0.5 → bull, < -0.5 → bear, mellom → SMA200 avgjør. Forhindrer flip ved marginale endringer.
+
+**Maks dir_score:** ±5.5 (alle signaler enige)
 
 ### 14 kriterier
 
 Hvert instrument scores med **vektede kriterier** — ulik vekt per horisont:
 
-| # | Kriterie | SCALP-vekt | SWING-vekt | MAKRO-vekt |
-|---|---------|-----------|-----------|-----------|
-| 1 | **SMA200** — pris > 200d snitt | 0.5 | 0.75 | 1.0 |
-| 2 | **Momentum 20d** — 20d-endring bekrefter | 0.5 | 0.75 | 1.0 |
-| 3 | **COT bekrefter** — spekulanter i retning | 0.25 | 0.75 | 1.5 |
-| 4 | **COT sterk >10%** — net > 10% av OI | 0.25 | 0.5 | 1.0 |
-| 5 | **COT momentum Δ** — ukentlig endring bekrefter | 0.25 | 0.5 | 1.0 |
-| 6 | **Pris VED nivå** — innenfor ATR-avstand | 1.5 | 1.0 | 0.75 |
+| # | Kriterie | SCALP | SWING | MAKRO |
+|---|---------|-------|-------|-------|
+| 1 | **SMA200** — pris > 200d snitt | 1.0 | 1.0 | 1.0 |
+| 2 | **Momentum 20d** — chg20 > 0.5% i SMA200-retning (ikke-sirkulært) | 1.0 | 1.0 | 1.0 |
+| 3 | **COT bekrefter** — spekulanter i retning | 0 | 1.0 | 1.0 |
+| 4 | **COT sterk >10%** — net > 10% av OI | 0 | 0.5 | 1.0 |
+| 5 | **COT momentum Δ** — ukentlig endring bekrefter | 0 | 1.0 | 1.0 |
+| 6 | **Pris VED nivå** — innenfor 1.5×ATR | 1.5 | 1.5 | 1.5 |
 | 7 | **HTF-nivå weight≥3** — D1/ukentlig nærme | 1.0 | 1.0 | 1.0 |
-| 8 | **D1+4H kongruent** — begge EMA9 peker likt | 0.75 | 1.0 | 1.0 |
-| 9 | **Ingen event-risiko** — ingen NFP/CPI neste 4t | 1.0 | 0.75 | 0.5 |
-| 10 | **Nyhetssentiment** — risk-on/off bekrefter | 0.5 | 0.75 | 0.75 |
-| 11 | **Fundamental FRED** — fundamental bekrefter | 0.25 | 0.5 | 1.0 |
-| 12 | **SMC bekrefter** — BOS + markedsstruktur (begge) | 1.0 | 0.75 | 0.5 |
-| 13 | **VIX term-struktur** — contango/backwardation | 0.5 | 0.75 | 1.0 |
-| 14 | **ADR-utnyttelse** — < 70% av daglig range | 1.0 | 0.5 | 0.25 |
-| | **Maks total** | **9.25** | **10.25** | **12.25** |
+| 8 | **D1+4H kongruent** — begge EMA9 peker likt (ekte 4H, ikke 15m) | 1.0 | 1.0 | 1.0 |
+| 9 | **Ingen event-risiko** — ingen NFP/CPI neste 4t | 1.0 | 1.0 | 1.0 |
+| 10 | **Nyhetssentiment** — risk-on/off bekrefter (krever \|score\| ≥ 0.5) | 0.5 | 0.5 | 0.5 |
+| 11 | **Fundamental FRED** — fundamental bekrefter | 0 | 0.5 | 1.0 |
+| 12 | **SMC bekrefter** — BOS + markedsstruktur (begge kreves) | 1.0 | 1.0 | 1.0 |
+| 13 | **VIX term-struktur** — contango+VIX<20 (risk) / backwardation (safe haven) | 0 | 0.5 | 1.0 |
+| 14 | **ADR-utnyttelse** — < 70% av daglig range (default False) | 1.0 | 0 | 0 |
+| | **Maks total** | **9.0** | **11.5** | **13.0** |
 
-### Retningsbestemmelse
+### Score-justeringer (etter vekting)
 
-```
-if pris > SMA200 AND 5d-endring > 0:
-    retning = BULL
-elif pris < SMA200 AND 5d-endring < 0:
-    retning = BEAR
-else:
-    retning = BULL hvis over SMA200, ellers BEAR
-```
+| Justering | Penalty | Når |
+|-----------|---------|-----|
+| DXY-konflikt | -2.0 (SWING/MAKRO) / -1.0 (SCALP) | USD-par med retning motstridende DXY |
+| Nyhetsmotvind | -1.0 | Sterk nyhetssentiment (\|score\| ≥ 0.4) mot retning |
+| Signal-flip | Nedgradering 1 horisont-nivå | Retning eller horisont endret siden forrige kjøring |
 
 ### Horisont-bestemmelse
 
-Basert på rå boolsk treff-antall (ikke vektet), COT-tilstedeværelse og nivå-weight:
+Krever **både** rå bool-telling OG minimum vektet score (kvalitetssikring):
 
-| Betingelse | Horisont |
-|-----------|----------|
-| ≥ 8 treff + COT bekrefter + nivå weight ≥ 4 | **MAKRO** |
-| ≥ 6 treff + nivå weight ≥ 3 | **SWING** |
-| ≥ 4 treff | **SCALP** |
-| < 4 treff | **WATCHLIST** |
+| Betingelse | Tilleggskrav | Min vektet score | Horisont |
+|-----------|--------------|-----------------|----------|
+| ≥ 8 treff + COT + weight ≥ 4 | Vektet score ≥ 8.0 | 8.0/13.0 | **MAKRO** |
+| ≥ 6 treff + weight ≥ 3 | Vektet score ≥ 6.0 | 6.0/11.5 | **SWING** |
+| ≥ 4 treff + price_at_level + **i sesjon** | — | — | **SCALP** |
+| Alt annet | — | — | **WATCHLIST** |
+
+**SCALP utenfor optimal sesjon → WATCHLIST** automatisk.
 
 Horisonten bestemmer:
 1. Hvilke vekter som brukes for scoring
@@ -220,13 +242,22 @@ Horisonten bestemmer:
 3. Push-terskler
 4. Horizon_config (bekreftelses-TF, exit-regler, sizing)
 
+### Signal-stabilitet
+
+`signal_stability.json` lagrer forrige kjørings verdier per instrument. Ved neste kjøring:
+- **Retning flippet** (bull → bear) → nedgradér 1 nivå (MAKRO→SWING→SCALP→WATCHLIST)
+- **Horisont flippet** (SWING → SCALP → SWING) → nedgradér 1 nivå
+- Score rekalkuleres for ny horisont
+
+Dette forhindrer at ustabile signaler pushes til boten.
+
 ### Grade per horisont
 
 | Horisont | A+ | A | B | C |
 |----------|----|---|---|---|
-| MAKRO | ≥ 11.5 | ≥ 9.5 | ≥ 7.0 | < 7.0 |
-| SWING | ≥ 10.0 | ≥ 8.0 | ≥ 5.5 | < 5.5 |
-| SCALP | ≥ 8.0 | ≥ 6.0 | ≥ 4.0 | < 4.0 |
+| MAKRO | ≥ 11.5 | ≥ 9.5 | ≥ 7.5 | < 7.5 |
+| SWING | ≥ 10.0 | ≥ 8.5 | ≥ 6.5 | < 6.5 |
+| SCALP | ≥ 8.0 | ≥ 6.5 | ≥ 4.5 | < 4.5 |
 
 ---
 

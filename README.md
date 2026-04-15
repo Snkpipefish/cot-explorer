@@ -223,6 +223,22 @@ Kjører `update.sh`: full pipeline (se tabell under)
 
 ## Slik beregnes trading-ideer
 
+### Retningsbestemmelse (dir_color)
+
+Sammensatt score som bestemmer bull/bear-retning per instrument:
+
+| Signal | Vekt | Forklaring |
+|--------|------|------------|
+| SMA200 | ±1.5 | Tyngst — definerer langsiktig trend |
+| chg5d | ±0.5/1.0 | Kort momentum (kun hvis \|chg5\| > 0.1/0.3%) |
+| chg20d | ±0.5/1.0 | Mellomlang momentum (kun hvis \|chg20\| > 0.3/1.0%) |
+| COT bias | ±1.0 | Store aktørers posisjonering (LONG/SHORT) |
+| COT momentum | ±0.5 | Ukentlig endring forsterker |
+| DXY-bias | ±0.5 | Kun USD-par: XXXUSD invers, USDXXX følger DXY |
+| Momentum-divergens | -0.5 | Straff hvis chg5 og chg20 peker motsatt |
+
+Hysterese: bull krever > 0.5, bear < -0.5. Mellom → SMA200 bestemmer.
+
 ### Vektet konfluens-score (14 kriterier)
 
 Hvert kriterium har ulik vekt avhengig av horisont (SCALP/SWING/MAKRO). Maks score varierer per horisont.
@@ -230,35 +246,48 @@ Hvert kriterium har ulik vekt avhengig av horisont (SCALP/SWING/MAKRO). Maks sco
 | # | Kriterium | Beskrivelse |
 |---|-----------|-------------|
 | 1 | `sma200` | Over SMA200 (D1 trend) |
-| 2 | `momentum_20d` | Momentum 20d bekrefter retning |
+| 2 | `momentum_20d` | chg20 > 0.5% i SMA200-retning (ikke-sirkulært) |
 | 3 | `cot_confirms` | COT bekrefter retning |
 | 4 | `cot_strong` | COT sterk posisjonering (>10% av OI) |
 | 5 | `cot_momentum` | COT ukentlig endring (`change_spec_net`) bekrefter retning |
-| 6 | `price_at_level` | Pris VED HTF-nivå nå |
+| 6 | `price_at_level` | Pris VED HTF-nivå nå (innen 1.5×ATR) |
 | 7 | `htf_level_weight` | HTF-nivå D1/Ukentlig i nærheten (weight ≥ 3) |
-| 8 | `d1_4h_congruent` | D1 + 4H trend kongruent (EMA9) |
+| 8 | `d1_4h_congruent` | D1 + 4H EMA9 kongruent (ekte 4H, ikke 15m) |
 | 9 | `no_event_risk` | Ingen event-risiko (innen 4 timer) |
-| 10 | `news_sentiment` | Nyhetssentiment bekrefter retning |
+| 10 | `news_sentiment` | Nyhetssentiment med sterk konsensus (\|score\| ≥ 0.5) |
 | 11 | `fred_fundamental` | Fundamental (FRED) bekrefter retning |
 | 12 | `smc_confirms` | BOS + SMC markedsstruktur bekrefter retning (begge kreves) |
-| 13 | `vix_term_structure` | VIX term-struktur (contango/backwardation/flat) |
-| 14 | `adr_utilization` | ADR-utnyttelse < 70% (dagens range vs ATR) |
+| 13 | `vix_term_structure` | VIX contango + VIX < 20 (risk assets) / backwardation (safe havens) |
+| 14 | `adr_utilization` | ADR-utnyttelse < 70% (dagens range vs ATR, default False) |
+
+### Score-justeringer (etter vekting)
+
+| Justering | Penalty | Når |
+|-----------|---------|-----|
+| DXY-konflikt | -2.0 (SWING/MAKRO) / -1.0 (SCALP) | USD-par med retning motstridende DXY |
+| Nyhetsmotvind | -1.0 | Sterk nyhetssentiment (\|score\| ≥ 0.4) mot retning |
+| Signal-flip | Nedgradering 1 nivå | Retning eller horisont endret siden forrige kjøring |
 
 ### Horisont-bestemmelse
 
-Basert på antall boolske treff, COT-tilstedeværelse og nivå-weight:
-- **MAKRO** — ≥ 8 treff + COT + weight ≥ 4
-- **SWING** — ≥ 6 treff + weight ≥ 3
-- **SCALP** — ≥ 4 treff
-- **WATCHLIST** — < 4 treff
+Krever **både** rå bool-telling OG minimum vektet score for kvalitetssikring:
+
+| Horisont | Rå telling | Tilleggskrav | Min vektet score |
+|----------|-----------|--------------|-----------------|
+| MAKRO | ≥ 8 treff | COT + weight ≥ 4 | ≥ 8.0 (av 13.0) |
+| SWING | ≥ 6 treff | weight ≥ 3 | ≥ 6.0 (av 11.5) |
+| SCALP | ≥ 4 treff | price_at_level + i sesjon | — |
+| WATCHLIST | < 4 treff | — | — |
+
+SCALP utenfor optimal sesjon → WATCHLIST automatisk.
 
 ### Grade per horisont
 
 | Horisont | A+ | A | B | C |
 |----------|----|---|---|---|
-| MAKRO | ≥ 11.5 | ≥ 9.5 | ≥ 7.0 | < 7.0 |
-| SWING | ≥ 10.0 | ≥ 8.0 | ≥ 5.5 | < 5.5 |
-| SCALP | ≥ 8.0 | ≥ 6.0 | ≥ 4.0 | < 4.0 |
+| MAKRO | ≥ 11.5 | ≥ 9.5 | ≥ 7.5 | < 7.5 |
+| SWING | ≥ 10.0 | ≥ 8.5 | ≥ 6.5 | < 6.5 |
+| SCALP | ≥ 8.0 | ≥ 6.5 | ≥ 4.5 | < 4.5 |
 
 ### Push-terskler (til boten)
 
@@ -268,6 +297,13 @@ Basert på antall boolske treff, COT-tilstedeværelse og nivå-weight:
 | SWING | 7.5 |
 | MAKRO | 8.5 |
 | WATCHLIST | Pushes aldri |
+
+### Signal-stabilitet
+
+`signal_stability.json` lagrer forrige kjørings horisont, retning, score og grade per instrument. Neste kjøring sammenligner:
+- Retning flippet (bull → bear) → nedgradér horisont 1 nivå
+- Horisont flippet (SWING → SCALP → SWING) → nedgradér horisont 1 nivå
+- Nedgradering: MAKRO → SWING → SCALP → WATCHLIST
 
 ### VIX-regime og posisjonsstørrelse
 
@@ -347,6 +383,7 @@ Basert på antall boolske treff, COT-tilstedeværelse og nivå-weight:
 | Fil | Innhold | Oppdatering |
 |-----|---------|-------------|
 | `data/macro/latest.json` | Priser, SMC, nivåer, score, kalender | Hver time + 6× daglig |
+| `data/macro/signal_stability.json` | Forrige kjørings horisont/retning/score per instrument | 6× daglig |
 | `data/prices/bot_history.json` | Rullerende prishistorikk (500 entries/symbol) for chg1d/5d/20d | Hver time |
 | `data/signals.json` | Aktive signaler + global state + horizon_config | 6× daglig |
 | `data/agri_signals.json` | Agri-fundamentale trading-setups (outlook + yield + vær + ENSO) | 6× daglig |
