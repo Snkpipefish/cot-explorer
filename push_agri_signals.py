@@ -61,7 +61,7 @@ CROP_ATR_PCT = {
 }
 
 # Minimum outlook-score for å generere signal
-MIN_OUTLOOK_SCORE = 2.0
+MIN_OUTLOOK_SCORE = 5.0
 
 # ── Hent data ─────────────────────────────────────────────
 if not AGRI_FILE.exists():
@@ -264,13 +264,13 @@ for crop in agri.get("crop_summary", []):
     # Beregn nivåer
     levels = calc_levels(price, scoring["direction"], crop_key)
 
-    # Timeframe basert på confidence
+    # Timeframe basert på confidence — C-grade sendes ikke til boten
     if scoring["confidence"] == "A":
         timeframe = "MAKRO"
     elif scoring["confidence"] == "B":
         timeframe = "SWING"
     else:
-        timeframe = "WATCHLIST"
+        continue  # Grade C = ikke tradeable, hopp over
 
     # Bygg signal
     cot = crop.get("cot") or {}

@@ -155,18 +155,23 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | 12 | `fetch_shipping.py` | Baltic-indekser + rute-scoring |
 | 13 | `fetch_oilgas.py` | Energipriser + segment-scoring |
 | 14 | `fetch_crypto.py` | Krypto-priser, Fear & Greed, COT, korrelasjoner |
-| 15 | `push_signals.py` | Genererer `signals.json`, pusher varsler |
-| 16 | git push | Oppdaterer GitHub Pages |
+| 15 | `push_signals.py` | Genererer `signals.json` med horisont-basert filtrering, pusher varsler |
+| 16 | `push_agri_signals.py` | Genererer `agri_signals.json` med fundamentale agri-setups, pusher til bot |
+| 17 | git push | Oppdaterer GitHub Pages |
 
 ---
 
 ## Signal-varsling og trading bot
 
-`push_signals.py` sender de beste tradingideene til Telegram, Discord og/eller Flask-server.
+`push_signals.py` sender de beste tradingideene til Telegram, Discord og/eller Flask-server. Inkluderer `horizon_config` per signal med bekreftelse-TF, entry zone margin, exit-regler og sizing per horisont.
+
+`push_agri_signals.py` genererer fundamentale agri-setups basert på outlook (vær + COT + yield + ENSO) og pusher til Flask `/push-agri-alert`. Boten henter disse separat via `/agri-signals`.
 
 ### Filtrering
-- Score ≥ `PUSH_MIN_SCORE` (standard: **7** av 12)
+- Horisont-basert: score ≥ terskel for instrumentets horisont (SCALP 5.5 / SWING 7.5 / MAKRO 8.5)
+- WATCHLIST pushes aldri — kun synlig på dashboardet
 - Kun klare retninger: `dir_color` er `bull` eller `bear`
+- Sortert etter horisont-prioritet (MAKRO > SWING > SCALP), deretter score
 - **DXY ekskludert** (ikke-tradeable indeks)
 - **Oil war-spread beskyttelse**: Brent +15% 20d ELLER krig-nøkkelord → `oil_geo_warning=true`
 
@@ -204,7 +209,7 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | `TELEGRAM_TOKEN` | Bot-token fra @BotFather |
 | `TELEGRAM_CHAT_ID` | Chat-ID som skal motta meldinger |
 | `DISCORD_WEBHOOK` | Discord webhook-URL |
-| `PUSH_MIN_SCORE` | Minimum konfluens-score (standard: 7) |
+| `PUSH_MIN_SCORE` | Fallback minimum score (brukes ikke lenger — erstattet av horisont-terskler) |
 | `PUSH_MAX_SIGNALS` | Maks antall signaler per kjøring (standard: 5) |
 | `FLASK_URL` | URL til signal_server.py |
 | `SCALP_API_KEY` | API-nøkkel til Flask `/push-alert` og `/push-prices` |
@@ -218,24 +223,51 @@ Kjører `update.sh`: full pipeline (se tabell under)
 
 ## Slik beregnes trading-ideer
 
-### Konfluens-score (12 punkter)
+### Vektet konfluens-score (14 kriterier)
 
-| # | Kriterium |
-|---|-----------|
-| 1 | Over SMA200 (D1 trend) |
-| 2 | Momentum 20d bekrefter retning |
-| 3 | COT bekrefter retning |
-| 4 | COT sterk posisjonering (>10% av OI) |
-| 5 | Pris VED HTF-nivå nå |
-| 6 | HTF-nivå D1/Ukentlig i nærheten (weight ≥ 3) |
-| 7 | D1 + 4H trend kongruent (EMA9) |
-| 8 | Ingen event-risiko (innen 4 timer) |
-| 9 | Nyhetssentiment bekrefter retning |
-| 10 | Fundamental (FRED) bekrefter retning |
-| 11 | BOS 1H/4H bekrefter retning |
-| 12 | SMC 1H markedsstruktur bekrefter retning |
+Hvert kriterium har ulik vekt avhengig av horisont (SCALP/SWING/MAKRO). Maks score varierer per horisont.
 
-**Grade:** A+ = 11-12p / A = 9-10p / B = 6-8p / C = 0-5p
+| # | Kriterium | Beskrivelse |
+|---|-----------|-------------|
+| 1 | `sma200` | Over SMA200 (D1 trend) |
+| 2 | `momentum_20d` | Momentum 20d bekrefter retning |
+| 3 | `cot_confirms` | COT bekrefter retning |
+| 4 | `cot_strong` | COT sterk posisjonering (>10% av OI) |
+| 5 | `cot_momentum` | COT ukentlig endring (`change_spec_net`) bekrefter retning |
+| 6 | `price_at_level` | Pris VED HTF-nivå nå |
+| 7 | `htf_level_weight` | HTF-nivå D1/Ukentlig i nærheten (weight ≥ 3) |
+| 8 | `d1_4h_congruent` | D1 + 4H trend kongruent (EMA9) |
+| 9 | `no_event_risk` | Ingen event-risiko (innen 4 timer) |
+| 10 | `news_sentiment` | Nyhetssentiment bekrefter retning |
+| 11 | `fred_fundamental` | Fundamental (FRED) bekrefter retning |
+| 12 | `smc_confirms` | BOS + SMC markedsstruktur bekrefter retning (begge kreves) |
+| 13 | `vix_term_structure` | VIX term-struktur (contango/backwardation/flat) |
+| 14 | `adr_utilization` | ADR-utnyttelse < 70% (dagens range vs ATR) |
+
+### Horisont-bestemmelse
+
+Basert på antall boolske treff, COT-tilstedeværelse og nivå-weight:
+- **MAKRO** — ≥ 8 treff + COT + weight ≥ 4
+- **SWING** — ≥ 6 treff + weight ≥ 3
+- **SCALP** — ≥ 4 treff
+- **WATCHLIST** — < 4 treff
+
+### Grade per horisont
+
+| Horisont | A+ | A | B | C |
+|----------|----|---|---|---|
+| MAKRO | ≥ 11.5 | ≥ 9.5 | ≥ 7.0 | < 7.0 |
+| SWING | ≥ 10.0 | ≥ 8.0 | ≥ 5.5 | < 5.5 |
+| SCALP | ≥ 8.0 | ≥ 6.0 | ≥ 4.0 | < 4.0 |
+
+### Push-terskler (til boten)
+
+| Horisont | Minimum vektet score |
+|----------|---------------------|
+| SCALP | 5.5 |
+| SWING | 7.5 |
+| MAKRO | 8.5 |
+| WATCHLIST | Pushes aldri |
 
 ### VIX-regime og posisjonsstørrelse
 
@@ -316,7 +348,8 @@ Kjører `update.sh`: full pipeline (se tabell under)
 |-----|---------|-------------|
 | `data/macro/latest.json` | Priser, SMC, nivåer, score, kalender | Hver time + 6× daglig |
 | `data/prices/bot_history.json` | Rullerende prishistorikk (500 entries/symbol) for chg1d/5d/20d | Hver time |
-| `data/signals.json` | Aktive signaler + global state | 6× daglig |
+| `data/signals.json` | Aktive signaler + global state + horizon_config | 6× daglig |
+| `data/agri_signals.json` | Agri-fundamentale trading-setups (outlook + yield + vær + ENSO) | 6× daglig |
 | `data/combined/latest.json` | Kombinert CFTC COT-datasett | 6× daglig |
 | `data/ice_cot/latest.json` | ICE Futures Europe COT (Brent, Gasoil, TTF) | 6× daglig |
 | `data/ice_cot/history.json` | ICE COT 26-ukers historikk | 6× daglig |
@@ -342,11 +375,14 @@ Kjører `update.sh`: full pipeline (se tabell under)
 
 ## Kjente begrensninger / gotchas
 
-- `data/euronext_cot/` opprettes kun etter at `fetch_euronext_cot.py` har kjørt (onsdag). `git add -u data/` brukes i stedet for eksplisitte mapper for å unngå `fatal: pathspec`-feil.
+- `data/euronext_cot/` opprettes kun etter at `fetch_euronext_cot.py` har kjørt (onsdag). `git add data/` (ikke `-u`) brukes for å fange nye filer.
+- `update.sh` bruker `flock` for å unngå samtidig kjøring med bot-push. Lock-fil: `/tmp/cot-explorer-git.lock`.
 - `trading_bot.py` pusher `signal_log.json` direkte til git ved trade-lukking. Bot-push bør alltid inkludere `git fetch + git rebase` før `git push` for å unngå konflikter med `update.sh`.
 - `fetch_agri.py` og `fetch_oilgas.py` bruker `(x.get("cot") or {})` i stedet for `.get("cot", {})` for å håndtere `cot: null` i COT-data.
 - GitHub Pages har aggressiv caching — bruk Ctrl+Shift+R etter push for å se endringer umiddelbart.
 - Mapbox-kart i råvare-tabene er satt til `interactive: false` (ikke zoombare) med Mercator-projeksjon og utvidet høyde (650px) for å vise polområder.
+- COT momentum bruker `change_spec_net` fra ukentlige COT-rapporter (`data/tff/`, `data/disaggregated/`), ikke timeseries-filer (som er utdaterte).
+- Agri-signaler krever pris fra bot (`bot_history.json`) — uten bot-priser genereres ingen setups for det instrumentet.
 
 ---
 
@@ -363,6 +399,7 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | Hosting | GitHub Pages (statisk) |
 | Automatisering | `cot-prices.timer` (XX:40 hver time) + `cot-explorer.timer` (6× daglig man-fre + lør 00:00) |
 | Prisintegrasjon | `signal_server.py` Flask — `POST /push-prices`, `GET /prices` → `update_prices.sh` patcher JSON |
+| Agri-signaler | `signal_server.py` Flask — `POST /push-agri-alert`, `GET /agri-signals` |
 | Varsling | Telegram / Discord webhook / Flask REST API |
 | Trading bot | `scalp_edge/trading_bot.py` — cTrader Open API, pusher priser hvert 58. min |
 | SMC-motor | `smc.py` — Python-port av FluidTrades SMC Lite |
