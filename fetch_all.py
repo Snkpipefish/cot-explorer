@@ -14,6 +14,15 @@ BASE = os.path.expanduser("~/cot-explorer/data")
 OUT  = os.path.join(BASE, "macro", "latest.json")
 os.makedirs(os.path.join(BASE, "macro"), exist_ok=True)
 
+# ── Signal-stabilitet: last forrige kjørings scores ─────────────
+STABILITY_FILE = os.path.join(BASE, "macro", "signal_stability.json")
+_prev_signals = {}
+try:
+    with open(STABILITY_FILE) as _f:
+        _prev_signals = json.load(_f)
+except Exception:
+    pass
+
 # Bot-priser som fallback når Yahoo/Stooq/Twelvedata feiler
 BOT_HISTORY_FILE = os.path.join(BASE, "prices", "bot_history.json")
 _bot_prices = {}
@@ -418,15 +427,25 @@ def get_adr_utilization(rows_15m, atr_d):
 
 
 def determine_horizon(criteria, nearest_level_weight):
-    """Bestem horisont basert på rå bool-kriterier og nivå-vekt."""
+    """Bestem horisont basert på rå bool-kriterier, nivå-vekt OG vektet kvalitet.
+    Krever minimum vektet score for å kvalifisere til høyere horisonter —
+    unngår at mange svake kriterier gir MAKRO/SWING."""
     has_cot     = criteria.get("cot_confirms", False)
     has_level   = criteria.get("price_at_level", False)
     raw_count   = sum(1 for v in criteria.values() if v)
+    # Beregn tentativ vektet score for kvalitetssjekk
+    def _tentative_score(h):
+        return sum(SCORE_WEIGHTS.get(c, {}).get(h, 0) for c, v in criteria.items() if v)
     if raw_count >= 8 and has_cot and nearest_level_weight >= 4:
-        return "MAKRO"
-    elif raw_count >= 6 and nearest_level_weight >= 3:
-        return "SWING"
-    elif raw_count >= 4 and has_level:
+        # MAKRO krever også minimum 8.0 vektet score (av 13.0)
+        if _tentative_score("MAKRO") >= 8.0:
+            return "MAKRO"
+        # Faller ned til SWING hvis score ikke kvalifiserer
+    if raw_count >= 6 and nearest_level_weight >= 3:
+        # SWING krever minimum 6.0 vektet score (av 11.5)
+        if _tentative_score("SWING") >= 6.0:
+            return "SWING"
+    if raw_count >= 4 and has_level:
         return "SCALP"
     return "WATCHLIST"
 
@@ -1190,17 +1209,29 @@ for inst in INSTRUMENTS:
     # ── EMA9 + Regime ─────────────────────────────────────
     closes_d  = [r[2] for r in daily]
     closes_15 = [r[2] for r in rows_15m] if rows_15m else []
+    closes_4h = [r[2] for r in h4] if h4 else []
     ema9_d    = calc_ema(closes_d,  9)
     ema9_15m  = calc_ema(closes_15, 9) if closes_15 else None
+    ema9_4h   = calc_ema(closes_4h, 9) if len(closes_4h) >= 10 else None
 
     d1_bull  = curr > ema9_d   if ema9_d  else None
+    h4_bull  = curr > ema9_4h  if ema9_4h else None
     m15_bull = curr > ema9_15m if ema9_15m else None
     d1_regime  = ("BULLISH" if d1_bull  else "BEARISH") if d1_bull  is not None else "NØYTRAL"
     m15_regime = ("BULLISH" if m15_bull else "BEARISH") if m15_bull is not None else "NØYTRAL"
 
-    if d1_bull and m15_bull:       align = "bull"
-    elif not d1_bull and not m15_bull: align = "bear"
-    else:                           align = "mixed"
+    # D1+4H kongruens (ekte 4H, ikke 15m) — mer stabil mellom kjøringer
+    if d1_bull is not None and h4_bull is not None:
+        if d1_bull and h4_bull:         align = "bull"
+        elif not d1_bull and not h4_bull: align = "bear"
+        else:                           align = "mixed"
+    elif d1_bull is not None and m15_bull is not None:
+        # Fallback til 15m hvis 4H mangler
+        if d1_bull and m15_bull:         align = "bull"
+        elif not d1_bull and not m15_bull: align = "bear"
+        else:                           align = "mixed"
+    else:
+        align = "mixed"
 
     session_now = get_session_status()
 
@@ -1394,20 +1425,23 @@ for inst in INSTRUMENTS:
     )
 
     # Nyhetssentiment bekrefter retning?
+    # Krever sterk konsensus (|score| >= 0.5) for å gi poeng — reduserer støy
     ns_label = (news_sentiment or {}).get("label", "neutral")
+    ns_score = abs((news_sentiment or {}).get("score", 0))
     nc_map   = NEWS_CONFIRMS_MAP.get(inst["key"], (None, None))
-    if ns_label == "risk_on" and nc_map[0]:
-        news_confirms_dir = (nc_map[0] == dir_color)
-    elif ns_label == "risk_off" and nc_map[1]:
-        news_confirms_dir = (nc_map[1] == dir_color)
-    else:
-        news_confirms_dir = False
-    # Nyhetsmotvindsvarsel: nyheter strider klart mot retning
+    news_confirms_dir = False
+    if ns_score >= 0.5:  # Kun sterk konsensus teller
+        if ns_label == "risk_on" and nc_map[0]:
+            news_confirms_dir = (nc_map[0] == dir_color)
+        elif ns_label == "risk_off" and nc_map[1]:
+            news_confirms_dir = (nc_map[1] == dir_color)
+    # Nyhetsmotvindsvarsel: nyheter strider klart mot retning (sterk)
     news_headwind = False
-    if ns_label == "risk_on" and nc_map[0] and nc_map[0] != dir_color:
-        news_headwind = True
-    elif ns_label == "risk_off" and nc_map[1] and nc_map[1] != dir_color:
-        news_headwind = True
+    if ns_score >= 0.4:
+        if ns_label == "risk_on" and nc_map[0] and nc_map[0] != dir_color:
+            news_headwind = True
+        elif ns_label == "risk_off" and nc_map[1] and nc_map[1] != dir_color:
+            news_headwind = True
 
     # ── Fundamentals ──────────────────────────────────────────
     inst_fund       = fund_data.get("instrument_scores", {}).get(inst["key"], {})
@@ -1468,8 +1502,40 @@ for inst in INSTRUMENTS:
     if dxy_conflict:
         penalty = 2.0 if horizon in ("SWING", "MAKRO") else 1.0
         score = max(0, round(score - penalty, 1))
+    # Sterk nyhetsmotvind: trekk fra score — markedet trader på nyheter
+    if news_headwind:
+        score = max(0, round(score - 1.0, 1))
 
     grade, grade_color = get_grade(score, horizon)
+
+    # ── C: Signal-stabilitet — signaler som flipper mellom kjøringer nedgraderes
+    prev = _prev_signals.get(key, {})
+    prev_horizon  = prev.get("horizon", "WATCHLIST")
+    prev_dir      = prev.get("dir_color", "")
+    stable_signal = True
+    if prev_dir and prev_dir != dir_color:
+        # Retning flippet siden forrige kjøring → ustabilt signal
+        stable_signal = False
+    elif prev_horizon not in ("", "WATCHLIST") and horizon not in ("WATCHLIST",) and prev_horizon != horizon:
+        # Horisont flippet (f.eks. SWING → SCALP → SWING) → ustabilt
+        stable_signal = False
+    if not stable_signal and horizon != "WATCHLIST":
+        # Nedgrader: MAKRO→SWING, SWING→SCALP, SCALP→WATCHLIST
+        if horizon == "MAKRO":    horizon = "SWING"
+        elif horizon == "SWING":  horizon = "SCALP"
+        else:                     horizon = "WATCHLIST"
+        # Recalculate score for new horizon
+        score, max_score, score_details = calculate_weighted_score(criteria, horizon)
+        if dxy_conflict:
+            penalty = 2.0 if horizon in ("SWING", "MAKRO") else 1.0
+            score = max(0, round(score - penalty, 1))
+        grade, grade_color = get_grade(score, horizon)
+
+    # ── E: Sesjon-filter — SCALP utenfor optimal sesjon → WATCHLIST
+    if horizon == "SCALP" and not sesjon_riktig:
+        horizon = "WATCHLIST"
+        grade, grade_color = "C", "bear"
+
     timeframe_bias = horizon  # Bakoverkompatibilitet
 
     vix_price = (prices.get("VIX") or {}).get("price", 20)
@@ -1536,6 +1602,7 @@ for inst in INSTRUMENTS:
         "pwh": round(pwh,5) if pwh else None,
         "pwl": round(pwl,5) if pwl else None,
         "ema9_d1":       round(ema9_d,   5) if ema9_d   else None,
+        "ema9_4h":       round(ema9_4h,  5) if ema9_4h  else None,
         "ema9_15m":      round(ema9_15m, 5) if ema9_15m else None,
         "ema9_above":    curr > ema9_d if ema9_d else None,
         "d1_regime":     d1_regime,
@@ -1557,6 +1624,8 @@ for inst in INSTRUMENTS:
         "adr_utilization": adr,
         "correlation_group": CORRELATION_GROUPS.get(inst["key"]),
         "dxy_conflict":  dxy_conflict,
+        "stable_signal": stable_signal,
+        "in_session":    sesjon_riktig,
         "news_headwind": news_headwind,
         "news_sentiment_label": ns_label,
         "open_interest": oi,
@@ -1790,6 +1859,22 @@ if len(levels) == 0:
 
 with open(OUT,"w") as f:
     json.dump(macro, f, ensure_ascii=False, indent=2)
+
+# Lagre stabilitetsdata for neste kjøring
+_new_stability = {}
+for k, v in levels.items():
+    _new_stability[k] = {
+        "horizon": v.get("horizon", "WATCHLIST"),
+        "dir_color": v.get("dir_color", ""),
+        "score": v.get("score", 0),
+        "grade": v.get("grade", "C"),
+    }
+try:
+    with open(STABILITY_FILE, "w") as f:
+        json.dump(_new_stability, f, ensure_ascii=False, indent=2)
+except Exception:
+    pass
+
 print(f"\nOK → {OUT}  ({len(macro['trading_levels'])} instruments)")
 if conflicts:
     print("Konflikter:"); [print(f"  ⚠️  {c}") for c in conflicts]
