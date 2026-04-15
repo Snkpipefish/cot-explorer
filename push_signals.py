@@ -232,7 +232,22 @@ if geo_active:
     print(f"  🌍 GEO AKTIV: kvart-størrelse på alle trades")
 
 if not top:
-    print(f"Ingen signaler med score >= {MIN_SCORE} og aktiv setup")
+    print(f"Ingen signaler over horisont-terskler — sender tom push til boten")
+    # Alltid push til Flask så serveren tømmer gamle signaler
+    if SCALP_API_KEY:
+        _url = f"{FLASK_URL}/push-alert"
+        _payload = json.dumps({
+            "signals": [], "generated": generated,
+            "global_state": {"vix_regime": vix_regime, "geo_active": geo_active},
+        }).encode()
+        _req = urllib.request.Request(
+            _url, data=_payload,
+            headers={"Content-Type": "application/json", "X-API-Key": SCALP_API_KEY})
+        try:
+            with urllib.request.urlopen(_req, timeout=10) as _resp:
+                print(f"Flask /push-alert OK (0 signaler, {_resp.status})")
+        except urllib.error.URLError as _e:
+            print(f"Flask FEIL: {_e}")
     sys.exit(0)
 
 

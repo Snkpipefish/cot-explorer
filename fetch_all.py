@@ -14,7 +14,22 @@ BASE = os.path.expanduser("~/cot-explorer/data")
 OUT  = os.path.join(BASE, "macro", "latest.json")
 os.makedirs(os.path.join(BASE, "macro"), exist_ok=True)
 
+# Bot-priser som fallback når Yahoo/Stooq/Twelvedata feiler
+BOT_HISTORY_FILE = os.path.join(BASE, "prices", "bot_history.json")
+_bot_prices = {}
+try:
+    with open(BOT_HISTORY_FILE) as _f:
+        _bh = json.load(_f)
+    for _k, _v in _bh.items():
+        if isinstance(_v, list) and _v:
+            _bot_prices[_k] = _v[-1].get("price")
+        elif isinstance(_v, dict):
+            _bot_prices[_k] = _v.get("price")
+except Exception:
+    pass
+
 INSTRUMENTS = [
+    {"key":"DXY",   "navn":"DXY",    "symbol":"DX-Y.NYB","label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET"},
     {"key":"EURUSD","navn":"EUR/USD", "symbol":"EURUSD=X","label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET"},
     {"key":"USDJPY","navn":"USD/JPY", "symbol":"JPY=X",   "label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET"},
     {"key":"GBPUSD","navn":"GBP/USD", "symbol":"GBPUSD=X","label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET"},
@@ -26,7 +41,6 @@ INSTRUMENTS = [
     {"key":"SPX",   "navn":"S&P 500","symbol":"^GSPC",   "label":"Aksjer", "kat":"aksjer", "klasse":"C","session":"NY Open 14:30–17:00 CET"},
     {"key":"NAS100","navn":"Nasdaq", "symbol":"^NDX",    "label":"Aksjer", "kat":"aksjer", "klasse":"C","session":"NY Open 14:30–17:00 CET"},
     {"key":"VIX",   "navn":"VIX",    "symbol":"^VIX",    "label":"Vol",    "kat":"aksjer", "klasse":"C","session":"NY Open 14:30–17:00 CET"},
-    {"key":"DXY",   "navn":"DXY",    "symbol":"DX-Y.NYB","label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET"},
     {"key":"USDCHF","navn":"USD/CHF","symbol":"CHF=X",   "label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET","prices_only":True},
     {"key":"USDNOK","navn":"USD/NOK","symbol":"NOK=X",   "label":"Valuta", "kat":"valuta", "klasse":"A","session":"London 08:00–12:00 CET","prices_only":True},
 ]
@@ -995,6 +1009,11 @@ prices, levels = {}, {}
 CORR_KEYS = ["EURUSD", "Gold", "NAS100", "Brent"]
 daily_closes_for_corr = {}   # key → list of closes (last 22 days)
 daily_adr_cache = {}         # key → list of (h-l) for last 20 days
+dxy_dir_color = None          # Settes av DXY-iterasjonen, brukes av USD-par
+
+# USD-par der "bull" = sterkere USD. Invers = XXXUSD-par der "bull" = svakere USD
+USD_QUOTE_PAIRS = {"USDJPY", "USDCHF", "USDCAD", "USDNOK"}  # bull = USD styrke
+USD_BASE_PAIRS  = {"EURUSD", "GBPUSD", "AUDUSD", "NZDUSD"}   # bull = USD svakhet
 
 for inst in INSTRUMENTS:
     print(f"Henter {inst['navn']}...")
@@ -1005,7 +1024,20 @@ for inst in INSTRUMENTS:
     h4       = to_4h(rows_1h) if rows_1h else []
 
     if not daily or len(daily) < 15:
-        continue
+        # Fallback: bruk bot-pris hvis tilgjengelig (hindrer at instrumentet droppes)
+        bp = _bot_prices.get(inst["key"])
+        if bp and daily:
+            # Har noen rader men < 15 — fyll opp med siste kjente pris
+            while len(daily) < 15:
+                daily.insert(0, (bp, bp, bp))
+            print(f"  ⚠ {inst['key']}: kun {len(daily)} daglige rader, utfylt med bot-pris {bp}")
+        elif bp and not daily:
+            # Ingen data i det hele tatt — bygg minimal serie fra bot-pris
+            daily = [(bp, bp, bp)] * 220
+            print(f"  ⚠ {inst['key']}: alle priskilder feilet, bruker bot-pris {bp}")
+        else:
+            print(f"  ✗ {inst['key']}: ingen prisdata og ingen bot-pris — hopper over")
+            continue
 
     # Accumulate closes for correlation matrix and ADR
     if inst["key"] in CORR_KEYS:
@@ -1273,6 +1305,26 @@ for inst in INSTRUMENTS:
     )
 
     dir_color    = "bull" if (above_sma and chg5>0) else "bear" if (not above_sma and chg5<0) else ("bull" if above_sma else "bear")
+
+    # Lagre DXY-retning for bruk i USD-par
+    key = inst["key"]
+    if key == "DXY":
+        dxy_dir_color = dir_color
+
+    # DXY-konsistenssjekk: hvis DXY er bearish → USD-long bør ikke pushes
+    # USDXXX-par: bull = sterk USD → motstridende med DXY bear
+    # XXXUSD-par: bear = sterk USD → motstridende med DXY bear
+    dxy_conflict = False
+    if dxy_dir_color and key != "DXY":
+        if key in USD_QUOTE_PAIRS:
+            # USDJPY bull = USD styrke → konflikt med DXY bear
+            dxy_conflict = (dir_color == "bull" and dxy_dir_color == "bear") or \
+                           (dir_color == "bear" and dxy_dir_color == "bull")
+        elif key in USD_BASE_PAIRS:
+            # EURUSD bull = USD svakhet → konflikt med DXY bull
+            dxy_conflict = (dir_color == "bull" and dxy_dir_color == "bull") or \
+                           (dir_color == "bear" and dxy_dir_color == "bear")
+
     cot_confirms = ((cot_bias == "LONG" and dir_color == "bull") or \
                     (cot_bias == "SHORT" and dir_color == "bear")) \
                    and cot_agrees is not False   # Uenige kilder teller ikke
@@ -1356,6 +1408,19 @@ for inst in INSTRUMENTS:
 
     horizon = determine_horizon(criteria, nearest_level_weight)
     score, max_score, score_details = calculate_weighted_score(criteria, horizon)
+
+    # DXY-konsistens: trekk fra poeng hvis valutapar konflikter med DXY-retning
+    if dxy_conflict:
+        dxy_penalty = 1.5
+        score = max(0, round(score - dxy_penalty, 1))
+        score_details.append({
+            "kryss": "DXY-konflikt",
+            "id":    "dxy_conflict",
+            "verdi": True,
+            "vekt":  -dxy_penalty,
+            "poeng": -dxy_penalty,
+        })
+
     grade, grade_color = get_grade(score, horizon)
     timeframe_bias = horizon  # Bakoverkompatibilitet
 
@@ -1443,6 +1508,7 @@ for inst in INSTRUMENTS:
         "horizon":       horizon,
         "adr_utilization": adr,
         "correlation_group": CORRELATION_GROUPS.get(inst["key"]),
+        "dxy_conflict":  dxy_conflict,
         "news_headwind": news_headwind,
         "news_sentiment_label": ns_label,
         "open_interest": oi,
