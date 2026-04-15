@@ -1327,6 +1327,12 @@ for inst in INSTRUMENTS:
     # COT momentum: ukentlig endring forsterker
     if abs(_cot_chg) > 0:
         dir_score += 0.5 if _cot_chg > 0 else -0.5
+    # Momentum-divergens: kort og mellomlang sikt peker motsatt → usikker retning
+    if chg5 > 0.3 and chg20 < -0.3:
+        dir_score -= 0.5
+    elif chg5 < -0.3 and chg20 > 0.3:
+        dir_score -= 0.5
+
     # DXY-bias for USD-par (før dxy_conflict-penalty)
     key = inst["key"]
     if dxy_dir_color and key != "DXY":
@@ -1417,22 +1423,22 @@ for inst in INSTRUMENTS:
     # SMC samlet — BOS + struktur begge kreves
     smc_confirms_ok = bos_confirms and smc_struct_confirms
 
-    # VIX termstruktur — contango = normalt, backwardation = frykt/volatilitet
-    # Safe havens (gull, JPY, CHF) tjener på frykt → backwardation er bullish
+    # VIX termstruktur — contango alene er ikke nok (normaltilstand 80% av tiden)
+    # Krever contango + lav VIX for risk assets, backwardation for safe havens
     vix_regime = (vix_term_structure or {}).get("regime")
+    _vix_now = (prices.get("VIX") or {}).get("price", 20)
     SAFE_HAVENS = {"Gold", "Silver", "USDJPY", "USDCHF"}
     if key in SAFE_HAVENS:
-        # Contango = rolig → nøytral for safe havens
-        # Backwardation = frykt → bullish for safe havens (når dir_color == bull)
+        # Backwardation = frykt → bullish for safe havens
         vix_term_ok = (vix_regime == "backwardation" and dir_color == "bull") or \
-                      (vix_regime == "contango" and dir_color == "bear")
+                      (vix_regime == "contango" and dir_color == "bear" and _vix_now < 18)
     else:
-        # Risk assets: contango = normalt/rolig → bullish
-        vix_term_ok = vix_regime == "contango"
+        # Risk assets: contango + VIX < 20 = ekte rolig marked, ikke bare normalt
+        vix_term_ok = vix_regime == "contango" and _vix_now < 20
 
     # ADR utilization — mest av daglig range brukt opp?
     adr = get_adr_utilization(rows_15m, atr_d)
-    adr_ok = adr.get("ok_for_scalp", True)
+    adr_ok = adr.get("ok_for_scalp", False)  # Ingen data = ingen gratis poeng
 
     # Nearest level weight (brukes for horisont-bestemmelse)
     nearest_level_weight = max(nearest_sup_w, nearest_res_w)
@@ -1440,7 +1446,7 @@ for inst in INSTRUMENTS:
     # ── 14-punkt vektet scoring ──────────────────────────
     criteria = {
         "sma200":             above_sma,
-        "momentum_20d":       (chg20 > 0 if dir_color == "bull" else chg20 < 0),
+        "momentum_20d":       (chg20 > 0.5 and above_sma) or (chg20 < -0.5 and not above_sma),
         "cot_confirms":       cot_confirms,
         "cot_strong":         cot_strong,
         "cot_momentum":       cot_momentum_ok,
@@ -1458,8 +1464,10 @@ for inst in INSTRUMENTS:
     horizon = determine_horizon(criteria, nearest_level_weight)
     score, max_score, score_details = calculate_weighted_score(criteria, horizon)
 
-    # DXY-konflikt er nå bakt inn i dir_score — ingen ekstra penalty
-    # dxy_conflict beholdes kun som info-felt for display
+    # DXY-konflikt: trekk fra score for USD-par med motstridende retning
+    if dxy_conflict:
+        penalty = 2.0 if horizon in ("SWING", "MAKRO") else 1.0
+        score = max(0, round(score - penalty, 1))
 
     grade, grade_color = get_grade(score, horizon)
     timeframe_bias = horizon  # Bakoverkompatibilitet
