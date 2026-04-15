@@ -1229,9 +1229,14 @@ function renderSignallogg(log){
   var open=entries.filter(function(e){return !e.result;}).length;
   var wr=wins+losses>0?Math.round(wins/(wins+losses)*100):null;
 
+  var totPnl=0;entries.forEach(function(e){var p=e.pnl;if(p){totPnl+=(p.pnl_nok!=null?p.pnl_nok:(p.pnl_usd||0));}});
+  var pnlCol=totPnl>0?'bull':totPnl<0?'bear':'warn';
+  var pnlTxt=(totPnl>=0?'+':'')+totPnl.toFixed(2)+' NOK';
+
   var statsH='';
   statsH+='<div class="card"><div class="ct">Bot-trades totalt</div><div class="snum">'+entries.length+'</div><div class="slabel neutral">siden 1. april</div></div>';
   statsH+='<div class="card"><div class="ct">Win rate</div><div class="snum '+(wr>=60?'bull':wr>=40?'warn':'bear')+'">'+(wr!=null?wr+'%':'–')+'</div><div class="slabel neutral">'+wins+' vunnet · '+losses+' tapt</div></div>';
+  statsH+='<div class="card"><div class="ct">Total PnL</div><div class="snum '+pnlCol+'">'+pnlTxt+'</div><div class="slabel neutral">realisert resultat</div></div>';
   statsH+='<div class="card"><div class="ct">Åpne</div><div class="snum blue">'+open+'</div><div class="slabel neutral">aktive posisjoner</div></div>';
   statsH+='<div class="card"><div class="ct">Managed exit</div><div class="snum warn">'+managed+'</div><div class="slabel neutral">EMA9 / 8-candle</div></div>';
   document.getElementById('logStats').innerHTML=statsH;
@@ -1247,7 +1252,8 @@ function renderSignallogg(log){
     var rLbl=res==='win'?'✅ Win':res==='loss'?'❌ Loss':res==='managed'?'⚡ Managed':'🔵 Åpen';
     var dir=sig.direction||'';
     var lots=sig.lots?sig.lots+' lot':'–';
-    var pnlTxt=pnl.pips!=null?(pnl.pips>0?'+':'')+pnl.pips+'p'+(pnl.pnl_usd!=null?' / '+(pnl.pnl_usd>0?'+':'')+pnl.pnl_usd+'$':''):'–';
+    var pnlNok=pnl.pnl_nok!=null?pnl.pnl_nok:pnl.pnl_usd;
+    var pnlTxt=pnl.pips!=null?(pnl.pips>0?'+':'')+pnl.pips+'p'+(pnlNok!=null?' / '+(pnlNok>0?'+':'')+pnlNok.toFixed(2)+' kr':''):'–';
     var pnlCol=pnl.pips>0?'var(--bull)':pnl.pips<0?'var(--bear)':'var(--m)';
     var exitCell=e.closed_at
       ?'<td class="mob-hide" style="font-size:11px;color:var(--m)">'+(e.exit_reason||'–')+'</td>'
