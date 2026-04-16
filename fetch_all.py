@@ -108,39 +108,32 @@ TD_INTERVAL = {"1d": "1day", "15m": "15min", "60m": "1h"}
 TD_SIZE     = {"1y": 365, "5d": 500, "60d": 500, "30d": 35}
 
 # ─── VEKTER PER KRITERIUM PER HORISONT ───────────────────────────
-# 14 kriterier, vektet ulikt per handelshorisont
+# 9 kriterier — kun reelle setup-faktorer
+# Fjernet: price_at_level (boten overvåker entry), no_event_risk (boten filtrerer),
+#          news_sentiment (upålitelig kilde), vix_term_structure (dekket av VIX-regime sizing),
+#          adr_utilization (entry-timing, boten sin jobb)
+# fred_fundamental kun for MAKRO (makrodata er månedlig, ikke relevant for kort sikt)
 SCORE_WEIGHTS = {
     "sma200":             {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
     "momentum_20d":       {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
     "cot_confirms":       {"SCALP": 0,    "SWING": 1.0,  "MAKRO": 1.0},
     "cot_strong":         {"SCALP": 0,    "SWING": 0.5,  "MAKRO": 1.0},
     "cot_momentum":       {"SCALP": 0,    "SWING": 1.0,  "MAKRO": 1.0},
-    "price_at_level":     {"SCALP": 1.5,  "SWING": 1.5,  "MAKRO": 1.5},
     "htf_level_weight":   {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
     "d1_4h_congruent":    {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "no_event_risk":      {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "news_sentiment":     {"SCALP": 0.5,  "SWING": 0.5,  "MAKRO": 0.5},
-    "fred_fundamental":   {"SCALP": 0,    "SWING": 0.5,  "MAKRO": 1.0},
+    "fred_fundamental":   {"SCALP": 0,    "SWING": 0,    "MAKRO": 1.0},
     "smc_confirms":       {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "vix_term_structure": {"SCALP": 0,    "SWING": 0.5,  "MAKRO": 1.0},
-    "adr_utilization":    {"SCALP": 1.0,  "SWING": 0,    "MAKRO": 0},
 }
-# MAX: SCALP=9.0, SWING=12.0, MAKRO=13.0
+# MAX: SCALP=5.0, SWING=7.5, MAKRO=9.0
 MAX_WEIGHTED_SCORE = {
     h: sum(w[h] for w in SCORE_WEIGHTS.values())
     for h in ("SCALP", "SWING", "MAKRO")
 }
 
 GRADE_THRESHOLDS = {
-    "SCALP": {"A+": 8.0, "A": 6.5, "B": 4.5},
-    "SWING": {"A+": 10.0, "A": 8.5, "B": 6.5},
-    "MAKRO": {"A+": 11.5, "A": 9.5, "B": 7.5},
-}
-
-PUSH_THRESHOLDS = {
-    "SCALP": 5.5,
-    "SWING": 7.5,
-    "MAKRO": 8.5,
+    "SCALP": {"A+": 4.5, "A": 3.5, "B": 2.5},
+    "SWING": {"A+": 6.5, "A": 5.5, "B": 4.0},
+    "MAKRO": {"A+": 8.0, "A": 7.0, "B": 5.5},
 }
 
 SCORE_LABELS_NO = {
@@ -149,15 +142,10 @@ SCORE_LABELS_NO = {
     "cot_confirms":       "COT bekrefter",
     "cot_strong":         "COT sterk (>10%)",
     "cot_momentum":       "COT momentum Δ",
-    "price_at_level":     "Pris VED nivå",
     "htf_level_weight":   "HTF-nivå ≥ 3",
     "d1_4h_congruent":    "D1+4H kongruent",
-    "no_event_risk":      "Ingen event-risiko",
-    "news_sentiment":     "Nyhetssentiment",
-    "fred_fundamental":   "Fundamental",
+    "fred_fundamental":   "Fundamental (FRED)",
     "smc_confirms":       "SMC bekrefter",
-    "vix_term_structure": "VIX termstruktur",
-    "adr_utilization":    "ADR < 70%",
 }
 
 # ─── KORRELASJONSGRUPPER (for bot max-posisjoner) ────────────────
@@ -459,25 +447,22 @@ def get_adr_utilization(rows_15m, atr_d):
 
 
 def determine_horizon(criteria, nearest_level_weight):
-    """Bestem horisont basert på rå bool-kriterier, nivå-vekt OG vektet kvalitet.
-    Krever minimum vektet score for å kvalifisere til høyere horisonter —
-    unngår at mange svake kriterier gir MAKRO/SWING."""
+    """Bestem horisont basert på 9 reelle kriterier, nivå-vekt OG vektet kvalitet.
+    Max 9 kriterier: SCALP=5.0, SWING=7.5, MAKRO=9.0"""
     has_cot     = criteria.get("cot_confirms", False)
-    has_level   = criteria.get("price_at_level", False)
     raw_count   = sum(1 for v in criteria.values() if v)
-    # Beregn tentativ vektet score for kvalitetssjekk
     def _tentative_score(h):
         return sum(SCORE_WEIGHTS.get(c, {}).get(h, 0) for c, v in criteria.items() if v)
-    if raw_count >= 8 and has_cot and nearest_level_weight >= 4:
-        # MAKRO krever også minimum 8.0 vektet score (av 13.0)
-        if _tentative_score("MAKRO") >= 8.0:
+    # MAKRO: ≥6/9 treff + COT + sterk HTF-nivå + score ≥7.0/10.0
+    if raw_count >= 6 and has_cot and nearest_level_weight >= 4:
+        if _tentative_score("MAKRO") >= 7.0:
             return "MAKRO"
-        # Faller ned til SWING hvis score ikke kvalifiserer
-    if raw_count >= 6 and nearest_level_weight >= 3:
-        # SWING krever minimum 6.0 vektet score (av 11.5)
-        if _tentative_score("SWING") >= 6.0:
+    # SWING: ≥5/9 treff + HTF-nivå ≥3 + score ≥5.0/8.5
+    if raw_count >= 5 and nearest_level_weight >= 3:
+        if _tentative_score("SWING") >= 5.0:
             return "SWING"
-    if raw_count >= 4 and has_level:
+    # SCALP: ≥3/9 treff
+    if raw_count >= 3:
         return "SCALP"
     return "WATCHLIST"
 
@@ -1447,7 +1432,7 @@ for inst in INSTRUMENTS:
     chg20     = prices[inst["key"]]["chg20d"]
     fg_score  = fg["score"] if fg else 50
 
-    # Pris VED nivå nå — vektbevisst sjekk
+    # Pris ved nivå — kun for display, ikke brukt i horizon/score
     at_sup = any(
         is_at_level(curr, l["price"], atr_for_merge or atr_d*0.4, l["weight"])
         for l in tagged_sup
@@ -1636,15 +1621,10 @@ for inst in INSTRUMENTS:
         "cot_confirms":       cot_confirms,
         "cot_strong":         cot_strong,
         "cot_momentum":       cot_momentum_ok,
-        "price_at_level":     at_level_now,
         "htf_level_weight":   htf_level_nearby,
         "d1_4h_congruent":    align in ("bull", "bear"),
-        "no_event_risk":      no_event_risk,
-        "news_sentiment":     news_confirms_dir,
         "fred_fundamental":   fund_confirms,
         "smc_confirms":       smc_confirms_ok,
-        "vix_term_structure": vix_term_ok,
-        "adr_utilization":    adr_ok,
     }
 
     horizon = determine_horizon(criteria, nearest_level_weight)
@@ -1654,9 +1634,7 @@ for inst in INSTRUMENTS:
     if dxy_conflict:
         penalty = 2.0 if horizon in ("SWING", "MAKRO") else 1.0
         score = max(0, round(score - penalty, 1))
-    # Sterk nyhetsmotvind: trekk fra score — markedet trader på nyheter
-    if news_headwind:
-        score = max(0, round(score - 1.0, 1))
+    # news_headwind fjernet — Google News RSS for upålitelig som score-modifier
 
     grade, grade_color = get_grade(score, horizon)
 

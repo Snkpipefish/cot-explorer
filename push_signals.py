@@ -85,7 +85,7 @@ def active_setup(d):
 
 
 # ── Horisont-baserte terskler ────────────────────────────────
-PUSH_THRESHOLDS = {"SCALP": 5.5, "SWING": 7.5, "MAKRO": 8.5}
+PUSH_THRESHOLDS = {"SCALP": 3.0, "SWING": 4.5, "MAKRO": 5.5}
 HORIZON_PRIORITY = {"MAKRO": 0, "SWING": 1, "SCALP": 2, "WATCHLIST": 3}
 
 HORIZON_CONFIGS = {

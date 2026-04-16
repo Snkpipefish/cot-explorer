@@ -240,33 +240,30 @@ Sammensatt score som bestemmer bull/bear-retning per instrument:
 
 Hysterese: bull krever > 0.5, bear < -0.5. Mellom → SMA200 bestemmer.
 
-### Vektet konfluens-score (14 kriterier)
+### Vektet konfluens-score (9 kriterier)
 
-Hvert kriterium har ulik vekt avhengig av horisont (SCALP/SWING/MAKRO). Maks score varierer per horisont.
+Kun reelle setup-faktorer — boten håndterer entry-timing, event-risiko og ADR selv.
 
-| # | Kriterium | Beskrivelse |
-|---|-----------|-------------|
-| 1 | `sma200` | Over SMA200 (D1 trend) |
-| 2 | `momentum_20d` | chg20 > 0.5% i SMA200-retning (ikke-sirkulært) |
-| 3 | `cot_confirms` | COT bekrefter retning |
-| 4 | `cot_strong` | COT sterk posisjonering (>10% av OI) |
-| 5 | `cot_momentum` | COT ukentlig endring (`change_spec_net`) bekrefter retning |
-| 6 | `price_at_level` | Pris VED HTF-nivå nå (innen 1.5×ATR) |
-| 7 | `htf_level_weight` | HTF-nivå D1/Ukentlig i nærheten (weight ≥ 3) |
-| 8 | `d1_4h_congruent` | D1 + 4H EMA9 kongruent (ekte 4H, ikke 15m) |
-| 9 | `no_event_risk` | Ingen event-risiko (innen 4 timer) |
-| 10 | `news_sentiment` | Nyhetssentiment med sterk konsensus (\|score\| ≥ 0.5) |
-| 11 | `fred_fundamental` | Fundamental (FRED) bekrefter retning |
-| 12 | `smc_confirms` | BOS + SMC markedsstruktur bekrefter retning (begge kreves) |
-| 13 | `vix_term_structure` | VIX contango + VIX < 20 (risk assets) / backwardation (safe havens) |
-| 14 | `adr_utilization` | ADR-utnyttelse < 70% (dagens range vs ATR, default False) |
+| # | Kriterium | SCALP | SWING | MAKRO | Beskrivelse |
+|---|-----------|-------|-------|-------|-------------|
+| 1 | `sma200` | 1.0 | 1.0 | 1.0 | Over SMA200 (D1 trend) |
+| 2 | `momentum_20d` | 1.0 | 1.0 | 1.0 | chg20 > 0.5% i SMA200-retning |
+| 3 | `cot_confirms` | — | 1.0 | 1.0 | COT bekrefter retning |
+| 4 | `cot_strong` | — | 0.5 | 1.0 | COT sterk posisjonering (>10% av OI) |
+| 5 | `cot_momentum` | — | 1.0 | 1.0 | COT ukentlig endring bekrefter retning |
+| 6 | `htf_level_weight` | 1.0 | 1.0 | 1.0 | HTF-nivå D1/Ukentlig i nærheten (weight ≥ 3) |
+| 7 | `d1_4h_congruent` | 1.0 | 1.0 | 1.0 | D1 + 4H EMA9 kongruent |
+| 8 | `fred_fundamental` | — | — | 1.0 | Fundamental (FRED) bekrefter retning |
+| 9 | `smc_confirms` | 1.0 | 1.0 | 1.0 | BOS + SMC markedsstruktur bekrefter |
+| | **Maks** | **5.0** | **7.5** | **9.0** | |
+
+Fjernet (boten sin jobb): `price_at_level` (entry-overvåking), `no_event_risk` (binary risk filter), `adr_utilization` (entry-timing), `news_sentiment` (upålitelig kilde), `vix_term_structure` (dekket av VIX-regime sizing).
 
 ### Score-justeringer (etter vekting)
 
 | Justering | Penalty | Når |
 |-----------|---------|-----|
 | DXY-konflikt | -2.0 (SWING/MAKRO) / -1.0 (SCALP) | USD-par med retning motstridende DXY |
-| Nyhetsmotvind | -1.0 | Sterk nyhetssentiment (\|score\| ≥ 0.4) mot retning |
 | Signal-flip | Nedgradering 1 nivå | Retning eller horisont endret siden forrige kjøring |
 
 ### Olje supply-disruption override
@@ -291,10 +288,10 @@ Krever **både** rå bool-telling OG minimum vektet score for kvalitetssikring:
 
 | Horisont | Rå telling | Tilleggskrav | Min vektet score |
 |----------|-----------|--------------|-----------------|
-| MAKRO | ≥ 8 treff | COT + weight ≥ 4 | ≥ 8.0 (av 13.0) |
-| SWING | ≥ 6 treff | weight ≥ 3 | ≥ 6.0 (av 11.5) |
-| SCALP | ≥ 4 treff | price_at_level + i sesjon | — |
-| WATCHLIST | < 4 treff | — | — |
+| MAKRO | ≥ 6/9 treff | COT + weight ≥ 4 | ≥ 7.0 (av 9.0) |
+| SWING | ≥ 5/9 treff | weight ≥ 3 | ≥ 5.0 (av 7.5) |
+| SCALP | ≥ 3/9 treff | — | — |
+| WATCHLIST | < 3 treff | — | — |
 
 SCALP utenfor optimal sesjon → WATCHLIST automatisk.
 
@@ -302,17 +299,17 @@ SCALP utenfor optimal sesjon → WATCHLIST automatisk.
 
 | Horisont | A+ | A | B | C |
 |----------|----|---|---|---|
-| MAKRO | ≥ 11.5 | ≥ 9.5 | ≥ 7.5 | < 7.5 |
-| SWING | ≥ 10.0 | ≥ 8.5 | ≥ 6.5 | < 6.5 |
-| SCALP | ≥ 8.0 | ≥ 6.5 | ≥ 4.5 | < 4.5 |
+| MAKRO | ≥ 8.0 | ≥ 7.0 | ≥ 5.5 | < 5.5 |
+| SWING | ≥ 6.5 | ≥ 5.5 | ≥ 4.0 | < 4.0 |
+| SCALP | ≥ 4.5 | ≥ 3.5 | ≥ 2.5 | < 2.5 |
 
 ### Push-terskler (til boten)
 
 | Horisont | Minimum vektet score |
 |----------|---------------------|
-| SCALP | 5.5 |
-| SWING | 7.5 |
-| MAKRO | 8.5 |
+| SCALP | 3.0 |
+| SWING | 4.5 |
+| MAKRO | 5.5 |
 | WATCHLIST | Pushes aldri |
 
 ### Signal-stabilitet
