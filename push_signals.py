@@ -478,11 +478,62 @@ def push_discord(text):
         print(f"Discord FEIL: {e}")
 
 
+# H2: Outbox-katalog. Hvis Flask er nede når push_signals.py kjører, lagres
+# payload her; neste kjøring forsøker å sende alt som ligger i kø først.
+# Filene slettes ved vellykket levering. Bevart også ved 4xx slik at operatør
+# kan debugge validerings-avslag manuelt.
+OUTBOX_DIR = BASE / "data" / "outbox"
+
+
+def _send_payload(payload_bytes: bytes) -> tuple[bool, str]:
+    """Returnerer (ok, melding). ok=True ved HTTP 2xx."""
+    url = f"{FLASK_URL}/push-alert"
+    req = urllib.request.Request(
+        url, data=payload_bytes,
+        headers={"Content-Type": "application/json", "X-API-Key": SCALP_API_KEY},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return (True, f"HTTP {resp.status}")
+    except urllib.error.HTTPError as e:
+        # 4xx = skjema/valideringsfeil. Behold i outbox for inspeksjon,
+        # men ikke retry i evigheten — flagg som "stuck".
+        return (False, f"HTTP {e.code} {e.reason}")
+    except urllib.error.URLError as e:
+        return (False, f"nettverk: {e}")
+
+
+def _flush_outbox():
+    """Forsøk å levere hver outbox-fil. Slett ved suksess."""
+    if not OUTBOX_DIR.exists():
+        return
+    stuck = sorted(OUTBOX_DIR.glob("*.json"))
+    if not stuck:
+        return
+    print(f"Outbox: {len(stuck)} ventende payload(s)")
+    for path in stuck:
+        try:
+            ok, msg = _send_payload(path.read_bytes())
+        except Exception as e:
+            print(f"  {path.name}: lesefeil — {e}")
+            continue
+        if ok:
+            path.unlink()
+            print(f"  {path.name} → levert ({msg})")
+        else:
+            # Payload eldre enn 24h med 4xx-feil: slett for å unngå evig retry
+            age_h = (datetime.now(timezone.utc).timestamp() - path.stat().st_mtime) / 3600
+            if msg.startswith("HTTP 4") and age_h > 24:
+                path.unlink()
+                print(f"  {path.name} → droppet (4xx eldre enn 24h)")
+            else:
+                print(f"  {path.name} → utsatt ({msg}, alder {age_h:.1f}h)")
+
+
 # ── Push til Flask /push-alert ────────────────────────────
 def push_flask(signals):
     if not SCALP_API_KEY:
         return
-    url     = f"{FLASK_URL}/push-alert"
     payload = json.dumps({
         # H11: Schema-versjon — bot kan reagere hvis dette ikke matcher
         # forventet versjon. Increment ved breaking endringer i signal-feltene.
@@ -496,15 +547,23 @@ def push_flask(signals):
             "correlation_config": corr_config,
         },
     }).encode()
-    req = urllib.request.Request(
-        url, data=payload,
-        headers={"Content-Type": "application/json", "X-API-Key": SCALP_API_KEY},
-    )
+
+    # H2: Forsøk outbox-flush først (ventende payloads fra tidligere kjøring)
+    _flush_outbox()
+
+    ok, msg = _send_payload(payload)
+    if ok:
+        print(f"Flask /push-alert OK ({msg})")
+        return
+    # Feilet — persist til outbox for retry neste kjøring
+    OUTBOX_DIR.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    fname = OUTBOX_DIR / f"push-{ts}.json"
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            print(f"Flask /push-alert OK ({resp.status})")
-    except urllib.error.URLError as e:
-        print(f"Flask FEIL: {e}")
+        fname.write_bytes(payload)
+        print(f"Flask FEIL ({msg}) — lagret i outbox: {fname.name}")
+    except Exception as e:
+        print(f"Flask FEIL ({msg}) — outbox-skriv også feilet: {e}")
 
 
 # ── Kjør pushes ───────────────────────────────────────────
