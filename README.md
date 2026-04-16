@@ -337,6 +337,67 @@ SCALP utenfor optimal sesjon → WATCHLIST automatisk.
 | 2 | 4H swing / SMC 4H |
 | 1 | 15m pivot / SMC 15m |
 
+### Entry-seleksjon per horisont
+
+| Horisont | Strategi | Maks avstand |
+|----------|----------|-------------|
+| SCALP | Nærmeste nivå (tight entry) | 1.0×ATR(D1) |
+| SWING | Sterkeste weight innen 3×ATR(D1) | 3.0×ATR(D1) |
+| MAKRO | Sterkeste weight innen 5×ATR(D1) | 5.0×ATR(D1) |
+
+SWING/MAKRO prioriterer sterke nivåer (PWH/PWL, PDH/PDL) over nære svake nivåer (15m). SCALP bruker nærmeste for tight entry.
+
+### SL-buffer per kategori
+
+| Kategori | Buffer |
+|----------|--------|
+| Valuta | 0.15×ATR(D1) |
+| Råvarer | 0.25×ATR(D1) |
+| Aksjer | 0.20×ATR(D1) |
+
+### T1/T2-cap per horisont
+
+| Horisont | T1 maks | T2 maks | Min R:R |
+|----------|---------|---------|---------|
+| SCALP | 2.0×ATR(D1) | 3.0×ATR(D1) | 1.0 |
+| SWING | 5.0×ATR(D1) | 8.0×ATR(D1) | 1.3 |
+| MAKRO | Ingen cap | Ingen cap | 1.5 |
+
+### Timeout per horisont
+
+| Horisont | Partial timeout | Hard close |
+|----------|----------------|------------|
+| SCALP | 8 candles (40 min) | 16 candles (80 min) |
+| SWING | 96 candles (8 timer) | 120 timer (5 dager) |
+| MAKRO | 288 candles (24 timer) | 360 timer (15 dager) |
+
+### Trail ATR-multiplikator (kompensert for 15m ATR)
+
+Boten bruker 15m ATR for trailing. Multiplikatorene er justert opp for SWING/MAKRO:
+
+| Gruppe | SCALP (15m) | SWING (~1H) | MAKRO (~D1) |
+|--------|-------------|-------------|-------------|
+| FX | 2.0 | 8.0 | 12.0 |
+| Gold | 2.5 | 10.0 | 15.0 |
+| Silver | 2.5 | 10.0 | 15.0 |
+| Oil | 2.5 | 9.0 | 13.0 |
+| Index | 2.0 | 8.0 | 12.0 |
+
+### Give-back parametere per gruppe
+
+| Gruppe | Peak threshold | Exit threshold |
+|--------|---------------|----------------|
+| FX | 0.85 | 0.30 |
+| Gold | 0.90 | 0.45 |
+| Silver | 0.88 | 0.42 |
+| Oil | 0.90 | 0.45 |
+| Indices | 0.85 | 0.35 |
+| Agri | 0.85-0.88 | 0.35 |
+
+### Geo R:R minimum
+
+Under geo-events: min R:R = 1.5 (senket fra 2.0). Per-horizon minimum gjelder fortsatt (SCALP 1.0, SWING 1.3, MAKRO 1.5).
+
 ---
 
 ## Instruments

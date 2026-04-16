@@ -193,34 +193,30 @@ En vektet `dir_score` bestemmer bull/bear-retning per instrument:
 
 **Maks dir_score:** ±5.5 (alle signaler enige)
 
-### 14 kriterier
+### 9 kriterier
 
-Hvert instrument scores med **vektede kriterier** — ulik vekt per horisont:
+Kun reelle setup-faktorer — boten håndterer entry-timing, event-risiko og ADR selv.
 
 | # | Kriterie | SCALP | SWING | MAKRO |
 |---|---------|-------|-------|-------|
 | 1 | **SMA200** — pris > 200d snitt | 1.0 | 1.0 | 1.0 |
-| 2 | **Momentum 20d** — chg20 > 0.5% i SMA200-retning (ikke-sirkulært) | 1.0 | 1.0 | 1.0 |
-| 3 | **COT bekrefter** — spekulanter i retning | 0 | 1.0 | 1.0 |
-| 4 | **COT sterk >10%** — net > 10% av OI | 0 | 0.5 | 1.0 |
-| 5 | **COT momentum Δ** — ukentlig endring bekrefter | 0 | 1.0 | 1.0 |
-| 6 | **Pris VED nivå** — innenfor 1.5×ATR | 1.5 | 1.5 | 1.5 |
-| 7 | **HTF-nivå weight≥3** — D1/ukentlig nærme | 1.0 | 1.0 | 1.0 |
-| 8 | **D1+4H kongruent** — begge EMA9 peker likt (ekte 4H, ikke 15m) | 1.0 | 1.0 | 1.0 |
-| 9 | **Ingen event-risiko** — ingen NFP/CPI neste 4t | 1.0 | 1.0 | 1.0 |
-| 10 | **Nyhetssentiment** — risk-on/off bekrefter (krever \|score\| ≥ 0.5) | 0.5 | 0.5 | 0.5 |
-| 11 | **Fundamental FRED** — fundamental bekrefter | 0 | 0.5 | 1.0 |
-| 12 | **SMC bekrefter** — BOS + markedsstruktur (begge kreves) | 1.0 | 1.0 | 1.0 |
-| 13 | **VIX term-struktur** — contango+VIX<20 (risk) / backwardation (safe haven) | 0 | 0.5 | 1.0 |
-| 14 | **ADR-utnyttelse** — < 70% av daglig range (default False) | 1.0 | 0 | 0 |
-| | **Maks total** | **9.0** | **11.5** | **13.0** |
+| 2 | **Momentum 20d** — chg20 > 0.5% i SMA200-retning | 1.0 | 1.0 | 1.0 |
+| 3 | **COT bekrefter** — spekulanter i retning | — | 1.0 | 1.0 |
+| 4 | **COT sterk >10%** — net > 10% av OI | — | 0.5 | 1.0 |
+| 5 | **COT momentum Δ** — ukentlig endring bekrefter | — | 1.0 | 1.0 |
+| 6 | **HTF-nivå weight≥3** — D1/ukentlig nærme | 1.0 | 1.0 | 1.0 |
+| 7 | **D1+4H kongruent** — begge EMA9 peker likt | 1.0 | 1.0 | 1.0 |
+| 8 | **Fundamental FRED** — fundamental bekrefter | — | — | 1.0 |
+| 9 | **SMC bekrefter** — BOS + markedsstruktur | 1.0 | 1.0 | 1.0 |
+| | **Maks total** | **5.0** | **7.5** | **9.0** |
+
+Fjernet (boten sin jobb): `price_at_level`, `no_event_risk`, `adr_utilization`, `news_sentiment`, `vix_term_structure`.
 
 ### Score-justeringer (etter vekting)
 
 | Justering | Penalty | Når |
 |-----------|---------|-----|
 | DXY-konflikt | -2.0 (SWING/MAKRO) / -1.0 (SCALP) | USD-par med retning motstridende DXY |
-| Nyhetsmotvind | -1.0 | Sterk nyhetssentiment (\|score\| ≥ 0.4) mot retning |
 | Signal-flip | Nedgradering 1 horisont-nivå | Retning eller horisont endret siden forrige kjøring |
 
 ### Horisont-bestemmelse
@@ -229,10 +225,10 @@ Krever **både** rå bool-telling OG minimum vektet score (kvalitetssikring):
 
 | Betingelse | Tilleggskrav | Min vektet score | Horisont |
 |-----------|--------------|-----------------|----------|
-| ≥ 8 treff + COT + weight ≥ 4 | Vektet score ≥ 8.0 | 8.0/13.0 | **MAKRO** |
-| ≥ 6 treff + weight ≥ 3 | Vektet score ≥ 6.0 | 6.0/11.5 | **SWING** |
-| ≥ 4 treff + price_at_level + **i sesjon** | — | — | **SCALP** |
-| Alt annet | — | — | **WATCHLIST** |
+| ≥ 6/9 treff + COT + weight ≥ 4 | Vektet score ≥ 7.0 | 7.0/9.0 | **MAKRO** |
+| ≥ 5/9 treff + weight ≥ 3 | Vektet score ≥ 5.0 | 5.0/7.5 | **SWING** |
+| ≥ 3/9 treff | — | — | **SCALP** |
+| < 3 treff | — | — | **WATCHLIST** |
 
 **SCALP utenfor optimal sesjon → WATCHLIST** automatisk.
 
@@ -255,9 +251,9 @@ Dette forhindrer at ustabile signaler pushes til boten.
 
 | Horisont | A+ | A | B | C |
 |----------|----|---|---|---|
-| MAKRO | ≥ 11.5 | ≥ 9.5 | ≥ 7.5 | < 7.5 |
-| SWING | ≥ 10.0 | ≥ 8.5 | ≥ 6.5 | < 6.5 |
-| SCALP | ≥ 8.0 | ≥ 6.5 | ≥ 4.5 | < 4.5 |
+| MAKRO | ≥ 8.0 | ≥ 7.0 | ≥ 5.5 | < 5.5 |
+| SWING | ≥ 6.5 | ≥ 5.5 | ≥ 4.0 | < 4.0 |
+| SCALP | ≥ 4.5 | ≥ 3.5 | ≥ 2.5 | < 2.5 |
 
 ---
 
@@ -265,31 +261,37 @@ Dette forhindrer at ustabile signaler pushes til boten.
 
 Level-to-level setups — **strukturbasert**, ikke mekanisk ATR.
 
-### Entry-valg
+### Entry-valg — horizon-tilpasset
 
-**LONG**: Nærmeste støttenivå under nåpris
-- Må være maks 0.3-1.0×ATR(D1) unna (avhengig av vekt)
-  - Vekt 1: maks 0.3×ATR
-  - Vekt 2: maks 0.7×ATR
-  - Vekt ≥ 3: maks 1.0×ATR
+Entry-nivå velges ulikt per horisont:
 
-**SHORT**: Nærmeste motstandsnivå over nåpris (same logikk)
+| Horisont | Strategi | Maks avstand |
+|----------|----------|-------------|
+| SCALP | Nærmeste nivå (tight entry) | 1.0×ATR(D1) |
+| SWING | Sterkeste weight innen 3×ATR(D1) | 3.0×ATR(D1) |
+| MAKRO | Sterkeste weight innen 5×ATR(D1) | 5.0×ATR(D1) |
+
+SWING/MAKRO prioriterer sterke HTF-nivåer (PWH/PWL w5, PDH/PDL w4) over nære svake nivåer (15m w1). Boten overvåker entry-sonen — COT Explorer identifiserer bare det beste nivået.
+
+**LONG**: Sterkeste støttenivå innen horizon-avstand under nåpris
+**SHORT**: Sterkeste motstandsnivå innen horizon-avstand over nåpris
 
 ### Stop Loss — strukturbasert
 
 SL plasseres **ved strukturen**, ikke mekanisk ATR fra nåpris:
 
-**Hvis nivået har SMC demand/supply-sone:**
-```
-SL = zone_bottom - 0.15×ATR(D1) buffer    (LONG)
-SL = zone_top + 0.15×ATR(D1) buffer       (SHORT)
-```
+**Hierarki:**
+1. Entry sin SMC sone-bunn/topp → `SL = zone_bottom - buffer` / `zone_top + buffer`
+2. Nærmeste reelle nivå under/over entry → `SL = nivå - buffer` / `nivå + buffer`
+3. Fallback: `entry ± 2×buffer`
 
-**Hvis linjenivå (PDH/PDL/D1/PWH/PWL):**
-```
-SL = nivå - 0.3×ATR(D1)    (vekt < 4)
-SL = nivå - 0.5×ATR(D1)    (vekt ≥ 4, sterkere nivå → bredere SL)
-```
+**Buffer per kategori:**
+
+| Kategori | Buffer |
+|----------|--------|
+| Valuta | 0.15×ATR(D1) |
+| Råvarer | 0.25×ATR(D1) |
+| Aksjer | 0.20×ATR(D1) |
 
 ### Take Profit
 
@@ -325,10 +327,20 @@ Fra alle instrumenter filtreres kun de som passerer:
 
 | Horisont | Minimum vektet score |
 |----------|---------------------|
-| SCALP | 5.5 |
-| SWING | 7.5 |
-| MAKRO | 8.5 |
+| SCALP | 3.0 |
+| SWING | 4.5 |
+| MAKRO | 5.5 |
 | WATCHLIST | Aldri |
+
+### Signal aging (entry distance)
+
+Signaler avvises hvis pris har beveget seg for langt fra entry (bruker D1 ATR):
+
+| Horisont | Maks avstand |
+|----------|-------------|
+| SCALP | 1.5×ATR(D1) |
+| SWING | 2.5×ATR(D1) |
+| MAKRO | 4.0×ATR(D1) |
 
 ### Sortering
 
@@ -368,10 +380,11 @@ Hvert signal inkluderer en `horizon_config` med parametre for boten:
   "exit_t1_close_pct": 0.33,
   "exit_t2_close_pct": 0.33,
   "exit_trail_tf": "1H",
-  "exit_trail_atr_mult": {"fx": 3.0, "gold": 4.0, "oil": 3.5, "index": 3.0},
+  "exit_trail_atr_mult": {"fx": 8.0, "gold": 10.0, "silver": 10.0, "oil": 9.0, "index": 8.0},
   "exit_ema_tf": "1H",
-  "exit_be_timeout_hours": 48,
+  "exit_timeout_partial_candles": 96,
   "exit_timeout_full_hours": 120,
+  "exit_be_timeout_hours": 48,
   "sizing_base_risk_usd": 40
 }
 ```
@@ -385,13 +398,17 @@ Hvert signal inkluderer en `horizon_config` med parametre for boten:
   "exit_t1_close_pct": 0.25,
   "exit_t2_close_pct": 0.25,
   "exit_trail_tf": "D1",
-  "exit_trail_atr_mult": {"fx": 2.0, "gold": 2.5, "oil": 2.5, "index": 2.0},
+  "exit_trail_atr_mult": {"fx": 12.0, "gold": 15.0, "silver": 15.0, "oil": 13.0, "index": 12.0},
   "exit_ema_tf": "D1",
+  "exit_timeout_partial_candles": 288,
+  "exit_timeout_full_hours": 360,
   "exit_timeout_days": 15,
   "exit_score_deterioration": 6.0,
   "sizing_base_risk_usd": 60
 }
 ```
+
+> **Merk:** Trail ATR-multiplikatorene er kompensert for at boten bruker 15m ATR internt. SWING ×8-10 tilsvarer ~3× 1H ATR. MAKRO ×12-15 tilsvarer ~2.5× D1 ATR.
 
 ### Global State
 
@@ -625,12 +642,14 @@ Maks samtidige agri-posisjoner: 2.
 |-------|---------|----------|
 | **T1** | Pris ≥ T1 | Lukk 33%, SL → break-even |
 | **T2** | Pris ≥ T2 | Lukk 33%, trail aktivert |
-| **Trail** | Trail stop truffet (3.0-4.0×ATR 1H) | Lukk remaining |
-| **EMA9** | EMA9(1H) krysser pris (post-T1) | Lukk remaining |
+| **Trail** | Trail stop truffet (8-10× 15m ATR ≈ 3× 1H ATR) | Lukk remaining |
+| **EMA9** | Deaktivert for SWING (exit_ema_tf=1H) | — |
+| **Give-back** | Peak ≥85-90% av T1, nå ≤30-45% | Lukk alt (pre-T1) |
+| **Partial timeout** | 96 candles (8 timer) | Lukk 50% eller trail |
+| **Full timeout** | 120 timer (5 dager) | Lukk alt remaining |
 | **BE timeout** | 48 timer uten T1 | Flytt SL → break-even |
-| **Full timeout** | 120 timer total | Lukk alt remaining |
 | **Event** | Høy-risiko event innen 2 timer | Lukk alt |
-| **Geo-spike** | > 3.0×ATR mot posisjon | Nødlukk alt |
+| **Geo-spike** | > 3.0× 15m ATR mot posisjon | Nødlukk alt |
 
 **MAKRO:**
 
@@ -638,21 +657,40 @@ Maks samtidige agri-posisjoner: 2.
 |-------|---------|----------|
 | **T1** | Pris ≥ T1 | Lukk 25%, SL → break-even |
 | **T2** | Pris ≥ T2 | Lukk 25%, trail aktivert |
-| **Trail** | Trail stop truffet (2.0-2.5×ATR D1) | Lukk remaining |
-| **EMA9** | EMA9(D1) krysser pris (post-T1) | Lukk remaining |
+| **Trail** | Trail stop truffet (12-15× 15m ATR ≈ 2.5× D1 ATR) | Lukk remaining |
+| **EMA9** | Deaktivert for MAKRO (exit_ema_tf=D1) | — |
+| **Give-back** | Peak ≥85-90% av T1, nå ≤30-45% | Lukk alt (pre-T1) |
+| **Partial timeout** | 288 candles (24 timer) | Lukk 50% eller trail |
+| **Full timeout** | 360 timer (15 dager) | Lukk alt remaining |
 | **Score-forverring** | Score faller under 6.0 | Lukk alt |
-| **Full timeout** | 15 dager total | Lukk alt remaining |
-| **Geo-spike** | > 3.0×ATR mot posisjon | Nødlukk alt |
+| **Geo-spike** | > 3.0× 15m ATR mot posisjon | Nødlukk alt |
 
-### Trail Stop (etter T1) — per instrument-gruppe
+### Trail ATR-multiplikator (kompensert for 15m ATR)
 
-| Gruppe | SCALP | SWING | MAKRO |
-|--------|-------|-------|-------|
-| FX | 2.0×ATR | 3.0×ATR | 2.0×ATR |
-| Gold | 2.5×ATR | 4.0×ATR | 2.5×ATR |
-| Silver | 2.5×ATR | 4.0×ATR | 2.5×ATR |
-| Oil | 2.5×ATR | 3.5×ATR | 2.5×ATR |
-| Index | 2.0×ATR | 3.0×ATR | 2.0×ATR |
+Boten bruker 15m ATR for trailing uavhengig av horizon_config.exit_trail_tf. Multiplikatorene er justert opp:
+
+| Gruppe | SCALP (×15m) | SWING (≈×1H) | MAKRO (≈×D1) |
+|--------|-------------|-------------|-------------|
+| FX | 2.0 | 8.0 | 12.0 |
+| Gold | 2.5 | 10.0 | 15.0 |
+| Silver | 2.5 | 10.0 | 15.0 |
+| Oil | 2.5 | 9.0 | 13.0 |
+| Index | 2.0 | 8.0 | 12.0 |
+
+### Give-back parametere per gruppe
+
+| Gruppe | Peak threshold | Exit threshold |
+|--------|---------------|----------------|
+| FX | 0.85 | 0.30 |
+| Gold | 0.90 | 0.45 |
+| Silver | 0.88 | 0.42 |
+| Oil | 0.90 | 0.45 |
+| Indices | 0.85 | 0.35 |
+| Agri | 0.85-0.88 | 0.35 |
+
+### Geo R:R minimum
+
+Under geo-events: min R:R = 1.5 (senket fra 2.0 — oppblåst ATR gir bredere SL, per-horizon minimum er allerede konservativt).
 
 ### Agri-spesifikke regler
 
