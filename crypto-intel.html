@@ -471,13 +471,23 @@ function renderPage(d){
 }
 
 // ── Last data og render ──────────────────────────────────────────
-fetch('data/crypto/latest.json')
-  .then(function(r){return r.json();})
-  .then(function(d){renderPage(d);})
-  .catch(function(e){
-    document.getElementById('content').innerHTML='<div class="loading">Ingen krypto-data — kjør fetch_crypto.py</div>';
-    console.error(e);
-  });
+var _cryptoUpdated = null;
+function loadCrypto(){
+  fetch('data/crypto/latest.json?_t='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.updated !== _cryptoUpdated){
+        _cryptoUpdated = d.updated;
+        renderPage(d);
+      }
+    })
+    .catch(function(e){
+      document.getElementById('content').innerHTML='<div class="loading">Ingen krypto-data — kjør fetch_crypto.py</div>';
+      console.error(e);
+    });
+}
+loadCrypto();
+setInterval(loadCrypto, 60000);
 </script>
 </body>
 </html>

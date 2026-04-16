@@ -424,6 +424,8 @@ SCALP utenfor optimal sesjon → WATCHLIST automatisk.
 | `data/geointel/chokepoints.json` | 6 chokepoints | Statisk |
 | `data/geointel/mines.json` | 26 gruver | Statisk |
 | `~/scalp_edge/live_prices.json` | Live priser fra bot (21 symboler) | Hvert 58. min |
+| `utils.py` | Delt verktøybibliotek (logging, retry, stooq, news, freshness) | — |
+| `logs/` | Python-loggfiler per script | Ved kjøring |
 
 ---
 
@@ -436,7 +438,70 @@ SCALP utenfor optimal sesjon → WATCHLIST automatisk.
 - GitHub Pages har aggressiv caching — bruk Ctrl+Shift+R etter push for å se endringer umiddelbart.
 - Mapbox-kart i råvare-tabene er satt til `interactive: false` (ikke zoombare) med Mercator-projeksjon og utvidet høyde (650px) for å vise polområder.
 - COT momentum bruker `change_spec_net` fra ukentlige COT-rapporter (`data/tff/`, `data/disaggregated/`), ikke timeseries-filer (som er utdaterte).
-- Agri-signaler krever pris fra bot (`bot_history.json`) — uten bot-priser genereres ingen setups for det instrumentet.
+- Agri-signaler bruker Yahoo Finance som fallback når bot-priser mangler (`bot_history.json`).
+
+---
+
+## Robusthet og datakvalitet
+
+### Delt verktøybibliotek (`utils.py`)
+
+Felles hjelpefunksjoner som eliminerer kodeduplisering på tvers av fetch-scripts:
+
+| Funksjon | Beskrivelse |
+|----------|-------------|
+| `get_logger(name)` | Logger med fil- og konsoll-output til `logs/` |
+| `fetch_url()` / `fetch_json()` | HTTP med retry (eksponentiell backoff, 3 forsøk) |
+| `fetch_stooq(symbol)` | Prisdata fra Stooq (brukes av oilgas, shipping, crypto) |
+| `fetch_google_news()` | Google News RSS (brukes av oilgas, shipping, crypto, intel) |
+| `save_json_with_meta()` | Lagrer JSON med `_meta`-felt for freshness-tracking |
+| `validate_price()` | Validerer numeriske prisverdier (NaN, negative, range) |
+| `check_data_freshness()` | Sjekker filens alder mot maks tillatt |
+
+### Freshness-tracking (`_meta`)
+
+Alle JSON-outputfiler inneholder et `_meta`-felt:
+
+```json
+{
+  "_meta": {
+    "generated_at": "2026-04-16T09:13:00Z",
+    "script": "fetch_oilgas.py"
+  }
+}
+```
+
+`push_signals.py` sjekker freshness ved oppstart og advarer hvis upstream-data er for gammel:
+- `macro/latest.json` — maks 6 timer
+- `shipping/latest.json` — maks 24 timer
+- `oilgas/latest.json` — maks 24 timer
+- `fundamentals/latest.json` — maks 48 timer
+
+### Signal-aldring (entry distance)
+
+Signaler der prisen har beveget seg for langt fra entry-nivået avvises automatisk:
+
+| Horisont | Maks avstand (×ATR) |
+|----------|---------------------|
+| SCALP | 1.5 |
+| SWING | 2.5 |
+| MAKRO | 4.0 |
+
+### FRED-fallback
+
+`fetch_fundamentals.py` har retry-logikk (3 forsøk med backoff) og bruker forrige kjøring som fallback hvis færre enn 3 indikatorer ble hentet.
+
+### Prisvalidering i signal server
+
+`/push-prices` avviser NaN, negative verdier og urealistisk høye priser (>10M). Ugyldig data logges med advarsel.
+
+### Auto-refresh dashboard
+
+Alle tre dashboards (`index.html`, `crypto-intel.html`) poller hvert 60. sekund og oppdaterer kun ved ny data.
+
+### Frontend-optimalisering
+
+`index.html` laster alle 5 JSON-filer parallelt med `Promise.all()` i stedet for sekvensielt — ~2-3× raskere initial lasting.
 
 ---
 
@@ -449,7 +514,7 @@ SCALP utenfor optimal sesjon → WATCHLIST automatisk.
 | Kart | Mapbox GL JS med satelitt/mørkt tema — per-tab overlays (pipelines, gruver, landbruk) |
 | Grafer | Chart.js (COT-historikk modal, stacked bar charts) |
 | Tidssoner | `toNO()` helper konverterer UTC-timestamps til norsk tid (Europe/Oslo) |
-| Backend | Python 3 + `requests` + `openpyxl` |
+| Backend | Python 3 + `requests` + `openpyxl` + `utils.py` (delt verktøybibliotek) |
 | Hosting | GitHub Pages (statisk) |
 | Automatisering | `cot-prices.timer` (XX:40 hver time) + `cot-explorer.timer` (6× daglig man-fre + lør 00:00) |
 | Prisintegrasjon | `signal_server.py` Flask — `POST /push-prices`, `GET /prices` → `update_prices.sh` patcher JSON |

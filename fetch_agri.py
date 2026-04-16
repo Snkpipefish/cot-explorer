@@ -221,55 +221,52 @@ def detect_growth_stage(stages_array, month):
     icon = STAGE_ICONS.get(stage_no, "🌱")
     in_season = raw_stage in ACTIVE_STAGES
 
-    # Finn sesongvindu (start og slutt-måned)
+    # Finn sesongvindu — støtter wrap-around for sørlig halvkule (f.eks. okt→mar)
+    active_months = [i for i in range(12) if stages_array[i] in ACTIVE_STAGES]
     season_start = None
     season_end = None
-    for i in range(12):
-        if stages_array[i] in ACTIVE_STAGES:
-            if season_start is None:
-                season_start = i + 1
-            season_end = i + 1
 
-    # Håndter wrap-around (f.eks. sørlig halvkule: okt-mar)
-    if season_start is not None:
-        # Sjekk om sesongen wrapper rundt årsskiftet
-        first_inactive = None
-        for i in range(12):
-            if stages_array[i] not in ACTIVE_STAGES:
-                if first_inactive is None:
-                    first_inactive = i
-            elif first_inactive is not None:
-                # Fant aktiv etter inaktiv → mulig wrap
+    if active_months:
+        # Sjekk om det er et gap i midten (= wrap-around)
+        has_gap = False
+        for i in range(len(active_months) - 1):
+            if active_months[i + 1] - active_months[i] > 1:
+                has_gap = True
+                # Gap-start = siste aktive før gap, gap-end = første aktive etter gap
+                # Wrappet sesong: start = etter gapet, slutt = før gapet
+                season_start = active_months[i + 1] + 1  # 1-indexed
+                season_end = active_months[i] + 1
                 break
+        if not has_gap:
+            season_start = active_months[0] + 1
+            season_end = active_months[-1] + 1
 
-        if season_start is not None and season_end is not None:
-            if season_end >= season_start:
-                total_months = season_end - season_start + 1
-                if in_season:
-                    elapsed = month - season_start
-                    season_pct = round(elapsed / total_months * 100)
-                else:
-                    season_pct = 0
+    if season_start is not None and season_end is not None:
+        is_wrapped = season_end < season_start
+        if not is_wrapped:
+            total_months = season_end - season_start + 1
+            if in_season:
+                elapsed = month - season_start
+                season_pct = round(elapsed / total_months * 100)
             else:
-                # Wrap-around
-                total_months = (12 - season_start + 1) + season_end
-                if in_season:
-                    if month >= season_start:
-                        elapsed = month - season_start
-                    else:
-                        elapsed = (12 - season_start) + month
-                    season_pct = round(elapsed / total_months * 100)
-                else:
-                    season_pct = 0
+                season_pct = 0
         else:
-            total_months = 0
-            season_pct = 0
-
-        MND = ["jan","feb","mar","apr","mai","jun","jul","aug","sep","okt","nov","des"]
-        season_label = f"{MND[season_start-1]}–{MND[season_end-1]}" if season_start and season_end else None
+            # Wrap-around (f.eks. start=okt(10), end=mar(3))
+            total_months = (12 - season_start + 1) + season_end
+            if in_season:
+                if month >= season_start:
+                    elapsed = month - season_start
+                else:
+                    elapsed = (12 - season_start) + month
+                season_pct = round(elapsed / total_months * 100)
+            else:
+                season_pct = 0
     else:
+        total_months = 0
         season_pct = 0
-        season_label = None
+
+    MND = ["jan","feb","mar","apr","mai","jun","jul","aug","sep","okt","nov","des"]
+    season_label = f"{MND[season_start-1]}–{MND[season_end-1]}" if season_start and season_end else None
 
     # Finn forventet høstmåned
     harvest_months = [i+1 for i in range(12) if stages_array[i] in ("harvest", "ripening")]

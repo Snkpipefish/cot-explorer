@@ -20,7 +20,7 @@ import sys
 import urllib.request
 import urllib.error
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 # ── Konfigurasjon ─────────────────────────────────────────
 BASE          = Path(__file__).parent
@@ -56,6 +56,27 @@ levels    = macro.get("trading_levels", {})
 vix_price = (macro.get("prices") or {}).get("VIX", {}).get("price", 20)
 generated = macro.get("date", "ukjent")
 cot_date  = macro.get("cot_date", "")
+
+# ── Freshness-sjekk: advarer om stale data ────────────────
+def _check_freshness(filepath, max_age_hours, label):
+    """Sjekk om en datafil er for gammel."""
+    try:
+        p = Path(filepath)
+        if not p.exists():
+            print(f"  ⚠️  {label}: fil mangler ({filepath})")
+            return False
+        age_h = (datetime.now(timezone.utc) - datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc)).total_seconds() / 3600
+        if age_h > max_age_hours:
+            print(f"  ⚠️  {label}: {age_h:.0f}t gammel (maks {max_age_hours}t)")
+            return False
+        return True
+    except Exception:
+        return True
+
+_check_freshness(DATA_FILE, 6, "macro/latest.json")
+_check_freshness(BASE / "data" / "shipping" / "latest.json", 24, "shipping data")
+_check_freshness(BASE / "data" / "oilgas" / "latest.json", 24, "oilgas data")
+_check_freshness(BASE / "data" / "fundamentals" / "latest.json", 48, "fundamentals data")
 
 
 # ── Aktiv setup basert på retning ─────────────────────────
@@ -133,10 +154,22 @@ def should_push(d):
         return False
     if d.get("dir_color") not in ("bull", "bear"):
         return False
-    if not active_setup(d):
+    setup = active_setup(d)
+    if not setup:
         return False
     threshold = PUSH_THRESHOLDS.get(horizon, 999)
-    return d.get("score", 0) >= threshold
+    if d.get("score", 0) < threshold:
+        return False
+    # Signal aging: avvis hvis pris har beveget seg for langt fra entry
+    current = d.get("current")
+    entry = setup.get("entry")
+    atr = d.get("atr14") or d.get("atr_d1")
+    if current and entry and atr and atr > 0:
+        dist = abs(current - entry) / atr
+        max_dist = {"SCALP": 1.5, "SWING": 2.5, "MAKRO": 4.0}.get(horizon, 2.5)
+        if dist > max_dist:
+            return False
+    return True
 
 
 candidates = [
@@ -199,6 +232,12 @@ signals_json = {
         "oil_min_sl_pips":         25,
     },
     "signals":   [],
+    "_meta": {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "script": "push_signals.py",
+        "macro_date": generated,
+        "cot_date": cot_date,
+    },
 }
 for key, d in top:
     setup = active_setup(d)

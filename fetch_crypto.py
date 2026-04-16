@@ -246,6 +246,10 @@ result = {
     "correlations": correlations,
     "cot_btc":      cot_btc,
     "news":         unique_news[:30],
+    "_meta": {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "script": "fetch_crypto.py",
+    },
 }
 
 with open(OUT, "w") as f:

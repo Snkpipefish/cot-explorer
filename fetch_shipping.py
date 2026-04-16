@@ -369,6 +369,10 @@ output = {
     "indices":      indices_result,
     "routes":       routes,
     "news":         all_news[:50],
+    "_meta": {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "script": "fetch_shipping.py",
+    },
 }
 
 with open(OUT, "w") as f:

@@ -313,8 +313,10 @@ def get_combined_cot(cot_key, ice_market_name):
     if not cftc:
         return ice
     # OI-vekta netto-%
-    total_oi = (cftc.get("net", 0) / (cftc.get("net_pct", 1) / 100) if cftc.get("net_pct") else 1)
-    ice_oi   = (ice.get("net", 0)  / (ice.get("net_pct", 1)  / 100) if ice.get("net_pct")  else 1)
+    cftc_net_pct = cftc.get("net_pct", 0) or 0
+    ice_net_pct  = ice.get("net_pct", 0) or 0
+    total_oi = abs(cftc.get("net", 0) / (cftc_net_pct / 100)) if cftc_net_pct != 0 else abs(cftc.get("net", 0)) or 1
+    ice_oi   = abs(ice.get("net", 0)  / (ice_net_pct  / 100)) if ice_net_pct  != 0 else abs(ice.get("net", 0))  or 1
     combined_net = cftc.get("net", 0) + ice.get("net", 0)
     combined_oi  = abs(total_oi) + abs(ice_oi)
     net_pct = combined_net / combined_oi * 100 if combined_oi else 0
@@ -541,6 +543,10 @@ output = {
     "instruments":    instruments,
     "segments":       segments,
     "news":           all_news[:50],
+    "_meta": {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "script": "fetch_oilgas.py",
+    },
 }
 
 with open(OUT, "w") as f:

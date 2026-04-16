@@ -95,6 +95,30 @@ if BOT_HISTORY.exists():
     except Exception:
         pass
 
+# Yahoo Finance fallback for agri-priser når bot-priser mangler
+YAHOO_AGRI_MAP = {
+    "corn": "ZC=F", "wheat": "ZW=F", "soybeans": "ZS=F",
+    "cotton": "CT=F", "sugar": "SB=F", "coffee": "KC=F", "cocoa": "CC=F",
+}
+if not bot_prices:
+    import urllib.request
+    print("  Bot-priser mangler — prøver Yahoo Finance fallback for agri...")
+    for crop_key, yahoo_sym in YAHOO_AGRI_MAP.items():
+        if crop_key in bot_prices:
+            continue
+        try:
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_sym}?interval=1d&range=5d"
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=10) as r:
+                data = json.loads(r.read())
+            closes = data["chart"]["result"][0]["indicators"]["quote"][0]["close"]
+            valid = [c for c in closes if c is not None]
+            if valid:
+                bot_prices[crop_key] = valid[-1]
+                print(f"    {crop_key}: {valid[-1]} (Yahoo)")
+        except Exception as e:
+            print(f"    {crop_key}: Yahoo FEIL — {e}")
+
 # Geo-status fra makro
 sentiment  = macro.get("sentiment") or {}
 news       = sentiment.get("news") or {}

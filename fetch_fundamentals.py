@@ -25,6 +25,16 @@ if not FRED_API_KEY:
     print("FEIL: FRED_API_KEY ikke satt. Legg til i ~/.bashrc: export FRED_API_KEY='din_nøkkel'")
     print("Gratis nøkkel: https://fred.stlouisfed.org/docs/api/api_key.html")
     import sys; sys.exit(1)
+
+def _load_previous_output():
+    """Last forrige kjøring som fallback ved FRED-feil."""
+    try:
+        if os.path.exists(OUT):
+            with open(OUT) as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return None
 BASE = os.path.expanduser("~/cot-explorer/data")
 OUT  = os.path.join(BASE, "fundamentals", "latest.json")
 os.makedirs(os.path.join(BASE, "fundamentals"), exist_ok=True)
@@ -96,25 +106,29 @@ INSTRUMENT_USD_DIR = {
 EQ_INSTRUMENTS = {"SPX", "NAS100", "Brent", "WTI"}
 
 # ── FRED-henting ──────────────────────────────────────────────────────────────
-def fetch_fred_api(series_id, limit=16):
+def fetch_fred_api(series_id, limit=16, retries=2):
     url = (f"https://api.stlouisfed.org/fred/series/observations"
            f"?series_id={series_id}&api_key={FRED_API_KEY}"
            f"&file_type=json&sort_order=desc&limit={limit}")
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    try:
-        with urllib.request.urlopen(req, timeout=12) as r:
-            d = json.loads(r.read())
-        obs = []
-        for o in d.get("observations", []):
-            if o.get("value") not in (".", "", None):
-                try:
-                    obs.append((o["date"], float(o["value"])))
-                except (ValueError, KeyError):
-                    pass
-        return list(reversed(obs))
-    except Exception as e:
-        print(f"  FRED {series_id} FEIL: {e}")
-        return []
+    for attempt in range(retries + 1):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=12) as r:
+                d = json.loads(r.read())
+            obs = []
+            for o in d.get("observations", []):
+                if o.get("value") not in (".", "", None):
+                    try:
+                        obs.append((o["date"], float(o["value"])))
+                    except (ValueError, KeyError):
+                        pass
+            return list(reversed(obs))
+        except Exception as e:
+            if attempt < retries:
+                time.sleep(1)
+                continue
+            print(f"  FRED {series_id} FEIL (etter {retries+1} forsøk): {e}")
+            return []
 
 # ── Scoring per indikator ─────────────────────────────────────────────────────
 def score_indicator(key, current, previous):
@@ -422,6 +436,17 @@ for key, cfg in FRED_SERIES.items():
         print(f"    → FEIL eller for få datapunkter")
     time.sleep(0.15)
 
+# Fallback: bruk forrige output hvis for få indikatorer ble hentet
+if len(indicators) < 3:
+    prev = _load_previous_output()
+    if prev and prev.get("indicators"):
+        print(f"  ADVARSEL: Kun {len(indicators)} indikatorer hentet — bruker forrige kjøring som fallback")
+        for k, v in prev["indicators"].items():
+            if k not in indicators:
+                indicators[k] = v
+                indicators[k]["_fallback"] = True
+        print(f"  → {len(indicators)} indikatorer etter fallback")
+
 # 2. Supplement PMI fra kalender
 cal_pmi = try_calendar_pmi()
 for k, pmi in cal_pmi.items():
@@ -507,6 +532,11 @@ output = {
     "category_scores":   category_scores,
     "indicators":        indicators,
     "instrument_scores": instrument_scores,
+    "_meta": {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "script": "fetch_fundamentals.py",
+        "has_fallback": any(v.get("_fallback") for v in indicators.values()),
+    },
 }
 with open(OUT, "w") as f:
     json.dump(output, f, ensure_ascii=False, indent=2)

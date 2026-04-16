@@ -123,7 +123,7 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .cot-modal-inner{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:20px;width:90%;max-width:800px;max-height:90vh;overflow-y:auto}
 .cot-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .cot-modal-title{font-size:16px;font-weight:700}
-.cot-modal-close{cursor:pointer;font-size:20px;color:var(--m);padding:4px 8px;border-radius:4px;border:1px solid var(--b)}
+.cot-modal-close{cursor:pointer;font-size:20px;color:var(--m);padding:4px 8px;border-radius:4px;border:1px solid var(--b);position:sticky;top:0;z-index:10;background:var(--s);flex-shrink:0}
 .cot-modal-close:hover{background:var(--s2)}
 .cot-chart-wrap{width:100%;height:300px;position:relative}
 canvas#cotChart{width:100%!important;height:300px!important}
@@ -1277,48 +1277,51 @@ function renderSignallogg(log){
 async function loadAll(){
   var signalsData=null, logData=null;
   try{
-    var r=await fetch('data/macro/latest.json');
-    M=await r.json();
-    renderTopbar(M.prices||{});
-    renderMakro(M);
-    renderIdeer(M);
-    renderCal(M.calendar||[]);
-    if(M.date){
-      var d=toNO(M.date);
-      document.getElementById('calDate').textContent='Oppdatert: '+d+' · Kilde: ForexFactory';
-      document.getElementById('priserDate').textContent='Oppdatert: '+d+' · Kilde: Skilling bot · Yahoo Finance';
+    // Parallell lasting av alle JSON-filer (var sekvensielt, nå 2-3× raskere)
+    var [r1, r2, r3, r4, r5] = await Promise.all([
+      fetch('data/macro/latest.json').then(function(r){return r.json()}).catch(function(){return null}),
+      fetch('data/combined/latest.json').then(function(r){return r.json()}).catch(function(){return null}),
+      fetch('data/signal_log.json').then(function(r){return r.json()}).catch(function(){return null}),
+      fetch('data/signals.json').then(function(r){return r.json()}).catch(function(){return null}),
+      fetch('data/agri_signals.json').then(function(r){return r.json()}).catch(function(){return null}),
+    ]);
+    if(r1){
+      M=r1;
+      renderTopbar(M.prices||{});
+      renderMakro(M);
+      renderIdeer(M);
+      renderCal(M.calendar||[]);
+      if(M.date){
+        var d=toNO(M.date);
+        document.getElementById('calDate').textContent='Oppdatert: '+d+' · Kilde: ForexFactory';
+        document.getElementById('priserDate').textContent='Oppdatert: '+d+' · Kilde: Skilling bot · Yahoo Finance';
+      }
+      renderPrices(M.prices||{});
+      renderKorrelasjoner(M.correlations||null);
+    } else {
+      document.getElementById('ideGrid').innerHTML='<div class="loading">Kjor fetch_all.py og push til GitHub</div>';
     }
-    renderPrices(M.prices||{});
-    renderKorrelasjoner(M.correlations||null);
-  }catch(e){
-    document.getElementById('ideGrid').innerHTML='<div class="loading">Kjor fetch_all.py og push til GitHub</div>';
-    console.error(e);
-  }
-  try{
-    var r2=await fetch('data/combined/latest.json');
-    COT=await r2.json();
-    renderCot();
-  }catch(e){console.error(e);}
-  try{
-    var r3=await fetch('data/signal_log.json');
-    logData=await r3.json();
-    renderSignallogg(logData);
-  }catch(e){
-    document.getElementById('logGrid').innerHTML='<div class="loading">Ingen logg ennå — kjøres etter neste fetch_all.py</div>';
-    console.error(e);
-  }
-  try{
-    var r4=await fetch('data/signals.json');
-    signalsData=await r4.json();
-  }catch(e){console.error(e);}
-  try{
-    var r5=await fetch('data/agri_signals.json');
-    var agriData=await r5.json();
-    renderAgriSetups(agriData);
-  }catch(e){console.error(e);}
-  renderDashboard(M, signalsData, logData, COT);
+    if(r2){ COT=r2; renderCot(); }
+    if(r3){ logData=r3; renderSignallogg(logData); }
+    else { document.getElementById('logGrid').innerHTML='<div class="loading">Ingen logg ennå</div>'; }
+    if(r4){ signalsData=r4; }
+    if(r5){ renderAgriSetups(r5); }
+    renderDashboard(M, signalsData, logData, COT);
+  }catch(e){ console.error('loadAll feil:', e); }
 }
 loadAll();
+// Auto-refresh hvert 60. sekund (sjekker om data er oppdatert)
+var _lastGenerated = null;
+setInterval(async function(){
+  try{
+    var r=await fetch('data/signals.json?_t='+Date.now());
+    var d=await r.json();
+    if(d.generated && d.generated !== _lastGenerated){
+      _lastGenerated = d.generated;
+      loadAll();
+    }
+  }catch(e){}
+}, 60000);
 
 var cotChartInst = null;
 
