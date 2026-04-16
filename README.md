@@ -402,27 +402,46 @@ Under geo-events: min R:R = 1.5 (senket fra 2.0). Per-horizon minimum gjelder fo
 
 ## Instruments
 
+### Tradeable (scores + signaler via fetch_all.py)
+
 | Key | Priskilde | COT-marked | Klasse |
 |-----|-----------|------------|--------|
 | EURUSD | Bot (Skilling) | CFTC euro fx | A |
 | USDJPY | Bot (Skilling) | CFTC japanese yen | A |
 | GBPUSD | Bot (Skilling) | CFTC british pound | A |
 | AUDUSD | Bot (Skilling) | — | A |
-| USDCHF | Bot (Skilling) | — | A |
-| USDNOK | Bot (Skilling) | — | A |
-| USDCAD | Bot (Skilling) | — | A |
-| NZDUSD | Bot (Skilling) | — | A |
 | Gold | Bot (Skilling) | CFTC gold | B |
 | Silver | Bot (Skilling) | CFTC silver | B |
 | Brent | Bot (Skilling) | ICE+CFTC (OI-vektet) | B |
 | WTI | Bot (Skilling) | CFTC crude oil | B |
 | SPX | Bot (Skilling) | CFTC s&p 500 | C |
 | NAS100 | Bot (Skilling) | CFTC nasdaq mini | C |
-| DXY | Bot (Skilling) | CFTC usd index | A (kun display) |
+| DXY | Bot (Skilling) | CFTC usd index | A (kun display, ikke tradeable) |
 | VIX | Yahoo Finance | — | C (kun posisjonsstørrelse) |
-| BTC/ETH/SOL/XRP | Bot (Skilling) | — | — |
-| Coffee/Cotton/Sugar/Cocoa | Bot (Skilling) | — | — (agri-priser) |
-| Corn/Soybean/Wheat | Bot (Skilling) | — | — (agri-priser) |
+
+### Kun priser (prices_only — vises på dashboard, ikke scoret)
+
+| Key | Priskilde | Merknad |
+|-----|-----------|---------|
+| USDCHF | Bot (Skilling) | Korrelasjonsinstrument |
+| USDNOK | Bot (Skilling) | Korrelasjonsinstrument |
+
+### Kun bot pris-feed (ikke i fetch_all.py)
+
+| Key | Priskilde | Merknad |
+|-----|-----------|---------|
+| USDCAD | Bot (Skilling) | Pris-feed til dashboard |
+| NZDUSD | Bot (Skilling) | Pris-feed til dashboard |
+| EURGBP | Bot (Skilling) | Pris-feed til dashboard |
+| BTC/ETH/SOL/XRP/ADA/DOGE | Bot (Skilling) | Crypto dashboard |
+| NatGas | Bot (Skilling) | Energi dashboard |
+
+### Agri-instrumenter (signaler via fetch_agri.py + push_agri_signals.py)
+
+| Key | Priskilde | Merknad |
+|-----|-----------|---------|
+| Coffee/Cotton/Sugar/Cocoa | Bot (Skilling) | Fundamental scoring (vær/yield/ENSO) |
+| Corn/Soybean/Wheat | Bot (Skilling) | Fundamental scoring (vær/yield/ENSO) |
 
 ---
 
