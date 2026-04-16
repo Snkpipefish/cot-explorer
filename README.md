@@ -121,7 +121,7 @@ Dashboard med 4 kort: Markedsbildet, Signaler, Store investorer, Nyheter
 To timers kjører på serveren:
 
 **`cot-prices.timer`** — hvert hele time på XX:40
-Kjører `update_prices.sh`: henter bot-priser fra `~/scalp_edge/live_prices.json` → patcher `macro/latest.json`, `oilgas/latest.json`, `agri/latest.json`, `crypto/latest.json` → git push
+Kjører `update_prices.sh`: henter bot-priser → patcher JSON → `rescore.py` (oppdaterer sma200, momentum_20d, d1_4h_congruent + graduert DXY-penalty) → `push_signals.py --scalp-only` → git push
 
 **`cot-explorer.timer`** — 6× daglig hverdager (00/04/08/12/16/20 CET) + **lørdag 00:00**
 Kjører `update.sh`: full pipeline (se tabell under)
@@ -155,20 +155,22 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | 12 | `fetch_shipping.py` | Baltic-indekser + rute-scoring |
 | 13 | `fetch_oilgas.py` | Energipriser + segment-scoring |
 | 14 | `fetch_crypto.py` | Krypto-priser, Fear & Greed, COT, korrelasjoner |
-| 15 | `push_signals.py` | Genererer `signals.json` med horisont-basert filtrering, pusher varsler |
-| 16 | `push_agri_signals.py` | Genererer `agri_signals.json` med fundamentale agri-setups, pusher til bot |
+| 15 | `push_signals.py` | Genererer `signals.json` (tekniske + agri merget), pusher alt via `/push-alert` |
+| 16 | `push_agri_signals.py` | Genererer `agri_signals.json` (leses av push_signals.py) |
 | 17 | git push | Oppdaterer GitHub Pages |
 
 ---
 
 ## Signal-varsling og trading bot
 
-`push_signals.py` sender de beste tradingideene til Telegram, Discord og/eller Flask-server. Inkluderer `horizon_config` per signal med bekreftelse-TF, entry zone margin, exit-regler og sizing per horisont.
+`push_signals.py` sender de beste tradingideene til Telegram, Discord og Flask-server via én `/push-alert` endpoint. Tekniske og agri-signaler merges inn i samme `signals.json` og samme Flask-push. Agri-signaler merkes med `source: "agri_fundamental"` slik at boten kan rekalibrere entry/SL/T1 med live ATR.
 
-`push_agri_signals.py` genererer fundamentale agri-setups basert på outlook (vær + COT + yield + ENSO) og pusher til Flask `/push-agri-alert`. Boten henter disse separat via `/agri-signals`.
+`push_agri_signals.py` genererer fundamentale agri-setups basert på outlook (vær + COT + yield + ENSO) og skriver til `agri_signals.json`. Ingen separat Flask-push — `push_signals.py` merger dette inn.
+
+Alle scoring-konstanter og delte funksjoner (SCORE_WEIGHTS, GRADE_THRESHOLDS, HORIZON_CONFIGS, determine_horizon, calculate_weighted_score, get_grade) er samlet i `scoring_config.py` og importert av `fetch_all.py`, `rescore.py` og `push_signals.py`.
 
 ### Filtrering
-- Horisont-basert: score ≥ terskel for instrumentets horisont (SCALP 5.5 / SWING 7.5 / MAKRO 8.5)
+- Horisont-basert: score ≥ terskel for instrumentets horisont (SCALP 3.0 / SWING 4.5 / MAKRO 5.5)
 - WATCHLIST pushes aldri — kun synlig på dashboardet
 - Kun klare retninger: `dir_color` er `bull` eller `bear`
 - Sortert etter horisont-prioritet (MAKRO > SWING > SCALP), deretter score
@@ -263,7 +265,7 @@ Fjernet (boten sin jobb): `price_at_level` (entry-overvåking), `no_event_risk` 
 
 | Justering | Penalty | Når |
 |-----------|---------|-----|
-| DXY-konflikt | -2.0 (SWING/MAKRO) / -1.0 (SCALP) | USD-par med retning motstridende DXY |
+| DXY-konflikt | -0.5 til -2.0 (graduert etter DXY momentum) | USD-par med retning motstridende DXY. Penalty = base × clamp(\|DXY chg5d\| / 2.0%, 0.25, 1.0). Base: 2.0 (SWING/MAKRO), 1.0 (SCALP) |
 | Signal-flip | Nedgradering 1 nivå | Retning eller horisont endret siden forrige kjøring |
 
 ### Olje supply-disruption override
@@ -371,17 +373,17 @@ SWING/MAKRO prioriterer sterke nivåer (PWH/PWL, PDH/PDL) over nære svake nivå
 | SWING | 96 candles (8 timer) | 120 timer (5 dager) |
 | MAKRO | 288 candles (24 timer) | 360 timer (15 dager) |
 
-### Trail ATR-multiplikator (kompensert for 15m ATR)
+### Trail ATR-multiplikator
 
-Boten bruker 15m ATR for trailing. Multiplikatorene er justert opp for SWING/MAKRO:
+SCALP bruker 15m ATR, SWING/MAKRO bruker 1H ATR:
 
-| Gruppe | SCALP (15m) | SWING (~1H) | MAKRO (~D1) |
-|--------|-------------|-------------|-------------|
-| FX | 2.0 | 8.0 | 12.0 |
-| Gold | 2.5 | 10.0 | 15.0 |
-| Silver | 2.5 | 10.0 | 15.0 |
-| Oil | 2.5 | 9.0 | 13.0 |
-| Index | 2.0 | 8.0 | 12.0 |
+| Gruppe | SCALP (15m ATR) | SWING (1H ATR) | MAKRO (1H ATR) |
+|--------|-----------------|----------------|----------------|
+| FX | 2.0 | 3.0 | 5.0 |
+| Gold | 2.5 | 4.0 | 6.0 |
+| Silver | 2.5 | 4.0 | 6.0 |
+| Oil | 2.5 | 3.5 | 5.5 |
+| Index | 2.0 | 3.0 | 5.0 |
 
 ### Give-back parametere per gruppe
 
@@ -393,6 +395,26 @@ Boten bruker 15m ATR for trailing. Multiplikatorene er justert opp for SWING/MAK
 | Oil | 0.90 | 0.45 |
 | Indices | 0.85 | 0.35 |
 | Agri | 0.85-0.88 | 0.35 |
+
+### Regime-baserte korrelasjonsgrenser
+
+Basert på VIX-nivå strammes maks samtidige posisjoner:
+
+| Regime | VIX | Precious | Indices | Energy | USD pairs | Total maks |
+|--------|-----|----------|---------|--------|-----------|------------|
+| Normal | < 25 | 2 | 1 | 1 | 2 | 6 |
+| Risk-off | 25–35 | 1 | 1 | 1 | 1 | 3 |
+| Crisis | > 35 | 1 | 1 | 1 | 1 | 2 |
+
+### Weekend gate
+
+- **Fredag 20:00 CET**: SCALP-posisjoner lukkes automatisk
+- **Fredag 19:00 CET**: SWING/MAKRO SL strammes til 1.5×ATR fra nåpris (kun strammere, aldri videre)
+- **Mandag 00:00–01:00 CET**: Entry blokkeres hvis gap > 2×ATR fra fredags close
+
+### Daglig tapsgrense
+
+2% av kontoverdi (med 500 NOK som gulv). Når grensen nås, blokkeres nye entries resten av dagen.
 
 ### Geo R:R minimum
 
@@ -479,8 +501,8 @@ Under geo-events: min R:R = 1.5 (senket fra 2.0). Per-horizon minimum gjelder fo
 | `data/macro/latest.json` | Priser, SMC, nivåer, score, kalender | Hver time + 6× daglig |
 | `data/macro/signal_stability.json` | Forrige kjørings horisont/retning/score per instrument | 6× daglig |
 | `data/prices/bot_history.json` | Rullerende prishistorikk (500 entries/symbol) for chg1d/5d/20d | Hver time |
-| `data/signals.json` | Aktive signaler + global state + horizon_config | 6× daglig |
-| `data/agri_signals.json` | Agri-fundamentale trading-setups (outlook + yield + vær + ENSO) | 6× daglig |
+| `data/signals.json` | Aktive signaler (tekniske + agri merget) + global state + horizon_config | 6× daglig + hver time (SCALP) |
+| `data/agri_signals.json` | Agri-fundamentale trading-setups (leses av push_signals.py for merge) | 6× daglig |
 | `data/combined/latest.json` | Kombinert CFTC COT-datasett | 6× daglig |
 | `data/ice_cot/latest.json` | ICE Futures Europe COT (Brent, Gasoil, TTF) | 6× daglig |
 | `data/ice_cot/history.json` | ICE COT 26-ukers historikk | 6× daglig |
@@ -501,6 +523,7 @@ Under geo-events: min R:R = 1.5 (senket fra 2.0). Per-horizon minimum gjelder fo
 | `data/geointel/chokepoints.json` | 6 chokepoints | Statisk |
 | `data/geointel/mines.json` | 26 gruver | Statisk |
 | `~/scalp_edge/live_prices.json` | Live priser fra bot (21 symboler) | Hvert 58. min |
+| `scoring_config.py` | Delte scoring-konstanter og funksjoner (SCORE_WEIGHTS, GRADE_THRESHOLDS, HORIZON_CONFIGS, DXY_MOMENTUM_THRESHOLD, CORRELATION_REGIME_CONFIGS) | — |
 | `utils.py` | Delt verktøybibliotek (logging, retry, stooq, news, freshness) | — |
 | `logs/` | Python-loggfiler per script | Ved kjøring |
 
@@ -509,7 +532,7 @@ Under geo-events: min R:R = 1.5 (senket fra 2.0). Per-horizon minimum gjelder fo
 ## Kjente begrensninger / gotchas
 
 - `data/euronext_cot/` opprettes kun etter at `fetch_euronext_cot.py` har kjørt (onsdag). `git add data/` (ikke `-u`) brukes for å fange nye filer.
-- `update.sh` bruker `flock` for å unngå samtidig kjøring med bot-push. Lock-fil: `/tmp/cot-explorer-git.lock`.
+- `update.sh` bruker `flock` for å unngå samtidig kjøring med bot-push. Lock-fil: `.git/bot_push.lock`.
 - `trading_bot.py` pusher `signal_log.json` direkte til git ved trade-lukking. Bot-push bør alltid inkludere `git fetch + git rebase` før `git push` for å unngå konflikter med `update.sh`.
 - `fetch_agri.py` og `fetch_oilgas.py` bruker `(x.get("cot") or {})` i stedet for `.get("cot", {})` for å håndtere `cot: null` i COT-data.
 - GitHub Pages har aggressiv caching — bruk Ctrl+Shift+R etter push for å se endringer umiddelbart.
@@ -595,7 +618,7 @@ Alle tre dashboards (`index.html`, `crypto-intel.html`) poller hvert 60. sekund 
 | Hosting | GitHub Pages (statisk) |
 | Automatisering | `cot-prices.timer` (XX:40 hver time) + `cot-explorer.timer` (6× daglig man-fre + lør 00:00) |
 | Prisintegrasjon | `signal_server.py` Flask — `POST /push-prices`, `GET /prices` → `update_prices.sh` patcher JSON |
-| Agri-signaler | `signal_server.py` Flask — `POST /push-agri-alert`, `GET /agri-signals` |
+| Scoring-config | `scoring_config.py` — delte konstanter og funksjoner (importert av fetch_all, rescore, push_signals) |
 | Varsling | Telegram / Discord webhook / Flask REST API |
 | Trading bot | `scalp_edge/trading_bot.py` — cTrader Open API, pusher priser hvert 58. min |
 | SMC-motor | `smc.py` — Python-port av FluidTrades SMC Lite |
