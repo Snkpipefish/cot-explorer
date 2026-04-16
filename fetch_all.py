@@ -760,15 +760,32 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         # Ingen reelt nivå innenfor rekkevidde
         return None
 
+    # Horizon-basert entry-seleksjon og max avstand
+    ENTRY_MAX_ATR = {"SCALP": 1.0, "SWING": 3.0, "MAKRO": 5.0, "WATCHLIST": 1.0}
+    ENTRY_SEARCH_ATR = {"SCALP": 0, "SWING": 3.0, "MAKRO": 5.0, "WATCHLIST": 0}
+
+    def _pick_entry(tagged):
+        """SCALP: nærmeste (tagged[0]). SWING/MAKRO: sterkeste weight innen horizon-avstand."""
+        search = ENTRY_SEARCH_ATR.get(horizon, 0)
+        if search <= 0 or not atr_daily:
+            return tagged[0]
+        max_d = search * atr_daily
+        within = [l for l in tagged if abs(l["price"] - curr) <= max_d]
+        if not within:
+            return tagged[0]
+        # Sorter: høyest weight → nærmest pris
+        within.sort(key=lambda l: (-l["weight"], abs(l["price"] - curr)))
+        return within[0]
+
     if direction == "long":
         if not sup_tagged or not res_tagged:
             return None
-        entry_obj   = sup_tagged[0]
+        entry_obj   = _pick_entry(sup_tagged)
         entry_level = entry_obj["price"]
         entry_w     = entry_obj["weight"]
 
         entry_dist = curr - entry_level
-        max_entry_dist = atr_daily * (0.3 if entry_w <= 1 else 0.7 if entry_w == 2 else 1.0)
+        max_entry_dist = atr_daily * ENTRY_MAX_ATR.get(horizon, 1.0)
         if entry_dist < 0 or entry_dist > max_entry_dist:
             return None
 
@@ -825,12 +842,12 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
     else:
         if not res_tagged or not sup_tagged:
             return None
-        entry_obj   = res_tagged[0]
+        entry_obj   = _pick_entry(res_tagged)
         entry_level = entry_obj["price"]
         entry_w     = entry_obj["weight"]
 
         entry_dist = entry_level - curr
-        max_entry_dist = atr_daily * (0.3 if entry_w <= 1 else 0.7 if entry_w == 2 else 1.0)
+        max_entry_dist = atr_daily * ENTRY_MAX_ATR.get(horizon, 1.0)
         if entry_dist < 0 or entry_dist > max_entry_dist:
             return None
 

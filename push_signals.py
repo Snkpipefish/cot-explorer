@@ -118,11 +118,15 @@ HORIZON_CONFIGS = {
         "exit_t1_close_pct": 0.33,
         "exit_t2_close_pct": 0.33,
         "exit_trail_tf": "1H",
-        "exit_trail_atr_mult": {"fx": 3.0, "gold": 4.0, "silver": 4.0, "oil": 3.5, "index": 3.0},
+        # Trail mult kompensert for 15m ATR (bot bruker 15m, ikke 1H)
+        # 1H ATR ≈ 3× 15m ATR, så 3.0 × 1H ≈ 8.0 × 15m
+        "exit_trail_atr_mult": {"fx": 8.0, "gold": 10.0, "silver": 10.0, "oil": 9.0, "index": 8.0},
         "exit_ema_tf": "1H",
         "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,   # 96×5m = 8 timer
+        "exit_timeout_partial_pct": 0.50,
+        "exit_timeout_full_hours": 120,       # 5 dager
         "exit_be_timeout_hours": 48,
-        "exit_timeout_full_hours": 120,
         "exit_event_close_hours": 2,
         "exit_geo_spike_atr_mult": 3.0,
         "sizing_base_risk_usd": 40,
@@ -137,9 +141,14 @@ HORIZON_CONFIGS = {
         "exit_t1_close_pct": 0.25,
         "exit_t2_close_pct": 0.25,
         "exit_trail_tf": "D1",
-        "exit_trail_atr_mult": {"fx": 2.0, "gold": 2.5, "silver": 2.5, "oil": 2.5, "index": 2.0},
+        # Trail mult kompensert for 15m ATR (bot bruker 15m, ikke D1)
+        # D1 ATR ≈ 5-6× 15m ATR, så 2.5 × D1 ≈ 13.0 × 15m
+        "exit_trail_atr_mult": {"fx": 12.0, "gold": 15.0, "silver": 15.0, "oil": 13.0, "index": 12.0},
         "exit_ema_tf": "D1",
         "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 288,  # 288×5m = 24 timer
+        "exit_timeout_partial_pct": 0.50,
+        "exit_timeout_full_hours": 360,       # 15 dager
         "exit_timeout_days": 15,
         "exit_score_deterioration": 6.0,
         "exit_geo_spike_atr_mult": 3.0,
@@ -163,7 +172,7 @@ def should_push(d):
     # Signal aging: avvis hvis pris har beveget seg for langt fra entry
     current = d.get("current")
     entry = setup.get("entry")
-    atr = d.get("atr14") or d.get("atr_d1")
+    atr = d.get("atr_d1") or d.get("atr14")  # Prioriter D1 ATR for signal aging
     if current and entry and atr and atr > 0:
         dist = abs(current - entry) / atr
         max_dist = {"SCALP": 1.5, "SWING": 2.5, "MAKRO": 4.0}.get(horizon, 2.5)
