@@ -39,9 +39,52 @@ def get_logger(name, log_file=None):
     return logger
 
 
+# M6: Circuit-breaker per hostname. Når en kilde feiler flere ganger på
+# rad, bytter vi til "open"-state og dropper påfølgende kall i N sekunder.
+# Forhindrer at én død RSS-feed bremser hele fetch-pipelinen med 45s
+# retry-windows per forespørsel. State holdes in-memory per prosess —
+# passer for kort-levede fetch_*.py-kjøringer (én per ~4h eller ~15m).
+_CB_FAIL_THRESHOLD = 3        # antall strake feil før åpning
+_CB_OPEN_SECONDS   = 300      # hvor lenge kretsen holdes åpen (5 min)
+_cb_state: dict = {}          # host → {"fails": int, "opened_at": float|None}
+
+
+def _cb_host(url: str) -> str:
+    return urllib.parse.urlparse(url).netloc or url
+
+
+def _cb_allow(url: str) -> bool:
+    host = _cb_host(url)
+    st = _cb_state.get(host)
+    if not st or st["opened_at"] is None:
+        return True
+    if time.time() - st["opened_at"] > _CB_OPEN_SECONDS:
+        # Half-open: gi neste request sjansen til å lukke kretsen
+        st["opened_at"] = None
+        st["fails"] = 0
+        return True
+    return False
+
+
+def _cb_record(url: str, ok: bool):
+    host = _cb_host(url)
+    st = _cb_state.setdefault(host, {"fails": 0, "opened_at": None})
+    if ok:
+        st["fails"] = 0
+        st["opened_at"] = None
+        return
+    st["fails"] += 1
+    if st["fails"] >= _CB_FAIL_THRESHOLD and st["opened_at"] is None:
+        st["opened_at"] = time.time()
+
+
 # ── HTTP med retry ───────────────────────────────────────────
 def fetch_url(url, timeout=15, retries=2, headers=None):
-    """Hent URL med retry og eksponentiell backoff. Returnerer bytes eller None."""
+    """Hent URL med retry og eksponentiell backoff. Returnerer bytes eller None.
+    M6: Circuit-breaker per host — hopper over kall mot kilder som har feilet
+    _CB_FAIL_THRESHOLD ganger på rad, i _CB_OPEN_SECONDS sekunder."""
+    if not _cb_allow(url):
+        return None   # Kretsen er åpen — fail-fast uten retry-pølse
     hdrs = {"User-Agent": "Mozilla/5.0"}
     if headers:
         hdrs.update(headers)
@@ -49,11 +92,14 @@ def fetch_url(url, timeout=15, retries=2, headers=None):
         try:
             req = urllib.request.Request(url, headers=hdrs)
             with urllib.request.urlopen(req, timeout=timeout) as r:
-                return r.read()
+                data = r.read()
+            _cb_record(url, ok=True)
+            return data
         except Exception as e:
             if attempt < retries:
                 time.sleep(1.5 ** attempt)
                 continue
+            _cb_record(url, ok=False)
             return None
 
 
