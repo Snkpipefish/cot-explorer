@@ -175,7 +175,7 @@ def should_push(d):
     # Signal aging: avvis hvis pris har beveget seg for langt fra entry
     current = d.get("current")
     entry = setup.get("entry")
-    atr = d.get("atr_d1") or d.get("atr14")  # Prioriter D1 ATR for signal aging
+    atr = d.get("atr_daily") or d.get("atr14")  # Prioriter D1 ATR for signal aging
     if current and entry and atr and atr > 0:
         dist = abs(current - entry) / atr
         max_dist = {"SCALP": 1.5, "SWING": 2.5, "MAKRO": 4.0}.get(horizon, 2.5)
@@ -285,7 +285,7 @@ for key, d in top:
         "cot_pct":  cot.get("pct"),
         "correlation_group": d.get("correlation_group"),
         "adr_utilization":   d.get("adr_utilization"),
-        "atr_d1":            d.get("atr_d1"),
+        "atr_d1":            d.get("atr_daily"),
         "horizon_config":    HORIZON_CONFIGS.get(horizon, {}),
     })
 
