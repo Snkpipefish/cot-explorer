@@ -113,6 +113,22 @@ else
     echo "  Conab: hopper over (ikke mandag 00-04)" >> "$LOG"
 fi
 
+# ── Weather history: legg til ny måned (ERA5 archive) ────────────────────
+# Historikk er "ferdig" når 15 år er lastet; månedlig delta er liten.
+# Stale-gate 30 dager — én kjøring i måneden fanger siste måneds data.
+WHIST_FILE_DATA="$HOME/cot-explorer/data/agri_history/us_cornbelt.json"
+if [ ! -f "$WHIST_FILE_DATA" ] || [ "$(find "$WHIST_FILE_DATA" -mmin +43200 2>/dev/null | wc -l)" -gt 0 ]; then
+    if [ "$DOW" -eq 1 ] && [ "$HOUR" -le 4 ]; then
+        python3 fetch_weather_history.py --years 15 >> "$LOG" 2>&1 \
+            && echo "  vær-historikk OK" >> "$LOG" \
+            || echo "  vær-historikk FEIL" >> "$LOG"
+    else
+        echo "  vær-historikk: utdatert men venter til mandag 00-04" >> "$LOG"
+    fi
+else
+    echo "  vær-historikk: oppdatert <30d, hopper over" >> "$LOG"
+fi
+
 # ── UNICA: halvmånedlig sukkerrør-crush ───────────────────────────────────
 # Nye rapporter ~10-12. og ~22-25. hver måned. Vi kjører mandag + torsdag
 # første morgen-slot = 2× per uke. Stale-gate 4 dager som fallback.

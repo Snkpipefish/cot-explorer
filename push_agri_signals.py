@@ -19,6 +19,13 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
 BASE = Path(__file__).parent
+
+# Analog-matching (K-NN mot 15-år ERA5 vær-historikk)
+try:
+    import agri_analog
+    _ANALOG_OK = True
+except Exception as _exc:
+    _ANALOG_OK = False
 AGRI_FILE       = BASE / "data" / "agri" / "latest.json"
 MACRO_FILE      = BASE / "data" / "macro" / "latest.json"
 USDA_CAL_FILE   = BASE / "data" / "agri" / "usda_calendar.json"
@@ -437,10 +444,26 @@ def _cross_confirm(crop: dict, crop_key: str, direction: str) -> tuple[int, list
                     f"({conab_key}) → knapphet vs forrige safra"
                 )
 
+    # D. ANALOG-ÅR — K-NN mot 15-år ERA5 vær-historikk
+    #    Hvis historiske analog-år med ligende vær-mønster ga prispress i
+    #    retning av signalet → bekreftelse. Kappet til 1 poeng per signal.
+    if _ANALOG_OK:
+        try:
+            analog_score, analog_drivers = agri_analog.analog_direction_score(
+                crop_key, direction,
+                current_month=datetime.now().month,
+            )
+            if analog_score >= 0.15:
+                # Skala analog-score til cross_confirm. 1.0 analog = full 1.0 bidrag.
+                score += round(analog_score, 2)
+                drivers += analog_drivers
+        except Exception:
+            pass   # Graceful degradation
+
     # Cap bonus til +2 slik at krysssjekk ikke dominerer over shock-drivere
     if score > 2:
         score = 2
-        drivers = drivers[:2]
+        drivers = drivers[:3]   # Beholde topp-3 inkl. analog
 
     return score, drivers
 
