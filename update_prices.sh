@@ -90,9 +90,15 @@ except Exception as e:
     print(f'  crypto-priser FEIL: {e}')
 " >> "$LOG" 2>&1
 
-# Re-evaluér signaler med oppdaterte priser (signal aging + nye nivåer)
-echo "  Re-push signaler..." >> "$LOG"
-python3 push_signals.py >> "$LOG" 2>&1 \
+# Re-evaluér scores med oppdaterte priser (0 API-kall)
+echo "  Rescore..." >> "$LOG"
+python3 rescore.py >> "$LOG" 2>&1 \
+    && echo "  rescore OK" >> "$LOG" \
+    || echo "  rescore FEIL" >> "$LOG"
+
+# Push kun SCALP-signaler hourly (SWING/MAKRO pushes i update.sh hver 4. time)
+echo "  Push SCALP-signaler..." >> "$LOG"
+python3 push_signals.py --scalp-only >> "$LOG" 2>&1 \
     && echo "  push_signals OK" >> "$LOG" \
     || echo "  push_signals FEIL" >> "$LOG"
 

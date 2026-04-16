@@ -34,6 +34,7 @@ TG_CHAT_ID    = os.environ.get("TELEGRAM_CHAT_ID","")
 DC_WEBHOOK    = os.environ.get("DISCORD_WEBHOOK", "")
 FLASK_URL     = os.environ.get("FLASK_URL",       "http://localhost:5000")
 SCALP_API_KEY = os.environ.get("SCALP_API_KEY",   "")
+SCALP_ONLY    = "--scalp-only" in sys.argv  # Hourly: kun SCALP-signaler
 
 # Fallback: les SCALP_API_KEY fra ~/.bashrc hvis ikke i shell-miljøet
 if not SCALP_API_KEY:
@@ -120,9 +121,8 @@ HORIZON_CONFIGS = {
         "exit_t1_close_pct": 0.33,
         "exit_t2_close_pct": 0.33,
         "exit_trail_tf": "1H",
-        # Trail mult kompensert for 15m ATR (bot bruker 15m, ikke 1H)
-        # 1H ATR ≈ 3× 15m ATR, så 3.0 × 1H ≈ 8.0 × 15m
-        "exit_trail_atr_mult": {"fx": 8.0, "gold": 10.0, "silver": 10.0, "oil": 9.0, "index": 8.0},
+        # Bot bruker 1H ATR for SWING — reelle verdier
+        "exit_trail_atr_mult": {"fx": 3.0, "gold": 4.0, "silver": 4.0, "oil": 3.5, "index": 3.0},
         "exit_ema_tf": "1H",
         "exit_ema_period": 9,
         "exit_timeout_partial_candles": 96,   # 96×5m = 8 timer
@@ -144,9 +144,9 @@ HORIZON_CONFIGS = {
         "exit_t1_close_pct": 0.25,
         "exit_t2_close_pct": 0.25,
         "exit_trail_tf": "D1",
-        # Trail mult kompensert for 15m ATR (bot bruker 15m, ikke D1)
-        # D1 ATR ≈ 5-6× 15m ATR, så 2.5 × D1 ≈ 13.0 × 15m
-        "exit_trail_atr_mult": {"fx": 12.0, "gold": 15.0, "silver": 15.0, "oil": 13.0, "index": 12.0},
+        # Bot bruker 1H ATR for MAKRO (D1 ikke implementert ennå) — 1H-justerte verdier
+        # D1 ATR ≈ 2× 1H ATR, så 2.5 × D1 ≈ 5.0 × 1H
+        "exit_trail_atr_mult": {"fx": 5.0, "gold": 6.0, "silver": 6.0, "oil": 5.5, "index": 5.0},
         "exit_ema_tf": "D1",
         "exit_ema_period": 9,
         "exit_timeout_partial_candles": 288,  # 288×5m = 24 timer
@@ -187,6 +187,7 @@ def should_push(d):
 candidates = [
     (key, d) for key, d in levels.items()
     if should_push(d) and key not in ("DXY",)
+    and (not SCALP_ONLY or d.get("horizon") == "SCALP")
 ]
 candidates.sort(key=lambda item: (
     HORIZON_PRIORITY.get(item[1].get("horizon", "WATCHLIST"), 3),
