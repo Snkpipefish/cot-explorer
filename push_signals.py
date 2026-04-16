@@ -231,10 +231,53 @@ for key, d in top:
         "horizon_config":    HORIZON_CONFIGS.get(horizon, {}),
     })
 
+# ── Merge agri-signaler inn i signals.json ────────────────
+AGRI_SIGNALS_FILE = BASE / "data" / "agri_signals.json"
+agri_merged = 0
+if AGRI_SIGNALS_FILE.exists():
+    try:
+        with open(AGRI_SIGNALS_FILE) as _af:
+            agri_data = json.load(_af)
+        for asig in agri_data.get("signals", []):
+            horizon = asig.get("timeframe", "SWING")
+            signals_json["signals"].append({
+                "key":       asig.get("key", ""),
+                "name":      asig.get("name", asig.get("key", "")),
+                "action":    asig.get("action", "BUY"),
+                "timeframe": horizon,
+                "horizon":   horizon,
+                "grade":     asig.get("grade", "C"),
+                "score":     asig.get("score", 0),
+                "max_score": 10,
+                "current":   asig.get("current"),
+                "entry":     asig.get("entry"),
+                "sl":        asig.get("sl"),
+                "t1":        asig.get("t1"),
+                "t2":        asig.get("t2"),
+                "rr_t1":     asig.get("rr_t1"),
+                "rr_t2":     asig.get("rr_t2"),
+                "sl_type":   asig.get("sl_type", "atr_prosent"),
+                "cot_bias":  asig.get("cot_bias"),
+                "atr_d1":    asig.get("atr_est"),
+                "source":    "agri_fundamental",
+                "correlation_group": "agri",
+                "horizon_config": HORIZON_CONFIGS.get(horizon, {}),
+                # Agri-spesifikk ekstradata
+                "yield_score":     asig.get("yield_score"),
+                "weather_outlook": asig.get("weather_outlook"),
+                "drivers":         asig.get("drivers", []),
+            })
+            agri_merged += 1
+        if agri_merged:
+            print(f"  Agri: {agri_merged} signaler merget inn i signals.json")
+    except Exception as e:
+        print(f"  Agri merge feilet: {e}")
+
 SIGNALS_OUT.parent.mkdir(parents=True, exist_ok=True)
 with open(SIGNALS_OUT, "w") as f:
     json.dump(signals_json, f, ensure_ascii=False, indent=2)
-print(f"signals.json → {len(signals_json['signals'])} signaler (horisont-basert filtrering)")
+tech_count = len(signals_json['signals']) - agri_merged
+print(f"signals.json → {tech_count} tekniske + {agri_merged} agri = {len(signals_json['signals'])} totalt")
 if oil_geo:
     print(f"  ⚠️  OLJE GEO-ADVARSEL: {oil_warn_str} → boten blokkerer smale SL på olje")
 if geo_active:
@@ -470,7 +513,8 @@ def push_flask(signals):
 # ── Kjør pushes ───────────────────────────────────────────
 push_telegram(message)
 push_discord(message)
-push_flask([{
+# Tekniske signaler i Flask-format
+flask_signals = [{
     "key":            key,
     "name":           d.get("name", key),
     "horizon":        d.get("horizon", d.get("timeframe_bias", "SWING")),
@@ -483,4 +527,38 @@ push_flask([{
     "correlation_group": d.get("correlation_group"),
     "horizon_config": HORIZON_CONFIGS.get(
         d.get("horizon", d.get("timeframe_bias", "SWING")), {}),
-} for key, d in top])
+} for key, d in top]
+
+# Agri-signaler i Flask-format (samme /push-alert endpoint)
+if AGRI_SIGNALS_FILE.exists():
+    try:
+        with open(AGRI_SIGNALS_FILE) as _af2:
+            _agri2 = json.load(_af2)
+        for asig in _agri2.get("signals", []):
+            horizon = asig.get("timeframe", "SWING")
+            flask_signals.append({
+                "key":       asig.get("key", ""),
+                "name":      asig.get("name", asig.get("key", "")),
+                "horizon":   horizon,
+                "direction": asig.get("action", "BUY").lower().replace("buy","bull").replace("sell","bear"),
+                "grade":     asig.get("grade", "C"),
+                "score":     asig.get("score", 0),
+                "max_score": 10,
+                "setup": {
+                    "entry":   asig.get("entry"),
+                    "sl":      asig.get("sl"),
+                    "t1":      asig.get("t1"),
+                    "t2":      asig.get("t2"),
+                    "rr_t1":   asig.get("rr_t1"),
+                    "rr_t2":   asig.get("rr_t2"),
+                    "sl_type": asig.get("sl_type", "atr_prosent"),
+                },
+                "cot":              {"bias": asig.get("cot_bias"), "pct": asig.get("cot_pct")},
+                "correlation_group": "agri",
+                "source":           "agri_fundamental",
+                "horizon_config":   HORIZON_CONFIGS.get(horizon, {}),
+            })
+    except Exception:
+        pass
+
+push_flask(flask_signals)
