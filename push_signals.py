@@ -507,6 +507,9 @@ def push_flask(signals):
 # ── Kjør pushes ───────────────────────────────────────────
 push_telegram(message)
 push_discord(message)
+# Per-signal created_at — botens TTL-sjekk ser på denne, ikke kun fil-nivå valid_until
+_now_iso = datetime.now(timezone.utc).isoformat()
+
 # Tekniske signaler i Flask-format
 flask_signals = [{
     "key":            key,
@@ -521,6 +524,7 @@ flask_signals = [{
     "correlation_group": d.get("correlation_group"),
     "horizon_config": HORIZON_CONFIGS.get(
         d.get("horizon", d.get("timeframe_bias", "SWING")), {}),
+    "created_at":     _now_iso,
 } for key, d in top]
 
 # Agri-signaler i Flask-format (samme /push-alert endpoint)
@@ -556,6 +560,7 @@ if AGRI_SIGNALS_FILE.exists():
                 "yield_score":      asig.get("yield_score"),
                 "weather_outlook":  asig.get("weather_outlook"),
                 "drivers":          asig.get("drivers", []),
+                "created_at":       _now_iso,
             })
     except Exception:
         pass
