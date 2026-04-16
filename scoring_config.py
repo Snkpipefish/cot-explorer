@@ -55,6 +55,17 @@ MAX_CONCURRENT = {
     "precious_metals": 2, "us_indices": 1, "energy": 1, "usd_pairs": 2,
 }
 
+# ─── AGRI KORRELASJONSGRUPPER ──────────────────────────────────
+# Mais/soya/hvete korrelerer .85+ i trender — maks 1 per sub-gruppe
+# Kaffe/sukker/kakao er softs-kluster — maks 1 per sub-gruppe
+# Bomull er lavt korrelert med begge — eget cluster
+AGRI_CORRELATION_SUBGROUPS = {
+    "Corn": "grains", "Wheat": "grains", "Soybean": "grains",
+    "Coffee": "softs", "Sugar": "softs", "Cocoa": "softs",
+    "Cotton": "cotton",
+}
+AGRI_MAX_PER_SUBGROUP = 1
+
 # ─── REGIME-BASERTE KORRELASJONSGRENSER ──────────────────────────
 CORRELATION_REGIME_CONFIGS = {
     "normal": {

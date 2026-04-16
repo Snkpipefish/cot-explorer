@@ -35,22 +35,38 @@ EURONEXT_PRIMARY = {"wheat", "canola", "corn"}
 # score-multiplikator for værpåvirkning (1.0 = normal, 1.5 = kritisk sesong)
 MONTH = datetime.now(timezone.utc).month
 def season_mult(crop_key, lat):
-    """Returner 1.0–1.5 avhengig av om det er kritisk sesong for avlingen."""
+    """Returner 1.0–2.0 avhengig av sesongkritiskhet.
+    2.0 = pollinering/blomstring/frost-vindu (binært utfall)
+    1.5 = planting/vekst (viktig men ikke katastrofalt)
+    1.0 = av-sesong eller moderat fase
+    """
     north = lat > 0
-    spring_north = MONTH in (4, 5, 6)    # planting/vekst nordlig halvkule
-    summer_north  = MONTH in (7, 8)
-    harvest_north = MONTH in (9, 10)
-    spring_south  = MONTH in (10, 11, 12)
-    summer_south  = MONTH in (1, 2, 3)   # vekstsesong sørlig halvkule
 
+    # ── KRITISK (2.0): pollinering, frost-vindu, harmattan peak ──
+    if crop_key in ("corn", "soybeans") and north and MONTH in (7,):
+        return 2.0   # pollinering US Corn Belt — tørke her = avlingssvikt
+    if crop_key == "coffee" and not north and MONTH in (6, 7, 8):
+        return 2.0   # frost-vindu Brazil — én natt kan ta 30% av avling
+    if crop_key == "cocoa" and not north and MONTH in (1, 2):
+        return 2.0   # harmattan peak Vest-Afrika — tørre vinder skadar avling
+
+    # ── FORHØYET (1.5): planting, vegetativ vekst, kritisk nedbørperiode ──
     if crop_key in ("corn", "soybeans", "cotton"):
-        if north  and spring_north:  return 1.5   # planting = kritisk
-        if not north and summer_south: return 1.5
+        if north and MONTH in (4, 5, 6):   return 1.5   # planting + tidlig vekst
+        if north and MONTH == 8:           return 1.5   # filling/pod-set
+        if not north and MONTH in (10, 11, 12, 1, 2, 3): return 1.5  # sørlig vekstsesong
     if crop_key in ("wheat", "canola"):
-        if north  and (MONTH in (3,4,5)):  return 1.5
-        if not north and (MONTH in (10,11)): return 1.5
-    if crop_key in ("coffee", "cocoa", "sugar", "palm"):
-        if not north and (MONTH in (2,3,4,5)): return 1.5
+        if north and MONTH in (3, 4, 5):   return 1.5   # spring wheat vekst / vinterhvete heading
+        if not north and MONTH in (10, 11): return 1.5   # sørlig planting
+    if crop_key == "coffee":
+        if not north and MONTH in (9, 10, 11): return 1.5  # blomstring Brazil
+    if crop_key == "cocoa":
+        if not north and MONTH in (10, 11, 12): return 1.5  # main crop start
+    if crop_key == "sugar":
+        if not north and MONTH in (9, 10, 11): return 1.5   # crushing season start CS Brazil
+    if crop_key == "cotton" and north and MONTH in (7, 8):
+        return 1.5   # boll-setting
+
     return 1.0
 
 # ── COT-markeder → avlings-nøkkel ────────────────────────────────
@@ -68,6 +84,20 @@ COT_MAP = {
     "rice":     ["Rough Rice"],
     "oats":     ["Oats"],
     "cattle":   ["Live Cattle", "Feeder Cattle"],
+}
+
+# Mapping crop_key → timeseries-fil for 52-ukers z-score beregning
+# Format: {symbol}_{report}.json i data/timeseries/
+COT_TIMESERIES_MAP = {
+    "corn":     "002602_disaggregated",
+    "wheat":    "001602_disaggregated",
+    "soybeans": "005602_disaggregated",
+    "cotton":   "033661_disaggregated",
+    "sugar":    "080732_disaggregated",
+    "coffee":   "083731_disaggregated",
+    "cocoa":    "073732_disaggregated",
+    "rice":     "039601_disaggregated",
+    "oats":     "004603_disaggregated",
 }
 
 # Avlings-nøkkel → norsk navn + ikon
@@ -171,13 +201,13 @@ REGION_CROPS = {
 }
 
 def fetch_weather(lat, lon):
-    """Henter 7-dagers daglig prognose fra Open-Meteo."""
+    """Henter 16-dagers daglig prognose fra Open-Meteo (7d akutt + 8-14d trend)."""
     params = urllib.parse.urlencode({
         "latitude":  lat,
         "longitude": lon,
         "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max",
         "current": "temperature_2m,precipitation,wind_speed_10m,relative_humidity_2m",
-        "forecast_days": 7,
+        "forecast_days": 16,
         "timezone": "auto",
     })
     url = f"https://api.open-meteo.com/v1/forecast?{params}"
@@ -583,15 +613,24 @@ def score_weather(w, crop_key, lat):
     """
     if not w:
         return {"score": 0, "outlook": "ukjent", "precip_7d": None,
-                "temp_max_avg": None, "summary": "Ingen værdata"}
+                "temp_max_avg": None, "summary": "Ingen værdata",
+                "extended_outlook": None}
     daily = w.get("daily", {})
     precip = daily.get("precipitation_sum", [])
     tmax   = daily.get("temperature_2m_max", [])
     tmin   = daily.get("temperature_2m_min", [])
 
-    precip_7d  = sum(p for p in precip if p is not None)
-    temp_max   = sum(t for t in tmax if t is not None) / max(len([t for t in tmax if t is not None]), 1)
-    temp_min   = sum(t for t in tmin if t is not None) / max(len([t for t in tmin if t is not None]), 1)
+    # Separer 7d (akutt) og 8-14d (trend) — API returnerer nå 16 dager
+    precip_7d  = sum(p for p in precip[:7] if p is not None)
+    tmax_7d    = [t for t in tmax[:7] if t is not None]
+    tmin_7d    = [t for t in tmin[:7] if t is not None]
+    temp_max   = sum(tmax_7d) / max(len(tmax_7d), 1)
+    temp_min   = sum(tmin_7d) / max(len(tmin_7d), 1)
+
+    # 8-14 dagers extended outlook
+    precip_ext = sum(p for p in precip[7:14] if p is not None)
+    tmax_ext   = [t for t in tmax[7:14] if t is not None]
+    temp_max_ext = sum(tmax_ext) / max(len(tmax_ext), 1) if tmax_ext else temp_max
 
     mult = season_mult(crop_key, lat)
 
@@ -615,14 +654,42 @@ def score_weather(w, crop_key, lat):
     elif precip_7d > 40:
         score, outlook = 1, "vått"
         summary = f"Over normalt nedbør: {precip_7d:.0f}mm"
-    # Kalde temperaturer (frost-risiko i plantetid)
-    elif temp_min < -2 and MONTH in (3, 4, 5) and lat > 30:
-        score, outlook = 2, "frost"
+    # Frost-risiko: dekker begge halvkuler + tropisk kulde for kaffe/sukker
+    elif (
+        # Nordlig halvkule: frost mar–mai (planting)
+        (temp_min < -2 and MONTH in (3, 4, 5) and lat > 20)
+        # Sørlig halvkule: frost jun–aug (vinter — kritisk for Brazil kaffe)
+        or (temp_min < -2 and MONTH in (5, 6, 7, 8) and lat < -15)
+        # Tropisk kaffe/sukker: uventet kulde under blomstring
+        or (temp_min < 2 and crop_key in ("coffee", "sugar") and abs(lat) < 25
+            and MONTH in (6, 7, 8, 9))
+    ):
+        score = 3 if temp_min < -4 else 2
+        outlook = "frost"
         summary = f"Frostrisiko: {temp_min:.0f}°C min"
     # Normalt
     else:
         score, outlook = 0, "normalt"
         summary = f"Normalt: {precip_7d:.0f}mm nedbør, {temp_max:.0f}°C maks"
+
+    # 8-14d extended outlook: oppgrader score hvis kommende uke forverres
+    extended_outlook = None
+    if len(precip) > 7:
+        if precip_ext < 5 and temp_max_ext > 30:
+            extended_outlook = "tørke"
+        elif precip_ext < 10 and temp_max_ext > 28:
+            extended_outlook = "tørt"
+        elif precip_ext > 100:
+            extended_outlook = "flom"
+        elif precip_ext > 60:
+            extended_outlook = "vått"
+        else:
+            extended_outlook = "normalt"
+        # Hvis 7d er normalt men 8-14d viser stress → oppgrader score
+        if outlook == "normalt" and extended_outlook in ("tørke", "flom"):
+            score = max(score, 1)
+            outlook = extended_outlook
+            summary = f"14d prognose: {extended_outlook} ({precip_ext:.0f}mm uke 2, {temp_max_ext:.0f}°C)"
 
     # Skaler med sesongmultiplikator (kritisk sesong = mer påvirkning)
     final_score = round(score * mult)
@@ -633,10 +700,77 @@ def score_weather(w, crop_key, lat):
         "season_mult": mult,
         "outlook":     outlook,
         "precip_7d":   round(precip_7d, 1),
+        "precip_8_14d": round(precip_ext, 1) if len(precip) > 7 else None,
         "temp_max_avg": round(temp_max, 1),
         "temp_min_avg": round(temp_min, 1),
+        "extended_outlook": extended_outlook,
         "summary":     summary,
     }
+
+_zscore_cache = {}  # crop_key → {"mean": float, "std": float}
+
+def load_cot_zscore_stats():
+    """Beregner 52-ukers mean og std for net_pct per crop fra timeseries-data.
+    Returnerer dict crop_key → {"mean", "std", "weeks"}."""
+    global _zscore_cache
+    if _zscore_cache:
+        return _zscore_cache
+    ts_dir = os.path.join(BASE, "timeseries")
+    for crop_key, ts_file_base in COT_TIMESERIES_MAP.items():
+        ts_file = os.path.join(ts_dir, f"{ts_file_base}.json")
+        if not os.path.exists(ts_file):
+            continue
+        try:
+            with open(ts_file) as f:
+                ts_data = json.load(f)
+            pts = ts_data.get("data", [])
+            # Bruk siste 52 uker (1 år)
+            recent = pts[-52:] if len(pts) >= 52 else pts
+            if len(recent) < 26:
+                continue  # For lite data for meningsfull z-score
+            net_pcts = []
+            for p in recent:
+                oi = p.get("oi", 0)
+                sn = p.get("spec_net", 0)
+                if oi > 0:
+                    net_pcts.append(sn / oi * 100)
+            if len(net_pcts) < 20:
+                continue
+            mean = sum(net_pcts) / len(net_pcts)
+            std = (sum((x - mean)**2 for x in net_pcts) / len(net_pcts)) ** 0.5
+            _zscore_cache[crop_key] = {"mean": round(mean, 2), "std": round(std, 2),
+                                        "weeks": len(net_pcts)}
+        except Exception as e:
+            print(f"  Z-score FEIL for {crop_key}: {e}")
+    return _zscore_cache
+
+
+def cot_net_pct_to_zscore(crop_key, net_pct):
+    """Konverterer net_pct til z-score basert på 52-ukers historikk.
+    Returnerer (z_score, cot_score) der cot_score er -2 til +2."""
+    stats = load_cot_zscore_stats()
+    s = stats.get(crop_key)
+    if not s or s["std"] < 0.5:
+        # Fallback til faste terskler hvis historikk mangler
+        return None, _fixed_cot_score(net_pct)
+    z = (net_pct - s["mean"]) / s["std"]
+    # Z-score til cot_score mapping
+    if z > 1.5:    cot_score = 2
+    elif z > 0.5:  cot_score = 1
+    elif z > -0.5: cot_score = 0
+    elif z > -1.5: cot_score = -1
+    else:          cot_score = -2
+    return round(z, 2), cot_score
+
+
+def _fixed_cot_score(net_pct):
+    """Fallback: faste terskler (gammel metode)."""
+    if net_pct > 15:    return 2
+    elif net_pct > 5:   return 1
+    elif net_pct > -5:  return 0
+    elif net_pct > -15: return -1
+    else:               return -2
+
 
 def load_euronext_cot():
     """Last inn Euronext COT-data. Returnerer dict crop_key → data, eller {}."""
@@ -770,12 +904,8 @@ def get_cot_for_crop(crop_key, cot_data, euronext_data=None):
     if agrees is False:
         momentum = "BLANDET"
 
-    # ── COT-score: -2 til +2 (basert på vektet net_pct) ──────────
-    if net_pct > 15:    cot_score = 2
-    elif net_pct > 5:   cot_score = 1
-    elif net_pct > -5:  cot_score = 0
-    elif net_pct > -15: cot_score = -1
-    else:               cot_score = -2
+    # ── COT-score: -2 til +2 (z-score mot 52-ukers historikk) ──────
+    cot_zscore, cot_score = cot_net_pct_to_zscore(crop_key, net_pct)
 
     # Juster for momentum
     if chg > 0 and cot_score >= 0:   cot_score = min(cot_score + 1, 2)
@@ -793,6 +923,7 @@ def get_cot_for_crop(crop_key, cot_data, euronext_data=None):
         "bias":      bias,
         "momentum":  momentum,
         "cot_score": cot_score,
+        "cot_zscore": cot_zscore,
         "date":      date_val,
         "source":    source,
     }

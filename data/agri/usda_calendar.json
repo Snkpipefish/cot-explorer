@@ -1,0 +1,86 @@
+{
+  "description": "USDA rapportkalender 2026 — agri-signaler blokkeres ±3 timer fra disse",
+  "updated": "2026-04-16",
+  "reports": [
+    {
+      "type": "WASDE",
+      "description": "World Agricultural Supply and Demand Estimates",
+      "impact": "kritisk",
+      "affected": ["Corn", "Wheat", "Soybean", "Cotton", "Sugar"],
+      "dates": [
+        "2026-01-12T17:00:00Z",
+        "2026-02-10T17:00:00Z",
+        "2026-03-10T17:00:00Z",
+        "2026-04-09T16:00:00Z",
+        "2026-05-12T16:00:00Z",
+        "2026-06-11T16:00:00Z",
+        "2026-07-10T16:00:00Z",
+        "2026-08-12T16:00:00Z",
+        "2026-09-11T16:00:00Z",
+        "2026-10-09T16:00:00Z",
+        "2026-11-10T17:00:00Z",
+        "2026-12-10T17:00:00Z"
+      ],
+      "note": "Publiseres kl 12:00 ET (17:00/18:00 CET avhengig av sommertid)"
+    },
+    {
+      "type": "Crop Progress",
+      "description": "Weekly crop condition and planting/harvest progress",
+      "impact": "høy",
+      "affected": ["Corn", "Wheat", "Soybean", "Cotton"],
+      "recurring": {
+        "day": "monday",
+        "time_utc": "20:00",
+        "months": [4, 5, 6, 7, 8, 9, 10, 11],
+        "note": "Hver mandag apr–nov kl 16:00 ET (20:00 UTC / 22:00 CET)"
+      }
+    },
+    {
+      "type": "Grain Stocks",
+      "description": "Quarterly grain stocks report",
+      "impact": "kritisk",
+      "affected": ["Corn", "Wheat", "Soybean"],
+      "dates": [
+        "2026-01-12T17:00:00Z",
+        "2026-03-31T16:00:00Z",
+        "2026-06-30T16:00:00Z",
+        "2026-09-30T16:00:00Z"
+      ],
+      "note": "Kvartalsvis — ofte kombinert med andre rapporter"
+    },
+    {
+      "type": "Prospective Plantings",
+      "description": "Farmer planting intentions for upcoming season",
+      "impact": "kritisk",
+      "affected": ["Corn", "Wheat", "Soybean", "Cotton"],
+      "dates": [
+        "2026-03-31T16:00:00Z"
+      ],
+      "note": "Årlig 31. mars — en av årets viktigste rapporter"
+    },
+    {
+      "type": "Acreage",
+      "description": "Actual planted acreage survey",
+      "impact": "kritisk",
+      "affected": ["Corn", "Wheat", "Soybean", "Cotton"],
+      "dates": [
+        "2026-06-30T16:00:00Z"
+      ],
+      "note": "Årlig 30. juni — oppdaterer Prospective Plantings med faktisk areal"
+    },
+    {
+      "type": "Export Sales",
+      "description": "Weekly US agricultural export sales",
+      "impact": "medium",
+      "affected": ["Corn", "Wheat", "Soybean", "Cotton"],
+      "recurring": {
+        "day": "thursday",
+        "time_utc": "12:30",
+        "months": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        "note": "Hver torsdag kl 08:30 ET"
+      }
+    }
+  ],
+  "blackout_hours": 3,
+  "note": "Datoer er basert på USDA Economic Research Service kalender. Oppdater årlig."
+}

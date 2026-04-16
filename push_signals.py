@@ -88,6 +88,7 @@ def active_setup(d):
 from scoring_config import (
     PUSH_THRESHOLDS, HORIZON_PRIORITY, HORIZON_CONFIGS,
     CORRELATION_GROUPS, CORRELATION_REGIME_CONFIGS, VIX_CORRELATION_THRESHOLDS,
+    AGRI_CORRELATION_SUBGROUPS,
 )
 
 
@@ -260,7 +261,7 @@ if AGRI_SIGNALS_FILE.exists():
                 "cot_bias":  asig.get("cot_bias"),
                 "atr_d1":    asig.get("atr_est"),
                 "source":    "agri_fundamental",
-                "correlation_group": "agri",
+                "correlation_group": AGRI_CORRELATION_SUBGROUPS.get(asig.get("key",""), "agri"),
                 "horizon_config": HORIZON_CONFIGS.get(horizon, {}),
                 # Agri-spesifikk ekstradata
                 "yield_score":     asig.get("yield_score"),

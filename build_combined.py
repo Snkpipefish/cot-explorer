@@ -13,7 +13,15 @@ os.makedirs(os.path.join(BASE, "combined"), exist_ok=True)
 REPORTS = ["tff", "legacy", "disaggregated", "supplemental"]
 
 # Slå sammen alle rapporter, unngå duplikater (velg beste rapport per marked)
-RAPPORT_PRIORITET = {"tff": 0, "disaggregated": 1, "legacy": 2, "supplemental": 3}
+# Finansielle markeder: TFF (hedge funds/asset managers) er mest granulært
+# Landbruk/råvarer: Disaggregated (Managed Money + Produsenter) er riktigere
+RAPPORT_PRIORITET_DEFAULT  = {"tff": 0, "disaggregated": 1, "legacy": 2, "supplemental": 3}
+RAPPORT_PRIORITET_LANDBRUK = {"disaggregated": 0, "supplemental": 1, "legacy": 2, "tff": 3}
+
+def _get_priority(report_id, kategori):
+    if kategori == "landbruk":
+        return RAPPORT_PRIORITET_LANDBRUK.get(report_id, 9)
+    return RAPPORT_PRIORITET_DEFAULT.get(report_id, 9)
 
 seen = {}  # market.lower() → entry
 
@@ -34,10 +42,11 @@ for rep in REPORTS:
             continue
 
         mk = market.lower()
-        pri = RAPPORT_PRIORITET.get(rep, 9)
+        kategori = row.get("kategori", "annet")
+        pri = _get_priority(rep, kategori)
 
         # Behold kun høyest-prioritert rapport per marked
-        if mk in seen and RAPPORT_PRIORITET.get(seen[mk]["report"], 9) <= pri:
+        if mk in seen and _get_priority(seen[mk]["report"], seen[mk].get("kategori","annet")) <= pri:
             continue
 
         seen[mk] = {
