@@ -551,13 +551,165 @@ def score_crop(crop, crop_key: str | None = None):
     }
 
 
+# ─── Strukturell nivå-detektering for agri ───────────────────────────────
+# Leser 15-års ukentlig close-historikk fra data/prices/{crop}.json og
+# utleder swing high/low + round-numbers som reelle nivåer. Erstatter
+# mekanisk ATR-T1 der vi finner struktur innen rimelig avstand.
+
+_CROP_TO_PRICE_FILE = {
+    "corn":     "corn.json",
+    "wheat":    "wheat.json",
+    "soybeans": "soybean.json",
+    "sugar":    "sugar.json",
+    "coffee":    "coffee.json",
+    "cocoa":    "cocoa.json",
+    # cotton: ikke i build_price_history — fallback til ATR
+}
+
+# Round-number-skritt per crop (for psykologiske nivåer)
+_CROP_ROUND_STEP = {
+    "corn":      10.0,    # ~2% av pris
+    "wheat":     10.0,
+    "soybeans":  25.0,    # pris ~1100-1400
+    "sugar":     0.5,     # pris ~15-25
+    "coffee":    10.0,    # pris ~200-350
+    "cocoa":     250.0,   # pris ~3000-11000
+    "cotton":    2.0,
+}
+
+
+def _load_crop_history(crop_key: str) -> list[float]:
+    """Returnerer liste av close-priser (eldst først) eller tom liste."""
+    fname = _CROP_TO_PRICE_FILE.get(crop_key)
+    if not fname:
+        return []
+    p = BASE / "data" / "prices" / fname
+    if not p.exists():
+        return []
+    try:
+        d = json.loads(p.read_text(encoding="utf-8"))
+        return [e["price"] for e in d.get("data", []) if "price" in e]
+    except Exception:
+        return []
+
+
+def _extract_agri_levels(crop_key: str, current_price: float) -> tuple[list, list]:
+    """Utled reelle støtte/motstand-nivåer fra ukentlig close-historikk.
+
+    Nivå-typer og vekter:
+      w5 — 52-ukers high/low (sterkest strukturelt, årlig/swing)
+      w4 — 26-ukers high/low (halvår)
+      w3 — 12-ukers high/low (kvartal)
+      w2 — 4-ukers high/low  (måned)
+      w1 — round-numbers innen ±15% av nåpris (psykologiske)
+
+    Returnerer (supports, resistances) sortert etter nærmest entry først.
+    Hver entry: {"price": float, "weight": int, "source": str}.
+    """
+    history = _load_crop_history(crop_key)
+    if len(history) < 52:
+        return [], []
+
+    levels: list[dict] = []
+
+    # Swing high/low over ulike vinduer
+    for weeks, weight, label in [
+        (4,  2, "4w"),
+        (12, 3, "12w"),
+        (26, 4, "26w"),
+        (52, 5, "52w"),
+    ]:
+        window = history[-weeks:] if len(history) >= weeks else history
+        hi = max(window)
+        lo = min(window)
+        # Unngå duplikater (f.eks. 4w high == 12w high)
+        def _add_if_new(price: float, src: str):
+            for ex in levels:
+                if abs(ex["price"] - price) / current_price < 0.003:  # <0.3% = samme nivå
+                    # Behold høyeste weight
+                    if weight > ex["weight"]:
+                        ex["weight"] = weight
+                        ex["source"] = src
+                    return
+            levels.append({"price": price, "weight": weight, "source": src})
+        _add_if_new(hi, f"{label}_high")
+        _add_if_new(lo, f"{label}_low")
+
+    # Round numbers innen ±15% av nåpris
+    step = _CROP_ROUND_STEP.get(crop_key, current_price * 0.02)
+    lo_bound = current_price * 0.85
+    hi_bound = current_price * 1.15
+    n_start = int(lo_bound / step)
+    n_end   = int(hi_bound / step) + 1
+    for n in range(n_start, n_end + 1):
+        rn = round(n * step, 2)
+        if lo_bound <= rn <= hi_bound:
+            # Samme dedup-logikk
+            duplicate = False
+            for ex in levels:
+                if abs(ex["price"] - rn) / current_price < 0.003:
+                    duplicate = True
+                    break
+            if not duplicate:
+                levels.append({"price": rn, "weight": 1, "source": f"rn{rn:g}"})
+
+    # Del i supports (under) og resistances (over)
+    supports = [l for l in levels if l["price"] < current_price]
+    resistances = [l for l in levels if l["price"] > current_price]
+
+    # Sorter: nærmest current først
+    supports.sort(key=lambda l: current_price - l["price"])
+    resistances.sort(key=lambda l: l["price"] - current_price)
+    return supports, resistances
+
+
+def _best_agri_t1(levels: list[dict], entry: float, risk: float,
+                  direction: str, max_dist: float,
+                  min_rr: float = 1.5) -> dict | None:
+    """R:R-tier-prioritert T1-valg for agri — speiler make_setup_l2l.best_t1.
+
+    Sortering: høyere R:R-tier først, så høyere weight, så kortere avstand.
+    Tier: 2 hvis R:R ≥ 2.0, 1 hvis R:R ≥ 1.5, 0 ellers.
+    """
+    is_buy = direction == "BUY"
+    min_t1_dist = risk * min_rr
+    valid = []
+    for l in levels:
+        p = l["price"]
+        dist = (p - entry) if is_buy else (entry - p)
+        if dist < min_t1_dist:
+            continue
+        if dist > max_dist:
+            continue
+        valid.append((l, dist))
+    if not valid:
+        return None
+
+    def _tier(dist: float) -> int:
+        if risk <= 0:
+            return 0
+        rr = dist / risk
+        if rr >= 2.0:
+            return 2
+        if rr >= 1.5:
+            return 1
+        return 0
+
+    valid.sort(key=lambda x: (-_tier(x[1]), -x[0]["weight"], x[1]))
+    l, d = valid[0]
+    return dict(l, distance=d, rr=round(d / risk, 2) if risk > 0 else 0)
+
+
 def calc_levels(price, direction, crop_key, instrument=None):
     """
-    Beregner entry, SL, T1, T2 basert på ATR.
+    Beregner entry, SL, T1, T2.
 
-    Prioritet: live ATR fra macro/latest.json → estimert ATR fra CROP_ATR_PCT.
-    BUY:  entry = pris - 0.3×ATR (pullback), SL = entry - 1.5×ATR, T1 = entry + 2×ATR
-    SELL: entry = pris + 0.3×ATR (rally),   SL = entry + 1.5×ATR, T1 = entry - 2×ATR
+    Prioritet:
+      1. Entry + SL = ATR-basert (som før — struktur for SL krever intraday data)
+      2. T1/T2 = reelle swing-nivåer + round numbers hvis innen rekkevidde
+      3. Fallback: mekanisk 2.5×ATR hvis ingen reelle nivåer nær
+
+    ATR-kilde: live ATR fra macro/latest.json → estimert ATR fra CROP_ATR_PCT.
     """
     # Prøv live ATR fra macro/latest.json (satt av fetch_all.py fra bot-priser)
     atr = None
@@ -571,23 +723,59 @@ def calc_levels(price, direction, crop_key, instrument=None):
         atr_pct = CROP_ATR_PCT.get(crop_key, 1.8)
         atr = price * atr_pct / 100
 
-    # Fix C — agri R:R bumpet fra 1.33 til 1.67 ved å øke T1 fra 2.0×ATR
-    # til 2.5×ATR. T2 justert til 3.5×ATR for å beholde T1→T2-geometri.
-    # SL=1.5×ATR uendret (strukturell støy-toleranse).
+    # Entry + SL: ATR-basert (struktur for SL krever intraday — ikke tilgjengelig)
     if direction == "BUY":
         entry = round(price - 0.3 * atr, 2)
         sl    = round(entry - 1.5 * atr, 2)
-        t1    = round(entry + 2.5 * atr, 2)
-        t2    = round(entry + 3.5 * atr, 2)
     else:
         entry = round(price + 0.3 * atr, 2)
         sl    = round(entry + 1.5 * atr, 2)
-        t1    = round(entry - 2.5 * atr, 2)
-        t2    = round(entry - 3.5 * atr, 2)
 
-    risk   = abs(entry - sl)
-    rr_t1  = round(abs(t1 - entry) / risk, 2) if risk > 0 else 0
-    rr_t2  = round(abs(t2 - entry) / risk, 2) if risk > 0 else 0
+    risk = abs(entry - sl)
+
+    # T1/T2: reelle nivåer hvis innen rekkevidde, ellers mekanisk ATR-fallback.
+    # Agri har lav ATR men store swing-nivåer; bruk max(ATR-multipler, %-cap)
+    # slik at vi når reelle nivåer (4w/12w/52w high-low + round numbers).
+    max_t1_dist = max(5.0 * atr, price * 0.06)    # 6% av pris for SWING-agri
+    max_t2_dist = max(8.0 * atr, price * 0.10)    # 10% av pris
+    supports, resistances = _extract_agri_levels(crop_key, price)
+    t1_levels = resistances if direction == "BUY" else supports
+
+    t1_obj = _best_agri_t1(t1_levels, entry, risk, direction, max_t1_dist)
+    t1_source = "atr_fallback"
+    if t1_obj is not None:
+        t1 = round(t1_obj["price"], 2)
+        t1_source = t1_obj["source"]
+    else:
+        # Fallback: mekanisk 2.5×ATR (R:R 1.67)
+        if direction == "BUY":
+            t1 = round(entry + 2.5 * atr, 2)
+        else:
+            t1 = round(entry - 2.5 * atr, 2)
+
+    # T2: neste reelle nivå etter T1, ellers ATR-fallback
+    t2_levels = [l for l in t1_levels if (
+        (direction == "BUY" and l["price"] > t1) or
+        (direction == "SELL" and l["price"] < t1)
+    )]
+    # Sorter nærmest entry først
+    t2_levels.sort(key=lambda l: abs(l["price"] - entry))
+    t2_obj = None
+    for l in t2_levels:
+        d = abs(l["price"] - entry)
+        if d <= max_t2_dist:
+            t2_obj = l
+            break
+    if t2_obj is not None:
+        t2 = round(t2_obj["price"], 2)
+    else:
+        if direction == "BUY":
+            t2 = round(entry + 3.5 * atr, 2)
+        else:
+            t2 = round(entry - 3.5 * atr, 2)
+
+    rr_t1 = round(abs(t1 - entry) / risk, 2) if risk > 0 else 0
+    rr_t2 = round(abs(t2 - entry) / risk, 2) if risk > 0 else 0
 
     return {
         "entry":      entry,
@@ -599,6 +787,7 @@ def calc_levels(price, direction, crop_key, instrument=None):
         "atr_est":    round(atr, 2),
         "atr_source": atr_source,
         "sl_type":    "atr_prosent",
+        "t1_source":  t1_source,       # "52w_high" / "rn475.0" / "atr_fallback" etc.
     }
 
 
@@ -731,6 +920,7 @@ for crop in agri.get("crop_summary", []):
         "rr_t1":          levels["rr_t1"],
         "rr_t2":          levels["rr_t2"],
         "sl_type":        levels["sl_type"],
+        "t1_source":      levels.get("t1_source", "atr_fallback"),
         "atr_est":        levels["atr_est"],
         # Schema 2.0-felt
         "families":        _families_dict,
