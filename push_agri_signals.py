@@ -22,9 +22,30 @@ BASE = Path(__file__).parent
 AGRI_FILE       = BASE / "data" / "agri" / "latest.json"
 MACRO_FILE      = BASE / "data" / "macro" / "latest.json"
 USDA_CAL_FILE   = BASE / "data" / "agri" / "usda_calendar.json"
+CONAB_FILE      = BASE / "data" / "conab" / "latest.json"
+UNICA_FILE      = BASE / "data" / "unica" / "latest.json"
 SIGNALS_OUT     = BASE / "data" / "agri_signals.json"
 FLASK_URL       = os.environ.get("FLASK_URL", "http://localhost:5000")
 SCALP_API_KEY   = os.environ.get("SCALP_API_KEY", "")
+
+# Max alder på Conab/UNICA-data før vi ignorerer dem (graceful degradation).
+# Conab er månedlig → 45 dager er romslig. UNICA er halvmånedlig → 30 dager.
+CONAB_STALE_DAYS = 45
+UNICA_STALE_DAYS = 30
+
+# Shock-terskel for Conab m/m-revisjon (prosentpoeng)
+CONAB_SHOCK_THRESHOLD_LOW  = 1.0   # ≥1% m/m = shock=1
+CONAB_SHOCK_THRESHOLD_HIGH = 2.5   # ≥2.5% m/m = shock=2
+
+# crop_key → Conab data-nøkkel (None for crops uten Conab-dekning)
+CONAB_KEYS = {
+    "soybeans": "soja",
+    "corn":     "milho",
+    "cotton":   "algodao",
+    "wheat":    "trigo",
+    "coffee":   "cafe_total",   # Vi bruker total; arabica+conilon tilgjengelig hvis vi trenger split
+    # sugar dekkes primært av UNICA, ikke Conab (Conab har egen cana-rapport vi ikke leser)
+}
 
 if not SCALP_API_KEY:
     bashrc = Path.home() / ".bashrc"
@@ -83,6 +104,35 @@ if MACRO_FILE.exists():
 
 vix_obj    = macro.get("vix_regime") or {}
 vix_regime = vix_obj.get("regime", "normal")
+
+
+# ── Conab / UNICA — last med stale-gate og graceful degradation ──────────────
+def _safe_load_json(path: Path, stale_days: int) -> dict | None:
+    """Last JSON hvis fila finnes og ikke er eldre enn stale_days.
+    Returnerer None ved manglende/korrupt/stale data — kalleren skal
+    tolerere None ved å hoppe over relevant scoring."""
+    if not path.exists():
+        return None
+    try:
+        age_s = (datetime.now(timezone.utc).timestamp() - path.stat().st_mtime)
+        if age_s > stale_days * 86400:
+            print(f"  {path.name}: stale ({age_s/86400:.1f}d > {stale_days}d) — ignorert")
+            return None
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as exc:
+        print(f"  {path.name}: kunne ikke laste ({exc}) — ignorert")
+        return None
+
+
+conab_data = _safe_load_json(CONAB_FILE, CONAB_STALE_DAYS)
+unica_data = _safe_load_json(UNICA_FILE, UNICA_STALE_DAYS)
+if conab_data:
+    _n = len(conab_data.get("crops", {}))
+    print(f"  Conab lastet: {_n} crops, lev={conab_data.get('grains_levantamento')}")
+if unica_data:
+    print(f"  UNICA lastet: {unica_data.get('period')} "
+          f"mix_sukker={unica_data.get('mix_sugar_pct')}%")
 
 # Hent bot-priser (mest oppdaterte agri-priser)
 BOT_HISTORY = BASE / "data" / "prices" / "bot_history.json"
@@ -233,8 +283,170 @@ if usda_blackout:
     print(f"  USDA BLACKOUT aktiv: {', '.join(items)}")
 
 
+# ── Conab shock: m/m-revisjon av avlings-estimat ─────────
+def _conab_shock(crop_key: str, direction: str) -> tuple[int, list[str]]:
+    """Returner (shock_score, driver_text_list) basert på Conab m/m-change.
+
+    Retning:
+      - Produksjon-revisjon NED  (mom < 0) → BULLISH for pris  → BUY får +score
+      - Produksjon-revisjon OPP  (mom > 0) → BEARISH for pris  → SELL får +score
+    Shock-nivå:
+      - 0  : ingen revisjon eller < ±1%
+      - 1  : 1–2.5% revisjon
+      - 2  : ≥ 2.5% revisjon (kritisk)
+    Hvis Conab-data mangler eller crop ikke dekkes: (0, []).
+    """
+    if not conab_data:
+        return 0, []
+    conab_key = CONAB_KEYS.get(crop_key)
+    if not conab_key:
+        return 0, []
+    crop_data = (conab_data.get("crops") or {}).get(conab_key)
+    if not crop_data:
+        return 0, []
+    mom = crop_data.get("mom_change_pct")
+    if mom is None:
+        return 0, []
+    abs_mom = abs(mom)
+    # Retnings-filter: revisjon ned = bull; revisjon opp = bear
+    revision_bull = mom < 0
+    if direction == "BUY" and not revision_bull:
+        return 0, []
+    if direction == "SELL" and revision_bull:
+        return 0, []
+    if abs_mom < CONAB_SHOCK_THRESHOLD_LOW:
+        return 0, []
+    score = 2 if abs_mom >= CONAB_SHOCK_THRESHOLD_HIGH else 1
+    lev = conab_data.get("grains_levantamento") or conab_data.get("cafe_levantamento") or "?"
+    arrow = "↓" if revision_bull else "↑"
+    txt = f"Conab {lev}: {conab_key} {arrow}{abs_mom:.1f}% m/m ({'bull' if revision_bull else 'bear'})"
+    return score, [txt]
+
+
+# ── UNICA sugar-mix driver (kun for sugar) ────────────────
+def _unica_mix_driver(direction: str) -> tuple[int, list[str]]:
+    """Returner (score, driver_text_list) basert på UNICA sukker/etanol-mix.
+
+    Logikk:
+      - mix_sugar_pct > 50 AND QoQ-økning ≥ +1pp → bearish sukker (+SELL)
+      - mix_sugar_pct < 48 AND QoQ-nedgang ≤ -1pp → bullish sukker (+BUY)
+      - Crush akkumulativ YoY ≤ -5% → +1 bull (supply-press)
+      - Crush akkumulativ YoY ≥ +5% → +1 bear (supply-rikelig)
+    Uten data eller ingen retningsmatch: (0, []).
+    """
+    if not unica_data:
+        return 0, []
+    score = 0
+    drivers = []
+    mix = unica_data.get("mix_sugar_pct")
+    mix_qoq = unica_data.get("mix_sugar_change_pct_qoq")
+    if mix is not None and mix_qoq is not None:
+        if mix > 50 and mix_qoq >= 1.0 and direction == "SELL":
+            score += 1
+            drivers.append(f"UNICA: mix sukker {mix:.1f}% (+{mix_qoq:.1f}pp) → prispress ned")
+        elif mix < 48 and mix_qoq <= -1.0 and direction == "BUY":
+            score += 1
+            drivers.append(f"UNICA: mix sukker {mix:.1f}% ({mix_qoq:+.1f}pp) → tight supply")
+    yoy = unica_data.get("crush_accumulated_yoy_pct")
+    if yoy is not None:
+        if yoy <= -5.0 and direction == "BUY":
+            score += 1
+            drivers.append(f"UNICA: crush YoY {yoy:.1f}% → supply-press")
+        elif yoy >= 5.0 and direction == "SELL":
+            score += 1
+            drivers.append(f"UNICA: crush YoY +{yoy:.1f}% → supply rikelig")
+    return score, drivers
+
+
+# ── Krysssjekk mellom kilder (Open-Meteo + Conab + UNICA + ENSO) ──────────
+def _cross_confirm(crop: dict, crop_key: str, direction: str) -> tuple[int, list[str]]:
+    """Ekstra poeng når to uavhengige kilder peker samme vei.
+    Graceful: returnerer (0, []) hvis noen av kildene mangler.
+
+    Bekreftelses-typer (max +2 totalt):
+
+    A. YIELD-CROSS (grains + café):
+       Open-Meteo yield_score < 55  AND  Conab yoy_change_pct < -3
+       → feltbasert avlingsnedgang bekreftes av agrometeorologisk stress
+       → +1 for BUY-retning (tight supply)
+
+    B. CRUSH-CROSS (kun sugar):
+       UNICA crush YoY < -3  AND  agri-region wx_score >= 2
+       → mindre crush enn ifjor + akutt værstress i sukkerregion
+       → +1 for BUY-retning (supply press fortsetter)
+
+    C. STRUCTURAL-TREND (grains + café):
+       Conab yoy_change_pct >= +10  OR  <= -10
+       → strukturell supply-endring på 10%+ vs forrige safra-år
+       → +1 for SELL hvis YoY >= +10 (overflod), +1 for BUY hvis <= -10 (knapphet)
+       NB: dette er strukturelt, ikke shock. Lavere vekt enn shock-signaler.
+    """
+    score = 0
+    drivers = []
+
+    # A. YIELD-CROSS — Open-Meteo yield_score + Conab YoY
+    conab_key = CONAB_KEYS.get(crop_key or "")
+    conab_crop = None
+    if conab_data and conab_key:
+        conab_crop = (conab_data.get("crops") or {}).get(conab_key)
+    yield_score = crop.get("yield_score")
+    if (conab_crop is not None
+            and yield_score is not None
+            and direction == "BUY"):
+        conab_yoy = conab_crop.get("yoy_change_pct")
+        if (conab_yoy is not None
+                and yield_score < 55
+                and conab_yoy < -3):
+            score += 1
+            drivers.append(
+                f"Krysssjekk: yield_score {yield_score} + Conab YoY "
+                f"{conab_yoy:+.1f}% → supply-stress bekreftet"
+            )
+
+    # B. CRUSH-CROSS — UNICA crush YoY + akutt vær i sukker-region
+    if (crop_key == "sugar"
+            and unica_data
+            and direction == "BUY"):
+        crush_yoy = unica_data.get("crush_accumulated_yoy_pct")
+        wx_score = crop.get("avg_wx_score", 0) or 0
+        if (crush_yoy is not None
+                and crush_yoy < -3
+                and wx_score >= 2):
+            score += 1
+            drivers.append(
+                f"Krysssjekk: UNICA crush {crush_yoy:+.1f}% YoY + vær-stress "
+                f"(wx_score={wx_score}) → supply-press fortsetter"
+            )
+
+    # C. STRUCTURAL-TREND — Conab YoY som strukturell bias (ikke shock)
+    #    Dette er vekst/nedgang vs forrige safra-år — priset inn av markedet,
+    #    men styrker multi-måneders retningsbias for MAKRO-horisont.
+    if conab_crop is not None:
+        conab_yoy = conab_crop.get("yoy_change_pct")
+        if conab_yoy is not None:
+            if conab_yoy >= 10 and direction == "SELL":
+                score += 1
+                drivers.append(
+                    f"Struktur: Conab YoY +{conab_yoy:.1f}% "
+                    f"({conab_key}) → overflod vs forrige safra"
+                )
+            elif conab_yoy <= -10 and direction == "BUY":
+                score += 1
+                drivers.append(
+                    f"Struktur: Conab YoY {conab_yoy:.1f}% "
+                    f"({conab_key}) → knapphet vs forrige safra"
+                )
+
+    # Cap bonus til +2 slik at krysssjekk ikke dominerer over shock-drivere
+    if score > 2:
+        score = 2
+        drivers = drivers[:2]
+
+    return score, drivers
+
+
 # ── Score og generer setups ───────────────────────────────
-def score_crop(crop):
+def score_crop(crop, crop_key: str | None = None):
     """
     Scorer en avling for tradingpotensial.
     Returnerer (total_score, direction, confidence, drivers).
@@ -244,6 +456,8 @@ def score_crop(crop):
       - yield_stress (0-3)      — lav yield = prispress opp
       - enso_risk (0-2)         — El Niño/La Niña effekt
       - weather_urgency (0-2)   — akutt værstress
+      - conab_shock (0-2)       — Conab m/m-revisjon (hvis crop_key dekkes)
+      - unica_mix (0-2)         — UNICA sugar-mix / crush YoY (kun crop_key=sugar)
     """
     outlook = crop.get("outlook", {})
     signal  = outlook.get("signal", "NØYTRAL")
@@ -294,6 +508,19 @@ def score_crop(crop):
         if yield_score and yield_score > 85:
             total += 1  # Høy yield = bearish prispress
 
+    # Conab shock-komponent (m/m-revisjon i Brasil-estimat)
+    conab_score, conab_drivers_txt = _conab_shock(crop_key or "", direction)
+    total += conab_score
+
+    # UNICA mix-driver (kun sugar)
+    unica_score, unica_drivers_txt = ((0, []) if crop_key != "sugar"
+                                      else _unica_mix_driver(direction))
+    total += unica_score
+
+    # Krysssjekk mellom kilder (graceful hvis data mangler)
+    cross_score, cross_drivers_txt = _cross_confirm(crop, crop_key or "", direction)
+    total += cross_score
+
     # Confidence basert på score
     if total >= 7:
         confidence = "A"
@@ -302,8 +529,12 @@ def score_crop(crop):
     else:
         confidence = "C"
 
-    # Drivers-tekst
-    drivers = crop.get("drivers", [])
+    # Drivers-tekst — Conab/UNICA/krysssjekk først (mest informativt), deretter
+    # crop drivers. Boten og UI trunkerer til topp-N — prioritet = synlighet.
+    drivers = (list(conab_drivers_txt)
+               + list(unica_drivers_txt)
+               + list(cross_drivers_txt))
+    drivers += crop.get("drivers", [])
 
     return {
         "total":         round(total, 1),
@@ -312,6 +543,9 @@ def score_crop(crop):
         "yield_stress":  yield_stress,
         "weather_urgency": weather_urgency,
         "enso_risk":     enso_risk,
+        "conab_shock":   conab_score,
+        "unica_mix":     unica_score,
+        "cross_confirm": cross_score,
         "outlook_score": o_score,
         "drivers":       drivers,
     }
@@ -399,7 +633,7 @@ for crop in agri.get("crop_summary", []):
         continue
 
     # Score
-    scoring = score_crop(crop)
+    scoring = score_crop(crop, crop_key=crop_key)
     if not scoring:
         continue
 

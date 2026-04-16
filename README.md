@@ -155,9 +155,11 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | 12 | `fetch_shipping.py` | Baltic-indekser + rute-scoring |
 | 13 | `fetch_oilgas.py` | Energipriser + segment-scoring |
 | 14 | `fetch_crypto.py` | Krypto-priser, Fear & Greed, COT, korrelasjoner |
-| 15 | `push_signals.py` | Genererer `signals.json` (tekniske + agri merget), pusher alt via `/push-alert` |
-| 16 | `push_agri_signals.py` | Genererer `agri_signals.json` (leses av push_signals.py) |
-| 17 | git push | Oppdaterer GitHub Pages |
+| 15 | `fetch_conab.py` | Conab avlingsestimater Brasil (grains + café) — stale-gate 20 t |
+| 16 | `fetch_unica.py` | UNICA halvmånedlig sukkerrør-crush + mix — stale-gate 12 t |
+| 17 | `push_signals.py` | Genererer `signals.json` (tekniske + agri merget), pusher alt via `/push-alert` |
+| 18 | `push_agri_signals.py` | Genererer `agri_signals.json` (leser Conab + UNICA for shock-drivere) |
+| 19 | git push | Oppdaterer GitHub Pages |
 
 ---
 
@@ -507,6 +509,8 @@ Futures-baserte CFDer får `close_before_rollover=true` i signalet: GOLD, SILVER
 | Landbruksvær (7d varsel) | Open-Meteo Forecast API | Nei |
 | Landbruksvær (sesong-historikk) | Open-Meteo Archive API | Nei |
 | ENSO-fase (El Niño/La Niña) | NOAA CPC ONI | Nei |
+| Brasil avlingsestimater (grains + café) | Conab gov.br PDF | Nei |
+| Brasil sukkerrør-crush + mix (sugar/etanol) | UNICA unicadata.com.br PDF | Nei |
 | COMEX lager | CME Group | Nei |
 | Seismisk aktivitet | USGS Earthquake API | Nei |
 | Baltic shipping-indekser | Stooq | Nei |

@@ -99,6 +99,33 @@ fi
 python3 fetch_oilgas.py  >> "$LOG" 2>&1 && echo "  oilgas OK"   >> "$LOG" || echo "  oilgas FEIL"   >> "$LOG"
 python3 fetch_crypto.py  >> "$LOG" 2>&1 && echo "  krypto OK"   >> "$LOG" || echo "  krypto FEIL"   >> "$LOG"
 
+# ── Conab: månedlig grains (~dag 8-12) + kvartalsvis café ──────────────────
+# Publiseres typisk 1× per måned (grains) / 1× per 3 mnd (café). Vi kjører kun
+# mandag første morgen-slot + har 5-dagers stale-gate som fallback hvis
+# data mangler (bootstrapping eller catch-up etter lengre downtime).
+CONAB_FILE_DATA="$HOME/cot-explorer/data/conab/latest.json"
+if [ "$DOW" -eq 1 ] && [ "$HOUR" -le 4 ]; then
+    python3 fetch_conab.py >> "$LOG" 2>&1 && echo "  Conab OK" >> "$LOG" || echo "  Conab FEIL" >> "$LOG"
+elif [ ! -f "$CONAB_FILE_DATA" ] || [ "$(find "$CONAB_FILE_DATA" -mmin +7200 2>/dev/null | wc -l)" -gt 0 ]; then
+    # Bootstrap eller catch-up hvis data er >5 dager gammel
+    python3 fetch_conab.py >> "$LOG" 2>&1 && echo "  Conab catch-up OK" >> "$LOG" || echo "  Conab FEIL" >> "$LOG"
+else
+    echo "  Conab: hopper over (ikke mandag 00-04)" >> "$LOG"
+fi
+
+# ── UNICA: halvmånedlig sukkerrør-crush ───────────────────────────────────
+# Nye rapporter ~10-12. og ~22-25. hver måned. Vi kjører mandag + torsdag
+# første morgen-slot = 2× per uke. Stale-gate 4 dager som fallback.
+UNICA_FILE_DATA="$HOME/cot-explorer/data/unica/latest.json"
+if { [ "$DOW" -eq 1 ] || [ "$DOW" -eq 4 ]; } && [ "$HOUR" -le 4 ]; then
+    python3 fetch_unica.py >> "$LOG" 2>&1 && echo "  UNICA OK" >> "$LOG" || echo "  UNICA FEIL" >> "$LOG"
+elif [ ! -f "$UNICA_FILE_DATA" ] || [ "$(find "$UNICA_FILE_DATA" -mmin +5760 2>/dev/null | wc -l)" -gt 0 ]; then
+    # Bootstrap eller catch-up hvis data er >4 dager gammel
+    python3 fetch_unica.py >> "$LOG" 2>&1 && echo "  UNICA catch-up OK" >> "$LOG" || echo "  UNICA FEIL" >> "$LOG"
+else
+    echo "  UNICA: hopper over (ikke man/tor 00-04)" >> "$LOG"
+fi
+
 # Push signaler — kjøres alltid (skriver signals.json og signal_log.json)
 python3 push_signals.py >> "$LOG" 2>&1 && echo "  signals OK" >> "$LOG" || echo "  signals FEIL" >> "$LOG"
 
