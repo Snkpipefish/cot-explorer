@@ -520,6 +520,34 @@ for inst_key, direction in INSTRUMENT_USD_DIR.items():
         "direction": direction,
     }
 
+# ── Market rates: real yields + yield curve for driver_matrix.compute_macro ──
+# Disse inngår IKKE i USD-scoring (FRED_SERIES over), men lagres separat slik
+# at driver_matrix kan bruke dem direkte.
+MARKET_RATES = {
+    "dgs10":  "DGS10",   # 10-year Treasury nominal yield
+    "dgs2":   "DGS2",    # 2-year Treasury yield
+    "dfii10": "DFII10",  # 10-year TIPS real yield
+}
+market_rates = {}
+for key, fred_id in MARKET_RATES.items():
+    print(f"  Henter market rate {key} ({fred_id})...")
+    obs = fetch_fred_api(fred_id, limit=10)
+    if obs:
+        curr = obs[-1][1]
+        prev_week = obs[-5][1] if len(obs) >= 5 else obs[0][1]
+        market_rates[key] = {
+            "value":    round(curr, 3),
+            "chg_5d":   round(curr - prev_week, 3),
+            "date":     obs[-1][0],
+        }
+        print(f"    → {curr:.2f}% (5d chg {curr - prev_week:+.3f})")
+    time.sleep(0.15)
+
+# Yield curve spread
+if "dgs10" in market_rates and "dgs2" in market_rates:
+    market_rates["term_spread"] = round(
+        market_rates["dgs10"]["value"] - market_rates["dgs2"]["value"], 3)
+
 # 7. Lagre
 output = {
     "updated":           datetime.now(timezone.utc).isoformat(),
@@ -532,6 +560,7 @@ output = {
     "category_scores":   category_scores,
     "indicators":        indicators,
     "instrument_scores": instrument_scores,
+    "market_rates":      market_rates,
     "_meta": {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "script": "fetch_fundamentals.py",

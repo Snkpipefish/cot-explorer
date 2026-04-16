@@ -87,7 +87,14 @@ VIX_CORRELATION_THRESHOLDS = {"risk_off": 25, "crisis": 35}
 DXY_MOMENTUM_THRESHOLD = 2.0   # 2% chg5d = full penalty
 
 # ─── PUSH-TERSKLER ──────────────────────────────────────────────
-PUSH_THRESHOLDS = {"SCALP": 3.0, "SWING": 4.5, "MAKRO": 5.5}
+# Schema 2.0: driver_matrix bruker 0-6 skala (sum av 5 scoring-familier).
+# Terskler alignet med HORIZON_GATES i driver_matrix (hvis horisont er
+# auto-valgt til SWING, har signalet per definisjon score ≥ 2.5):
+#   SCALP:  1.5  (horizon SCALP-gate)
+#   SWING:  2.5  (horizon SWING-gate — enhver SWING-signal skal kunne pushes)
+#   MAKRO:  3.5  (horizon MAKRO-gate)
+# Legacy 9-kriterie-systemet (0-9 skala) brukte 3.0/4.5/5.5.
+PUSH_THRESHOLDS = {"SCALP": 1.5, "SWING": 2.5, "MAKRO": 3.5}
 HORIZON_PRIORITY = {"MAKRO": 0, "SWING": 1, "SCALP": 2, "WATCHLIST": 3}
 
 # ─── HORISONT-CONFIG (sendes til boten via signal_server) ────────

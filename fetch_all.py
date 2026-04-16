@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import urllib.request, urllib.parse, json, os, time, re
 from datetime import datetime, timezone
+from pathlib import Path
 import sys
 sys.path.insert(0, os.path.expanduser('~/cot-explorer'))
 try:
@@ -9,6 +10,12 @@ try:
 except:
     SMC_OK = False
     print('  SMC ikke tilgjengelig')
+
+# Driver-familie-matrise (fikser C1-korrelasjons-bias, schema 2.0)
+import driver_matrix as dm
+import family_mapping as fm
+
+_DRIVER_SOURCES = fm.load_all_sources(Path(os.path.expanduser("~/cot-explorer")))
 
 BASE = os.path.expanduser("~/cot-explorer/data")
 OUT  = os.path.join(BASE, "macro", "latest.json")
@@ -1486,30 +1493,73 @@ for inst in INSTRUMENTS:
     # Nearest level weight (brukes for horisont-bestemmelse)
     nearest_level_weight = max(nearest_sup_w, nearest_res_w)
 
-    # ── 14-punkt vektet scoring ──────────────────────────
-    criteria = {
-        "sma200":             above_sma,
-        "momentum_20d":       (chg20 > 0.5 and above_sma) or (chg20 < -0.5 and not above_sma),
-        "cot_confirms":       cot_confirms,
-        "cot_strong":         cot_strong,
-        "cot_momentum":       cot_momentum_ok,
-        "htf_level_weight":   htf_level_nearby,
-        "d1_4h_congruent":    align in ("bull", "bear"),
-        "fred_fundamental":   fund_confirms,
-        "smc_confirms":       smc_confirms_ok,
+    # ── Driver-familie-matrise (schema 2.0) ──────────────
+    # Se driver_matrix.py: 6 familier → grade krever multi-family confluens
+    # (fikser C1-korrelasjons-bias).
+    momentum_aligned = (chg20 > 0.5 and above_sma) or (chg20 < -0.5 and not above_sma)
+    # Build macro-context fra lokal scope
+    _macro_ctx = {
+        "dxy_chg5d": (prices.get("DXY") or {}).get("chg5d") if key != "DXY" else chg5,
+        "vix_regime": "extreme" if _vix_now >= 35
+                      else "elevated" if _vix_now >= 25 else "normal",
+        "geo_active": False,   # Settes av caller (push_signals) basert på nyheter
+        "brl_chg5d": ((prices.get("USDBRL") or {}).get("chg5d")
+                      or (prices.get("BRL") or {}).get("chg5d")),
+        "oil_supply_disruption": _oil_supply_disruption,
+        "term_spread": (fund_data.get("market_rates") or {}).get("term_spread"),
     }
-
-    horizon = determine_horizon(criteria, nearest_level_weight)
-    score, max_score, score_details = calculate_weighted_score(criteria, horizon)
+    _ctx_family = fm.build_context_for_asset(inst["key"], _DRIVER_SOURCES, _macro_ctx)
+    family_result = dm.score_asset(
+        direction=dir_color,
+        sma200_aligned=above_sma,
+        momentum_aligned=momentum_aligned,
+        d1_4h_congruent=(align in ("bull", "bear")),
+        cot_bias_aligns=cot_confirms,
+        cot_pct=cot_pct,
+        cot_momentum_aligns=cot_momentum_ok,
+        nearest_level_weight=nearest_level_weight,
+        smc_confirms=smc_confirms_ok,
+        fibo_zone_hit=False,   # Fibo-zone ikke i dagens pipeline
+        **_ctx_family,
+    )
+    horizon      = family_result.horizon
+    score        = round(family_result.total_score, 2)
+    max_score    = 6.0   # Sum av 5 scoring-familier × vekt 1.0 på SWING
+    grade        = family_result.grade
+    grade_color  = ("bull" if grade in ("A+", "A") else
+                    "warn" if grade == "B" else "bear")
 
     # DXY-konflikt: graduert penalty basert på DXY momentum styrke
     if dxy_conflict:
-        base_penalty = 2.0 if horizon in ("SWING", "MAKRO") else 1.0
+        base_penalty = 1.0 if horizon in ("SWING", "MAKRO") else 0.5
         penalty = round(base_penalty * dxy_momentum_strength, 2)
-        score = max(0, round(score - penalty, 1))
-    # news_headwind fjernet — Google News RSS for upålitelig som score-modifier
+        score = max(0, round(score - penalty, 2))
+        # Reberegn grade med redusert score
+        if score < 3.5 and grade in ("A+", "A"):
+            grade = "B" if score >= 2.5 else "C"
+            grade_color = "warn" if grade == "B" else "bear"
 
-    grade, grade_color = get_grade(score, horizon)
+    # Legacy score_details (for bakover-kompat med dashbord): flat oversikt over familier
+    score_details = [
+        {"kryss": f"Familie: {fam_key}",
+         "id":    f"family_{fam_key}",
+         "verdi": fam.score >= 0.3,
+         "vekt":  round(fam.weight, 2),
+         "poeng": round(fam.score * fam.weight, 2)}
+        for fam_key, fam in family_result.families.items()
+    ]
+    # Behold criteria-dict som skygge for evt. kode som leser den
+    criteria = {
+        "sma200":           above_sma,
+        "momentum_20d":     momentum_aligned,
+        "cot_confirms":     cot_confirms,
+        "cot_strong":       cot_strong,
+        "cot_momentum":     cot_momentum_ok,
+        "htf_level_weight": htf_level_nearby,
+        "d1_4h_congruent":  align in ("bull", "bear"),
+        "fred_fundamental": fund_confirms,
+        "smc_confirms":     smc_confirms_ok,
+    }
 
     # ── C: Signal-stabilitet — signaler som flipper mellom kjøringer nedgraderes
     prev = _prev_signals.get(key, {})
@@ -1529,13 +1579,26 @@ for inst in INSTRUMENTS:
         if horizon == "MAKRO":    horizon = "SWING"
         elif horizon == "SWING":  horizon = "SCALP"
         else:                     horizon = "WATCHLIST"
-        # Recalculate score for new horizon
-        score, max_score, score_details = calculate_weighted_score(criteria, horizon)
-        if dxy_conflict:
-            base_penalty = 2.0 if horizon in ("SWING", "MAKRO") else 1.0
-            penalty = round(base_penalty * dxy_momentum_strength, 2)
-            score = max(0, round(score - penalty, 1))
-        grade, grade_color = get_grade(score, horizon)
+        # Re-vei family-scores med ny horisont-vekting
+        if horizon != "WATCHLIST":
+            new_weights = dm.HORIZON_FAMILY_WEIGHTS.get(horizon,
+                             dm.HORIZON_FAMILY_WEIGHTS["SWING"])
+            new_total = 0.0
+            for fk, fs in family_result.families.items():
+                if fk == "risk":
+                    continue
+                fs.weight = new_weights.get(fk, 1.0)
+                new_total += fs.score * fs.weight
+            score = round(new_total, 2)
+            if dxy_conflict:
+                base_penalty = 1.0 if horizon in ("SWING", "MAKRO") else 0.5
+                penalty = round(base_penalty * dxy_momentum_strength, 2)
+                score = max(0, round(score - penalty, 2))
+            grade = dm.grade(score, family_result.active_families)
+            grade_color = ("bull" if grade in ("A+", "A") else
+                           "warn" if grade == "B" else "bear")
+        else:
+            grade, grade_color = "C", "bear"
 
     # ── E: Sesjon-filter — SCALP utenfor optimal sesjon → WATCHLIST
     if horizon == "SCALP" and not sesjon_riktig:
@@ -1662,6 +1725,14 @@ for inst in INSTRUMENTS:
         "max_score":     max_score,
         "score_pct":     round(score/max_score*100) if max_score else 0,
         "score_details": score_details,
+        # Nye felter fra driver_matrix (schema 2.0)
+        "families":        {
+            k: {"score": round(v.score, 2), "weight": round(v.weight, 2),
+                "drivers": v.drivers}
+            for k, v in family_result.families.items()
+        },
+        "active_families": family_result.active_families,
+        "family_drivers":  family_result.flat_drivers(limit=8),
         "horizon":       horizon,
         "adr_utilization": adr,
         "correlation_group": CORRELATION_GROUPS.get(inst["key"]),

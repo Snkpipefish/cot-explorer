@@ -535,9 +535,9 @@ def push_flask(signals):
     if not SCALP_API_KEY:
         return
     payload = json.dumps({
-        # H11: Schema-versjon — bot kan reagere hvis dette ikke matcher
-        # forventet versjon. Increment ved breaking endringer i signal-feltene.
-        "schema_version": "1.0",
+        # Schema 2.0: driver-familie-matrise (erstatter 9-kriterie-scoring).
+        # Felt `families`, `active_families`, `family_drivers` per signal.
+        "schema_version": "2.0",
         "signals":   signals,
         "generated": generated,
         "global_state": {
@@ -573,6 +573,7 @@ push_discord(message)
 _now_iso = datetime.now(timezone.utc).isoformat()
 
 # Tekniske signaler i Flask-format
+# Schema 2.0: propagere families + active_families + family_drivers
 flask_signals = [{
     "key":            key,
     "name":           d.get("name", key),
@@ -580,12 +581,16 @@ flask_signals = [{
     "direction":      d.get("dir_color", "?"),
     "grade":          d.get("grade", "?"),
     "score":          d.get("score", 0),
-    "max_score":      d.get("max_score", 14),
+    "max_score":      d.get("max_score", 6.0),   # 0-6 i schema 2.0
     "setup":          active_setup(d),
     "cot":            d.get("cot", {}),
     "correlation_group": d.get("correlation_group"),
     "horizon_config": HORIZON_CONFIGS.get(
         d.get("horizon", d.get("timeframe_bias", "SWING")), {}),
+    # ── Driver-familie-matrise (fikset C1) ──────────────────────
+    "families":        d.get("families", {}),
+    "active_families": d.get("active_families"),
+    "family_drivers":  d.get("family_drivers", []),
     "created_at":     _now_iso,
 } for key, d in top]
 
@@ -622,6 +627,10 @@ if AGRI_SIGNALS_FILE.exists():
                 "yield_score":      asig.get("yield_score"),
                 "weather_outlook":  asig.get("weather_outlook"),
                 "drivers":          asig.get("drivers", []),
+                # Schema 2.0: propagere families fra agri_signals.json
+                "families":         asig.get("families", {}),
+                "active_families":  asig.get("active_families"),
+                "family_drivers":   asig.get("family_drivers", []),
                 "created_at":       _now_iso,
             })
     except Exception:

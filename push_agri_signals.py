@@ -661,13 +661,65 @@ for crop in agri.get("crop_summary", []):
     # Bygg signal
     cot = crop.get("cot") or {}
 
+    # ── Schema 2.0: bygg families-dict fra agri-scoring-komponenter ──
+    # Agri har sin egen domene-scoring (outlook+yield+weather+enso+conab+unica)
+    # som mapper naturlig til 5 av 6 families (ingen strukturell pris-trend).
+    _agri_direction_bull = scoring["direction"] in ("BUY", "bull", "buy", "long")
+    _fam_trend = {
+        # Trend-proxy fra outlook-signal (BULLISH/BEARISH fra fetch_agri)
+        "score":   1.0 if _agri_direction_bull else (0.5 if scoring["outlook_score"] > 0 else 0.0),
+        "weight":  0.8,   # trend vektes lavere for agri-fundamentals
+        "drivers": []
+    }
+    _fam_pos = {
+        "score":   1.0 if cot.get("bias") and (
+                       (cot["bias"] == "LONG" and _agri_direction_bull) or
+                       (cot["bias"] == "SHORT" and not _agri_direction_bull)) else 0.0,
+        "weight":  1.0,
+        "drivers": [f"COT {cot.get('bias','?')} {cot.get('net_pct','?')}%"] if cot.get("bias") else []
+    }
+    _fam_macro = {
+        "score":   min(abs(fx_penalty) / 2.0, 1.0) if fx_penalty else 0.0,
+        "weight":  1.0,
+        "drivers": fx_drivers
+    }
+    _fam_fund = {
+        # Yield-stress + weather + enso + conab/unica samlet
+        "score":   min((scoring.get("yield_stress", 0) / 3.0
+                        + scoring.get("weather_urgency", 0) / 2.0
+                        + scoring.get("enso_risk", 0) / 2.0
+                        + scoring.get("conab_shock", 0) / 2.0
+                        + scoring.get("unica_mix", 0) / 2.0
+                        + scoring.get("cross_confirm", 0) / 2.0) / 6.0 * 1.5, 1.0),
+        "weight":  1.3,
+        "drivers": scoring.get("drivers", [])[:3]
+    }
+    _fam_risk = {
+        "score":   0.5 if instrument in usda_blackout else 0.0,
+        "weight":  1.0,
+        "drivers": [f"USDA {usda_blackout[instrument].get('report')}"] if instrument in usda_blackout else []
+    }
+    _fam_struct = {"score": 0.0, "weight": 0.5, "drivers": []}   # N/A for agri-fundamental
+
+    _families_dict = {
+        "trend":       _fam_trend,
+        "positioning": _fam_pos,
+        "macro":       _fam_macro,
+        "fundamental": _fam_fund,
+        "risk":        _fam_risk,
+        "structure":   _fam_struct,
+    }
+    _active_families = sum(1 for f in _families_dict.values() if f["score"] >= 0.3)
+    # Normalisert score 0-6 (for schema 2.0-kompat)
+    _score_06 = round(sum(f["score"] * f["weight"] for fk, f in _families_dict.items() if fk != "risk"), 2)
+
     sig = {
         "key":            instrument,
         "name":           crop.get("navn", instrument),
         "action":         scoring["direction"],
         "timeframe":      timeframe,
         "grade":          scoring["confidence"],
-        "score":          scoring["total"],
+        "score":          scoring["total"],   # Behold gammel score for agri-intern bruk
         "current":        price,
         "entry":          levels["entry"],
         "sl":             levels["sl"],
@@ -677,6 +729,10 @@ for crop in agri.get("crop_summary", []):
         "rr_t2":          levels["rr_t2"],
         "sl_type":        levels["sl_type"],
         "atr_est":        levels["atr_est"],
+        # Schema 2.0-felt
+        "families":        _families_dict,
+        "active_families": _active_families,
+        "family_drivers":  scoring.get("drivers", [])[:8],
         "atr_source":     levels.get("atr_source", "estimated"),
         "cot_bias":       cot.get("bias"),
         "cot_pct":        cot.get("net_pct"),
