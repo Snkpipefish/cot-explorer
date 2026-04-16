@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-16 12:40 UTC",
+  "generated": "2026-04-16 12:51 UTC",
   "cot_date": "2026-04-07",
   "global_state": {
     "geo_active": true,
@@ -17,15 +17,255 @@
   },
   "signals": [
     {
+      "key": "AUDUSD",
+      "name": "AUD/USD",
+      "action": "BUY",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "B",
+      "score": 5.0,
+      "max_score": 7.5,
+      "score_pct": 67,
+      "score_details": [
+        {
+          "kryss": "Over SMA200",
+          "id": "sma200",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "Momentum 20d",
+          "id": "momentum_20d",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "COT bekrefter",
+          "id": "cot_confirms",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0
+        },
+        {
+          "kryss": "COT sterk (>10%)",
+          "id": "cot_strong",
+          "verdi": false,
+          "vekt": 0.5,
+          "poeng": 0
+        },
+        {
+          "kryss": "COT momentum Δ",
+          "id": "cot_momentum",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0
+        },
+        {
+          "kryss": "HTF-nivå ≥ 3",
+          "id": "htf_level_weight",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "D1+4H kongruent",
+          "id": "d1_4h_congruent",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "Fundamental (FRED)",
+          "id": "fred_fundamental",
+          "verdi": false,
+          "vekt": 0,
+          "poeng": 0
+        },
+        {
+          "kryss": "SMC bekrefter",
+          "id": "smc_confirms",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        }
+      ],
+      "current": 0.71725,
+      "entry": 0.71182,
+      "sl": 0.70693,
+      "t1": 0.71862,
+      "t2": 0.71958,
+      "rr_t1": 1.39,
+      "rr_t2": 1.59,
+      "sl_type": "struktur",
+      "cot_bias": "NØYTRAL",
+      "cot_pct": 0.0,
+      "correlation_group": "usd_pairs",
+      "adr_utilization": {
+        "pct": 44.1,
+        "ok_for_scalp": true,
+        "available": true
+      },
+      "atr_d1": 0.00587,
+      "horizon_config": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {
+          "fx": 8.0,
+          "gold": 10.0,
+          "silver": 10.0,
+          "oil": 9.0,
+          "index": 8.0
+        },
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
+      }
+    },
+    {
+      "key": "Gold",
+      "name": "Gull",
+      "action": "BUY",
+      "timeframe": "SCALP",
+      "horizon": "SCALP",
+      "grade": "B",
+      "score": 3.0,
+      "max_score": 5.0,
+      "score_pct": 60,
+      "score_details": [
+        {
+          "kryss": "Over SMA200",
+          "id": "sma200",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "Momentum 20d",
+          "id": "momentum_20d",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "COT bekrefter",
+          "id": "cot_confirms",
+          "verdi": true,
+          "vekt": 0,
+          "poeng": 0
+        },
+        {
+          "kryss": "COT sterk (>10%)",
+          "id": "cot_strong",
+          "verdi": true,
+          "vekt": 0,
+          "poeng": 0
+        },
+        {
+          "kryss": "COT momentum Δ",
+          "id": "cot_momentum",
+          "verdi": false,
+          "vekt": 0,
+          "poeng": 0
+        },
+        {
+          "kryss": "HTF-nivå ≥ 3",
+          "id": "htf_level_weight",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0
+        },
+        {
+          "kryss": "D1+4H kongruent",
+          "id": "d1_4h_congruent",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "Fundamental (FRED)",
+          "id": "fred_fundamental",
+          "verdi": false,
+          "vekt": 0,
+          "poeng": 0
+        },
+        {
+          "kryss": "SMC bekrefter",
+          "id": "smc_confirms",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0
+        }
+      ],
+      "current": 4817.16,
+      "entry": 4816.00712,
+      "sl": 4796.27635,
+      "t1": 4869.57853,
+      "t2": 4869.57853,
+      "rr_t1": 2.72,
+      "rr_t2": 2.72,
+      "sl_type": "struktur",
+      "cot_bias": "LONG",
+      "cot_pct": 25.4,
+      "correlation_group": "precious_metals",
+      "adr_utilization": {
+        "pct": 37.8,
+        "ok_for_scalp": true,
+        "available": true
+      },
+      "atr_d1": 65.05446,
+      "horizon_config": {
+        "confirmation_tf": "5min",
+        "confirmation_max_candles": 6,
+        "confirmation_escape_atr_factor": 0.5,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0015,
+        "entry_zone_margin_atr": 0.3,
+        "exit_t1_close_pct": 0.5,
+        "exit_t2_close_pct": 0.25,
+        "exit_trail_tf": "5min",
+        "exit_trail_atr_mult": {
+          "fx": 2.0,
+          "gold": 2.5,
+          "silver": 2.5,
+          "oil": 2.5,
+          "index": 2.0
+        },
+        "exit_ema_tf": "5min",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 8,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_candles": 16,
+        "exit_geo_spike_atr_mult": 2.0,
+        "sizing_base_risk_usd": 20
+      }
+    },
+    {
       "key": "Silver",
       "name": "Sølv",
       "action": "BUY",
       "timeframe": "SCALP",
       "horizon": "SCALP",
-      "grade": "A",
-      "score": 4.0,
+      "grade": "B",
+      "score": 3.0,
       "max_score": 5.0,
-      "score_pct": 80,
+      "score_pct": 60,
       "score_details": [
         {
           "kryss": "Over SMA200",
@@ -72,9 +312,9 @@
         {
           "kryss": "D1+4H kongruent",
           "id": "d1_4h_congruent",
-          "verdi": true,
+          "verdi": false,
           "vekt": 1.0,
-          "poeng": 1.0
+          "poeng": 0
         },
         {
           "kryss": "Fundamental (FRED)",
@@ -91,23 +331,23 @@
           "poeng": 1.0
         }
       ],
-      "current": 79.8,
-      "entry": 79.64,
-      "sl": 78.74818,
-      "t1": 81.155,
-      "t2": 81.82,
-      "rr_t1": 1.7,
-      "rr_t2": 2.44,
+      "current": 79.195,
+      "entry": 79.19,
+      "sl": 78.25718,
+      "t1": 80.35,
+      "t2": 81.12255,
+      "rr_t1": 1.24,
+      "rr_t2": 2.07,
       "sl_type": "struktur",
       "cot_bias": "LONG",
       "cot_pct": 9.0,
       "correlation_group": "precious_metals",
       "adr_utilization": {
-        "pct": 51.2,
+        "pct": 50.7,
         "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": null,
+      "atr_d1": 2.97129,
       "horizon_config": {
         "confirmation_tf": "5min",
         "confirmation_max_candles": 6,
@@ -137,9 +377,9 @@
     }
   ],
   "_meta": {
-    "generated_at": "2026-04-16T12:40:26Z",
+    "generated_at": "2026-04-16T12:51:13Z",
     "script": "push_signals.py",
-    "macro_date": "2026-04-16 12:40 UTC",
+    "macro_date": "2026-04-16 12:50 UTC",
     "cot_date": "2026-04-07"
   }
 }
