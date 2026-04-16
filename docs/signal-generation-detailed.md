@@ -408,6 +408,15 @@ Hvert signal inkluderer en `horizon_config` med parametre for boten:
 - Krigs-/sanksjonsord i nyheter (iran, israel, attack, war, strike, sanction, invasion, escalat)
 - Brent opp mer enn 15% over 20 dager
 
+### Olje supply-disruption
+
+Leser shipping og oilgas-data (Hormuz, Suez, Midtøsten-konflikt). Når noen av disse har `risk = HIGH`:
+
+- **Olje SHORT-signaler blokkeres helt** — supply-squeeze = bullish for oljepris
+- `dir_color` er allerede tvunget til `bull` i fetch_all.py
+- `oil_supply_disruption = true` synlig i trading_levels for Brent/WTI
+- Deaktiveres automatisk når risk synker (dynamisk, ikke hardkodet)
+
 ---
 
 ## Steg 4b: Agri-signaler (push_agri_signals.py)

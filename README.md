@@ -174,6 +174,7 @@ Kjører `update.sh`: full pipeline (se tabell under)
 - Sortert etter horisont-prioritet (MAKRO > SWING > SCALP), deretter score
 - **DXY ekskludert** (ikke-tradeable indeks)
 - **Oil war-spread beskyttelse**: Brent +15% 20d ELLER krig-nøkkelord → `oil_geo_warning=true`
+- **Olje supply-disruption**: Når Hormuz/Midtøsten har HIGH risk i shipping/oilgas-data → olje SHORT blokkeres automatisk, dir_color tvinges bull
 
 ### signals.json — global_state og rules
 
@@ -267,6 +268,22 @@ Hvert kriterium har ulik vekt avhengig av horisont (SCALP/SWING/MAKRO). Maks sco
 | DXY-konflikt | -2.0 (SWING/MAKRO) / -1.0 (SCALP) | USD-par med retning motstridende DXY |
 | Nyhetsmotvind | -1.0 | Sterk nyhetssentiment (\|score\| ≥ 0.4) mot retning |
 | Signal-flip | Nedgradering 1 nivå | Retning eller horisont endret siden forrige kjøring |
+
+### Olje supply-disruption override
+
+Leser `data/shipping/latest.json` og `data/oilgas/latest.json` ved oppstart:
+
+| Kilde | Trigger | Betingelse |
+|-------|---------|------------|
+| Shipping | Hormuz-stredet | `risk = HIGH` |
+| Shipping | Suez/Rødehavet | `risk = HIGH` (tilleggsinfo) |
+| Oilgas | Midtøsten-konflikt | `risk = HIGH` |
+
+Når aktiv:
+- `dir_color` tvinges til `bull` for Brent og WTI (supply-squeeze = bullish)
+- SHORT-signaler blokkeres i `push_signals.py`
+- `oil_supply_disruption = true` og `oil_supply_reason` synlig i output
+- Deaktiveres automatisk når shipping/oilgas risk synker under HIGH
 
 ### Horisont-bestemmelse
 
