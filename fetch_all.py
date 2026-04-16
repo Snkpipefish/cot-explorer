@@ -601,9 +601,9 @@ def merge_tagged_levels(tagged, curr, atr, max_n=6):
     return sorted(merged, key=lambda x: abs(x["price"] - curr))[:max_n]
 
 
-def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, klasse, min_rr=1.5):
+def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, klasse, min_rr=1.5, horizon="MAKRO", kat="valuta"):
     """
-    Makro level-til-level setup — strukturbasert stop loss:
+    Level-til-level setup — strukturbasert stop loss med horizon-differensierte mål.
 
     Geometri:
       LONG:  entry = støtte/demand-sone,  SL = under sone-bunn eller 0.3–0.5×ATR(D1) under nivå
@@ -616,38 +616,131 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
       - Risk = faktisk avstand entry → SL (ikke fast ATR)
       - T1 må gi R:R >= min_rr basert på faktisk risk
       - Watchlist-filter: pris maks 1×ATR(D1) fra entry-nivå
+
+    Horizon-differensiering av T1/T2:
+      SCALP: T1 maks 2×ATR(D1), T2 maks 3×ATR(D1) fra entry — intradag mål
+      SWING: T1 maks 5×ATR(D1), T2 maks 8×ATR(D1) fra entry — multi-dag mål
+      MAKRO: Ingen cap — bruker fulle strukturelle nivåer
     """
+    # Horizon-basert T1/T2 cap (i ATR(D1) fra entry) og min R:R
+    HORIZON_T_CAPS = {
+        "SCALP":     (2.0, 3.0),
+        "SWING":     (5.0, 8.0),
+        "MAKRO":     (None, None),   # Ingen cap
+        "WATCHLIST": (2.0, 3.0),     # Som SCALP
+    }
+    HORIZON_MIN_RR = {
+        "SCALP":     1.0,     # Tillat nærliggende reelle nivåer
+        "SWING":     1.3,
+        "MAKRO":     1.5,
+        "WATCHLIST": 1.0,
+    }
+    t1_cap_atr, t2_cap_atr = HORIZON_T_CAPS.get(horizon, (5.0, 8.0))
+    min_rr = HORIZON_MIN_RR.get(horizon, min_rr)
     if not atr_15m or atr_15m <= 0:
         return None
     if not atr_daily or atr_daily <= 0:
         atr_daily = atr_15m * 5
 
     def structural_sl(entry_level, entry_obj, dir):
-        """SL ved strukturnivå — aldri mekanisk ATR fra nåpris."""
-        buf = atr_daily * 0.15
-        w   = entry_obj.get("weight", 1)
+        """
+        SL basert utelukkende på reelle strukturnivåer — så tett som mulig.
+
+        LONG:
+          1. Entry sin SMC sone-bunn → SL = zone_bottom - buffer
+          2. Nærmeste støtte under entry → SL = under det nivået (eller sone-bunn)
+          3. Fallback: entry - 2×buffer
+
+        SHORT: speilvendt.
+
+        Buffer (under/over nivået) er kategori-tilpasset:
+          valuta:  0.15×ATR(D1)
+          ravarer: 0.25×ATR(D1)
+          aksjer:  0.20×ATR(D1)
+        """
+        BUF_MULT = {"valuta": 0.15, "ravarer": 0.25, "aksjer": 0.20}
+        buf = atr_daily * BUF_MULT.get(kat, 0.20)
+
         if dir == "long":
+            # 1. Entry sin SMC sone-bunn
             zone_bot = entry_obj.get("zone_bottom")
             if zone_bot and zone_bot < entry_level:
                 return round(zone_bot - buf, 5)
-            sl_buf = atr_daily * (0.5 if w >= 4 else 0.3)
-            return round(entry_level - sl_buf, 5)
+
+            # 2. Nærmeste reelle støtte under entry → SL under det
+            for l in sup_tagged:
+                if l is entry_obj:
+                    continue
+                if l["price"] < entry_level:
+                    sl_at = l["price"]
+                    nb = l.get("zone_bottom")
+                    if nb and nb < sl_at:
+                        sl_at = nb
+                    return round(sl_at - buf, 5)
+
+            # 3. Fallback: ingen nivåer under → tight buffer
+            return round(entry_level - buf * 2, 5)
         else:
+            # 1. Entry sin SMC sone-topp
             zone_top = entry_obj.get("zone_top")
             if zone_top and zone_top > entry_level:
                 return round(zone_top + buf, 5)
-            sl_buf = atr_daily * (0.5 if w >= 4 else 0.3)
-            return round(entry_level + sl_buf, 5)
 
-    def best_t1(levels, entry, min_dist):
-        """Beste T1: høyest HTF-weight → nærmest entry, minst min_dist unna."""
-        cands = sorted(levels, key=lambda x: (-x["weight"], abs(x["price"] - entry)))
-        for l in cands:
+            # 2. Nærmeste reelle motstand over entry → SL over det
+            for l in res_tagged:
+                if l is entry_obj:
+                    continue
+                if l["price"] > entry_level:
+                    sl_at = l["price"]
+                    nt = l.get("zone_top")
+                    if nt and nt > sl_at:
+                        sl_at = nt
+                    return round(sl_at + buf, 5)
+
+            # 3. Fallback
+            return round(entry_level + buf * 2, 5)
+
+    def best_t1(levels, entry, min_dist, max_dist=None):
+        """
+        Beste T1: reelt nivå innenfor horizon-rekkevidde.
+
+        Prioritering:
+          1. Høyest weight innenfor max_dist (reelt nivå, riktig horizon)
+          2. Nærmest entry innenfor max_dist (reelt nivå, men lavere weight)
+          3. Høyest weight uansett avstand (kun hvis ingen horizon-cap)
+        """
+        is_long = direction == "long"
+        # Filtrer: riktig side + minimum avstand
+        valid = []
+        for l in levels:
             p = l["price"]
-            ok = (p > entry + min_dist) if direction == "long" else (p < entry - min_dist)
-            if ok:
-                q = "htf" if l["weight"] >= 3 else ("4h" if l["weight"] >= 2 else "weak")
-                return dict(l, t1_quality=q)
+            dist = (p - entry) if is_long else (entry - p)
+            if dist >= min_dist:
+                valid.append((l, dist))
+
+        if not valid:
+            return None
+
+        # Del inn: innenfor og utenfor horizon-cap
+        within = [(l, d) for l, d in valid if max_dist is None or d <= max_dist]
+        beyond = [(l, d) for l, d in valid if max_dist is not None and d > max_dist]
+
+        # Prioritet 1: beste reelle nivå innenfor horizon-rekkevidde
+        if within:
+            # Sorter: høyest weight → nærmest entry
+            within.sort(key=lambda x: (-x[0]["weight"], x[1]))
+            l = within[0][0]
+            q = "htf" if l["weight"] >= 3 else ("4h" if l["weight"] >= 2 else "weak")
+            return dict(l, t1_quality=q)
+
+        # Prioritet 2: hvis ingen cap (MAKRO), bruk beste uansett
+        if max_dist is None and beyond:
+            beyond.sort(key=lambda x: (-x[0]["weight"], x[1]))
+            l = beyond[0][0]
+            q = "htf" if l["weight"] >= 3 else ("4h" if l["weight"] >= 2 else "weak")
+            return dict(l, t1_quality=q)
+
+        # Ingen reelt nivå innenfor rekkevidde
         return None
 
     if direction == "long":
@@ -668,17 +761,23 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
             return None
         min_t1_dist = risk * min_rr
 
-        t1_obj = best_t1(res_tagged, entry_level, min_t1_dist)
+        max_t1_dist = t1_cap_atr * atr_daily if t1_cap_atr else None
+        t1_obj = best_t1(res_tagged, entry_level, min_t1_dist, max_t1_dist)
         if t1_obj is None:
-            t1_obj = {"price": round(entry_level + min_t1_dist, 5),
-                      "t1_quality": "weak", "weight": 0, "source": "projected"}
+            return None  # Ingen reelt T1-nivå → ingen setup
+
         t1 = t1_obj["price"]
 
+        # T2: neste reelle nivå etter T1 (innenfor cap)
+        max_t2_dist = t2_cap_atr * atr_daily if t2_cap_atr else None
         res_after = [l for l in res_tagged if l["price"] > t1]
-        t2 = res_after[0]["price"] if res_after else round(t1 + risk, 5)
+        if max_t2_dist:
+            res_after = [l for l in res_after
+                         if (l["price"] - entry_level) <= max_t2_dist]
+        t2 = res_after[0]["price"] if res_after else t1  # Ingen T2 = T1
 
         rr1 = round((t1 - entry_level) / risk, 2)
-        rr2 = round((t2 - entry_level) / risk, 2)
+        rr2 = round((t2 - entry_level) / risk, 2) if t2 != t1 else rr1
 
         at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
         sl_src   = "zone" if entry_obj.get("zone_bottom") else "struktur"
@@ -724,17 +823,23 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
             return None
         min_t1_dist = risk * min_rr
 
-        t1_obj = best_t1(sup_tagged, entry_level, min_t1_dist)
+        max_t1_dist = t1_cap_atr * atr_daily if t1_cap_atr else None
+        t1_obj = best_t1(sup_tagged, entry_level, min_t1_dist, max_t1_dist)
         if t1_obj is None:
-            t1_obj = {"price": round(entry_level - min_t1_dist, 5),
-                      "t1_quality": "weak", "weight": 0, "source": "projected"}
+            return None  # Ingen reelt T1-nivå → ingen setup
+
         t1 = t1_obj["price"]
 
+        # T2: neste reelle nivå etter T1 (innenfor cap)
+        max_t2_dist = t2_cap_atr * atr_daily if t2_cap_atr else None
         sup_after = [l for l in sup_tagged if l["price"] < t1]
-        t2 = sup_after[0]["price"] if sup_after else round(t1 - risk, 5)
+        if max_t2_dist:
+            sup_after = [l for l in sup_after
+                         if (entry_level - l["price"]) <= max_t2_dist]
+        t2 = sup_after[0]["price"] if sup_after else t1  # Ingen T2 = T1
 
         rr1 = round((entry_level - t1) / risk, 2)
-        rr2 = round((entry_level - t2) / risk, 2)
+        rr2 = round((entry_level - t2) / risk, 2) if t2 != t1 else rr1
 
         at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
         sl_src   = "zone" if entry_obj.get("zone_top") else "struktur"
@@ -1543,10 +1648,46 @@ for inst in INSTRUMENTS:
 
     # ── Setups med tagget nivåer ──────────────────────────
     atr_for_setup = atr_15m if atr_15m else (atr_d * 0.4)
-    setup_long  = make_setup_l2l(curr, atr_for_setup, atr_d, tagged_sup, tagged_res, "long",  klasse)
-    setup_short = make_setup_l2l(curr, atr_for_setup, atr_d, tagged_sup, tagged_res, "short", klasse)
+    setup_long  = make_setup_l2l(curr, atr_for_setup, atr_d, tagged_sup, tagged_res, "long",  klasse, horizon=horizon, kat=inst["kat"])
+    setup_short = make_setup_l2l(curr, atr_for_setup, atr_d, tagged_sup, tagged_res, "short", klasse, horizon=horizon, kat=inst["kat"])
     for s in [setup_long, setup_short]:
         if s: s["session"] = inst["session"]
+
+    # ── SWING/MAKRO-persistens: bevar forrige setup hvis ny ikke fantes ──
+    # SWING varer opptil 48t, MAKRO opptil 7 dager
+    _PERSIST_HOURS = {"SWING": 48, "MAKRO": 168}
+    prev_stab = _prev_signals.get(key, {})
+    prev_setup = prev_stab.get("setup")
+    if prev_setup and prev_stab.get("dir_color") == dir_color:
+        prev_hz = prev_stab.get("horizon", "")
+        max_age = _PERSIST_HOURS.get(prev_hz, 0)
+        created = prev_stab.get("created", "")
+        age_ok = True
+        if created and max_age:
+            try:
+                from datetime import datetime as _dt
+                age_h = (datetime.now(timezone.utc) - _dt.fromisoformat(created).replace(
+                    tzinfo=timezone.utc if not created.endswith("Z") and "+" not in created else None
+                )).total_seconds() / 3600
+                age_ok = age_h < max_age
+            except Exception:
+                age_ok = True  # Ved feil, behold
+        if age_ok:
+            prev_dir = prev_stab.get("setup_dir", "long")
+            # Gjenbruk hvis ny kjøring ikke fant setup i samme retning
+            if prev_dir == "long" and setup_long is None:
+                # Verifiser at entry-nivå fortsatt er nært nok (innen 2×ATR(D1))
+                pe = prev_setup.get("entry", 0)
+                if abs(curr - pe) <= atr_d * 2:
+                    setup_long = prev_setup
+                    setup_long["persisted"] = True
+                    setup_long["persist_age_h"] = round(age_h, 1) if 'age_h' in dir() else 0
+            elif prev_dir == "short" and setup_short is None:
+                pe = prev_setup.get("entry", 0)
+                if abs(curr - pe) <= atr_d * 2:
+                    setup_short = prev_setup
+                    setup_short["persisted"] = True
+                    setup_short["persist_age_h"] = round(age_h, 1) if 'age_h' in dir() else 0
 
     def fmt_level(tagged, typ, atr):
         out = []
@@ -1860,14 +2001,19 @@ if len(levels) == 0:
 with open(OUT,"w") as f:
     json.dump(macro, f, ensure_ascii=False, indent=2)
 
-# Lagre stabilitetsdata for neste kjøring
+# Lagre stabilitetsdata for neste kjøring (inkludert aktive setups for persistens)
 _new_stability = {}
 for k, v in levels.items():
+    active_setup = v.get("setup_long") if v.get("dir_color") == "bull" else v.get("setup_short")
     _new_stability[k] = {
         "horizon": v.get("horizon", "WATCHLIST"),
         "dir_color": v.get("dir_color", ""),
         "score": v.get("score", 0),
         "grade": v.get("grade", "C"),
+        # Lagre aktiv setup for SWING/MAKRO-persistens
+        "setup": active_setup if active_setup and v.get("horizon") in ("SWING", "MAKRO") else None,
+        "setup_dir": "long" if v.get("dir_color") == "bull" else "short",
+        "created": _prev_signals.get(k, {}).get("created") or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M"),
     }
 try:
     with open(STABILITY_FILE, "w") as f:
