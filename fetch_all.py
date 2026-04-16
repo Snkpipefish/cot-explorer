@@ -1017,6 +1017,15 @@ dxy_momentum_strength = 1.0   # Graduert DXY-penalty: 0.25–1.0 basert på |chg
 USD_QUOTE_PAIRS = {"USDJPY", "USDCHF", "USDCAD", "USDNOK"}  # bull = USD styrke
 USD_BASE_PAIRS  = {"EURUSD", "GBPUSD", "AUDUSD", "NZDUSD"}   # bull = USD svakhet
 
+# H8: DXY må iterere først for at dxy_dir_color / dxy_momentum_strength skal
+# være satt når USD-parene treffer dxy_conflict-sjekken (fetch_all.py:1393).
+# Hvis noen reorganiserer INSTRUMENTS og flytter DXY, vil alle USD-par
+# stille og silent miste DXY-konflikt-penalty. Fang det her.
+assert INSTRUMENTS and INSTRUMENTS[0]["key"] == "DXY", (
+    "INSTRUMENTS må starte med DXY — dxy_conflict-beregningen i loopen "
+    "er avhengig av at DXY-direction er satt før USD-parene iterer."
+)
+
 for inst in INSTRUMENTS:
     print(f"Henter {inst['navn']}...")
 
