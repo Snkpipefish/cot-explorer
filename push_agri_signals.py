@@ -48,17 +48,20 @@ CROP_INSTRUMENT = {
     "rice":       None,         # Ikke tilgjengelig
 }
 
-# Typisk daglig ATR som prosent av pris (brukes for entry/SL/T1-beregning)
-# Basert på historisk volatilitet for agri-futures
+# ATR14 som prosent av pris — kalibrert mot bot (H1 timeframe, ikke D1).
+# Boten trader med ATR14 fra H1-candles, som typisk er ~1/7 av D1 ATR.
+# Observerte ratios (live/est) ved D1-kalibrering: Corn 0.14, Soybean 0.11,
+# Sugar 0.17 → ~7× for høyt. Disse verdiene matcher nå boten slik at
+# SL/T1 på nettsiden reflekterer det boten faktisk trader med.
 CROP_ATR_PCT = {
-    "corn":       1.5,   # ~$6-7 på $450
-    "wheat":      1.8,   # ~$10 på $580
-    "soybeans":   1.4,   # ~$15 på $1100
-    "canola":     1.5,
-    "cotton":     2.0,   # Høy vol
-    "sugar":      2.2,   # Veldig volatil
-    "coffee":     2.5,   # Svært volatil
-    "cocoa":      2.8,   # Ekstremt volatil nå
+    "corn":       0.21,  # ~$0.96 på $458 (observert live)
+    "wheat":      0.26,  # skalert fra D1 1.8% ÷ 7
+    "soybeans":   0.15,  # ~$1.79 på $1179 (observert live)
+    "canola":     0.21,
+    "cotton":     0.29,
+    "sugar":      0.38,  # ~$0.052 på $13.77 (observert live)
+    "coffee":     0.36,
+    "cocoa":      0.40,
 }
 
 # Minimum outlook-score for å generere signal
