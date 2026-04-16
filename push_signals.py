@@ -96,8 +96,9 @@ HORIZON_CONFIGS = {
         "confirmation_min_score": 2,
         "confirmation_strict_score": 3,
         "entry_zone_margin": 0.0015,
+        "entry_zone_margin_atr": 0.3,      # 0.3×ATR(D1) — fallback til pct
         "exit_t1_close_pct": 0.50,
-        "exit_t2_close_pct": None,
+        "exit_t2_close_pct": 0.25,
         "exit_trail_tf": "5min",
         "exit_trail_atr_mult": {"fx": 2.0, "gold": 2.5, "silver": 2.5, "oil": 2.5, "index": 2.0},
         "exit_ema_tf": "5min",
@@ -115,6 +116,7 @@ HORIZON_CONFIGS = {
         "confirmation_min_score": 2,
         "confirmation_strict_score": 3,
         "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,      # 0.7×ATR(D1)
         "exit_t1_close_pct": 0.33,
         "exit_t2_close_pct": 0.33,
         "exit_trail_tf": "1H",
@@ -135,9 +137,10 @@ HORIZON_CONFIGS = {
         "confirmation_tf": "1H",
         "confirmation_max_candles": 6,
         "confirmation_escape_atr_factor": 1.0,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
+        "confirmation_min_score": 1,       # 1H candle: EMA gradient alene er nok
+        "confirmation_strict_score": 2,     # Krever 2/3 ved motstridende USD
         "entry_zone_margin": 0.0040,
+        "entry_zone_margin_atr": 1.2,      # 1.2×ATR(D1)
         "exit_t1_close_pct": 0.25,
         "exit_t2_close_pct": 0.25,
         "exit_trail_tf": "D1",
@@ -282,6 +285,7 @@ for key, d in top:
         "cot_pct":  cot.get("pct"),
         "correlation_group": d.get("correlation_group"),
         "adr_utilization":   d.get("adr_utilization"),
+        "atr_d1":            d.get("atr_d1"),
         "horizon_config":    HORIZON_CONFIGS.get(horizon, {}),
     })
 

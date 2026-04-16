@@ -90,6 +90,12 @@ except Exception as e:
     print(f'  crypto-priser FEIL: {e}')
 " >> "$LOG" 2>&1
 
+# Re-evaluér signaler med oppdaterte priser (signal aging + nye nivåer)
+echo "  Re-push signaler..." >> "$LOG"
+python3 push_signals.py >> "$LOG" 2>&1 \
+    && echo "  push_signals OK" >> "$LOG" \
+    || echo "  push_signals FEIL" >> "$LOG"
+
 # Push oppdatert data til GitHub Pages
 git add data/macro/latest.json data/signals.json data/signal_log.json \
         data/oilgas/latest.json data/agri/latest.json data/crypto/latest.json 2>/dev/null || true

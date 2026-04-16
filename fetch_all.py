@@ -1664,8 +1664,10 @@ for inst in INSTRUMENTS:
         # Retning flippet siden forrige kjøring → ustabilt signal
         stable_signal = False
     elif prev_horizon not in ("", "WATCHLIST") and horizon not in ("WATCHLIST",) and prev_horizon != horizon:
-        # Horisont flippet (f.eks. SWING → SCALP → SWING) → ustabilt
-        stable_signal = False
+        # Kun nedgradering er ustabilt — oppgradering (SCALP→SWING) er positivt
+        HORIZON_RANK = {"WATCHLIST": 0, "SCALP": 1, "SWING": 2, "MAKRO": 3}
+        if HORIZON_RANK.get(horizon, 0) < HORIZON_RANK.get(prev_horizon, 0):
+            stable_signal = False
     if not stable_signal and horizon != "WATCHLIST":
         # Nedgrader: MAKRO→SWING, SWING→SCALP, SCALP→WATCHLIST
         if horizon == "MAKRO":    horizon = "SWING"
