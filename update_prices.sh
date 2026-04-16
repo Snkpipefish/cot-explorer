@@ -100,9 +100,24 @@ python3 rescore.py >> "$LOG" 2>&1 \
 # Grunn: hourly push tømte signals.json når ingen nye SCALP-kandidater fantes,
 # noe som slettet eksisterende SWING/MAKRO-signaler mellom 4-timers runs.
 
+# K5: Sync trade-log fra scalp_edge-boten (bot skriver lokalt, vi committer)
+SCALP_LOG="$HOME/scalp_edge/signal_log.json"
+COT_LOG="$HOME/cot-explorer/data/signal_log.json"
+TRADE_LOG_CHANGED=0
+if [ -f "$SCALP_LOG" ]; then
+    if [ ! -f "$COT_LOG" ] || ! cmp -s "$SCALP_LOG" "$COT_LOG"; then
+        cp "$SCALP_LOG" "$COT_LOG" \
+            && echo "  trade-log synket fra scalp_edge" >> "$LOG" \
+            && TRADE_LOG_CHANGED=1
+    fi
+fi
+
 # Push oppdatert data til GitHub Pages (kun priser — signaler oppdateres i update.sh)
 git add data/macro/latest.json \
         data/oilgas/latest.json data/agri/latest.json data/crypto/latest.json 2>/dev/null || true
+if [ "$TRADE_LOG_CHANGED" -eq 1 ]; then
+    git add data/signal_log.json 2>/dev/null || true
+fi
 if git diff --cached --quiet; then
     echo "  git: ingen prisendring å pushe" >> "$LOG"
 else

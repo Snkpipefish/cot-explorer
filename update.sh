@@ -105,6 +105,19 @@ python3 push_signals.py >> "$LOG" 2>&1 && echo "  signals OK" >> "$LOG" || echo 
 # Push agri-signaler (avlingsbaserte trading-setups)
 python3 push_agri_signals.py >> "$LOG" 2>&1 && echo "  agri-signals OK" >> "$LOG" || echo "  agri-signals FEIL" >> "$LOG"
 
+# K5: Sync trade-log fra scalp_edge-boten før git-add.
+# Boten eier ~/scalp_edge/signal_log.json og oppdaterer den ved hver
+# trade-hendelse; vi kopierer den inn her slik at boten slipper å gjøre
+# git-push fra reactor-hot-path.
+SCALP_LOG="$HOME/scalp_edge/signal_log.json"
+COT_LOG="$HOME/cot-explorer/data/signal_log.json"
+if [ -f "$SCALP_LOG" ]; then
+    if [ ! -f "$COT_LOG" ] || ! cmp -s "$SCALP_LOG" "$COT_LOG"; then
+        cp "$SCALP_LOG" "$COT_LOG" \
+            && echo "  trade-log synket fra scalp_edge" >> "$LOG"
+    fi
+fi
+
 # Push data-filer til GitHub (oppdaterer GitHub Pages)
 git add data/ 2>/dev/null || true
 if git diff --cached --quiet; then
