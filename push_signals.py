@@ -554,9 +554,14 @@ if AGRI_SIGNALS_FILE.exists():
                     "sl_type": asig.get("sl_type", "atr_prosent"),
                 },
                 "cot":              {"bias": asig.get("cot_bias"), "pct": asig.get("cot_pct")},
+                "atr_d1":           asig.get("atr_est"),
+                "atr_est":          asig.get("atr_est"),
                 "correlation_group": "agri",
                 "source":           "agri_fundamental",
                 "horizon_config":   HORIZON_CONFIGS.get(horizon, {}),
+                "yield_score":      asig.get("yield_score"),
+                "weather_outlook":  asig.get("weather_outlook"),
+                "drivers":          asig.get("drivers", []),
             })
     except Exception:
         pass

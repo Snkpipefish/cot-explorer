@@ -365,26 +365,5 @@ for s in signals:
 if not signals:
     print("Ingen agri-signaler generert (alle under minimum score)")
 
-# ── Push til Flask ────────────────────────────────────────
-import urllib.request
-import urllib.error
-
-
-def push_flask_agri(signals_data):
-    if not SCALP_API_KEY:
-        print("  (SCALP_API_KEY ikke satt — skipper Flask push)")
-        return
-    url = f"{FLASK_URL}/push-agri-alert"
-    payload = json.dumps(signals_data).encode()
-    req = urllib.request.Request(
-        url, data=payload,
-        headers={"Content-Type": "application/json", "X-API-Key": SCALP_API_KEY},
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            print(f"  Flask /push-agri-alert OK ({resp.status})")
-    except urllib.error.URLError as e:
-        print(f"  Flask /push-agri-alert FEIL: {e} (endpoint må legges til i signal_server.py)")
-
-
-push_flask_agri(output)
+# Agri-signaler pushes nå via push_signals.py (merget inn i signals.json)
+# Ingen separat Flask-push nødvendig
