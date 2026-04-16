@@ -96,14 +96,12 @@ python3 rescore.py >> "$LOG" 2>&1 \
     && echo "  rescore OK" >> "$LOG" \
     || echo "  rescore FEIL" >> "$LOG"
 
-# Push kun SCALP-signaler hourly (SWING/MAKRO pushes i update.sh hver 4. time)
-echo "  Push SCALP-signaler..." >> "$LOG"
-python3 push_signals.py --scalp-only >> "$LOG" 2>&1 \
-    && echo "  push_signals OK" >> "$LOG" \
-    || echo "  push_signals FEIL" >> "$LOG"
+# SCALP-signaler (og alle andre signaler) pushes kun i update.sh hver 4. time.
+# Grunn: hourly push tømte signals.json når ingen nye SCALP-kandidater fantes,
+# noe som slettet eksisterende SWING/MAKRO-signaler mellom 4-timers runs.
 
-# Push oppdatert data til GitHub Pages
-git add data/macro/latest.json data/signals.json data/signal_log.json \
+# Push oppdatert data til GitHub Pages (kun priser — signaler oppdateres i update.sh)
+git add data/macro/latest.json \
         data/oilgas/latest.json data/agri/latest.json data/crypto/latest.json 2>/dev/null || true
 if git diff --cached --quiet; then
     echo "  git: ingen prisendring å pushe" >> "$LOG"

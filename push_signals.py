@@ -275,32 +275,25 @@ if AGRI_SIGNALS_FILE.exists():
         print(f"  Agri merge feilet: {e}")
 
 SIGNALS_OUT.parent.mkdir(parents=True, exist_ok=True)
-with open(SIGNALS_OUT, "w") as f:
-    json.dump(signals_json, f, ensure_ascii=False, indent=2)
 tech_count = len(signals_json['signals']) - agri_merged
-print(f"signals.json → {tech_count} tekniske + {agri_merged} agri = {len(signals_json['signals'])} totalt")
+if len(signals_json['signals']) == 0:
+    # Ingen nye signaler — behold eksisterende signals.json uendret
+    # slik at lista ikke tømmes når en oppdatering returnerer 0 signaler.
+    print(f"signals.json → 0 signaler, beholder eksisterende fil uendret")
+else:
+    with open(SIGNALS_OUT, "w") as f:
+        json.dump(signals_json, f, ensure_ascii=False, indent=2)
+    print(f"signals.json → {tech_count} tekniske + {agri_merged} agri = {len(signals_json['signals'])} totalt")
 if oil_geo:
     print(f"  ⚠️  OLJE GEO-ADVARSEL: {oil_warn_str} → boten blokkerer smale SL på olje")
 if geo_active:
     print(f"  🌍 GEO AKTIV: kvart-størrelse på alle trades")
 
 if not top:
-    print(f"Ingen signaler over horisont-terskler — sender tom push til boten")
-    # Alltid push til Flask så serveren tømmer gamle signaler
-    if SCALP_API_KEY:
-        _url = f"{FLASK_URL}/push-alert"
-        _payload = json.dumps({
-            "signals": [], "generated": generated,
-            "global_state": {"vix_regime": vix_regime, "geo_active": geo_active, "correlation_regime": corr_regime, "correlation_config": corr_config},
-        }).encode()
-        _req = urllib.request.Request(
-            _url, data=_payload,
-            headers={"Content-Type": "application/json", "X-API-Key": SCALP_API_KEY})
-        try:
-            with urllib.request.urlopen(_req, timeout=10) as _resp:
-                print(f"Flask /push-alert OK (0 signaler, {_resp.status})")
-        except urllib.error.URLError as _e:
-            print(f"Flask FEIL: {_e}")
+    # Ingen nye tekniske signaler — vi pusher IKKE tom liste til Flask
+    # (det ville tømt eksisterende signaler på serveren). Lar serveren
+    # beholde forrige push til neste oppdatering faktisk har signaler.
+    print(f"Ingen signaler over horisont-terskler — beholder eksisterende liste (ingen push)")
     sys.exit(0)
 
 
