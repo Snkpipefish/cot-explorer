@@ -567,14 +567,21 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
             # 3. Fallback
             return round(entry_level + buf * 2, 5)
 
-    def best_t1(levels, entry, min_dist, max_dist=None):
+    def best_t1(levels, entry, min_dist, max_dist=None, risk=None):
         """
         Beste T1: reelt nivå innenfor horizon-rekkevidde.
 
-        Prioritering:
-          1. Høyest weight innenfor max_dist (reelt nivå, riktig horizon)
-          2. Nærmest entry innenfor max_dist (reelt nivå, men lavere weight)
-          3. Høyest weight uansett avstand (kun hvis ingen horizon-cap)
+        Fix B — R:R-prioritert valg:
+          1. Kandidater grupperes i R:R-tiers (krever risk-argument):
+               tier 2 = R:R ≥ 2.0 (utmerket)
+               tier 1 = R:R ≥ 1.5 (bra)
+               tier 0 = R:R ≥ min_rr (akseptabelt)
+          2. Innenfor samme tier: høyest weight først, deretter nærmest entry
+          3. Hvis ingen innen horizon-cap: fallback til beste uansett avstand
+             (kun ved ingen cap / MAKRO)
+
+        Bevarer strukturell kvalitet (tung weight) men unngår "kort mål fordi
+        tett nivå finnes" når et bedre R:R-tier er tilgjengelig.
         """
         is_long = direction == "long"
         # Filtrer: riktig side + minimum avstand
@@ -588,21 +595,36 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         if not valid:
             return None
 
+        def _rr_tier(dist: float) -> int:
+            """Returnerer R:R-tier: 2 for ≥2.0, 1 for ≥1.5, 0 ellers."""
+            if risk is None or risk <= 0:
+                return 0
+            rr = dist / risk
+            if rr >= 2.0:
+                return 2
+            if rr >= 1.5:
+                return 1
+            return 0
+
+        def _sort_key(item):
+            # Sorterer: høyere tier først, så høyere weight, så kortere avstand
+            l, d = item
+            return (-_rr_tier(d), -l["weight"], d)
+
         # Del inn: innenfor og utenfor horizon-cap
         within = [(l, d) for l, d in valid if max_dist is None or d <= max_dist]
         beyond = [(l, d) for l, d in valid if max_dist is not None and d > max_dist]
 
         # Prioritet 1: beste reelle nivå innenfor horizon-rekkevidde
         if within:
-            # Sorter: høyest weight → nærmest entry
-            within.sort(key=lambda x: (-x[0]["weight"], x[1]))
+            within.sort(key=_sort_key)
             l = within[0][0]
             q = "htf" if l["weight"] >= 3 else ("4h" if l["weight"] >= 2 else "weak")
             return dict(l, t1_quality=q)
 
         # Prioritet 2: hvis ingen cap (MAKRO), bruk beste uansett
         if max_dist is None and beyond:
-            beyond.sort(key=lambda x: (-x[0]["weight"], x[1]))
+            beyond.sort(key=_sort_key)
             l = beyond[0][0]
             q = "htf" if l["weight"] >= 3 else ("4h" if l["weight"] >= 2 else "weak")
             return dict(l, t1_quality=q)
@@ -646,7 +668,7 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         min_t1_dist = risk * min_rr
 
         max_t1_dist = t1_cap_atr * atr_daily if t1_cap_atr else None
-        t1_obj = best_t1(res_tagged, entry_level, min_t1_dist, max_t1_dist)
+        t1_obj = best_t1(res_tagged, entry_level, min_t1_dist, max_t1_dist, risk=risk)
         if t1_obj is None:
             return None  # Ingen reelt T1-nivå → ingen setup
 
@@ -708,7 +730,7 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         min_t1_dist = risk * min_rr
 
         max_t1_dist = t1_cap_atr * atr_daily if t1_cap_atr else None
-        t1_obj = best_t1(sup_tagged, entry_level, min_t1_dist, max_t1_dist)
+        t1_obj = best_t1(sup_tagged, entry_level, min_t1_dist, max_t1_dist, risk=risk)
         if t1_obj is None:
             return None  # Ingen reelt T1-nivå → ingen setup
 

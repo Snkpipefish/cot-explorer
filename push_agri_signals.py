@@ -571,16 +571,19 @@ def calc_levels(price, direction, crop_key, instrument=None):
         atr_pct = CROP_ATR_PCT.get(crop_key, 1.8)
         atr = price * atr_pct / 100
 
+    # Fix C — agri R:R bumpet fra 1.33 til 1.67 ved å øke T1 fra 2.0×ATR
+    # til 2.5×ATR. T2 justert til 3.5×ATR for å beholde T1→T2-geometri.
+    # SL=1.5×ATR uendret (strukturell støy-toleranse).
     if direction == "BUY":
         entry = round(price - 0.3 * atr, 2)
         sl    = round(entry - 1.5 * atr, 2)
-        t1    = round(entry + 2.0 * atr, 2)
-        t2    = round(entry + 3.0 * atr, 2)
+        t1    = round(entry + 2.5 * atr, 2)
+        t2    = round(entry + 3.5 * atr, 2)
     else:
         entry = round(price + 0.3 * atr, 2)
         sl    = round(entry + 1.5 * atr, 2)
-        t1    = round(entry - 2.0 * atr, 2)
-        t2    = round(entry - 3.0 * atr, 2)
+        t1    = round(entry - 2.5 * atr, 2)
+        t2    = round(entry - 3.5 * atr, 2)
 
     risk   = abs(entry - sl)
     rr_t1  = round(abs(t1 - entry) / risk, 2) if risk > 0 else 0
