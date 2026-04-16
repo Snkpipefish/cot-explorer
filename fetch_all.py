@@ -23,6 +23,38 @@ try:
 except Exception:
     pass
 
+# ── Olje supply-disruption: les shipping + oilgas data ────────────
+SHIPPING_FILE = os.path.join(BASE, "shipping", "latest.json")
+OILGAS_FILE   = os.path.join(BASE, "oilgas", "latest.json")
+_oil_supply_disruption = False
+_oil_supply_reason = []
+try:
+    with open(SHIPPING_FILE) as _f:
+        _shipping = json.load(_f)
+    for route in _shipping.get("routes", []):
+        rid = route.get("id", "")
+        if rid in ("hormuz",) and route.get("risk") == "HIGH":
+            _oil_supply_disruption = True
+            _oil_supply_reason.append(f"Hormuz {route.get('risk')} (score {route.get('risk_score', '?')})")
+        if rid in ("asia_europe",) and route.get("risk") == "HIGH":
+            # Suez/Rødehavet — påvirker tanker-ruter
+            _oil_supply_reason.append(f"Suez/Rødehavet {route.get('risk')}")
+except Exception:
+    pass
+try:
+    with open(OILGAS_FILE) as _f:
+        _oilgas = json.load(_f)
+    for seg in _oilgas.get("segments", []):
+        if seg.get("id") == "mideast" and seg.get("risk") == "HIGH":
+            _oil_supply_disruption = True
+            if not any("Hormuz" in r for r in _oil_supply_reason):
+                _oil_supply_reason.append(f"Midtøsten konflikt {seg.get('risk')}")
+except Exception:
+    pass
+if _oil_supply_disruption:
+    print(f"⛽ Olje supply-disruption aktiv: {', '.join(_oil_supply_reason)}")
+    print(f"   → Blokkerer SHORT-signaler på Brent/WTI")
+
 # Bot-priser som fallback når Yahoo/Stooq/Twelvedata feiler
 BOT_HISTORY_FILE = os.path.join(BASE, "prices", "bot_history.json")
 _bot_prices = {}
@@ -1488,6 +1520,14 @@ for inst in INSTRUMENTS:
     else:
         dir_color = "bull" if above_sma else "bear"
 
+    # ── Olje supply-disruption override ─────────────────────
+    # Når Hormuz/Midtøsten har HIGH risk → olje kan ikke shortes
+    # Supply-squeeze = bullish for pris, SHORT er for farlig
+    if _oil_supply_disruption and key in ("Brent", "WTI"):
+        if dir_color == "bear":
+            dir_color = "bull"  # Tving bullish — supply-disruption trumfer teknisk
+            dir_score = 0.6     # Mild bull, ikke sterk — la scoren reflektere usikkerhet
+
     # Lagre DXY-retning for bruk i USD-par
     if key == "DXY":
         dxy_dir_color = dir_color
@@ -1775,6 +1815,8 @@ for inst in INSTRUMENTS:
         "setup_long":    setup_long,
         "setup_short":   setup_short,
         "binary_risk":   get_binary_risk(inst["key"]),
+        "oil_supply_disruption": _oil_supply_disruption if key in ("Brent", "WTI") else None,
+        "oil_supply_reason": _oil_supply_reason if key in ("Brent", "WTI") and _oil_supply_disruption else None,
         "smc": {
             "structure":    smc["structure"]    if smc else None,
             "supply_zones": smc["supply_zones"] if smc else [],

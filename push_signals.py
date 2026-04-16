@@ -168,6 +168,17 @@ oil_warn_str = " · ".join(oil_reason) if oil_reason else ""
 vix_obj    = macro.get("vix_regime") or {}
 vix_regime = vix_obj.get("regime", "normal")
 
+# ── Olje supply-disruption: blokkér SHORT på olje ─────────────
+# Leser fra trading_levels (satt av fetch_all.py fra shipping/oilgas data)
+_oil_disruption = False
+for _okey in ("Brent", "WTI"):
+    _olevel = levels.get(_okey, {})
+    if _olevel.get("oil_supply_disruption"):
+        _oil_disruption = True
+        _oil_reasons = _olevel.get("oil_supply_reason", [])
+        print(f"  ⛽ Supply-disruption aktiv for {_okey}: {', '.join(_oil_reasons)}")
+        print(f"     → SHORT-signaler på olje blokkeres")
+
 # ── Skriv data/signals.json (alltid, for GitHub Pages bots) ─
 now_ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 signals_json = {
@@ -192,6 +203,10 @@ signals_json = {
 for key, d in top:
     setup = active_setup(d)
     if not setup:
+        continue
+    # Blokkér olje SHORT ved supply-disruption
+    if _oil_disruption and key in ("Brent", "WTI") and d.get("dir_color") == "bear":
+        print(f"  ⛽ {key} SHORT blokkert — supply-disruption aktiv")
         continue
     p   = 5 if (d.get("current") or 0) < 100 else 2
     cot = d.get("cot", {})
