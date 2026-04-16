@@ -85,79 +85,10 @@ def active_setup(d):
     return d.get("setup_long") if d.get("dir_color") == "bull" else d.get("setup_short")
 
 
-# ── Horisont-baserte terskler ────────────────────────────────
-PUSH_THRESHOLDS = {"SCALP": 3.0, "SWING": 4.5, "MAKRO": 5.5}
-HORIZON_PRIORITY = {"MAKRO": 0, "SWING": 1, "SCALP": 2, "WATCHLIST": 3}
-
-HORIZON_CONFIGS = {
-    "SCALP": {
-        "confirmation_tf": "5min",
-        "confirmation_max_candles": 6,
-        "confirmation_escape_atr_factor": 0.5,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0015,
-        "entry_zone_margin_atr": 0.3,      # 0.3×ATR(D1) — fallback til pct
-        "exit_t1_close_pct": 0.50,
-        "exit_t2_close_pct": 0.25,
-        "exit_trail_tf": "5min",
-        "exit_trail_atr_mult": {"fx": 2.0, "gold": 2.5, "silver": 2.5, "oil": 2.5, "index": 2.0},
-        "exit_ema_tf": "5min",
-        "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 8,
-        "exit_timeout_partial_pct": 0.50,
-        "exit_timeout_full_candles": 16,
-        "exit_geo_spike_atr_mult": 2.0,
-        "sizing_base_risk_usd": 20,
-    },
-    "SWING": {
-        "confirmation_tf": "15min",
-        "confirmation_max_candles": 8,
-        "confirmation_escape_atr_factor": 0.7,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0025,
-        "entry_zone_margin_atr": 0.7,      # 0.7×ATR(D1)
-        "exit_t1_close_pct": 0.33,
-        "exit_t2_close_pct": 0.33,
-        "exit_trail_tf": "1H",
-        # Bot bruker 1H ATR for SWING — reelle verdier
-        "exit_trail_atr_mult": {"fx": 3.0, "gold": 4.0, "silver": 4.0, "oil": 3.5, "index": 3.0},
-        "exit_ema_tf": "1H",
-        "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 96,   # 96×5m = 8 timer
-        "exit_timeout_partial_pct": 0.50,
-        "exit_timeout_full_hours": 120,       # 5 dager
-        "exit_be_timeout_hours": 48,
-        "exit_event_close_hours": 2,
-        "exit_geo_spike_atr_mult": 3.0,
-        "sizing_base_risk_usd": 40,
-    },
-    "MAKRO": {
-        "confirmation_tf": "1H",
-        "confirmation_max_candles": 6,
-        "confirmation_escape_atr_factor": 1.0,
-        "confirmation_min_score": 1,       # 1H candle: EMA gradient alene er nok
-        "confirmation_strict_score": 2,     # Krever 2/3 ved motstridende USD
-        "entry_zone_margin": 0.0040,
-        "entry_zone_margin_atr": 1.2,      # 1.2×ATR(D1)
-        "exit_t1_close_pct": 0.25,
-        "exit_t2_close_pct": 0.25,
-        "exit_trail_tf": "D1",
-        # Bot bruker 1H ATR for MAKRO (D1 ikke implementert ennå) — 1H-justerte verdier
-        # D1 ATR ≈ 2× 1H ATR, så 2.5 × D1 ≈ 5.0 × 1H
-        "exit_trail_atr_mult": {"fx": 5.0, "gold": 6.0, "silver": 6.0, "oil": 5.5, "index": 5.0},
-        "exit_ema_tf": "D1",
-        "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 288,  # 288×5m = 24 timer
-        "exit_timeout_partial_pct": 0.50,
-        "exit_timeout_full_hours": 360,       # 15 dager
-        "exit_timeout_days": 15,
-        "exit_score_deterioration": 6.0,
-        "exit_geo_spike_atr_mult": 3.0,
-        "sizing_base_risk_usd": 60,
-    },
-}
+from scoring_config import (
+    PUSH_THRESHOLDS, HORIZON_PRIORITY, HORIZON_CONFIGS,
+    CORRELATION_GROUPS, CORRELATION_REGIME_CONFIGS, VIX_CORRELATION_THRESHOLDS,
+)
 
 
 def should_push(d):
@@ -213,6 +144,16 @@ oil_warn_str = " · ".join(oil_reason) if oil_reason else ""
 
 vix_obj    = macro.get("vix_regime") or {}
 vix_regime = vix_obj.get("regime", "normal")
+
+# ── Korrelasjons-regime basert på VIX-nivå ────────────────────
+_vix_val = vix_price or 20
+if _vix_val >= VIX_CORRELATION_THRESHOLDS.get("crisis", 35):
+    corr_regime = "crisis"
+elif _vix_val >= VIX_CORRELATION_THRESHOLDS.get("risk_off", 25):
+    corr_regime = "risk_off"
+else:
+    corr_regime = "normal"
+corr_config = CORRELATION_REGIME_CONFIGS[corr_regime]
 
 # ── Olje supply-disruption: blokkér SHORT på olje ─────────────
 # Leser fra trading_levels (satt av fetch_all.py fra shipping/oilgas data)
@@ -306,7 +247,7 @@ if not top:
         _url = f"{FLASK_URL}/push-alert"
         _payload = json.dumps({
             "signals": [], "generated": generated,
-            "global_state": {"vix_regime": vix_regime, "geo_active": geo_active},
+            "global_state": {"vix_regime": vix_regime, "geo_active": geo_active, "correlation_regime": corr_regime, "correlation_config": corr_config},
         }).encode()
         _req = urllib.request.Request(
             _url, data=_payload,
@@ -511,6 +452,8 @@ def push_flask(signals):
         "global_state": {
             "vix_regime": vix_regime,
             "geo_active": geo_active,
+            "correlation_regime": corr_regime,
+            "correlation_config": corr_config,
         },
     }).encode()
     req = urllib.request.Request(
