@@ -1459,8 +1459,15 @@ for inst in INSTRUMENTS:
     at_level_now = at_sup or at_res
 
     # Nærmeste nivå har HTF-styrke (D1 / ukentlig / PDH/PDL → weight >= 3)
-    nearest_sup_w = tagged_sup[0]["weight"] if tagged_sup else 0
-    nearest_res_w = tagged_res[0]["weight"] if tagged_res else 0
+    # Bruk høyeste weight blant nivåer innenfor 2×ATR — ikke bare det fysisk nærmeste
+    nearest_sup_w = max((l["weight"] for l in tagged_sup if l.get("dist_atr", 99) <= 2.0), default=0) \
+                    if tagged_sup else 0
+    nearest_res_w = max((l["weight"] for l in tagged_res if l.get("dist_atr", 99) <= 2.0), default=0) \
+                    if tagged_res else 0
+    if nearest_sup_w == 0 and tagged_sup:
+        nearest_sup_w = tagged_sup[0]["weight"]
+    if nearest_res_w == 0 and tagged_res:
+        nearest_res_w = tagged_res[0]["weight"]
     htf_level_nearby = max(nearest_sup_w, nearest_res_w) >= 3
 
     # Sesjon aktiv nå
