@@ -1171,17 +1171,18 @@ function renderPrices(p){
   var grps=[
     ['pInd',[['S&P 500','SPX'],['Nasdaq','NAS100'],['VIX','VIX']]],
     ['pVal',[['EUR/USD','EURUSD'],['USD/JPY','USDJPY'],['GBP/USD','GBPUSD'],['USD/CHF','USDCHF'],['AUD/USD','AUDUSD'],['DXY','DXY'],['USD/NOK','USDNOK']]],
-    ['pRav',[['Brent','Brent'],['WTI','WTI'],['Gull','Gold'],['Solv','Silver'],['HYG','HYG'],['TIP','TIP']]],
-    ['pDummy',[]]  // Agri-priser vises på avlingssiden, krypto på krypto-siden
+    ['pRav',[['Brent','Brent'],['WTI','WTI'],['Gull','Gold'],['Solv','Silver'],['HYG','HYG'],['TIP','TIP']]]
   ];
   grps.forEach(function(grp){
+    var el=document.getElementById(grp[0]);
+    if(!el)return;
     var html='';
     grp[1].forEach(function(item){
       var v=p[item[1]];if(!v)return;
       var up=v.chg1d>=0;
       html+='<div class="pc2"><div class="pcn">'+item[0]+'</div><div class="pcp">'+v.price+'</div><div class="pcc '+(up?'up':'dn')+'">'+fp(v.chg1d)+' 5d:'+fp(v.chg5d)+'</div></div>';
     });
-    document.getElementById(grp[0]).innerHTML=html;
+    el.innerHTML=html;
   });
 }
 
