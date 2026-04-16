@@ -178,32 +178,49 @@ Alle scoring-konstanter og delte funksjoner (SCORE_WEIGHTS, GRADE_THRESHOLDS, HO
 - **Oil war-spread beskyttelse**: Brent +15% 20d ELLER krig-nøkkelord → `oil_geo_warning=true`
 - **Olje supply-disruption**: Når Hormuz/Midtøsten har HIGH risk i shipping/oilgas-data → olje SHORT blokkeres automatisk, dir_color tvinges bull
 
-### signals.json — global_state og rules
+### Flask-payload til /push-alert
 
 ```json
 {
+  "schema_version": "1.0",
   "generated": "2026-04-01 08:00 UTC",
   "global_state": {
     "geo_active": true,
-    "vix_regime": {"regime": "elevated"},
-    "oil_geo_warning": true,
-    "oil_warning_reason": "Brent +27% 20d · krig/angrep i nyheter"
+    "vix_regime": "elevated",
+    "correlation_regime": "normal",
+    "correlation_config": {...}
   },
-  "rules": {
-    "risk_pct_full": 1.0,
-    "risk_pct_half": 0.5,
-    "risk_pct_quarter": 0.25,
-    "geo_spike_atr_multiplier": 2.0,
-    "oil_max_spread_mult": 3.0,
-    "oil_min_sl_pips": 25
-  },
-  "signals": [...]
+  "signals": [
+    {
+      "key": "eurusd", "name": "EUR/USD",
+      "horizon": "SWING", "direction": "bull", "grade": "A",
+      "score": 5.5, "max_score": 7.5,
+      "setup": {"entry": ..., "sl": ..., "t1": ..., "t2": ..., "rr_t1": 1.47},
+      "cot": {"bias": "LONG", "pct": 12.4},
+      "correlation_group": "usd_pairs",
+      "atr_d1": 94.44,
+      "horizon_config": {...},
+      "created_at": "2026-04-01T08:00:00+00:00"
+    }
+  ]
 }
 ```
 
+- `schema_version` — bot validerer; ukjent versjon gir WARN (ikke block).
+- `vix_regime` — string enum `{normal, elevated, extreme}`.
+- `created_at` — per-signal TTL-sjekk i bot (SCALP 15min / SWING 4t / MAKRO 24t).
+
+### signals.json (GitHub Pages)
+
+Samme skjema som over, pluss alle score-detaljer og SMC-analyse per instrument. Leses av dashbordet.
+
+### Outbox ved feilet Flask-push
+
+Hvis `/push-alert` feiler (nettverk, 5xx), lagres payload i `data/outbox/push-YYYYMMDD-HHMMSS.json`. Neste `push_signals.py`-kjøring tømmer outboxen først. 4xx-responser beholdes i 24t for debugging, deretter droppes. `data/outbox/` er gitignored.
+
 ### Signal-logg
 
-`trading_bot.py` skriver direkte til `data/signal_log.json` ved trade-hendelser. `push_signals.py` skriver ikke til loggen.
+`trading_bot.py` (scalp_edge) skriver trade-hendelser til `~/scalp_edge/signal_log.json` (lokalt på bot-host). `update.sh` (hver 4t) og `update_prices.sh` (hver time) kopierer fila inn i `data/signal_log.json` før sin egen git-push. Bot gjør ingen git-operasjoner i reactor-loopen (K5). `push_signals.py` skriver ikke til loggen.
 
 ### Miljøvariabler
 
@@ -414,11 +431,15 @@ Basert på VIX-nivå strammes maks samtidige posisjoner:
 
 ### Daglig tapsgrense
 
-2% av kontoverdi (med 500 NOK som gulv). Når grensen nås, blokkeres nye entries resten av dagen.
+2% av kontoverdi, med 500 NOK som gulv via `max()` (H6). State persisteres til `~/scalp_edge/daily_loss_state.json` slik at bot-restart ikke nullstiller dagens tap. Tidlig-gate i `_process_watchlist_signal` dropper signaler før confirmation-layer når grensen er passert.
 
 ### Geo R:R minimum
 
 Under geo-events: min R:R = 1.5 (senket fra 2.0). Per-horizon minimum gjelder fortsatt (SCALP 1.0, SWING 1.3, MAKRO 1.5).
+
+### Kontrakt-rollover (H10)
+
+Futures-baserte CFDer får `close_before_rollover=true` i signalet: GOLD, SILVER, OIL BRENT, OIL WTI, Corn, Wheat, Soybean, Sugar, Coffee, Cocoa, Cotton. Boten blokkerer nye entries de siste 3 kalenderdagene av måneden for å unngå prishopp ved broker-rull. Eksisterende posisjoner fortsetter under normal SL/trail-logikk.
 
 ---
 
@@ -533,8 +554,11 @@ Under geo-events: min R:R = 1.5 (senket fra 2.0). Per-horizon minimum gjelder fo
 
 - `data/euronext_cot/` opprettes kun etter at `fetch_euronext_cot.py` har kjørt (onsdag). `git add data/` (ikke `-u`) brukes for å fange nye filer.
 - `update.sh` bruker `flock` for å unngå samtidig kjøring med bot-push. Lock-fil: `.git/bot_push.lock`.
-- `trading_bot.py` pusher `signal_log.json` direkte til git ved trade-lukking. Bot-push bør alltid inkludere `git fetch + git rebase` før `git push` for å unngå konflikter med `update.sh`.
+- `trading_bot.py` gjør IKKE lenger git-operasjoner i hot-path (K5). Bot skriver `signal_log.json` lokalt i `~/scalp_edge/`, og `update.sh` / `update_prices.sh` kopierer fila inn før sin egen git-push.
+- Alle Flask-endepunkter krever nå `X-API-Key` (K1) — også `/signals`, `/kill`, `/prices`. Unntak: `/health` er åpen for uptime-sjekker.
 - `fetch_agri.py` og `fetch_oilgas.py` bruker `(x.get("cot") or {})` i stedet for `.get("cot", {})` for å håndtere `cot: null` i COT-data.
+- `utils.fetch_url` har per-host circuit-breaker (M6): 3 strake feil på en kilde åpner kretsen i 5 min — forhindrer at én død RSS/API-endepunkt bremser hele pipelinen.
+- `fetch_all.py` har assert som sikrer at DXY iterer først (H8) — dxy_conflict-beregningen avhenger av at DXY-direction er satt før USD-parene passeres.
 - GitHub Pages har aggressiv caching — bruk Ctrl+Shift+R etter push for å se endringer umiddelbart.
 - Mapbox-kart i råvare-tabene er satt til `interactive: false` (ikke zoombare) med Mercator-projeksjon og utvidet høyde (650px) for å vise polområder.
 - COT momentum bruker `change_spec_net` fra ukentlige COT-rapporter (`data/tff/`, `data/disaggregated/`), ikke timeseries-filer (som er utdaterte).
@@ -593,11 +617,31 @@ Signaler der prisen har beveget seg for langt fra entry-nivået avvises automati
 
 ### Prisvalidering i signal server
 
-`/push-prices` avviser NaN, negative verdier og urealistisk høye priser (>10M). Ugyldig data logges med advarsel.
+`/push-prices` avviser NaN, negative verdier og urealistisk høye priser (>10M). Ugyldig data logges med advarsel. `live_prices.json` skrives atomisk via temp-fil + `os.replace()` (M9) slik at samtidige lesere ikke får trunkert JSON.
+
+### Signal Server / Trading Bot (scalp_edge) — forsvarslag
+
+| Mekanisme | Hensikt | Lokasjon |
+|-----------|---------|----------|
+| X-API-Key på read-endpoints (K1) | Holder posisjonsinfo ute av uautoriserte lokale prosesser | `signal_server.py` |
+| Per-signal TTL (K2) | SCALP 15min / SWING 4t / MAKRO 24t stale-drop i bot | `trading_bot.py` |
+| Reconcile leser broker-TP (K3) | Gjenopprettede posisjoner får full T1/BE/trail-flyt | `trading_bot.py` |
+| Auth-FATAL + reconnect-storm (K4) | Bot FATAL-exiter i stedet for evig loop ved token-død | `trading_bot.py` |
+| VIX-enum harmonisert (K6) | `{normal, elevated, extreme}` på tvers av alle komponenter | alle |
+| INSTRUMENT_MAP-validering (K7) | WARN/FATAL ved broker-rename eller delisting | `trading_bot.py` |
+| Signal-fetch retry (H3) | 3 forsøk, 1s/3s backoff, eskalerende log | `trading_bot.py` |
+| Spread-cold-start-vern (H4) | Ingen entry før ≥10 spread-samples innsamlet | `trading_bot.py` |
+| Per-symbol silence-detektor (H5) | WARN hvis ett symbol stille mens andre strømmer | `trading_bot.py` |
+| Daily-loss persist + tidlig-gate (H6) | Overlever bot-restart; skipper confirmation når passert | `trading_bot.py` |
+| Rotating log handlers (L3) | Bot 50MB tak, server 25MB tak | begge |
+| Confirmation-stats (M7) | Empirisk kalibrering av `min_score` via JSON-fil | `trading_bot.py` |
+| `/health` (L5) | 200 ved ferske signaler, 503 hvis >25t | `signal_server.py` |
+| Partial-fill-håndtering (M1) | Bruker `deal.filledVolume` ved mismatch | `trading_bot.py` |
+| Adaptiv poll (H1) | 20s når SCALP aktiv, 60s ellers | `trading_bot.py` |
 
 ### Auto-refresh dashboard
 
-Alle tre dashboards (`index.html`, `crypto-intel.html`) poller hvert 60. sekund og oppdaterer kun ved ny data.
+Alle tre dashboards (`index.html`, `metals-intel.html`, `crypto-intel.html`) poller hvert 60. sekund og oppdaterer kun ved ny data.
 
 ### Frontend-optimalisering
 
@@ -620,7 +664,7 @@ Alle tre dashboards (`index.html`, `crypto-intel.html`) poller hvert 60. sekund 
 | Prisintegrasjon | `signal_server.py` Flask — `POST /push-prices`, `GET /prices` → `update_prices.sh` patcher JSON |
 | Scoring-config | `scoring_config.py` — delte konstanter og funksjoner (importert av fetch_all, rescore, push_signals) |
 | Varsling | Telegram / Discord webhook / Flask REST API |
-| Trading bot | `scalp_edge/trading_bot.py` — cTrader Open API, pusher priser hvert 58. min |
+| Trading bot | `scalp_edge/trading_bot.py` — cTrader Open API (Twisted/Protobuf), pusher priser hver time kl XX:35 CET |
 | SMC-motor | `smc.py` — Python-port av FluidTrades SMC Lite |
 
 ### COT-kildelogikk
