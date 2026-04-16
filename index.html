@@ -1237,6 +1237,33 @@ function renderSignallogg(log){
   statsH+='<div class="card"><div class="ct">Total PnL</div><div class="snum '+pnlCol+'">'+pnlTxt+'</div><div class="slabel neutral">realisert resultat</div></div>';
   statsH+='<div class="card"><div class="ct">Åpne</div><div class="snum blue">'+open+'</div><div class="slabel neutral">aktive posisjoner</div></div>';
   statsH+='<div class="card"><div class="ct">Managed exit</div><div class="snum warn">'+managed+'</div><div class="slabel neutral">EMA9 / 8-candle</div></div>';
+
+  // Per-horisont og per-grade breakdown
+  var byH={},byG={};
+  entries.forEach(function(e){
+    var s=e.signal||{};var h=s.horizon||'SCALP';var g=s.grade||'?';
+    var pnlV=0;if(e.pnl){pnlV=e.pnl.pnl_nok!=null?e.pnl.pnl_nok:(e.pnl.pnl_usd||0);}
+    if(!byH[h])byH[h]={w:0,l:0,pnl:0};
+    if(!byG[g])byG[g]={w:0,l:0,pnl:0};
+    if(e.result==='win'){byH[h].w++;byG[g].w++;}
+    if(e.result==='loss'){byH[h].l++;byG[g].l++;}
+    byH[h].pnl+=pnlV;byG[g].pnl+=pnlV;
+  });
+  // Horisont-kort
+  ['SCALP','SWING','MAKRO'].forEach(function(h){
+    var d=byH[h];if(!d)return;
+    var tot=d.w+d.l;var wri=tot>0?Math.round(d.w/tot*100):null;
+    var pc=d.pnl>=0?'bull':'bear';
+    statsH+='<div class="card"><div class="ct">'+h+'</div><div class="snum '+(wri>=60?'bull':wri>=40?'warn':'bear')+'">'+(wri!=null?wri+'%':'–')+'</div><div class="slabel '+pc+'">'+(d.pnl>=0?'+':'')+d.pnl.toFixed(1)+' kr · '+tot+' trades</div></div>';
+  });
+  // Grade-kort
+  ['A+','A','B','C'].forEach(function(g){
+    var d=byG[g];if(!d)return;
+    var tot=d.w+d.l;var wri=tot>0?Math.round(d.w/tot*100):null;
+    var pc=d.pnl>=0?'bull':'bear';
+    statsH+='<div class="card"><div class="ct">Grade '+g+'</div><div class="snum '+(wri>=60?'bull':wri>=40?'warn':'bear')+'">'+(wri!=null?wri+'%':'–')+'</div><div class="slabel '+pc+'">'+(d.pnl>=0?'+':'')+d.pnl.toFixed(1)+' kr · '+tot+' trades</div></div>';
+  });
+
   document.getElementById('logStats').innerHTML=statsH;
 
   if(!entries.length){document.getElementById('logGrid').innerHTML='<div class="loading">Ingen bot-trades ennå — start trading_bot.py</div>';return;}
@@ -1260,6 +1287,8 @@ function renderSignallogg(log){
       '<td style="font-size:11px;color:var(--m)">'+toNO(e.timestamp||'')+'</td>'+
       '<td><strong>'+(sig.instrument||'–')+'</strong></td>'+
       '<td><span class="sp2 '+(dir==='BUY'?'bull-mild':'bear-mild')+'">'+dir+'</span></td>'+
+      '<td class="mob-hide" style="font-size:10px">'+(sig.horizon||'–')+'</td>'+
+      '<td class="mob-hide" style="font-size:10px">'+(sig.grade||'–')+'</td>'+
       '<td class="tdr" style="font-family:monospace;font-size:11px">'+(sig.entry||'–')+'</td>'+
       '<td class="tdr" style="font-family:monospace;font-size:11px;color:var(--bear)">'+(sig.stop||'–')+'</td>'+
       '<td class="tdr" style="font-family:monospace;font-size:11px;color:'+pnlCol+'">'+pnlTxt+'</td>'+
@@ -1270,7 +1299,7 @@ function renderSignallogg(log){
   });
   document.getElementById('logGrid').innerHTML=
     '<div class="cotw"><table class="cott">'+
-    '<thead><tr><th>Åpnet</th><th>Instrument</th><th>Retning</th><th style="text-align:right">Entry</th><th style="text-align:right">SL</th><th class="tdr">PnL</th><th class="mob-hide">Størrelse</th><th class="mob-hide">Exit-grunn</th><th>Resultat</th></tr></thead>'+
+    '<thead><tr><th>Åpnet</th><th>Instrument</th><th>Retning</th><th class="mob-hide">Horisont</th><th class="mob-hide">Grade</th><th style="text-align:right">Entry</th><th style="text-align:right">SL</th><th class="tdr">PnL</th><th class="mob-hide">Størrelse</th><th class="mob-hide">Exit-grunn</th><th>Resultat</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table></div>';
 }
 

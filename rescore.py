@@ -3,8 +3,8 @@
 Lightweight rescore — oppdaterer scores basert på nye priser UTEN API-kall.
 
 Bruker kun data som allerede finnes i macro/latest.json (patchet av update_prices.sh).
-Oppdaterer: sma200, momentum_20d, dir_color, horizon, score, grade.
-Beholder: COT, HTF-nivåer, D1/4H alignment, fundamentals, SMC (statisk mellom fetch_all.py).
+Oppdaterer: sma200, momentum_20d, d1_4h_congruent, dir_color, horizon, score, grade.
+Beholder: COT, HTF-nivåer, fundamentals, SMC (statisk mellom fetch_all.py).
 
 Kjøres i update_prices.sh etter prispatch, før push_signals.py.
 """
@@ -12,55 +12,11 @@ import json
 from pathlib import Path
 from datetime import datetime, timezone
 
-# ── Inline scoring-konstanter og funksjoner (unngår import av fetch_all.py som kjører hele modulen) ──
-SCORE_WEIGHTS = {
-    "sma200":             {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "momentum_20d":       {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "cot_confirms":       {"SCALP": 0,    "SWING": 1.0,  "MAKRO": 1.0},
-    "cot_strong":         {"SCALP": 0,    "SWING": 0.5,  "MAKRO": 1.0},
-    "cot_momentum":       {"SCALP": 0,    "SWING": 1.0,  "MAKRO": 1.0},
-    "htf_level_weight":   {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "d1_4h_congruent":    {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "fred_fundamental":   {"SCALP": 0,    "SWING": 0,    "MAKRO": 1.0},
-    "smc_confirms":       {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-}
+from scoring_config import (
+    SCORE_WEIGHTS, GRADE_THRESHOLDS, DXY_MOMENTUM_THRESHOLD,
+    determine_horizon, calculate_weighted_score, get_grade,
+)
 
-GRADE_THRESHOLDS = {
-    "SCALP": {"A+": 4.5, "A": 3.5, "B": 2.5},
-    "SWING": {"A+": 6.5, "A": 5.5, "B": 4.0},
-    "MAKRO": {"A+": 8.0, "A": 7.0, "B": 5.5},
-}
-
-def determine_horizon(criteria, nearest_level_weight):
-    has_cot   = criteria.get("cot_confirms", False)
-    raw_count = sum(1 for v in criteria.values() if v)
-    def _ts(h):
-        return sum(SCORE_WEIGHTS.get(c, {}).get(h, 0) for c, v in criteria.items() if v)
-    if raw_count >= 6 and has_cot and nearest_level_weight >= 4:
-        if _ts("MAKRO") >= 7.0: return "MAKRO"
-    if raw_count >= 5 and nearest_level_weight >= 3:
-        if _ts("SWING") >= 5.0: return "SWING"
-    if raw_count >= 3: return "SCALP"
-    return "WATCHLIST"
-
-def calculate_weighted_score(criteria, horizon):
-    h = horizon if horizon != "WATCHLIST" else "SCALP"
-    score, details = 0.0, []
-    for crit_id, passed in criteria.items():
-        weight = SCORE_WEIGHTS.get(crit_id, {}).get(h, 0)
-        earned = weight if passed else 0
-        details.append({"id": crit_id, "verdi": passed, "vekt": weight, "poeng": earned})
-        score += earned
-    max_s = sum(w[h] for w in SCORE_WEIGHTS.values())
-    return round(score, 1), round(max_s, 1), details
-
-def get_grade(score, horizon):
-    if horizon == "WATCHLIST": return "C", "bear"
-    t = GRADE_THRESHOLDS[horizon]
-    if score >= t["A+"]:  return "A+", "bull"
-    elif score >= t["A"]: return "A",  "bull"
-    elif score >= t["B"]: return "B",  "warn"
-    return "C", "bear"
 
 def get_session_status():
     now = datetime.now(timezone.utc)
@@ -103,17 +59,29 @@ def rescore():
             continue
 
         above_sma = curr > sma200
+        dir_color = lv.get("dir_color", "bull")
 
         # Hent eksisterende criteria-verdier (statiske mellom fetch_all.py)
         old_details = {d["id"]: d["verdi"] for d in lv.get("score_details", [])}
 
-        # Oppdater kun de 2 pris-avhengige kriteriene
+        # Oppdater pris-avhengige kriterier: sma200, momentum_20d, d1_4h_congruent
         criteria = {}
         for crit_id in SCORE_WEIGHTS:
             if crit_id == "sma200":
                 criteria[crit_id] = above_sma
             elif crit_id == "momentum_20d":
                 criteria[crit_id] = (chg20 > 0.5 and above_sma) or (chg20 < -0.5 and not above_sma)
+            elif crit_id == "d1_4h_congruent":
+                # Oppdater basert på lagrede EMA-verdier (ingen API-kall)
+                ema9_d1 = lv.get("ema9_d1")
+                ema9_4h = lv.get("ema9_4h")
+                if ema9_d1 is not None and ema9_4h is not None:
+                    if dir_color == "bull":
+                        criteria[crit_id] = curr > ema9_d1 and curr > ema9_4h
+                    else:
+                        criteria[crit_id] = curr < ema9_d1 and curr < ema9_4h
+                else:
+                    criteria[crit_id] = old_details.get(crit_id, False)
             else:
                 criteria[crit_id] = old_details.get(crit_id, False)
 
@@ -132,10 +100,12 @@ def rescore():
         horizon = determine_horizon(criteria, nlw)
         score, max_score, score_details = calculate_weighted_score(criteria, horizon)
 
-        # DXY-konflikt
+        # DXY-konflikt — graduert penalty
         dxy_conflict = lv.get("dxy_conflict", False)
         if dxy_conflict:
-            penalty = 2.0 if horizon in ("SWING", "MAKRO") else 1.0
+            dxy_strength = lv.get("dxy_momentum_strength", 1.0) or 1.0
+            base_penalty = 2.0 if horizon in ("SWING", "MAKRO") else 1.0
+            penalty = round(base_penalty * dxy_strength, 2)
             score = max(0, round(score - penalty, 1))
 
         grade, grade_color = get_grade(score, horizon)
@@ -143,7 +113,6 @@ def rescore():
         # Signal-stabilitet (forenklet — kun retning-flip)
         prev = stab.get(key, {})
         prev_dir = prev.get("dir_color", "")
-        dir_color = lv.get("dir_color", "bull")  # Behold eksisterende dir_color
         # Oppdater dir_color basert på SMA200 (forenklet — full dir_score krever chg5d + COT)
         if above_sma and dir_color == "bear":
             pass  # Behold bear — full rescore i fetch_all.py
