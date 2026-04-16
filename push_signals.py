@@ -484,6 +484,9 @@ def push_flask(signals):
         return
     url     = f"{FLASK_URL}/push-alert"
     payload = json.dumps({
+        # H11: Schema-versjon — bot kan reagere hvis dette ikke matcher
+        # forventet versjon. Increment ved breaking endringer i signal-feltene.
+        "schema_version": "1.0",
         "signals":   signals,
         "generated": generated,
         "global_state": {
