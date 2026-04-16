@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-15 22:01 UTC",
+  "generated": "2026-04-16 02:01 UTC",
   "cot_date": "2026-04-07",
   "global_state": {
     "geo_active": true,
@@ -17,15 +17,15 @@
   },
   "signals": [
     {
-      "key": "GBPUSD",
-      "name": "GBP/USD",
+      "key": "Gold",
+      "name": "Gull",
       "action": "BUY",
-      "timeframe": "SWING",
-      "horizon": "SWING",
+      "timeframe": "MAKRO",
+      "horizon": "MAKRO",
       "grade": "B",
-      "score": 8.0,
-      "max_score": 11.5,
-      "score_pct": 70,
+      "score": 9.0,
+      "max_score": 13.0,
+      "score_pct": 69,
       "score_details": [
         {
           "kryss": "Over SMA200",
@@ -37,9 +37,9 @@
         {
           "kryss": "Momentum 20d",
           "id": "momentum_20d",
-          "verdi": true,
+          "verdi": false,
           "vekt": 1.0,
-          "poeng": 1.0
+          "poeng": 0
         },
         {
           "kryss": "COT bekrefter",
@@ -52,8 +52,8 @@
           "kryss": "COT sterk (>10%)",
           "id": "cot_strong",
           "verdi": true,
-          "vekt": 0.5,
-          "poeng": 0.5
+          "vekt": 1.0,
+          "poeng": 1.0
         },
         {
           "kryss": "COT momentum Δ",
@@ -61,6 +61,157 @@
           "verdi": false,
           "vekt": 1.0,
           "poeng": 0
+        },
+        {
+          "kryss": "Pris VED nivå",
+          "id": "price_at_level",
+          "verdi": true,
+          "vekt": 1.5,
+          "poeng": 1.5
+        },
+        {
+          "kryss": "HTF-nivå ≥ 3",
+          "id": "htf_level_weight",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "D1+4H kongruent",
+          "id": "d1_4h_congruent",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "Ingen event-risiko",
+          "id": "no_event_risk",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "Nyhetssentiment",
+          "id": "news_sentiment",
+          "verdi": true,
+          "vekt": 0.5,
+          "poeng": 0.5
+        },
+        {
+          "kryss": "Fundamental",
+          "id": "fred_fundamental",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0
+        },
+        {
+          "kryss": "SMC bekrefter",
+          "id": "smc_confirms",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "VIX termstruktur",
+          "id": "vix_term_structure",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0
+        },
+        {
+          "kryss": "ADR < 70%",
+          "id": "adr_utilization",
+          "verdi": true,
+          "vekt": 0,
+          "poeng": 0
+        }
+      ],
+      "current": 4842.5,
+      "entry": 4841.1001,
+      "sl": 4807.47223,
+      "t1": 5042.175,
+      "t2": 5111.2998,
+      "rr_t1": 5.98,
+      "rr_t2": 8.03,
+      "sl_type": "struktur",
+      "cot_bias": "LONG",
+      "cot_pct": 25.4,
+      "correlation_group": "precious_metals",
+      "adr_utilization": {
+        "pct": 43.9,
+        "ok_for_scalp": true,
+        "available": true
+      },
+      "horizon_config": {
+        "confirmation_tf": "1H",
+        "confirmation_max_candles": 6,
+        "confirmation_escape_atr_factor": 1.0,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.004,
+        "exit_t1_close_pct": 0.25,
+        "exit_t2_close_pct": 0.25,
+        "exit_trail_tf": "D1",
+        "exit_trail_atr_mult": {
+          "fx": 2.0,
+          "gold": 2.5,
+          "silver": 2.5,
+          "oil": 2.5,
+          "index": 2.0
+        },
+        "exit_ema_tf": "D1",
+        "exit_ema_period": 9,
+        "exit_timeout_days": 15,
+        "exit_score_deterioration": 6.0,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 60
+      }
+    },
+    {
+      "key": "WTI",
+      "name": "WTI",
+      "action": "SELL",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "A",
+      "score": 8.5,
+      "max_score": 11.5,
+      "score_pct": 74,
+      "score_details": [
+        {
+          "kryss": "Over SMA200",
+          "id": "sma200",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "Momentum 20d",
+          "id": "momentum_20d",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0
+        },
+        {
+          "kryss": "COT bekrefter",
+          "id": "cot_confirms",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
+        },
+        {
+          "kryss": "COT sterk (>10%)",
+          "id": "cot_strong",
+          "verdi": false,
+          "vekt": 0.5,
+          "poeng": 0
+        },
+        {
+          "kryss": "COT momentum Δ",
+          "id": "cot_momentum",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0
         },
         {
           "kryss": "Pris VED nivå",
@@ -126,19 +277,19 @@
           "poeng": 0
         }
       ],
-      "current": 1.35629,
-      "entry": 1.35627,
-      "sl": 1.35287,
-      "t1": 1.36137,
-      "t2": 1.36477,
-      "rr_t1": 1.5,
-      "rr_t2": 2.5,
+      "current": 91.24,
+      "entry": 91.29,
+      "sl": 93.86421,
+      "t1": 87.1089,
+      "t2": 84.53469,
+      "rr_t1": 1.62,
+      "rr_t2": 2.62,
       "sl_type": "struktur",
-      "cot_bias": "LONG",
-      "cot_pct": 10.9,
-      "correlation_group": "usd_pairs",
+      "cot_bias": "SHORT",
+      "cot_pct": 4.2,
+      "correlation_group": "energy",
       "adr_utilization": {
-        "pct": 15.0,
+        "pct": 11.4,
         "ok_for_scalp": true,
         "available": true
       },
