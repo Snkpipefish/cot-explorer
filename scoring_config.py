@@ -23,15 +23,15 @@ MAX_CONCURRENT = {
 }
 
 # ─── AGRI KORRELASJONSGRUPPER ──────────────────────────────────
-# Mais/soya/hvete korrelerer .85+ i trender — maks 1 per sub-gruppe
-# Kaffe/sukker/kakao er softs-kluster — maks 1 per sub-gruppe
-# Bomull er lavt korrelert med begge — eget cluster
+# Brukes som metadata for tagging av signaler (correlation_group-felt).
+# Tidligere AGRI_MAX_PER_SUBGROUP-cap er fjernet — boten håndterer
+# korrelasjonsstyring selv, og bruker har bekreftet at flere agri-trades
+# i samme subgruppe er OK.
 AGRI_CORRELATION_SUBGROUPS = {
     "Corn": "grains", "Wheat": "grains", "Soybean": "grains",
     "Coffee": "softs", "Sugar": "softs", "Cocoa": "softs",
     "Cotton": "cotton",
 }
-AGRI_MAX_PER_SUBGROUP = 1
 
 # ─── REGIME-BASERTE KORRELASJONSGRENSER ──────────────────────────
 CORRELATION_REGIME_CONFIGS = {
@@ -69,11 +69,6 @@ HORIZON_PRIORITY = {"MAKRO": 0, "SWING": 1, "SCALP": 2, "WATCHLIST": 3}
 # outlook(5) + yield(3) + weather(2) + enso(2) + conab(2) + unica(2) + cross(2) = 18.
 # Brukes av push_signals.py for `max_score`-feltet (UI score_pct = score/max).
 AGRI_MAX_SCORE = 18
-
-# ─── AGRI SIGNAL-AGING ──────────────────────────────────────────
-# Maks avstand (i ATR-multipler) mellom live pris og entry før agri-signal
-# regnes som utdatert. Speiler `should_push`-logikken for tekniske signaler.
-AGRI_MAX_AGE_ATR = {"SCALP": 1.5, "SWING": 2.5, "MAKRO": 4.0}
 
 # ─── HORISONT-CONFIG (sendes til boten via signal_server) ────────
 HORIZON_CONFIGS = {
