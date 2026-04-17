@@ -147,7 +147,7 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | 4 | `fetch_ice_cot.py` | ICE Futures Europe COT (Brent, Gasoil, TTF) — kun fredag ≥20:00 og lørdag 00:00 |
 | 5 | `fetch_euronext_cot.py` | Euronext MiFID II COT (hvete, raps, mais) — kun onsdag ≥12:00 |
 | 6 | `fetch_fundamentals.py` | FRED makrodata (maks 1× per 12t) |
-| 7 | `fetch_all.py` | Full analyse: priser, SMC, nivåer, score, setups, VIX, korrelasjoner, ADR |
+| 7 | `fetch_all.py` | Full analyse: priser, SMC, nivåer, 6-familie driver matrix-scoring, setups, VIX, korrelasjoner, ADR. Bygger `data/cot_analytics/latest.json` via `cot_analytics.py` ved ny COT-date (~35 s), ellers cache-hit |
 | 8 | `fetch_comex.py` | COMEX lagerbeholdning |
 | 9 | `fetch_seismic.py` | USGS seismiske data |
 | 10 | `fetch_intel.py` | Google News RSS for metaller |
@@ -169,10 +169,16 @@ Kjører `update.sh`: full pipeline (se tabell under)
 
 `push_agri_signals.py` genererer fundamentale agri-setups basert på outlook (vær + COT + yield + ENSO) og skriver til `agri_signals.json`. Ingen separat Flask-push — `push_signals.py` merger dette inn.
 
-Alle scoring-konstanter og delte funksjoner (SCORE_WEIGHTS, GRADE_THRESHOLDS, HORIZON_CONFIGS, determine_horizon, calculate_weighted_score, get_grade) er samlet i `scoring_config.py` og importert av `fetch_all.py`, `rescore.py` og `push_signals.py`.
+**Scoring-arkitektur (schema 2.0 — 6-familie driver matrix):**
+- `driver_matrix.py` — 6-familie scoring (TREND, POSITIONING, MACRO, FUNDAMENTAL, RISK/EVENT, STRUCTURE) med confluens-gate som fikser C1 korrelasjons-bias
+- `driver_group_mapping.py` — asset-klasse-routing (FX/metaller/energi/indekser/grains/softs/crypto → riktig data per familie)
+- `cot_analytics.py` — disaggregerte COT sub-signaler (MM-percentile 52w, MM-Commercial divergens-z, OI-regime, Index Investor-flow) med cache i `data/cot_analytics/latest.json`
+- `scoring_config.py` — delte konstanter (PUSH_THRESHOLDS, HORIZON_CONFIGS, DXY_MOMENTUM_THRESHOLD, CORRELATION_REGIME_CONFIGS) brukt av `fetch_all.py`, `rescore.py` og `push_signals.py`
+
+Legacy 9-kriterie-scoring (SCORE_WEIGHTS, GRADE_THRESHOLDS) er beholdt i `scoring_config.py` for bruk av `rescore.py`, men hovedscoringen via `fetch_all.py` kaller `driver_matrix.score_asset()` og bruker driver-familie-matrisen.
 
 ### Filtrering
-- Horisont-basert: score ≥ terskel for instrumentets horisont (SCALP 3.0 / SWING 4.5 / MAKRO 5.5)
+- Horisont-basert: score ≥ terskel for instrumentets horisont (SCALP 1.5 / SWING 2.5 / MAKRO 3.5 — 0-6 skala fra driver matrix)
 - WATCHLIST pushes aldri — kun synlig på dashboardet
 - Kun klare retninger: `dir_color` er `bull` eller `bear`
 - Sortert etter horisont-prioritet (MAKRO > SWING > SCALP), deretter score
@@ -184,8 +190,8 @@ Alle scoring-konstanter og delte funksjoner (SCORE_WEIGHTS, GRADE_THRESHOLDS, HO
 
 ```json
 {
-  "schema_version": "1.0",
-  "generated": "2026-04-01 08:00 UTC",
+  "schema_version": "2.0",
+  "generated": "2026-04-17 16:00 UTC",
   "global_state": {
     "geo_active": true,
     "vix_regime": "elevated",
@@ -196,19 +202,28 @@ Alle scoring-konstanter og delte funksjoner (SCORE_WEIGHTS, GRADE_THRESHOLDS, HO
     {
       "key": "eurusd", "name": "EUR/USD",
       "horizon": "SWING", "direction": "bull", "grade": "A",
-      "score": 5.5, "max_score": 7.5,
+      "score": 3.2, "max_score": 6.0, "score_pct": 53,
       "setup": {"entry": ..., "sl": ..., "t1": ..., "t2": ..., "rr_t1": 1.47},
       "cot": {"bias": "LONG", "pct": 12.4},
+      "driver_groups": {
+        "trend":       {"score": 1.0, "weight": 1.0, "drivers": ["SMA200-align", "Momentum 20d +"]},
+        "positioning": {"score": 0.75, "weight": 1.0, "drivers": ["COT bias align (+12.4%)", "MM percentile 18 (lav)"]},
+        "macro":       {"score": 0.45, "weight": 1.0, "drivers": ["DXY svak -1.5%"]},
+        "fundamental": {"score": 0.60, "weight": 1.0, "drivers": ["FRED fund +0.8"]},
+        "risk":        {"score": 0.00, "weight": 1.0, "drivers": []},
+        "structure":   {"score": 0.40, "weight": 1.0, "drivers": ["HTF-nivå w3"]}
+      },
+      "active_driver_groups": 5,
       "correlation_group": "usd_pairs",
       "atr_d1": 94.44,
       "horizon_config": {...},
-      "created_at": "2026-04-01T08:00:00+00:00"
+      "created_at": "2026-04-17T16:00:00+00:00"
     }
   ]
 }
 ```
 
-- `schema_version` — bot validerer; ukjent versjon gir WARN (ikke block).
+- `schema_version` — schema 2.0 inkluderer `driver_groups` per signal. Bot validerer; ukjent versjon gir WARN (ikke block). Signal-server sjekker at alle `driver_groups.*.score` ∈ [0, 1].
 - `vix_regime` — string enum `{normal, elevated, extreme}`.
 - `created_at` — per-signal TTL-sjekk i bot (SCALP 15min / SWING 4t / MAKRO 24t).
 
@@ -261,31 +276,57 @@ Sammensatt score som bestemmer bull/bear-retning per instrument:
 
 Hysterese: bull krever > 0.5, bear < -0.5. Mellom → SMA200 bestemmer.
 
-### Vektet konfluens-score (9 kriterier)
+### 6-familie driver matrix (schema 2.0)
 
-Kun reelle setup-faktorer — boten håndterer entry-timing, event-risiko og ADR selv.
+Scoring skjer i `driver_matrix.score_asset()` som aggregerer 6 uavhengige driver-familier. **C1-prinsippet**: grade krever confluens på tvers av uavhengige datakildefamilier, ikke flere signaler fra samme kilde.
 
-| # | Kriterium | SCALP | SWING | MAKRO | Beskrivelse |
-|---|-----------|-------|-------|-------|-------------|
-| 1 | `sma200` | 1.0 | 1.0 | 1.0 | Over SMA200 (D1 trend) |
-| 2 | `momentum_20d` | 1.0 | 1.0 | 1.0 | chg20 > 0.5% i SMA200-retning |
-| 3 | `cot_confirms` | — | 1.0 | 1.0 | COT bekrefter retning |
-| 4 | `cot_strong` | — | 0.5 | 1.0 | COT sterk posisjonering (>10% av OI) |
-| 5 | `cot_momentum` | — | 1.0 | 1.0 | COT ukentlig endring bekrefter retning |
-| 6 | `htf_level_weight` | 1.0 | 1.0 | 1.0 | HTF-nivå D1/Ukentlig i nærheten (weight ≥ 3) |
-| 7 | `d1_4h_congruent` | 1.0 | 1.0 | 1.0 | D1 + 4H EMA9 kongruent |
-| 8 | `fred_fundamental` | — | — | 1.0 | Fundamental (FRED) bekrefter retning |
-| 9 | `smc_confirms` | 1.0 | 1.0 | 1.0 | BOS + SMC markedsstruktur bekrefter |
-| | **Maks** | **5.0** | **7.5** | **9.0** | |
+| # | Familie | Datakilder | Kommentar |
+|---|---|---|---|
+| 1 | **TREND** | SMA200, 20d momentum, D1+4H EMA9 kongruens | Teknisk trend, composite 0-1 |
+| 2 | **POSITIONING** | COT (CFTC/ICE/TFF), Managed Money-percentile 52w, MM-Commercial divergens-z, OI-regime, Index Investor-flow | Se dedikert seksjon under |
+| 3 | **MACRO** | DXY chg5d, VIX-regime, real yields (DFII10), yield curve (DGS10-DGS2), Fear & Greed | Global regime — asset-class-agnostisk |
+| 4 | **FUNDAMENTAL** | Asset-spesifikk: COMEX (metaller), shipping+oilgas (energi), Conab (grains), UNICA (softs), FRED instrument-score (FX/indekser) | Kilde per asset-klasse |
+| 5 | **RISK/EVENT** | USDA blackout, geo-risk, kalender-events, VIX-spike | NON_SCORING — brukes kun som grade-gate |
+| 6 | **STRUCTURE** | HTF-nivå-vekt, SMC-sone-bekreftelse, BOS, fibo-zone | Teknisk struktur |
 
-Fjernet (boten sin jobb): `price_at_level` (entry-overvåking), `no_event_risk` (binary risk filter), `adr_utilization` (entry-timing), `news_sentiment` (upålitelig kilde), `vix_term_structure` (dekket av VIX-regime sizing).
+Hver familie returnerer 0-1 score. Weighted total per horisont: SCALP max=4.2, SWING max=5.0, MAKRO max=5.2.
 
-### Score-justeringer (etter vekting)
+### POSITIONING sub-signaler (cot_analytics.py)
 
-| Justering | Penalty | Når |
-|-----------|---------|-----|
-| DXY-konflikt | -0.5 til -2.0 (graduert etter DXY momentum) | USD-par med retning motstridende DXY. Penalty = base × clamp(\|DXY chg5d\| / 2.0%, 0.25, 1.0). Base: 2.0 (SWING/MAKRO), 1.0 (SCALP) |
-| Signal-flip | Nedgradering 1 nivå | Retning eller horisont endret siden forrige kjøring |
+POSITIONING-familien utnytter disaggregerte CFTC-rapporter + ICE COT. Sub-signaler beregnes én gang per COT-release (fredag) og cachres i `data/cot_analytics/latest.json`.
+
+| Sub-signal | Kilde | Aktivering |
+|---|---|---|
+| COT bias align | disaggregated/TFF spekulanter.net / OI | LONG/SHORT bias matcher dir_color (±4 % terskel) |
+| COT momentum | `change_spec_net` | Uke-endring i retning |
+| MM-percentile 52w | rolling rank fra `data/history/<report>/YYYY.json` | bull + pctile ≤ 10 → contrarian-bull 1.0; bear + pctile ≥ 90 → contrarian-bear 1.0 |
+| MM-Commercial divergens-z | (MM_net − Commercial_net) median/MAD z-score | bear + z ≥ 1.5 → topp-signal; bull + z ≤ -1.5 → bunn-signal |
+| OI-regime | 4w-snitt av change_oi vs retning | stigende OI i retning = confirmation (+0.5); mot retning = warning (−0.3) |
+| Index Investor-bias | supplemental `indeksfond.net / OI` | Kun agri: > 5 % net = structural_long/short (+0.3) |
+
+**Asset → rapport-mapping:**
+- FX (EURUSD, GBPUSD, USDJPY, AUDUSD) → TFF (Leveraged Funds)
+- Metaller, energi, indekser → disaggregated (Managed Money)
+- Grains/softs → disaggregated + supplemental (Index Investor-flow)
+- Brent → ICE Brent Crude + CFTC Crude Oil (OI-vektet)
+
+**Graceful degradation:** < 26 ukers historikk → sub-signal returnerer None og teller ikke. Fallback til legacy `cot_pct/25`-styrke hvis MM-percentile mangler.
+
+### Retningsbestemmelse (dir_color) — i `fetch_all.py`
+
+Sammensatt score bestemmer bull/bear-retning per instrument **før** driver-matrisen scorer styrken:
+
+| Signal | Vekt | Forklaring |
+|--------|------|------------|
+| SMA200 | ±1.5 | Tyngst — definerer langsiktig trend |
+| chg5d | ±0.5/1.0 | Kort momentum (kun hvis \|chg5\| > 0.1/0.3%) |
+| chg20d | ±0.5/1.0 | Mellomlang momentum (kun hvis \|chg20\| > 0.3/1.0%) |
+| COT bias | ±1.0 | Store aktørers posisjonering (LONG/SHORT) |
+| COT momentum | ±0.5 | Ukentlig endring forsterker |
+| DXY-bias | ±0.5 | Kun USD-par: XXXUSD invers, USDXXX følger DXY |
+| Momentum-divergens | -0.5 | Straff hvis chg5 og chg20 peker motsatt |
+
+Hysterese: bull krever > 0.5, bear < -0.5. Mellom → SMA200 bestemmer.
 
 ### Olje supply-disruption override
 
@@ -305,33 +346,63 @@ Når aktiv:
 
 ### Horisont-bestemmelse
 
-Krever **både** rå bool-telling OG minimum vektet score for kvalitetssikring:
+`driver_matrix.determine_horizon()` velger høyeste horisont hvor både score- og familie-krav er møtt:
 
-| Horisont | Rå telling | Tilleggskrav | Min vektet score |
-|----------|-----------|--------------|-----------------|
-| MAKRO | ≥ 6/9 treff | COT + weight ≥ 4 | ≥ 7.0 (av 9.0) |
-| SWING | ≥ 5/9 treff | weight ≥ 3 | ≥ 5.0 (av 7.5) |
-| SCALP | ≥ 3/9 treff | — | — |
-| WATCHLIST | < 3 treff | — | — |
+| Horisont | Min unweighted score | Min aktive familier | Tilleggskrav |
+|----------|---------------------|--------------------|--------------|
+| MAKRO | ≥ 3.5 | 4 | fundamental + macro ≥ 0.7 |
+| SWING | ≥ 2.5 | 3 | — |
+| SCALP | ≥ 1.5 | 2 | London/NY-sesjon |
+| WATCHLIST | under dette | — | — |
 
 SCALP utenfor optimal sesjon → WATCHLIST automatisk.
 
-### Grade per horisont
+### Grade per horisont (prosent-basert)
 
-| Horisont | A+ | A | B | C |
-|----------|----|---|---|---|
-| MAKRO | ≥ 8.0 | ≥ 7.0 | ≥ 5.5 | < 5.5 |
-| SWING | ≥ 6.5 | ≥ 5.5 | ≥ 4.0 | < 4.0 |
-| SCALP | ≥ 4.5 | ≥ 3.5 | ≥ 2.5 | < 2.5 |
+Grade-terskler uttrykt som prosent av max-score per horisont — A i SCALP = A i SWING = A i MAKRO i relativ edge:
+
+| Grade | Min % av max | Min aktive familier |
+|-------|-------------|---------------------|
+| A+ | 75 % | 4 |
+| A | 55 % | 3 |
+| B | 35 % | 2 |
+| C | under dette | — |
+
+Konkret per horisont: A+ krever score ≥ 3.15 (SCALP) / ≥ 3.75 (SWING) / ≥ 3.9 (MAKRO).
+
+C1-fiksen bevares: POSITIONING alene med alle 7 sub-signaler på maks gir fortsatt grade=C. Kan ikke nå A uten 3+ uavhengige familier.
+
+### Staleness-gate (data_quality)
+
+`GroupResult` inkluderer felt `data_quality` ∈ {fresh, degraded, stale} basert på `_fallback`-flagg og `_age_hours` på kritiske inputs (DFII10, term_spread, COT-alder):
+
+| data_quality | Grade-cap | Trigger |
+|---|---|---|
+| fresh | ingen | alle kritiske inputs < TTL |
+| degraded | max A (ikke A+) | én kritisk input arvet fra cache (`_fallback=True`) |
+| stale | max B | COT > 20d gammel, eller input > 7d cache-stale |
+
+`_risk_gate_grade` tar både event-risk og data_quality inn — strengeste cap vinner.
+
+### Score-justeringer (etter familie-score)
+
+| Justering | Effekt | Når |
+|-----------|---------|-----|
+| DXY-konflikt | -0.5 til -2.0 (graduert) | USD-par med retning motstridende DXY. Penalty = base × clamp(\|DXY chg5d\| / 2.0%, 0.25, 1.0) |
+| Signal-flip | Nedgradering 1 nivå | Retning eller horisont endret siden forrige kjøring |
+| USDA blackout | Max A (ikke A+) | Innen ±3h av Crop Progress / Export Sales for agri |
+| VIX ekstrem + event | Max B | risk_factors ≥ 5 |
 
 ### Push-terskler (til boten)
 
-| Horisont | Minimum vektet score |
-|----------|---------------------|
-| SCALP | 3.0 |
-| SWING | 4.5 |
-| MAKRO | 5.5 |
+| Horisont | Min score (0-6 skala) |
+|----------|----------------------|
+| SCALP | 1.5 |
+| SWING | 2.5 |
+| MAKRO | 3.5 |
 | WATCHLIST | Pushes aldri |
+
+(Legacy 9-kriterie-systemet brukte 3.0/4.5/5.5 på 0-9 skala — fortsatt tilgjengelig i rescore.py, men erstattet i hovedscoringen.)
 
 ### Signal-stabilitet
 
@@ -523,9 +594,9 @@ Futures-baserte CFDer får `close_before_rollover=true` i signalet: GOLD, SILVER
 
 | Fil | Innhold | Oppdatering |
 |-----|---------|-------------|
-| `data/macro/latest.json` | Priser, SMC, nivåer, score, kalender | Hver time + 6× daglig |
+| `data/macro/latest.json` | Priser, SMC, nivåer, driver-familie-scores, grade, horisont, data_quality | Hver time + 6× daglig |
 | `data/macro/signal_stability.json` | Forrige kjørings horisont/retning/score per instrument | 6× daglig |
-| `data/prices/bot_history.json` | Rullerende prishistorikk (500 entries/symbol) for chg1d/5d/20d | Hver time |
+| `data/prices/bot_history.json` | Rullerende prishistorikk (500 entries/symbol) for chg1d/5d/20d + GS-ratio-z-beregning | Hver time |
 | `data/signals.json` | Aktive signaler (tekniske + agri merget) + global state + horizon_config | 6× daglig + hver time (SCALP) |
 | `data/agri_signals.json` | Agri-fundamentale trading-setups (leses av push_signals.py for merge) | 6× daglig |
 | `data/combined/latest.json` | Kombinert CFTC COT-datasett | 6× daglig |
@@ -533,8 +604,11 @@ Futures-baserte CFDer får `close_before_rollover=true` i signalet: GOLD, SILVER
 | `data/ice_cot/history.json` | ICE COT 26-ukers historikk | 6× daglig |
 | `data/euronext_cot/latest.json` | Euronext MiFID II COT (hvete, raps, mais) | 6× daglig |
 | `data/euronext_cot/history.json` | Euronext COT 26-ukers historikk | 6× daglig |
+| `data/disaggregated/` + `data/tff/` + `data/supplemental/` + `data/legacy/` | Ukentlige CFTC COT-rapporter (Managed Money, Hedge Funds, Index Investors) | Ukentlig (fredager) |
+| `data/history/<report_type>/YYYY.json` | 16 års CFTC-arkiv (2010-2025) — grunnlag for MM-percentile 52w + divergens-z | Statisk |
+| `data/cot_analytics/latest.json` | Per-asset analytics-cache: MM-percentile, MM-Comm-z, OI-regime, Index Investor-bias | Ukentlig (rekomputeres ved ny COT-date) |
 | `data/signal_log.json` | Bot-trade historikk | Ved trade |
-| `data/fundamentals/latest.json` | FRED makrodata | 2× daglig |
+| `data/fundamentals/latest.json` | FRED makrodata + market_rates (DGS10, DGS2, DFII10, term_spread) med `_fallback` / `_age_hours` / `_fresh` staleness-metadata | 2× daglig |
 | `data/comex/latest.json` | COMEX lagerbeholdning + stress-indeks | 6× daglig |
 | `data/agri/latest.json` | Avlings-analyse: vær, COT, ENSO, vekstsyklus, yield + bot-priser | 6× daglig + hver time (priser) |
 | `data/agri/season_cache.json` | Cache for arkivvær + ENSO (maks 1× per dag) | 1× daglig |
@@ -567,6 +641,9 @@ Futures-baserte CFDer får `close_before_rollover=true` i signalet: GOLD, SILVER
 - Mapbox-kart i råvare-tabene er satt til `interactive: false` (ikke zoombare) med Mercator-projeksjon og utvidet høyde (650px) for å vise polområder.
 - COT momentum bruker `change_spec_net` fra ukentlige COT-rapporter (`data/tff/`, `data/disaggregated/`), ikke timeseries-filer (som er utdaterte).
 - Agri-signaler bruker Yahoo Finance som fallback når bot-priser mangler (`bot_history.json`).
+- `fetch_fundamentals.py` cache-fallback: hvis FRED returnerer 5xx på DGS2/DGS10/DFII10, arves verdien fra forrige run og merkes `_fallback=True`. Scoring-laget ser dette via `_meta_*`-felt og kapper grade til A (ikke A+) for å signalisere degraded data.
+- `cot_analytics.build_cache()` tar ~35 s engangs per uke — leser 16 års arkiv fra `data/history/`. Cache-hit i alle andre kjøringer er ~0 ms.
+- Staleness-gate: COT > 20 d → `data_quality="stale"` → grade max B. COT > 10 d → `degraded` → max A.
 
 ---
 
@@ -666,10 +743,13 @@ Alle tre dashboards (`index.html`, `metals-intel.html`, `crypto-intel.html`) pol
 | Hosting | GitHub Pages (statisk) |
 | Automatisering | `cot-prices.timer` (XX:40 hver time) + `cot-explorer.timer` (6× daglig man-fre + lør 00:00) |
 | Prisintegrasjon | `signal_server.py` Flask — `POST /push-prices`, `GET /prices` → `update_prices.sh` patcher JSON |
-| Scoring-config | `scoring_config.py` — delte konstanter og funksjoner (importert av fetch_all, rescore, push_signals) |
+| Scoring-motor | `driver_matrix.py` (6 driver-familier, schema 2.0) + `driver_group_mapping.py` (asset-routing) |
+| COT-analytics | `cot_analytics.py` (MM-percentile 52w, divergens-z, OI-regime, Index Investor) — cache i `data/cot_analytics/` |
+| Scoring-config | `scoring_config.py` — PUSH_THRESHOLDS, HORIZON_CONFIGS, DXY-penalty, korrelasjonsgrenser |
 | Varsling | Telegram / Discord webhook / Flask REST API |
 | Trading bot | `scalp_edge/trading_bot.py` — cTrader Open API (Twisted/Protobuf), pusher priser hver time kl XX:35 CET |
 | SMC-motor | `smc.py` — Python-port av FluidTrades SMC Lite |
+| Tester | `tests/test_c1_fix.py` (19 tester — driver matrix + familie-omplassering + data-quality) + `tests/test_cot_analytics.py` (12 tester — percentile, z-score, OI-regime, build_asset_analytics) |
 
 ### COT-kildelogikk
 
@@ -684,3 +764,34 @@ Uenighet mellom to kilder → `momentum=BLANDET`, `cot_confirms=False`, `cot_str
 ### Olje overall_signal logikk
 
 Bruker majoritetsstemme over alle 5 instrumenter (Brent, WTI, NatGas, RBOB, Heating Oil). Hvert instrument har et kombinert pris+COT-signal. Dersom ≥3 segmenter har HIGH risiko, tillegges ekstra bullish bias. Ingen hardkodede terskler — alt er dynamisk basert på faktisk data.
+
+---
+
+## Tester
+
+To test-suiter dekker scoring-kjernen. Alle tester kjøres uten nettverk/filsystem-avhengigheter (rene funksjoner).
+
+```bash
+python3 tests/test_c1_fix.py        # 19 tester — driver matrix
+python3 tests/test_cot_analytics.py # 12 tester — COT analytics
+```
+
+**`tests/test_c1_fix.py` (19 tester)**
+- C1-regresjon: trend+COT alene = max B (kan ikke nå A uten 3 uavhengige familier)
+- 4-familier confluence gir A-grade
+- Risk-gate kapper grade ved USDA blackout
+- Horisont-auto-determination (SCALP/SWING/MAKRO)
+- FRED-score kun i FUNDAMENTAL (ikke dobbelttelt i MACRO)
+- Real yields flyter inn til metals MACRO
+- Fear & Greed aktiverer metals (safe-haven) og indices (contrarian bear)
+- Data-quality-gate: `_fallback=True` → max A; COT > 20d → max B
+- Grade pct-scaling: samme input → samme relative grade på tvers av horisonter
+- POSITIONING v2 sub-signaler: MM percentile, MM-Comm divergens, OI-regime, Index Investor
+- Bakoverkompatibilitet: compute_positioning_v2 uten nye kwargs = legacy-oppførsel
+
+**`tests/test_cot_analytics.py` (12 tester)**
+- rank_percentile: edges (0/100), insufficient history (<26 uker), midt-verdi
+- rolling_z: robust mot outliers (median/MAD), None ved konstant historikk
+- oi_regime: confirmation/warning/liquidation/stable-klassifisering
+- index_investor_bias: structural_long/short terskel-logikk (>5 % av OI)
+- build_asset_analytics: graceful degradation, fresh-output med realistiske verdier
