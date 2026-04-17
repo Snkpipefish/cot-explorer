@@ -113,8 +113,9 @@ if [ -f "$SCALP_LOG" ]; then
 fi
 
 # Push oppdatert data til GitHub Pages (kun priser — signaler oppdateres i update.sh)
-git add data/macro/latest.json \
-        data/oilgas/latest.json data/agri/latest.json data/crypto/latest.json 2>/dev/null || true
+# git add -u data/ fanger alle modifiserte filer under data/ (inkl. bot_history.json)
+# → hindrer at unstaged endringer gjør git rebase umulig.
+git add -u data/ 2>/dev/null || true
 if [ "$TRADE_LOG_CHANGED" -eq 1 ]; then
     git add data/signal_log.json 2>/dev/null || true
 fi
