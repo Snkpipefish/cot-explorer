@@ -22,7 +22,7 @@ signal_server.py       → latest_signals.json         (felles cache, alle kilde
 
 Kjøres i `update.sh`: `fetch_agri.py` → `push_signals.py` → `push_agri_signals.py` (merken inn i neste push_signals-kjøring).
 
-Agri-signalene dropper ut hvis live pris har vandret > N×ATR fra entry (samme aging-logikk som tekniske: SCALP 1.5, SWING 2.5, MAKRO 4.0).
+Agri-signalene har **ingen scoring-side aging-filter** (fjernet i schema 2.2 — boten håndterer signal-utløp selv via `horizon_config.exit_timeout_*`-feltene).
 
 ---
 
@@ -112,12 +112,12 @@ Begge typer kommer i samme `/push-alert`-payload — boten skiller på `source`:
 | Grade-terskler | % av max (75/55/35) | Absolutt: A ≥ 7, B ≥ 5 |
 | `confirmation_candle_limit` | per horisont (SCALP 6, SWING 8, MAKRO 6) | bot-side: 12 (1 time) |
 | `expiry_candles` | per horisont | bot-side: 48 (4 timer) |
-| Aging-filter (live pris vs entry) | `should_push` ≤ 1.5/2.5/4.0×ATR | **samme tabell** (`AGRI_MAX_AGE_ATR`) |
+| Aging-filter (live pris vs entry) | **Fjernet** (schema 2.2) — bot håndterer via `exit_timeout_*` | **Fjernet** (schema 2.2) — bot håndterer via `exit_timeout_*` |
 | Entry-basis | Teknisk S/R-nivå (struktur + SMC) | ATR-prosent estimat (pullback −0.3×ATR) |
 | SL-basis | Struktur (under demand-sone) + ATR | 1.5× estimert ATR |
-| `data_quality` | Fra `_assess_data_quality` (FRED/COT-staleness) | Fra Conab/UNICA-staleness |
+| `data_quality` | Fra `_assess_data_quality` (FRED/COT-staleness) | Fra Conab/UNICA-staleness (inkl. `corrupt`-deteksjon) |
 | Bot-størrelse | VIX × horisont-base | **Halvert** uansett (lavere likviditet) |
-| Maks samtidige | Korrelasjons-bucketed (`MAX_CONCURRENT`) | Maks 1 per `AGRI_CORRELATION_SUBGROUPS` (grains/softs/cotton) |
+| Maks samtidige | Korrelasjons-bucketed (`MAX_CONCURRENT`) | Bot-side (scoring håndhever ikke lenger subgruppe-cap) |
 
 > **Merk:** Boten tar bare tradet — den sammenligner ikke score på tvers av kilder. Forskjellig `max_score` er kun synlig i UI (`score_pct = score / max_score`).
 
@@ -205,7 +205,7 @@ Samme som tekniske signaler:
 
 ### 6. Maks samtidige posisjoner
 
-Maks **1 posisjon per agri-subgruppe** (`AGRI_MAX_PER_SUBGROUP = 1` i `scoring_config.py`). Subgruppene fra `AGRI_CORRELATION_SUBGROUPS`:
+**Scoring-laget håndhever ingen agri-subgruppe-cap** (schema 2.2 — fjernet). Korrelasjons-grupper er fortsatt definert i `AGRI_CORRELATION_SUBGROUPS` og settes som `correlation_group`-felt på hvert signal, men begrensning er bot-ansvar:
 
 ```python
 AGRI_CORRELATION_SUBGROUPS = {
@@ -213,10 +213,9 @@ AGRI_CORRELATION_SUBGROUPS = {
     "Coffee": "softs", "Sugar": "softs", "Cocoa": "softs",
     "Cotton": "cotton",
 }
-AGRI_MAX_PER_SUBGROUP = 1
 ```
 
-I praksis betyr dette maks 3 samtidige agri-posisjoner totalt (1 grain + 1 softs + 1 cotton). Boten bør ikke åpne en ny agri-posisjon hvis det allerede finnes én aktiv i samme subgruppe.
+Boten kan velge selv hvor mange samtidige posisjoner den ønsker per subgruppe — flere agri-trades innen samme gruppe er tillatt.
 
 ---
 
@@ -277,7 +276,7 @@ Hvert agri-signal får `data_quality` propagert til payloaden:
 | Agri-signaler (JSON) | `/home/pc/cot-explorer/data/agri_signals.json` | Output, GitHub Pages |
 | Signal-server | `/home/pc/scalp_edge/signal_server.py` | Flask API (felles `/push-alert`) |
 | Bot-fil (felles) | `/home/pc/scalp_edge/latest_signals.json` | Serverside cache for alle signaler (filtreres på `source`) |
-| Konstanter | `/home/pc/cot-explorer/scoring_config.py` | `AGRI_MAX_SCORE`, `AGRI_MAX_AGE_ATR`, `AGRI_CORRELATION_SUBGROUPS`, `AGRI_MAX_PER_SUBGROUP` |
+| Konstanter | `/home/pc/cot-explorer/scoring_config.py` | `AGRI_MAX_SCORE`, `AGRI_CORRELATION_SUBGROUPS` |
 | Update-pipeline | `/home/pc/cot-explorer/update.sh` | Kjører alt sekvensielt |
 
 ---

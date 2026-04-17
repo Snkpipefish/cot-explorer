@@ -410,15 +410,20 @@ R:R_T2 = |T2 - entry| / risk
 
 (Legacy 9-kriterie-systemet brukte 3.0/4.5/5.5 på 0-9 skala — **fullstendig fjernet** i schema 2.0. `rescore.py` (kjøres hver time) ble migrert til driver_matrix i commit 644c669, og `scoring_config.py` har ikke lenger legacy-funksjoner (commit 349a2b7). Driver-matrix er eneste scoring-motor.)
 
-### Signal aging (entry distance)
+### Signal aging (FJERNET i schema 2.2)
 
-Signaler avvises hvis pris har beveget seg for langt fra entry:
+Tidligere ble signaler avvist hvis pris hadde vandret > N×ATR fra entry.
+**Dette er fjernet** i schema 2.2 fordi filteret hadde tre uavhengige bugs:
 
-| Horisont | Maks avstand |
-|----------|-------------|
-| SCALP | 1.5×ATR(D1) |
-| SWING | 2.5×ATR(D1) |
-| MAKRO | 4.0×ATR(D1) |
+1. `abs(live - entry)` droppet også gunstige bevegelser (BUY hvor pris falt)
+2. Agri brukte `atr_est` (H1-skala) mens tekniske brukte `atr_daily` (D1-skala)
+   med samme terskel — agri ble droppet 7× mer aggressivt
+3. Agri-instrumenter mangler i `macro["prices"]`, så fallback til `current`
+   gjorde filteret til en no-op (samme verdi sammenlignet mot seg selv)
+
+Ansvar for signal-utløp er nå fullt på bot-siden via `horizon_config.exit_timeout_*`-feltene
+(SCALP `exit_timeout_full_candles=16`, SWING `exit_timeout_full_hours=120`,
+MAKRO `exit_timeout_full_hours=360`). Hvis pris aldri når entry → boten dropper signalet selv.
 
 ### Sortering og limiter
 
@@ -494,7 +499,7 @@ Hvert signal inkluderer `horizon_config` med parametre for boten:
 
 ```json
 {
-  "schema_version": "2.0",
+  "schema_version": "2.2",
   "generated": "2026-04-17 16:00 UTC",
   "global_state": {
     "geo_active": true,
