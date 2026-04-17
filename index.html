@@ -99,6 +99,25 @@ body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;font-s
 .score-items{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-top:8px}
 .score-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--m)}
 .score-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+/* DATA QUALITY BADGE (schema 2.0) */
+.dq-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;margin-left:4px;letter-spacing:0.3px;text-transform:uppercase;cursor:help}
+.dq-badge.fresh{background:var(--bbg);color:var(--bull)}
+.dq-badge.degraded{background:#332a00;color:var(--warn)}
+.dq-badge.stale{background:var(--rbg);color:var(--bear)}
+/* DRIVER GROUPS BARS (schema 2.0 — 6-familie driver matrix) */
+.dg-section{padding:12px 16px;border-bottom:1px solid var(--b)}
+.dg-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:10px}
+.dg-active{float:right;font-size:10px;color:var(--m);text-transform:none;letter-spacing:0}
+.dg-row{display:grid;grid-template-columns:110px 1fr 50px;gap:10px;align-items:center;margin-bottom:6px;font-size:11px}
+.dg-name{color:var(--m);font-weight:500}
+.dg-barwrap{height:10px;background:var(--b);border-radius:3px;overflow:hidden;position:relative}
+.dg-bar{height:100%;border-radius:3px;transition:width .5s}
+.dg-bar.high{background:var(--bull)}
+.dg-bar.mid{background:var(--warn)}
+.dg-bar.low{background:var(--b2)}
+.dg-bar.inactive{background:var(--b2);opacity:.3}
+.dg-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--m);text-align:right}
+.dg-drivers{grid-column:2 / span 2;font-size:10px;color:var(--m);margin:-3px 0 6px;line-height:1.4;font-style:italic}
 /* LEVELS */
 .levels-section{padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;border-bottom:1px solid var(--b)}
 .lgt{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--m);margin-bottom:8px}
@@ -625,7 +644,7 @@ function renderDashboard(macro,signals,logData,cotData){
         '<div class="sig-top">'+
           '<span class="sig-name">'+(s.name||s.instrument||'-')+'</span>'+
           '<span class="sig-dir '+dirCol+'">'+dirLabel+'</span>'+
-          '<span class="tgrade '+gradeCol+'">'+(s.grade||'-')+' '+(s.score||0)+'/'+(s.max_score||14)+'</span>'+
+          '<span class="tgrade '+gradeCol+'">'+(s.grade||'-')+' '+(s.score||0)+'/'+(s.max_score||6)+'</span>'+
           '<span class="tgrade" style="background:var(--s);font-size:10px">'+horizon+'</span>'+
         '</div>'+
         '<div class="sig-levels">'+
@@ -780,6 +799,90 @@ function renderSetupSide(setup, type, nearLevels){
     '<div style="font-size:11px;color:var(--m);margin-top:8px">'+setup.note+'</div>';
 }
 
+// ── Driver-oversetter for dynamiske strings fra driver_matrix ──────
+// Konverterer tekniske driver-strings til klarspråk norsk.
+function translateDriver(d){
+  if(!d) return '';
+  // MM-percentile: "MM percentile 5 (bunn — contra-bull)"
+  var m = d.match(/MM percentile (\d+\.?\d*)\s*\(([^)]+)\)/);
+  if(m){
+    var p = parseFloat(m[1]);
+    if(m[2].indexOf('bunn')>=0) return 'MM-fond historisk lav ('+p.toFixed(0)+' pctile) — contrarian-bull';
+    if(m[2].indexOf('topp')>=0) return 'MM-fond historisk høy ('+p.toFixed(0)+' pctile) — contrarian-bear';
+    if(m[2].indexOf('lav')>=0)  return 'MM-fond lav posisjonering ('+p.toFixed(0)+' pctile)';
+    if(m[2].indexOf('høy')>=0)  return 'MM-fond høy posisjonering ('+p.toFixed(0)+' pctile)';
+  }
+  // MM-Commercial divergens
+  if(d.indexOf('MM/Comm divergens')>=0){
+    if(d.indexOf('topp-signal')>=0) return 'Fond ekstrem long vs hedgere ekstrem short — klassisk toppsignal';
+    if(d.indexOf('bunn-signal')>=0) return 'Fond ekstrem short vs hedgere ekstrem long — klassisk bunnsignal';
+    return 'Uvanlig divergens mellom fond og hedgere';
+  }
+  // OI-regime
+  if(d==='OI stigende (bekrefter)') return 'Nye penger strømmer inn i trendretning — bekreftelse';
+  if(d==='OI stigende mot retning (advarsel)') return 'Nye posisjoner bygger mot vår retning — advarsel';
+  // Index Investor
+  if(d==='Indeksfond strukturelt long') return 'Indeksfond (GSCI) strukturelt long — passiv etterspørsel';
+  if(d==='Indeksfond strukturelt short') return 'Indeksfond strukturelt short — passivt salg';
+  // COT standard
+  if(d.indexOf('COT bias align')>=0) return 'Store tradere posisjonert i retningen';
+  if(d==='COT momentum +') return 'COT-posisjonering øker i retningen';
+  if(d.indexOf('COT sterk')>=0) return 'Sterk institusjonell posisjon';
+  // Makro
+  if(d.indexOf('Real yields negative')>=0) return 'Negative realrenter — støtter gull/safe-havens';
+  if(d.indexOf('Real yields faller')>=0)   return 'Real-renter faller — gull-støtte akselererer';
+  if(d.indexOf('Real yields høye')>=0)     return 'Høye real-renter — presser gull ned';
+  if(d.indexOf('DXY svak')>=0) return 'Dollar svekkes — bull for råvarer/metaller';
+  if(d.indexOf('DXY sterk')>=0) return 'Dollar styrkes — bear for råvarer/metaller';
+  if(d.indexOf('Yield curve invertert')>=0) return 'Yield curve invertert — resesjonssignal';
+  if(d.indexOf('Yield curve')>=0 && d.indexOf('-')>=0) return 'Yield curve invertert — resesjonsignal';
+  if(d.indexOf('F&G')>=0){
+    if(d.indexOf('extreme fear')>=0)   return 'Extreme fear — kontrariær kjøp';
+    if(d.indexOf('extreme greed')>=0)  return 'Extreme greed — kontrariær salg';
+    if(d.indexOf('safe-haven bid')>=0) return 'Frykt driver kapital inn i safe-havens';
+    if(d.indexOf('capitulation bull')>=0) return 'Kapitulasjon — oversold bounce-signal';
+    if(d.indexOf('risk-on')>=0) return 'Risk-on — motvind for safe-havens';
+  }
+  if(d.indexOf('VIX elevert')>=0 || d.indexOf('VIX ekstrem')>=0) return 'VIX forhøyet — risk-off regime';
+  // Fundamental — metaller
+  if(d.indexOf('COMEX stress')>=0 && d.indexOf('lav')<0) return 'COMEX-lager stramt — supply-squeeze bull';
+  if(d.indexOf('COMEX stress lav')>=0) return 'COMEX-lager rikelig — lite supply-press';
+  if(d.indexOf('Registered oz')>=0) return 'COMEX registerte unser faller — tight supply';
+  if(d.indexOf('GS-ratio Z')>=0) return 'Gull/sølv-ratio ekstremt — sektor-rotasjon-signal';
+  // Fundamental — energi
+  if(d==='Supply disruption aktiv') return 'Supply-disruption aktiv — bull olje';
+  if(d.indexOf('Shipping risiko HIGH')>=0) return 'Shipping-risiko HIGH — bull olje';
+  if(d.indexOf('Oilgas:')>=0) return 'Olje/gass segment-signal aktiv';
+  if(d.indexOf('Brent-WTI spread')>=0) return 'Brent backwardation — tight current supply';
+  // Fundamental — grains/softs
+  if(d.indexOf('Conab m/m')>=0) return 'Conab-revisjon peker mot vår retning';
+  if(d.indexOf('Conab YoY')>=0) return 'Conab årlig trend peker mot vår retning';
+  if(d.indexOf('Yield kritisk')>=0) return 'Avlings-yield kritisk lav';
+  if(d.indexOf('Yield svak')>=0)    return 'Avlings-yield under snittet';
+  if(d.indexOf('Yield høy')>=0)     return 'Avlings-yield over snittet';
+  if(d.indexOf('UNICA mix')>=0)   return 'UNICA sukker-mix-signal aktiv';
+  if(d.indexOf('UNICA crush')>=0) return 'UNICA crush-volum mot vår retning';
+  if(d.indexOf('Conab café')>=0)  return 'Conab café-estimat peker mot vår retning';
+  if(d.indexOf('BRL svak')>=0)    return 'Svak BRL — eksport-motvind for Brasil-crops';
+  if(d.indexOf('Frost-risiko')>=0) return 'Frost-risiko i Brasil — supply-press';
+  if(d.indexOf('Harmattan')>=0)   return 'Harmattan-vær — supply-press kakao';
+  if(d.indexOf('FRED')>=0) return 'FRED makrodata støtter retningen';
+  if(d==='ENSO-risiko høy') return 'ENSO (El Niño/La Niña) — supply-risiko';
+  // Struktur
+  if(d.indexOf('SMC-bekreftelse')>=0) return 'SMC markedsstruktur bekreftet';
+  if(d.indexOf('HTF-nivå')>=0) return 'Sterkt HTF-nivå i nærheten';
+  if(d==='Fibo-zone') return 'Fibonacci-sone treff';
+  // Trend
+  if(d==='SMA200-align') return 'Over 200-dagers trend';
+  if(d==='Momentum 20d +') return 'Momentum 20 dager peker riktig';
+  if(d==='D1+4H kongruent') return 'Daglig + 4H-trend peker likt';
+  // Risk
+  if(d.indexOf('USDA blackout')>=0) return '⚠️ USDA-rapport-blackout (innen 3 t)';
+  if(d.indexOf('Geo aktiv')>=0) return '⚠️ Geopolitisk risiko aktiv';
+  // Fallback
+  return d;
+}
+
 // ── Plain-language forklaring per setup ─────────────────────────────
 var SCORE_NO = {
   // Schema 2.1: driver-grupper (nye navn fra fetch_all.py)
@@ -833,7 +936,7 @@ function buildExplain(lv){
   var gradeWord={'A+':'veldig sterk signal','A':'sterk signal','B':'middels signal','C':'svakt signal'}[grade]||'signal';
 
   // Main sentence
-  var maxScore=lv.max_score||14;
+  var maxScore=lv.max_score||6;
   var main=lv.name+' ser ut til å <strong>'+dirNorsk+'</strong> '+tfWord+'. Samlet styrke: <strong>'+score+'/'+maxScore+'</strong> — '+gradeWord+'.';
 
   // Top 3 true criteria as tags
@@ -941,6 +1044,46 @@ function renderIdeer(m){
       scoreDots+='<div class="score-item"><div class="score-dot" style="background:'+dotCol+'"></div>'+sd.kryss+wtLabel+'</div>';
     });
 
+    // Fase 3: data_quality-badge (fresh/degraded/stale)
+    var dqBadge='';
+    var dq=lv.data_quality;
+    if(dq && dq!=='fresh'){
+      var dqTitle=(lv.quality_notes||[]).join(' · ') || dq;
+      var dqLabel=dq==='degraded'?'Degraded':dq==='stale'?'Stale':dq;
+      dqBadge='<span class="dq-badge '+dq+'" title="'+dqTitle+'">●'+dqLabel+'</span>';
+    } else if(dq==='fresh'){
+      dqBadge='<span class="dq-badge fresh" title="Alle kritiske inputs er ferske">●Fresh</span>';
+    }
+
+    // Fase 2.1+2.2: driver-gruppe-barer (6-familie matrix)
+    var GROUP_LABELS_NO = {
+      trend:       'Trend',
+      positioning: 'Posisjonering',
+      macro:       'Makro',
+      fundamental: 'Fundamental',
+      risk:        'Risk/Event',
+      structure:   'Struktur'
+    };
+    var GROUP_ORDER = ['trend','positioning','macro','fundamental','structure','risk'];
+    var dgBarsHtml='';
+    if(lv.driver_groups){
+      GROUP_ORDER.forEach(function(k){
+        var g=lv.driver_groups[k]||{score:0,drivers:[]};
+        var sc=g.score||0;
+        var pct=Math.round(sc*100);
+        var barCls = sc>=0.7?'high' : sc>=0.3?'mid' : sc>0?'low' : 'inactive';
+        var label=GROUP_LABELS_NO[k]||k;
+        var drivers=(g.drivers||[]).slice(0,3);
+        var driversHtml=drivers.length?
+          '<div class="dg-drivers">'+drivers.map(function(d){return translateDriver(d);}).join(' · ')+'</div>' : '';
+        dgBarsHtml+='<div class="dg-row">'+
+          '<div class="dg-name">'+label+'</div>'+
+          '<div class="dg-barwrap"><div class="dg-bar '+barCls+'" style="width:'+pct+'%"></div></div>'+
+          '<div class="dg-val">'+sc.toFixed(2)+'</div>'+
+          '</div>'+driversHtml;
+      });
+    }
+
     // Binary risk warning
     var briskHtml='';
     if(brisk.length){
@@ -953,7 +1096,8 @@ function renderIdeer(m){
         '<div class="tic-head" onclick="togIde('+i+')">'+
           '<span class="tcls">'+clsLv+'</span>'+
           '<div><div class="tname">'+lv.name+'</div><div class="tsub">'+(lv.label||'')+'</div></div>'+
-          '<span class="tgrade '+gc+'">'+lv.grade+' '+(lv.score||0)+'/'+(lv.max_score||14)+'</span>'+
+          '<span class="tgrade '+gc+'">'+lv.grade+' '+(lv.score||0)+'/'+(lv.max_score||6)+'</span>'+
+          dqBadge+
           '<span class="tgrade '+tfCol+'">'+tf+'</span>'+
           '<span class="tbias '+(lv.dir_color||'neutral')+'">'+biasText+'</span>'+
           '<span class="tprice">'+fmtP(curr)+'</span>'+
@@ -967,10 +1111,15 @@ function renderIdeer(m){
             '<div class="setup-side">'+renderSetupSide(lv.setup_short,'SHORT',lv.resistances)+'</div>'+
           '</div>'+
           '<div class="score-section">'+
-            '<div class="ct">Styrkeindikator — '+(lv.score||0)+' av '+(lv.max_score||14)+' ('+(lv.score_pct||0)+'%) — '+(lv.horizon||lv.timeframe_bias||'?')+'</div>'+
+            '<div class="ct">Styrkeindikator — '+(lv.score||0)+' av '+(lv.max_score||6)+' ('+(lv.score_pct||0)+'%) — '+(lv.horizon||lv.timeframe_bias||'?')+'</div>'+
             '<div class="score-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:'+lv.score_pct+'%;background:'+(gc==='bull'?'var(--bull)':gc==='warn'?'var(--warn)':'var(--bear)')+'"></div></div></div>'+
             '<div class="score-items">'+scoreDots+'</div>'+
           '</div>'+
+          (dgBarsHtml?'<div class="dg-section">'+
+            '<div class="dg-title">Driver-familier (schema 2.0)'+
+              '<span class="dg-active">'+(lv.active_driver_groups||0)+' aktive av 5</span>'+
+            '</div>'+dgBarsHtml+
+          '</div>':'')+
           '<div class="levels-section">'+
             '<div><div class="lgt">Motstand</div>'+resH+'</div>'+
             '<div>'+
