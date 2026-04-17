@@ -1,6 +1,6 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-04-17 18:55 UTC",
+  "generated": "2026-04-17 19:22 UTC",
   "cot_date": "2026-04-07",
   "global_state": {
     "geo_active": true,
@@ -871,8 +871,10 @@
         "exit_geo_spike_atr_mult": 3.0,
         "sizing_base_risk_usd": 60
       },
-      "data_quality": "fresh",
-      "quality_notes": [],
+      "data_quality": "stale",
+      "quality_notes": [
+        "agri_signals.json 9t gammel"
+      ],
       "yield_score": 0,
       "weather_outlook": "tørt",
       "drivers": [
@@ -886,10 +888,10 @@
       "key": "Wheat",
       "name": "Hvete",
       "action": "BUY",
-      "timeframe": "SWING",
-      "horizon": "SWING",
-      "grade": "B",
-      "score": 7.0,
+      "timeframe": "MAKRO",
+      "horizon": "MAKRO",
+      "grade": "A",
+      "score": 7.7,
       "max_score": 18,
       "current": 595.1,
       "entry": 594.64,
@@ -904,35 +906,37 @@
       "source": "agri_fundamental",
       "correlation_group": "grains",
       "horizon_config": {
-        "confirmation_tf": "15min",
-        "confirmation_max_candles": 8,
-        "confirmation_escape_atr_factor": 0.7,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0025,
-        "entry_zone_margin_atr": 0.7,
-        "exit_t1_close_pct": 0.33,
-        "exit_t2_close_pct": 0.33,
-        "exit_trail_tf": "1H",
+        "confirmation_tf": "1H",
+        "confirmation_max_candles": 6,
+        "confirmation_escape_atr_factor": 1.0,
+        "confirmation_min_score": 1,
+        "confirmation_strict_score": 2,
+        "entry_zone_margin": 0.004,
+        "entry_zone_margin_atr": 1.2,
+        "exit_t1_close_pct": 0.25,
+        "exit_t2_close_pct": 0.25,
+        "exit_trail_tf": "D1",
         "exit_trail_atr_mult": {
-          "fx": 3.0,
-          "gold": 4.0,
-          "silver": 4.0,
-          "oil": 3.5,
-          "index": 3.0
+          "fx": 5.0,
+          "gold": 6.0,
+          "silver": 6.0,
+          "oil": 5.5,
+          "index": 5.0
         },
-        "exit_ema_tf": "1H",
+        "exit_ema_tf": "D1",
         "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_candles": 288,
         "exit_timeout_partial_pct": 0.5,
-        "exit_timeout_full_hours": 120,
-        "exit_be_timeout_hours": 48,
-        "exit_event_close_hours": 2,
+        "exit_timeout_full_hours": 360,
+        "exit_timeout_days": 15,
+        "exit_score_deterioration": 6.0,
         "exit_geo_spike_atr_mult": 3.0,
-        "sizing_base_risk_usd": 40
+        "sizing_base_risk_usd": 60
       },
-      "data_quality": "fresh",
-      "quality_notes": [],
+      "data_quality": "stale",
+      "quality_notes": [
+        "agri_signals.json 9t gammel"
+      ],
       "yield_score": 60,
       "weather_outlook": "tørke",
       "drivers": [
@@ -991,8 +995,10 @@
         "exit_geo_spike_atr_mult": 3.0,
         "sizing_base_risk_usd": 40
       },
-      "data_quality": "fresh",
-      "quality_notes": [],
+      "data_quality": "stale",
+      "quality_notes": [
+        "agri_signals.json 9t gammel"
+      ],
       "yield_score": 32,
       "weather_outlook": "normalt",
       "drivers": [
@@ -1051,8 +1057,10 @@
         "exit_geo_spike_atr_mult": 3.0,
         "sizing_base_risk_usd": 40
       },
-      "data_quality": "fresh",
-      "quality_notes": [],
+      "data_quality": "stale",
+      "quality_notes": [
+        "agri_signals.json 9t gammel"
+      ],
       "yield_score": 0,
       "weather_outlook": "tørke",
       "drivers": [
@@ -1111,8 +1119,10 @@
         "exit_geo_spike_atr_mult": 3.0,
         "sizing_base_risk_usd": 40
       },
-      "data_quality": "fresh",
-      "quality_notes": [],
+      "data_quality": "stale",
+      "quality_notes": [
+        "agri_signals.json 9t gammel"
+      ],
       "yield_score": 100,
       "weather_outlook": "tørt",
       "drivers": [
@@ -1171,8 +1181,10 @@
         "exit_geo_spike_atr_mult": 3.0,
         "sizing_base_risk_usd": 40
       },
-      "data_quality": "fresh",
-      "quality_notes": [],
+      "data_quality": "stale",
+      "quality_notes": [
+        "agri_signals.json 9t gammel"
+      ],
       "yield_score": 11,
       "weather_outlook": "normalt",
       "drivers": [
@@ -1184,7 +1196,7 @@
     }
   ],
   "_meta": {
-    "generated_at": "2026-04-17T18:55:37Z",
+    "generated_at": "2026-04-17T19:22:29Z",
     "script": "push_signals.py",
     "macro_date": "2026-04-17 17:40 UTC",
     "cot_date": "2026-04-07"
