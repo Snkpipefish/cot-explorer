@@ -1561,14 +1561,24 @@ for inst in INSTRUMENTS:
             grade = "B" if score >= 2.5 else "C"
             grade_color = "warn" if grade == "B" else "bear"
 
-    # Legacy score_details (for bakover-kompat med dashbord): flat oversikt over familier
+    # score_details med norske display-navn per driver-gruppe (for dashboard)
+    _GROUP_LABELS_NO = {
+        "trend":       "Trendbildet (SMA/momentum/align)",
+        "positioning": "COT-posisjonering",
+        "macro":       "Makrobilde (DXY/VIX/renter)",
+        "fundamental": "Fundamentalt (asset-spesifikt)",
+        "risk":        "Event-risiko (kalender/geo)",
+        "structure":   "Teknisk struktur (HTF/SMC)",
+    }
     score_details = [
-        {"kryss": f"Familie: {group_key}",
+        {"kryss": _GROUP_LABELS_NO.get(group_key, group_key),
          "id":    f"group_{group_key}",
-         "verdi": fam.score >= 0.3,
-         "vekt":  round(fam.weight, 2),
-         "poeng": round(fam.score * fam.weight, 2)}
-        for group_key, fam in group_result.driver_groups.items()
+         "verdi": grp.score >= 0.3,
+         "vekt":  round(grp.weight, 2),
+         "poeng": round(grp.score * grp.weight, 2),
+         # Drivers-liste flatet for tooltip/detaljvisning
+         "drivers": grp.drivers}
+        for group_key, grp in group_result.driver_groups.items()
     ]
     # Behold criteria-dict som skygge for evt. kode som leser den
     criteria = {

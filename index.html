@@ -782,6 +782,14 @@ function renderSetupSide(setup, type, nearLevels){
 
 // ── Plain-language forklaring per setup ─────────────────────────────
 var SCORE_NO = {
+  // Schema 2.1: driver-grupper (nye navn fra fetch_all.py)
+  'Trendbildet (SMA/momentum/align)':  {t:'Trendbildet',                c:'bull'},
+  'COT-posisjonering':                 {t:'Store tradere posisjonerer',  c:'bull'},
+  'Makrobilde (DXY/VIX/renter)':       {t:'Makrobildet støtter',         c:'bull'},
+  'Fundamentalt (asset-spesifikt)':    {t:'Fundamentale drivere',        c:'bull'},
+  'Event-risiko (kalender/geo)':       {t:'Event-risiko aktiv',          c:'warn'},
+  'Teknisk struktur (HTF/SMC)':        {t:'Teknisk nivå/struktur',       c:'bull'},
+  // Legacy 9-kriterie-navn (bevart for bakover-kompat hvis gamle JSON-payloads vises)
   'Over SMA200':                {t:'Over 200-dagers trend',        c:'bull'},
   'Momentum 20d':               {t:'Momentum peker riktig vei',     c:'bull'},
   'COT bekrefter':              {t:'Store tradere enige',           c:'bull'},
