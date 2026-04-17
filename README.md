@@ -121,7 +121,7 @@ Dashboard med 4 kort: Markedsbildet, Signaler, Store investorer, Nyheter
 To timers kjører på serveren:
 
 **`cot-prices.timer`** — hvert hele time på XX:40
-Kjører `update_prices.sh`: henter bot-priser → patcher JSON → `rescore.py` (oppdaterer sma200, momentum_20d, d1_4h_congruent + graduert DXY-penalty) → `push_signals.py --scalp-only` → git push
+Kjører `update_prices.sh`: henter bot-priser → patcher JSON → `rescore.py` (full driver-matrix re-evaluering med ferske priser, schema 2.0) → trade-log sync → git push. *Ikke push av nye signaler — det skjer kun i `update.sh`.*
 
 **`cot-explorer.timer`** — 6× daglig hverdager (00/04/08/12/16/20 CET) + **lørdag 00:00**
 Kjører `update.sh`: full pipeline (se tabell under)
@@ -136,6 +136,18 @@ Kjører `update.sh`: full pipeline (se tabell under)
 > Logg: `tail -f ~/cot-explorer/logs/update.log`
 > Prislogg: `tail -f ~/cot-explorer/logs/prices.log`
 
+### Hva update_prices.sh gjør (i rekkefølge — hver time)
+
+| # | Steg | Beskrivelse |
+|---|------|-------------|
+| 1 | `fetch_prices.py` | Bygger `data/macro/latest.json` fra bot-priser + Yahoo-fallback. Bevarer `trading_levels`, `calendar`, `cot_date`, `macro_indicators` fra forrige kjøring. |
+| 2 | `fetch_oilgas.py` | Oppdaterer `data/oilgas/latest.json` med bot-priser + segment-scoring + nyheter |
+| 3 | Inline agri-patch | Oppdaterer `data/agri/latest.json` med bot-priser (Corn, Wheat, Soy, Coffee, Cotton, Sugar, Cocoa) |
+| 4 | Inline crypto-patch | Oppdaterer `data/crypto/latest.json` med bot-priser |
+| 5 | `rescore.py` | Full driver_matrix re-evaluering med ferske priser (schema 2.0). Rekalkulerer dir_color, TREND-signaler, MACRO-regime + per-asset POSITIONING fra cot_analytics-cache. Gjenbruker COT/fundamentals/SMC fra fetch_all (data som ikke endrer seg intratime). |
+| 6 | Sync trade-log | Kopierer `~/scalp_edge/signal_log.json` → `data/signal_log.json` hvis endret |
+| 7 | git add+commit+push | `git add -u data/` fanger alle modifiserte filer + flock-vern mot bot-push |
+
 ### Hva update.sh gjør (i rekkefølge)
 
 | # | Script | Beskrivelse |
@@ -147,7 +159,7 @@ Kjører `update.sh`: full pipeline (se tabell under)
 | 4 | `fetch_ice_cot.py` | ICE Futures Europe COT (Brent, Gasoil, TTF) — kun fredag ≥20:00 og lørdag 00:00 |
 | 5 | `fetch_euronext_cot.py` | Euronext MiFID II COT (hvete, raps, mais) — kun onsdag ≥12:00 |
 | 6 | `fetch_fundamentals.py` | FRED makrodata (maks 1× per 12t) |
-| 7 | `fetch_all.py` | Full analyse: priser, SMC, nivåer, 6-familie driver matrix-scoring, setups, VIX, korrelasjoner, ADR. Bygger `data/cot_analytics/latest.json` via `cot_analytics.py` ved ny COT-date (~35 s), ellers cache-hit |
+| 7 | `fetch_all.py` | Full analyse: priser, SMC, nivåer, 6-familie driver matrix-scoring (`max_score` = sum av faktiske horisont-vekter: SCALP=4.2, SWING=5.0, MAKRO=5.2), setups, VIX, korrelasjoner, ADR. Bygger `data/cot_analytics/latest.json` via `cot_analytics.py` ved ny COT-date (~35 s), ellers cache-hit |
 | 8 | `fetch_comex.py` | COMEX lagerbeholdning |
 | 9 | `fetch_seismic.py` | USGS seismiske data |
 | 10 | `fetch_intel.py` | Google News RSS for metaller |
@@ -173,9 +185,9 @@ Kjører `update.sh`: full pipeline (se tabell under)
 - `driver_matrix.py` — 6-familie scoring (TREND, POSITIONING, MACRO, FUNDAMENTAL, RISK/EVENT, STRUCTURE) med confluens-gate som fikser C1 korrelasjons-bias
 - `driver_group_mapping.py` — asset-klasse-routing (FX/metaller/energi/indekser/grains/softs/crypto → riktig data per familie)
 - `cot_analytics.py` — disaggregerte COT sub-signaler (MM-percentile 52w, MM-Commercial divergens-z, OI-regime, Index Investor-flow) med cache i `data/cot_analytics/latest.json`
-- `scoring_config.py` — delte konstanter (PUSH_THRESHOLDS, HORIZON_CONFIGS, DXY_MOMENTUM_THRESHOLD, CORRELATION_REGIME_CONFIGS) brukt av `fetch_all.py`, `rescore.py` og `push_signals.py`
+- `scoring_config.py` — delte konstanter: PUSH_THRESHOLDS, HORIZON_CONFIGS, DXY_MOMENTUM_THRESHOLD, CORRELATION_REGIME_CONFIGS, korrelasjons-grupper. **Inneholder ikke lenger scoring-logikk** — alt det er flyttet til `driver_matrix.py`.
 
-Legacy 9-kriterie-scoring (SCORE_WEIGHTS, GRADE_THRESHOLDS) er beholdt i `scoring_config.py` for bruk av `rescore.py`, men hovedscoringen via `fetch_all.py` kaller `driver_matrix.score_asset()` og bruker driver-familie-matrisen.
+Både `fetch_all.py` (hver 4. time) og `rescore.py` (hver time via update_prices.sh) bruker `driver_matrix.score_asset()` som **eneste scoring-motor**. Legacy 9-kriterie-systemet er fullstendig fjernet (commit 349a2b7) — én konsistent scoring-skala (0-6) på tvers av hele pipelinen.
 
 ### Filtrering
 - Horisont-basert: score ≥ terskel for instrumentets horisont (SCALP 1.5 / SWING 2.5 / MAKRO 3.5 — 0-6 skala fra driver matrix)
@@ -202,7 +214,7 @@ Legacy 9-kriterie-scoring (SCORE_WEIGHTS, GRADE_THRESHOLDS) er beholdt i `scorin
     {
       "key": "eurusd", "name": "EUR/USD",
       "horizon": "SWING", "direction": "bull", "grade": "A",
-      "score": 3.2, "max_score": 6.0, "score_pct": 53,
+      "score": 2.77, "max_score": 5.0, "score_pct": 55,
       "setup": {"entry": ..., "sl": ..., "t1": ..., "t2": ..., "rr_t1": 1.47},
       "cot": {"bias": "LONG", "pct": 12.4},
       "driver_groups": {
@@ -402,7 +414,7 @@ C1-fiksen bevares: POSITIONING alene med alle 7 sub-signaler på maks gir fortsa
 | MAKRO | 3.5 |
 | WATCHLIST | Pushes aldri |
 
-(Legacy 9-kriterie-systemet brukte 3.0/4.5/5.5 på 0-9 skala — fortsatt tilgjengelig i rescore.py, men erstattet i hovedscoringen.)
+(Legacy 9-kriterie-systemet brukte 3.0/4.5/5.5 på 0-9 skala — fullstendig fjernet i schema 2.0. Driver-matrix er eneste scoring-motor.)
 
 ### Signal-stabilitet
 
@@ -622,7 +634,7 @@ Futures-baserte CFDer får `close_before_rollover=true` i signalet: GOLD, SILVER
 | `data/geointel/chokepoints.json` | 6 chokepoints | Statisk |
 | `data/geointel/mines.json` | 26 gruver | Statisk |
 | `~/scalp_edge/live_prices.json` | Live priser fra bot (21 symboler) | Hvert 58. min |
-| `scoring_config.py` | Delte scoring-konstanter og funksjoner (SCORE_WEIGHTS, GRADE_THRESHOLDS, HORIZON_CONFIGS, DXY_MOMENTUM_THRESHOLD, CORRELATION_REGIME_CONFIGS) | — |
+| `scoring_config.py` | Delte konstanter: PUSH_THRESHOLDS, HORIZON_CONFIGS, DXY_MOMENTUM_THRESHOLD, CORRELATION_REGIME_CONFIGS. (Legacy 9-kriterie-scoring fjernet — driver_matrix er eneste scoring-motor.) | — |
 | `utils.py` | Delt verktøybibliotek (logging, retry, stooq, news, freshness) | — |
 | `logs/` | Python-loggfiler per script | Ved kjøring |
 
@@ -727,6 +739,24 @@ Alle tre dashboards (`index.html`, `metals-intel.html`, `crypto-intel.html`) pol
 ### Frontend-optimalisering
 
 `index.html` laster alle 5 JSON-filer parallelt med `Promise.all()` i stedet for sekvensielt — ~2-3× raskere initial lasting.
+
+### Schema 2.0-visualisering på dashboardet
+
+Setups & Trades-taben (og Topp signaler-kortene på Oversikt) viser per instrument:
+
+- **Grade-badge** (A+/A/B/C) + **score-brøk** (f.eks. "A 2.77/5.0")
+- **Data-quality-badge** ●Fresh / ●Degraded / ●Stale ved siden av grade — viser om scoring bygger på ferske eller arvet/stale data. Tooltip viser konkrete `quality_notes`.
+- **Driver-familier-seksjon** (per setup-kort, åpent): 6 horisontale barer (TREND / POSITIONING / MACRO / FUNDAMENTAL / STRUCTURE / RISK/EVENT) med score 0-1, fargekodet (grønn ≥ 0.7, gul ≥ 0.3, svak ellers, inaktiv ved 0). Topp 3 driver-strenger per familie vises i klartekst under baren.
+- **"N aktive av 5"** confluens-teller i header
+- **Mini driver-indikator** på Topp signaler-kortene: 6 små fargede bokstaver (T·P·M·F·S·R) med tooltip per familie
+
+Driver-strenger fra `driver_matrix` oversettes via `translateDriver()`-funksjon i `index.html` til klarspråk norsk. Eksempler:
+- `MM percentile 5 (bunn — contra-bull)` → "MM-fond historisk lav (5 pctile) — contrarian-bull"
+- `MM/Comm divergens z=+2.0 (topp-signal)` → "Fond ekstrem long vs hedgere ekstrem short — klassisk toppsignal"
+- `OI stigende mot retning (advarsel)` → "Nye posisjoner bygger mot vår retning — advarsel"
+- `Real yields negative` → "Negative realrenter — støtter gull/safe-havens"
+
+Den gamle `score-items`-griden (6 dots med kryss-tekst fra 9-kriterie-tiden) er fjernet — Driver-familier-seksjonen erstatter den med rikere visualisering.
 
 ---
 
