@@ -31,19 +31,6 @@ from typing import Optional
 
 GROUP_ACTIVE_THRESHOLD = 0.3   # Score >= dette teller som "aktiv familie"
 
-# Grade krever både poeng OG antall aktive familier
-# Kalibrert for realistiske gruppe-scores (0.5-0.8 per aktive familie):
-#   4+ active × 1.0 = 4.0 score → A+
-#   3+ active × 1.0 = 3.0 score → A
-#   2+ active × 1.0 = 2.0 score → B
-# C1-fiks bevares: 2 familier kan IKKE nå A (trenger 3 til A).
-GRADE_RULES = [
-    # (grade, min_score, min_active_families)
-    ("A+", 4.0, 4),
-    ("A",  3.0, 3),
-    ("B",  2.0, 2),
-]
-
 HORIZON_GROUP_WEIGHTS = {
     "SCALP":  {"trend": 1.2, "positioning": 0.5, "macro": 0.7,
                "fundamental": 0.5, "risk": 0.8, "structure": 1.3},
@@ -52,6 +39,37 @@ HORIZON_GROUP_WEIGHTS = {
     "MAKRO":  {"trend": 0.8, "positioning": 1.3, "macro": 1.3,
                "fundamental": 1.3, "risk": 0.8, "structure": 0.5},
 }
+
+# NON_SCORING er satt nedenfor (i score_asset), men vi må vite hvilke familier
+# som teller mot max-score her for å regne terskler per horisont.
+_NON_SCORING_FAMILIES = {"risk"}
+
+# Max possible score per horisont = sum av vekter for SCORING-familier (hver på 1.0)
+HORIZON_MAX_SCORE = {
+    h: round(sum(w for k, w in weights.items() if k not in _NON_SCORING_FAMILIES), 3)
+    for h, weights in HORIZON_GROUP_WEIGHTS.items()
+}
+# SCALP: 1.2+0.5+0.7+0.5+1.3 = 4.2
+# SWING: 1.0+1.0+1.0+1.0+1.0 = 5.0
+# MAKRO: 0.8+1.3+1.3+1.3+0.5 = 5.2
+
+# Fase 4: Grade-terskler uttrykt som prosent av max-score per horisont.
+# Dette betyr at A i SCALP = A i SWING = A i MAKRO (samme relative edge).
+# C1-fiks bevares: 2 familier kan IKKE nå A (trenger 3 til A).
+GRADE_RULES_PCT = [
+    # (grade, min_pct_of_max, min_active_families)
+    ("A+", 0.75, 4),  # 75 % av maks + 4 familier
+    ("A",  0.55, 3),  # 55 % + 3 familier
+    ("B",  0.35, 2),  # 35 % + 2 familier
+]
+
+# Backward-compat alias: absolutte terskler kalkulert for SWING (5.0 max).
+# Kode som fortsatt leser GRADE_RULES direkte skal fortsatt fungere, men vi
+# anbefaler å bruke GRADE_RULES_PCT gjennom grade().
+GRADE_RULES = [
+    (g, round(pct * HORIZON_MAX_SCORE["SWING"], 2), n)
+    for g, pct, n in GRADE_RULES_PCT
+]
 
 # Horisont-bestemmelse baseres på minst N aktive familier OG score-krav
 HORIZON_GATES = [
@@ -679,9 +697,18 @@ def compute_structure(nearest_level_weight: int = 0,
 
 # ─── AGGREGATE: score_asset + grade + horizon ────────────────────────────
 
-def grade(total_score: float, active_driver_groups: int) -> str:
-    for g, min_sc, min_fam in GRADE_RULES:
-        if total_score >= min_sc and active_driver_groups >= min_fam:
+def grade(total_score: float, active_driver_groups: int,
+          horizon: str = "SWING") -> str:
+    """Grade basert på prosent av max-score per horisont + min-familier.
+
+    Fase 4: samme relative edge gir samme grade uavhengig av horisont.
+    SCALP max=4.2, SWING max=5.0, MAKRO max=5.2 — uten normalisering ville
+    MAKRO hatt lettere tilgang til A+ (2 % mer max) enn SCALP.
+    """
+    max_score = HORIZON_MAX_SCORE.get(horizon, HORIZON_MAX_SCORE["SWING"])
+    pct = total_score / max_score if max_score > 0 else 0
+    for g, min_pct, min_fam in GRADE_RULES_PCT:
+        if pct >= min_pct and active_driver_groups >= min_fam:
             return g
     return "C"
 
@@ -859,7 +886,7 @@ def score_asset(
         if k not in NON_SCORING:
             weighted_total += grp.score * grp.weight
 
-    base_grade = grade(weighted_total, active_count)
+    base_grade = grade(weighted_total, active_count, horizon=horizon)
 
     # Risk-gate: kapp grade hvis event-risiko er kritisk
     # Risk-score 0.0 = ingen events, 1.0 = mange event-faktorer
