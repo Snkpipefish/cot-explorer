@@ -2,9 +2,9 @@
 
 ## Oversikt
 
-`push_agri_signals.py` genererer fundamentalbaserte trading-setups for agri-råvarer basert på avlingsdata (vær, yield, COT, ENSO). Disse sendes til `signal_server.py` via `/push-agri-alert` og serveres til boten via `GET /agri-signals`.
+`push_agri_signals.py` genererer fundamentalbaserte trading-setups for agri-råvarer basert på avlingsdata (vær, yield, COT, ENSO). Disse skrives til `data/agri_signals.json` og merges deretter inn i den **felles** `/push-alert`-payloaden av `push_signals.py` — agri-signalene flagges med `source: "agri_fundamental"` slik at boten kan filtrere/behandle dem med agri-spesifikke regler.
 
-Boten må hente og prosessere disse **separat** fra tekniske signaler (`/signals`).
+Boten henter alle signaler fra `/signals` og skiller på `source`-feltet — det finnes **ikke** en egen `/agri-signals`-endpoint.
 
 ---
 
@@ -12,99 +12,114 @@ Boten må hente og prosessere disse **separat** fra tekniske signaler (`/signals
 
 ```
 fetch_agri.py          → data/agri/latest.json      (vær, yield, COT, ENSO)
-push_agri_signals.py   → data/agri_signals.json      (trading-setups)
-                       → POST /push-agri-alert        (til Flask)
-signal_server.py       → latest_agri_signals.json     (på disk)
-                       → GET /agri-signals             (bot henter)
+push_agri_signals.py   → data/agri_signals.json      (trading-setups, grade A/B)
+push_signals.py        → POST /push-alert            (felles endpoint;
+                                                      agri merges inn med
+                                                      source: "agri_fundamental")
+signal_server.py       → latest_signals.json         (felles cache, alle kilder)
+                       → GET /signals                 (bot henter, filtrerer på source)
 ```
 
-Kjøres i `update.sh` etter `push_signals.py`.
+Kjøres i `update.sh`: `fetch_agri.py` → `push_signals.py` → `push_agri_signals.py` (merken inn i neste push_signals-kjøring).
+
+Agri-signalene dropper ut hvis live pris har vandret > N×ATR fra entry (samme aging-logikk som tekniske: SCALP 1.5, SWING 2.5, MAKRO 4.0).
 
 ---
 
-## Endpoint: GET /agri-signals
+## Endpoint: POST /push-alert (felles for tekniske og agri)
 
-Returnerer agri-signaler i bot-kompatibelt format. Ingen autentisering nødvendig (kun localhost).
+Agri-signaler ligger som egne objekter i `signals[]`-arrayet. Boten gjenkjenner dem på `source: "agri_fundamental"`.
 
-### Responsformat
+### Payload-struktur (utdrag — kun agri-relevante felt)
 
 ```json
 {
-  "generated": "2026-04-14 15:42 UTC",
-  "valid_until": "2026-04-15T15:42:00+00:00",
-  "source": "agri_fundamental",
-  "enso_phase": "Nøytral",
+  "schema_version": "2.1",
+  "generated": "2026-04-17 16:00 UTC",
   "global_state": {
     "geo_active": false,
     "vix_regime": "normal",
-    "max_positions": 2,
-    "stop_multiplier": 3.0
+    "correlation_regime": "normal",
+    "correlation_config": {...}
   },
-  "rules": {
-    "risk_pct_full": 1.0,
-    "risk_pct_half": 0.5,
-    "risk_pct_quarter": 0.25,
-    "min_rr_normal": 1.33,
-    "min_rr_geo": 1.5,
-    "confirmation_candle_limit": 12,
-    "geo_spike_atr_multiplier": 2.0
-  },
-  "signals": [ ... ],
-  "invalidated_signals": []
+  "signals": [
+    {
+      "key": "Cotton",
+      "name": "Bomull",
+      "horizon": "MAKRO",
+      "direction": "bull",
+      "grade": "A",
+      "score": 9.0, "max_score": 18,
+      "setup": {
+        "entry": 78.95, "sl": 78.61, "t1": 79.52, "t2": 80.20,
+        "rr_t1": 1.68, "rr_t2": 3.68, "sl_type": "atr_prosent"
+      },
+      "cot": {"bias": "LONG", "pct": 12.4},
+      "atr_d1": 0.34, "atr_est": 0.34,
+      "correlation_group": "cotton",
+      "source": "agri_fundamental",
+      "horizon_config": {...},
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "yield_score": 34,
+      "weather_outlook": "tørt",
+      "drivers": [
+        "Yield kritisk (34) — supply-press",
+        "Værstress USA Cotton Belt — tørke",
+        "COT: spekulanter snur long",
+        "Conab: bomull -2.1% m/m (bull)"
+      ],
+      "driver_groups": {
+        "trend":       {"score": 1.0,  "weight": 0.8, "drivers": []},
+        "positioning": {"score": 1.0,  "weight": 1.0, "drivers": ["COT LONG 12.4%"]},
+        "macro":       {"score": 0.0,  "weight": 1.0, "drivers": []},
+        "fundamental": {"score": 0.85, "weight": 1.3, "drivers": ["Yield kritisk", "..."]},
+        "risk":        {"score": 0.0,  "weight": 1.0, "drivers": []},
+        "structure":   {"score": 0.0,  "weight": 0.5, "drivers": []}
+      },
+      "active_driver_groups": 3,
+      "group_drivers": ["Yield kritisk (34) — supply-press", "..."],
+      "created_at": "2026-04-17T16:00:00+00:00"
+    }
+  ]
 }
 ```
 
-### Signal-objekt (etter translate)
+### Felter som er agri-spesifikke
 
-```json
-{
-  "id": "SOYBEAN-BUY-1776181455",
-  "instrument": "Soybean",
-  "direction": "buy",
-  "status": "watchlist",
-  "character": "A+",
-  "confluences": 7.8,
-  "entry_zone": [1166.37, 1169.87],
-  "alert_level": 1168.12,
-  "stop": 1143.49,
-  "t1": 1200.97,
-  "t2_informational": 1217.60,
-  "size": "full",
-  "session": "soybean",
-  "session_start": "15:00",
-  "session_end": "21:00",
-  "confirmation_primary": "close_beyond",
-  "confirmation_direction": "bullish",
-  "expiry_candles": 48,
-  "confirmation_candle_limit": 12,
-  "close_before_rollover": false,
-  "xau_4h_confirmation": false,
-  "source": "agri_fundamental",
-  "drivers": [
-    "Værstress i USA Corn Belt (vått)",
-    "COT: spekulanter øker long (net +18% av OI)",
-    "Yield kritisk (tidlig) — risiko for lav produksjon",
-    "Prognose El Niño: Gunstig regn"
-  ],
-  "yield_score": 34,
-  "weather_outlook": "vått"
-}
-```
+| Felt | Type | Beskrivelse |
+|---|---|---|
+| `source` | str | Alltid `"agri_fundamental"` for agri-signaler |
+| `max_score` | int | **18** for agri (vs 4.2/5.0/5.2 for tekniske, per horisont) |
+| `data_quality` | str | `"fresh"` / `"degraded"` / `"stale"` — propagert fra Conab/UNICA-staleness |
+| `quality_notes` | list[str] | F.eks. `["Conab missing"]` når en kritisk kilde mangler |
+| `yield_score` | int | 0–100 fra Open-Meteo (lav = supply-knapphet, høy = overflod) |
+| `weather_outlook` | str | `"tørt"` / `"vått"` / `"tørke"` / `"flom"` / `"normalt"` |
+| `drivers` | list[str] | Menneskelig lesbare driver-strenger fra agri-scoring |
+| `correlation_group` | str | `"grains"` / `"softs"` / `"cotton"` (fra `AGRI_CORRELATION_SUBGROUPS`) |
 
 ---
 
 ## Forskjeller fra tekniske signaler
 
-| Egenskap | Tekniske (/signals) | Agri (/agri-signals) |
-|----------|--------------------|-----------------------|
-| `source` | (ikke satt) | `"agri_fundamental"` |
-| `expiry_candles` | 8 (40 min) | **48** (4 timer) |
-| `confirmation_candle_limit` | 6 (30 min) | **12** (1 time) |
-| `valid_until` | +16 timer | **+24 timer** |
-| `min_rr_normal` | 1.5 | **1.33** |
-| Entry-basis | Teknisk S/R-nivå | ATR-prosent estimat |
-| SL-basis | Struktur + ATR | 1.5× estimert ATR |
-| Ekstra felter | — | `drivers`, `yield_score`, `weather_outlook` |
+Begge typer kommer i samme `/push-alert`-payload — boten skiller på `source`:
+
+| Egenskap | Tekniske | Agri (`source: "agri_fundamental"`) |
+|----------|----------|-------------------------------------|
+| `source` | (fraværende) | `"agri_fundamental"` |
+| `score`-skala | 0–6 (driver_matrix, 5 scoring-familier) | 0–18 (additivt, 7 komponenter) |
+| `max_score` | 4.2/5.0/5.2 (per horisont) | **18** (`AGRI_MAX_SCORE`) |
+| Grade-terskler | % av max (75/55/35) | Absolutt: A ≥ 7, B ≥ 5 |
+| `confirmation_candle_limit` | per horisont (SCALP 6, SWING 8, MAKRO 6) | bot-side: 12 (1 time) |
+| `expiry_candles` | per horisont | bot-side: 48 (4 timer) |
+| Aging-filter (live pris vs entry) | `should_push` ≤ 1.5/2.5/4.0×ATR | **samme tabell** (`AGRI_MAX_AGE_ATR`) |
+| Entry-basis | Teknisk S/R-nivå (struktur + SMC) | ATR-prosent estimat (pullback −0.3×ATR) |
+| SL-basis | Struktur (under demand-sone) + ATR | 1.5× estimert ATR |
+| `data_quality` | Fra `_assess_data_quality` (FRED/COT-staleness) | Fra Conab/UNICA-staleness |
+| Bot-størrelse | VIX × horisont-base | **Halvert** uansett (lavere likviditet) |
+| Maks samtidige | Korrelasjons-bucketed (`MAX_CONCURRENT`) | Maks 1 per `AGRI_CORRELATION_SUBGROUPS` (grains/softs/cotton) |
+
+> **Merk:** Boten tar bare tradet — den sammenligner ikke score på tvers av kilder. Forskjellig `max_score` er kun synlig i UI (`score_pct = score / max_score`).
 
 ---
 
@@ -126,42 +141,41 @@ Boten har allerede prisfeeder for alle disse (definert i `PRICE_FEED_MAP`). De e
 
 ## Hva boten trenger å gjøre
 
-### 1. Hent agri-signaler
+### 1. Filtrer agri-signaler ut fra felles `/signals`-respons
 
-Poll `GET /agri-signals` med samme intervall som `/signals` (hvert 60. sekund). Hold dem i en separat liste fra tekniske signaler.
+Det finnes ingen separat agri-endpoint — alle signaler kommer i samme respons. Boten kan partisjonere på `source`-feltet:
 
 ```python
-def _fetch_agri_signals(self):
-    try:
-        resp = requests.get(f"{FLASK_URL}/agri-signals", timeout=10)
-        if resp.status_code == 200:
-            return resp.json()
-    except: pass
-    return {"signals": []}
+def _partition_signals(self, payload):
+    techs, agris = [], []
+    for sig in payload.get("signals", []):
+        if sig.get("source") == "agri_fundamental":
+            agris.append(sig)
+        else:
+            techs.append(sig)
+    return techs, agris
 ```
 
 ### 2. Juster ATR-nivåer med live data
 
-**Viktig:** Entry/SL/T1 i agri-signaler er basert på **estimert ATR** (prosent av pris). Boten bør rekalibrere med live ATR14 fra cTrader:
+**Viktig:** Entry/SL/T1 i agri-signaler er basert på **estimert ATR** (prosent av pris) — feltet `atr_est` (også speilet i `atr_d1` for kompatibilitet). Boten bør rekalibrere med live ATR14 fra cTrader når avviket er > 30 %:
 
 ```python
 def _recalibrate_agri_levels(self, sig, live_atr):
-    est_atr = sig.get("atr_est")  # Fra agri_signals.json (rå format)
-    if not est_atr or not live_atr:
-        return sig  # Bruk som de er
+    est_atr = sig.get("atr_est") or sig.get("atr_d1")
+    setup   = sig.get("setup", {})
+    if not est_atr or not live_atr or not setup.get("entry"):
+        return sig
 
     ratio = live_atr / est_atr
     if 0.7 < ratio < 1.3:
         return sig  # Nærme nok — ikke juster
 
-    # Rekalibrér
-    entry = sig["alert_level"]
-    direction = 1 if sig["direction"] == "buy" else -1
-    sig["stop"] = round(entry - direction * 1.5 * live_atr, 5)
-    sig["t1"]   = round(entry + direction * 2.0 * live_atr, 5)
-    sig["t2_informational"] = round(entry + direction * 3.0 * live_atr, 5)
-    margin = entry * 0.0015
-    sig["entry_zone"] = [round(entry - margin, 5), round(entry + margin, 5)]
+    entry = setup["entry"]
+    direction = 1 if sig["direction"] in ("buy", "bull") else -1
+    setup["sl"] = round(entry - direction * 1.5 * live_atr, 5)
+    setup["t1"] = round(entry + direction * 2.0 * live_atr, 5)
+    setup["t2"] = round(entry + direction * 3.0 * live_atr, 5)
     return sig
 ```
 
@@ -191,52 +205,66 @@ Samme som tekniske signaler:
 
 ### 6. Maks samtidige posisjoner
 
-Foreslått: **maks 2 agri-posisjoner** uavhengig av tekniske posisjoner. Unngå å ha for mange korrelerte agri-trades (f.eks. corn + soybean + wheat er alle US grain).
+Maks **1 posisjon per agri-subgruppe** (`AGRI_MAX_PER_SUBGROUP = 1` i `scoring_config.py`). Subgruppene fra `AGRI_CORRELATION_SUBGROUPS`:
 
 ```python
-AGRI_MAX_POSITIONS = 2
-CORRELATED_GROUPS = {
-    "us_grain":  {"Corn", "Wheat", "Soybean"},
-    "tropical":  {"Coffee", "Cocoa", "Sugar"},
-    "fiber":     {"Cotton"},
+AGRI_CORRELATION_SUBGROUPS = {
+    "Corn": "grains", "Wheat": "grains", "Soybean": "grains",
+    "Coffee": "softs", "Sugar": "softs", "Cocoa": "softs",
+    "Cotton": "cotton",
 }
-# Maks 1 posisjon per korrelert gruppe
+AGRI_MAX_PER_SUBGROUP = 1
 ```
+
+I praksis betyr dette maks 3 samtidige agri-posisjoner totalt (1 grain + 1 softs + 1 cotton). Boten bør ikke åpne en ny agri-posisjon hvis det allerede finnes én aktiv i samme subgruppe.
 
 ---
 
 ## Score-forklaring
 
-Signaler scores 0–18 basert på 7 komponenter (`push_agri_signals.score_crop`):
+Signaler scores 0–18 basert på 7 komponenter (`push_agri_signals.score_crop`). Konstanten ligger i `scoring_config.AGRI_MAX_SCORE`:
 
 | Komponent | Verdi | Beskrivelse |
 |-----------|-------|-------------|
 | Outlook score | 0–5 | Kombinert vær+COT+yield fundamental (abs-verdi) |
-| Yield stress | 0–3 | < 40 = kritisk (3), < 55 = svak (2), < 70 = middels (1) |
+| Yield stress | 0–3 | **BUY**: < 40 kritisk (3), < 55 svak (2), < 70 middels (1). **SELL**: > 85 rekord (3), > 70 sterk (2), > 60 god (1). Symmetrisk siden Apr-2026. |
 | Weather urgency | 0–2 | Score ≥ 3 = akutt (2), ≥ 2 = forhøyet (1) |
 | ENSO risk | 0–2 | enso_adj > 0.5 = 2, > 0 = 1 |
 | Conab shock | 0–2 | Brasiliansk avlingsestimat m/m-revisjon (≥ 2.5 % = 2, ≥ 1.0 % = 1) |
 | UNICA mix | 0–2 | Sukker-mix + crush yoy (kun Sugar) |
-| Cross-confirm | 0–2 | Multi-kilde-validering på tvers av outlook/COT/Conab/UNICA |
-
-I tillegg: `agri_analog.py` kan legge til 0–2 poeng (K-NN mot 15 år historisk vær), men denne brukes hovedsakelig som metadata.
+| Cross-confirm | 0–2 | Multi-kilde-validering (inkl. analog-match fra `agri_analog.py` K-NN mot 15 år historisk vær) |
 
 **Grade:**
 - **A** (score ≥ 7): MAKRO timeframe → character A+ → full size (men halvert pga agri-multiplikator i bot)
 - **B** (score ≥ 5): SWING timeframe → character B → half size (= kvart total)
-- **C** (score < 5): **droppes** — sendes ikke til boten (`push_agri_signals.py:868`: "C-grade sendes ikke til boten")
+- **C** (score < 5): **droppes** — sendes ikke til boten (`push_agri_signals.py:931`: "Grade C = ikke tradeable, hopp over")
+
+### Data-quality
+
+Hvert agri-signal får `data_quality` propagert til payloaden:
+
+| Verdi | Trigger | Cap |
+|---|---|---|
+| `fresh` | Conab og UNICA er ferske og lastet OK | ingen |
+| `degraded` | Én avhengighet er stale (men finnes på disk) | A (ikke A+) |
+| `stale` | Én avhengighet mangler helt på disk | B (kappet) |
+
+`quality_notes`-listen viser konkrete grunner (f.eks. `["Conab missing"]`, `["UNICA stale"]`). Logikken finnes i `push_agri_signals._agri_data_quality()` og speiler `driver_matrix._assess_data_quality` for konsistens på tvers av tekniske/agri.
 
 ---
 
-## Eksempel: aktive signaler (2026-04-14)
+## Eksempel: aktive signaler (snapshot — sjekk `data/agri_signals.json` for live verdier)
 
 | Grade | Instrument | Action | Score | Entry | SL | T1 | R:R | Yield | Vær |
 |-------|-----------|--------|-------|-------|-----|-----|-----|-------|-----|
-| A | Soybean | BUY | 7.8 | 1168.12 | 1143.49 | 1200.97 | 1.33 | 34 (kritisk) | Vått |
-| B | Sugar | BUY | 5.8 | 13.83 | 13.37 | 14.44 | 1.33 | 43 (svak) | Tørke |
-| C | Coffee | BUY | 4.5 | 308.74 | 297.07 | 324.29 | 1.33 | 98 | Tørt |
-| C | Corn | BUY | 3.3 | 447.28 | 437.17 | 460.76 | 1.33 | 60 | Vått |
-| C | Wheat | BUY | 2.1 | 593.18 | 577.08 | 614.65 | 1.33 | 96 | Tørke |
+| A | Cotton | BUY | 9.0 | 78.95 | 78.61 | 79.52 | 1.68 | 0 (estimert mangler) | Tørt |
+| B | Wheat | BUY | 7.0 | 594.64 | 592.32 | 618.50 | 10.28 | 60 (middels) | Tørke |
+| B | Soybean | BUY | 6.5 | 1177.11 | 1174.46 | 1211.00 | 12.79 | 32 (kritisk) | Normalt |
+| B | Sugar | BUY | 6.2 | 13.39 | 13.31 | 13.78 | 4.87 | 0 (estimert mangler) | Tørke |
+| B | Corn | BUY | 5.5 | 454.70 | 453.27 | 465.50 | 7.55 | 11 (kritisk) | Normalt |
+| B | Coffee | **SELL** | 5.0 | 296.13 | 297.73 | 290.00 | 3.83 | 100 (rekord) | Tørt |
+
+> Coffee SELL er et eksempel på den nye **symmetriske yield-stress-scoringen** (Apr-2026): yield = 100 → SELL får +3 poeng (tidligere kun +1), slik at supply-overflod kan nå A/B-grade like lett som supply-knapphet for BUY.
 
 ---
 
@@ -247,8 +275,9 @@ I tillegg: `agri_analog.py` kan legge til 0–2 poeng (K-NN mot 15 år historisk
 | Agri-fetcher | `/home/pc/cot-explorer/fetch_agri.py` | Henter vær, yield, COT, ENSO |
 | Signal-generator | `/home/pc/cot-explorer/push_agri_signals.py` | Genererer trading-setups |
 | Agri-signaler (JSON) | `/home/pc/cot-explorer/data/agri_signals.json` | Output, GitHub Pages |
-| Signal-server | `/home/pc/scalp_edge/signal_server.py` | Flask API |
-| Bot-fil (agri) | `/home/pc/scalp_edge/latest_agri_signals.json` | Serverside cache |
+| Signal-server | `/home/pc/scalp_edge/signal_server.py` | Flask API (felles `/push-alert`) |
+| Bot-fil (felles) | `/home/pc/scalp_edge/latest_signals.json` | Serverside cache for alle signaler (filtreres på `source`) |
+| Konstanter | `/home/pc/cot-explorer/scoring_config.py` | `AGRI_MAX_SCORE`, `AGRI_MAX_AGE_ATR`, `AGRI_CORRELATION_SUBGROUPS`, `AGRI_MAX_PER_SUBGROUP` |
 | Update-pipeline | `/home/pc/cot-explorer/update.sh` | Kjører alt sekvensielt |
 
 ---

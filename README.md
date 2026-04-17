@@ -177,9 +177,9 @@ Kjører `update.sh`: full pipeline (se tabell under)
 
 ## Signal-varsling og trading bot
 
-`push_signals.py` sender de beste tradingideene til Telegram, Discord og Flask-server via én `/push-alert` endpoint. Tekniske og agri-signaler merges inn i samme `signals.json` og samme Flask-push. Agri-signaler merkes med `source: "agri_fundamental"` slik at boten kan rekalibrere entry/SL/T1 med live ATR.
+`push_signals.py` sender de beste tradingideene til Telegram, Discord og Flask-server via én `/push-alert` endpoint. Tekniske og agri-signaler merges inn i samme `signals.json` og samme Flask-push. Agri-signaler merkes med `source: "agri_fundamental"` slik at boten kan rekalibrere entry/SL/T1 med live ATR. Agri-signaler pushes til Flask uavhengig av om det finnes tekniske signaler i samme kjøring (Telegram/Discord-meldingen hopper over når kun agri er tilstede). Begge typer signaler dropper ut hvis live pris har vandret > N×ATR fra entry (SCALP 1.5, SWING 2.5, MAKRO 4.0).
 
-`push_agri_signals.py` genererer fundamentale agri-setups basert på outlook (vær + COT + yield + ENSO) og skriver til `agri_signals.json`. Ingen separat Flask-push — `push_signals.py` merger dette inn.
+`push_agri_signals.py` genererer fundamentale agri-setups basert på outlook (vær + COT + yield + ENSO) og skriver til `agri_signals.json`. Ingen separat Flask-push — `push_signals.py` merger dette inn. Agri-signaler propagerer `data_quality` (`fresh`/`degraded`/`stale`) basert på Conab/UNICA-staleness; en avling som scorer A med manglende Conab-data flagges som `degraded` med `quality_notes` slik at brukeren ser hvilken kilde som mangler.
 
 **Scoring-arkitektur (schema 2.0 — 6-familie driver matrix):**
 - `driver_matrix.py` — 6-familie scoring (TREND, POSITIONING, MACRO, FUNDAMENTAL, RISK/EVENT, STRUCTURE) med confluens-gate som fikser C1 korrelasjons-bias
@@ -226,10 +226,23 @@ Både `fetch_all.py` (hver 4. time) og `rescore.py` (hver time via update_prices
         "structure":   {"score": 0.40, "weight": 1.0, "drivers": ["HTF-nivå w3"]}
       },
       "active_driver_groups": 5,
+      "data_quality": "fresh",
+      "quality_notes": [],
       "correlation_group": "usd_pairs",
       "atr_d1": 94.44,
       "horizon_config": {...},
       "created_at": "2026-04-17T16:00:00+00:00"
+    },
+    {
+      "key": "Cotton", "name": "Bomull",
+      "horizon": "MAKRO", "direction": "bull", "grade": "A",
+      "score": 9.0, "max_score": 18,
+      "setup": {"entry": 77.15, "sl": 75.83, "t1": 78.85, "t2": 80.0, "rr_t1": 1.29},
+      "source": "agri_fundamental",
+      "correlation_group": "cotton",
+      "data_quality": "fresh", "quality_notes": [],
+      "yield_score": 34, "weather_outlook": "tørt",
+      "drivers": ["Yield kritisk (34)", "Værstress USA Cotton Belt", "COT spekulanter snur long"]
     }
   ]
 }
@@ -258,7 +271,6 @@ Hvis `/push-alert` feiler (nettverk, 5xx), lagres payload i `data/outbox/push-YY
 | `TELEGRAM_TOKEN` | Bot-token fra @BotFather |
 | `TELEGRAM_CHAT_ID` | Chat-ID som skal motta meldinger |
 | `DISCORD_WEBHOOK` | Discord webhook-URL |
-| `PUSH_MIN_SCORE` | Fallback minimum score (brukes ikke lenger — erstattet av horisont-terskler) |
 | `PUSH_MAX_SIGNALS` | Maks antall signaler per kjøring (standard: 5) |
 | `FLASK_URL` | URL til signal_server.py |
 | `SCALP_API_KEY` | API-nøkkel til Flask `/push-alert` og `/push-prices` |

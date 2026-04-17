@@ -25,8 +25,10 @@ rescore.py          → re-evaluerer ALLE 11 instrumenter via driver_matrix med
 AGRI-FUNDAMENTAL PIPELINE:
 fetch_agri.py           → data/agri/latest.json       (vær, COT, yield, ENSO)
 push_agri_signals.py    → data/agri_signals.json      (filtrert, grade A/B)
-                        → POST /push-agri-alert        (til signal_server.py)
-signal_server.py        → latest_agri_signals.json    (oversatt til bot-format)
+push_signals.py         → POST /push-alert             (felles endpoint;
+                                                       agri merges inn med
+                                                       source: "agri_fundamental")
+signal_server.py        → latest_signals.json          (filtreres bot-side på source)
 trading_bot.py          → cTrader (Skilling)           (rekalibrert med live ATR)
 ```
 
@@ -515,16 +517,28 @@ Hvert signal inkluderer `horizon_config` med parametre for boten:
         "structure":   {"score": 0.40, "weight": 1.0, "drivers": ["HTF-nivå w3"]}
       },
       "active_driver_groups": 5,
+      "data_quality": "fresh", "quality_notes": [],
       "correlation_group": "usd_pairs",
       "atr_d1": 94.44,
       "horizon_config": {...},
       "created_at": "2026-04-17T16:00:00+00:00"
+    },
+    {
+      "key": "Cotton", "name": "Bomull",
+      "horizon": "MAKRO", "direction": "bull", "grade": "A",
+      "score": 9.0, "max_score": 18,
+      "setup": {"entry": 77.15, "sl": 75.83, "t1": 78.85, "t2": 80.0, "rr_t1": 1.29},
+      "source": "agri_fundamental",
+      "correlation_group": "cotton",
+      "data_quality": "fresh", "quality_notes": [],
+      "yield_score": 34, "weather_outlook": "tørt",
+      "drivers": ["Yield kritisk (34)", "Værstress USA Cotton Belt", "COT spekulanter snur long"]
     }
   ]
 }
 ```
 
-Signal-server validerer at alle `driver_groups.*.score` ∈ [0, 1].
+Signal-server validerer at alle `driver_groups.*.score` ∈ [0, 1]. Tekniske bruker `max_score` 4.2/5.0/5.2 (per horisont fra driver_matrix), agri bruker `max_score = 18` (sum av maks-poeng for alle 7 komponenter). Boten tar kun tradet — den sammenligner ikke score på tvers, så ulike skalaer er kun synlige i UI (`score_pct = score / max_score`).
 
 ### Olje supply-disruption blokkering
 
@@ -559,14 +573,13 @@ Agri bruker egen additiv scoring (ikke 6-familie matrix):
 | Komponent | Poeng | Hva det sjekker |
 |-----------|-------|-----------------|
 | `outlook total_score` | 0–5 | Abs(vær + COT + yield) |
-| Yield stress | 0–3 | Lav yield_score = prispress opp |
+| Yield stress | 0–3 | **BUY**: lav yield_score (<40 kritisk = 3, <55 svak = 2, <70 middels = 1). **SELL**: høy yield_score (>85 rekord = 3, >70 sterk = 2, >60 god = 1). Symmetrisk siden Apr-2026. |
 | Weather urgency | 0–2 | Akutt tørke/flom (wx_score ≥ 3) |
 | ENSO risk | 0–2 | El Niño/La Niña-effekt (enso_adj) |
 | Conab shock | 0–2 | m/m ≥ 1.0 % i retning av signal |
 | UNICA mix | 0–2 | sukker-mix + crush-yoy for Sugar |
-| Cross-confirm | 0–2 | Multi-kilde validering |
-| Analog match | 0–2 | K-NN mot 15 år historisk vær (`agri_analog.py`) |
-| **Total** | **0–20** | Sum av alle komponenter |
+| Cross-confirm | 0–2 | Multi-kilde validering (inkl. analog-match fra `agri_analog.py`) |
+| **Total** | **0–18** | Sum av alle komponenter (`AGRI_MAX_SCORE`) |
 
 ### Filtrering
 
