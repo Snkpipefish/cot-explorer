@@ -226,22 +226,32 @@ def compute_macro(asset_class: str,
             if term_spread > 0.5 and is_bull:
                 components.append((0.3, f"USD carry positiv ({term_spread:+.2f}%)"))
 
-    # FRED instrument-score (kommer fra fetch_fundamentals.py)
-    if fund_instrument_score is not None:
-        if fund_instrument_score > 0.3 and is_bull:
-            components.append((min(fund_instrument_score / 2.0, 1.0),
-                              f"FRED score {fund_instrument_score:+.2f} (bull)"))
-        elif fund_instrument_score < -0.3 and is_bear:
-            components.append((min(abs(fund_instrument_score) / 2.0, 1.0),
-                              f"FRED score {fund_instrument_score:+.2f} (bear)"))
+    # Fase 1: fund_instrument_score er FLYTTET til FUNDAMENTAL (per-asset-USD-
+    # bias er asset-spesifikk, ikke global makro). Se compute_fundamental_fx og
+    # compute_fundamental_indices. Ved å holde den utenfor MACRO unngår vi at
+    # én FRED-score lyser opp to "uavhengige" familier (C1-prinsipp).
 
-    # Fear & Greed (kun for crypto og som risk-regime-proxy)
+    # Fear & Greed som risk-regime-proxy (Fase 1: utvidet til metaller og indekser,
+    # ikke bare crypto). Logikk: extreme fear → flight-to-safety (bull gold/silver,
+    # bear risky assets); extreme greed → risk-on (bear gold, bull indices).
     if fear_greed is not None:
         if asset_class == "crypto":
             if fear_greed <= 25 and is_bull:   # extreme fear = contrarian bull
                 components.append((0.5, f"F&G {fear_greed} — extreme fear"))
             elif fear_greed >= 75 and is_bear:
                 components.append((0.5, f"F&G {fear_greed} — extreme greed"))
+        elif asset_class == "metals":
+            # Safe-haven bid: extreme fear → bull metaller
+            if fear_greed <= 25 and is_bull:
+                components.append((0.5, f"F&G {fear_greed} — safe-haven bid"))
+            elif fear_greed >= 80 and is_bear:
+                components.append((0.3, f"F&G {fear_greed} — risk-on (bear metals)"))
+        elif asset_class == "indices":
+            # Greed-ekstremer er contrarian bear, fear-ekstremer bull (oversold bounce)
+            if fear_greed >= 75 and is_bear:
+                components.append((0.4, f"F&G {fear_greed} — extreme greed"))
+            elif fear_greed <= 20 and is_bull:
+                components.append((0.4, f"F&G {fear_greed} — capitulation bull"))
 
     # Beregn composite: snitt av bidrag, med minimum 0.3 per bidrag
     filtered = [(s, d) for s, d in components if s >= 0.3]
@@ -493,10 +503,10 @@ def compute_fundamental_fx(direction: str,
 
 
 def compute_fundamental_indices(direction: str,
-                                fund_instrument_score: Optional[float],
-                                vix_regime: str = "normal",
-                                term_spread: Optional[float] = None) -> GroupScore:
-    """Indices (SPX/NAS): FRED + VIX + yield curve."""
+                                fund_instrument_score: Optional[float]) -> GroupScore:
+    """Indices (SPX/NAS): per-instrument FRED-score som asset-spesifikk
+    USD/makro-eksponering. VIX og term_spread er flyttet til MACRO (Fase 1).
+    """
     components = []
     is_bull = direction in ("buy", "bull", "long")
     is_bear = direction in ("sell", "bear", "short")
@@ -508,15 +518,6 @@ def compute_fundamental_indices(direction: str,
         elif fund_instrument_score < -0.3 and is_bear:
             components.append((min(abs(fund_instrument_score) / 2.0, 1.0),
                               f"FRED fund {fund_instrument_score:+.2f}"))
-
-    # Inversjon = resesjonrisk = bear indekser
-    if term_spread is not None and term_spread < -0.3 and is_bear:
-        components.append((min(abs(term_spread) / 1.0, 1.0),
-                          f"Yield curve {term_spread:+.2f}"))
-
-    # VIX ekstrem = captivering / gap-risiko
-    if vix_regime == "extreme":
-        components.append((0.3, "VIX ekstrem — gap-risk"))
 
     filtered = [(s, d) for s, d in components if s >= 0.3]
     if not filtered:
@@ -740,8 +741,6 @@ def score_asset(
         fundamental = compute_fundamental_indices(
             direction=direction,
             fund_instrument_score=context.get("fund_instrument_score"),
-            vix_regime=context.get("vix_regime", "normal"),
-            term_spread=context.get("term_spread"),
         )
     elif asset_class == "fx":
         fundamental = compute_fundamental_fx(
