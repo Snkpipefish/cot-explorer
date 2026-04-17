@@ -640,11 +640,40 @@ function renderDashboard(macro,signals,logData,cotData){
       var gradeCol=s.grade==='A+'||s.grade==='A'?'bull':s.grade==='B'?'warn':'bear';
       var desc='Venter pa at prisen treffer '+entry+' for a '+(isBull?'kjope':'selge');
       var horizon=s.horizon||s.timeframe||'SWING';
+      // Schema 2.0: data-quality-badge + mini driver-familie-indikator
+      var sDq = s.data_quality;
+      var sDqBadge = '';
+      if (sDq && sDq !== 'fresh') {
+        var sDqTitle = (s.quality_notes || []).join(' · ') || sDq;
+        var sDqLabel = sDq === 'degraded' ? 'Degraded' : sDq === 'stale' ? 'Stale' : sDq;
+        sDqBadge = '<span class="dq-badge ' + sDq + '" title="' + sDqTitle + '">●' + sDqLabel + '</span>';
+      } else if (sDq === 'fresh') {
+        sDqBadge = '<span class="dq-badge fresh" title="Alle kritiske inputs er ferske">●Fresh</span>';
+      }
+      // Mini driver-familie-indikator: 6 små prikker som viser hvilke familier er aktive
+      var miniDg = '';
+      if (s.driver_groups) {
+        var DG_ORDER = ['trend','positioning','macro','fundamental','structure','risk'];
+        var DG_SHORT = {trend:'T', positioning:'P', macro:'M', fundamental:'F', structure:'S', risk:'R'};
+        miniDg = '<div style="display:flex;gap:3px;margin-top:6px;font-size:9px">';
+        DG_ORDER.forEach(function(k){
+          var g = s.driver_groups[k] || {score:0};
+          var sc = g.score || 0;
+          var col = sc >= 0.7 ? 'var(--bull)' : sc >= 0.3 ? 'var(--warn)' : 'var(--b2)';
+          var title = (k.charAt(0).toUpperCase()+k.slice(1)) + ': ' + sc.toFixed(2);
+          if ((g.drivers||[]).length) title += ' — ' + g.drivers.slice(0,2).join(', ');
+          miniDg += '<span title="'+title+'" style="padding:1px 5px;border-radius:2px;background:'+col+';color:#000;font-weight:700">'+DG_SHORT[k]+'</span>';
+        });
+        var activeN = s.active_driver_groups || 0;
+        miniDg += '<span style="color:var(--m);margin-left:6px">'+activeN+' aktive</span>';
+        miniDg += '</div>';
+      }
       html+='<div class="sig-card">'+
         '<div class="sig-top">'+
           '<span class="sig-name">'+(s.name||s.instrument||'-')+'</span>'+
           '<span class="sig-dir '+dirCol+'">'+dirLabel+'</span>'+
           '<span class="tgrade '+gradeCol+'">'+(s.grade||'-')+' '+(s.score||0)+'/'+(s.max_score||6)+'</span>'+
+          sDqBadge+
           '<span class="tgrade" style="background:var(--s);font-size:10px">'+horizon+'</span>'+
         '</div>'+
         '<div class="sig-levels">'+
@@ -653,6 +682,7 @@ function renderDashboard(macro,signals,logData,cotData){
           '<span>T1: <span style="color:var(--bull)">'+t1+'</span></span>'+
           (s.rr_t1?'<span>RR: <span style="color:var(--warn)">1:'+s.rr_t1+'</span></span>':'')+
         '</div>'+
+        miniDg+
         '<div class="sig-desc">'+desc+'</div>'+
       '</div>';
     });
@@ -1035,15 +1065,6 @@ function renderIdeer(m){
     var resH=res.slice(0,3).map(function(l){return makeLR(l,'res');}).join('');
     var supH=sup.slice(0,3).map(function(l){return makeLR(l,'sup');}).join('');
 
-    // Score dots
-    var scoreDots='';
-    (lv.score_details||[]).forEach(function(sd){
-      var wt=sd.vekt||0, pts=sd.poeng||0;
-      var dotCol=sd.verdi?'var(--bull)':'var(--b2)';
-      var wtLabel=wt>0?' ('+pts.toFixed(1)+'/'+wt.toFixed(1)+')':'';
-      scoreDots+='<div class="score-item"><div class="score-dot" style="background:'+dotCol+'"></div>'+sd.kryss+wtLabel+'</div>';
-    });
-
     // Fase 3: data_quality-badge (fresh/degraded/stale)
     var dqBadge='';
     var dq=lv.data_quality;
@@ -1113,7 +1134,6 @@ function renderIdeer(m){
           '<div class="score-section">'+
             '<div class="ct">Styrkeindikator — '+(lv.score||0)+' av '+(lv.max_score||6)+' ('+(lv.score_pct||0)+'%) — '+(lv.horizon||lv.timeframe_bias||'?')+'</div>'+
             '<div class="score-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:'+lv.score_pct+'%;background:'+(gc==='bull'?'var(--bull)':gc==='warn'?'var(--warn)':'var(--bear)')+'"></div></div></div>'+
-            '<div class="score-items">'+scoreDots+'</div>'+
           '</div>'+
           (dgBarsHtml?'<div class="dg-section">'+
             '<div class="dg-title">Driver-familier (schema 2.0)'+
