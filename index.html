@@ -954,34 +954,22 @@ var SCORE_NO = {
 
 function buildExplain(lv){
   var dir=lv.dir_color, cot=lv.cot||{}, tf=lv.timeframe_bias||'SWING';
-  var sd=lv.score_details||[], brisk=filterRisk(lv.binary_risk||[]);
+  var brisk=filterRisk(lv.binary_risk||[]);
   if(!dir||dir==='neutral')return'';
 
-  var dirNorsk=dir==='bull'?'stige':'falle';
   var dirEmoji=dir==='bull'?'📈':'📉';
   var dirLabel=dir==='bull'?'KJØP':'SALG';
   var dirCol=dir==='bull'?'var(--bull)':'var(--bear)';
+  var dirNorsk=dir==='bull'?'stige':'falle';
   var tfWord={MAKRO:'over uker til måneder',SWING:'de neste dagene til uker',SCALP:'intradag (timer til dager)',WATCHLIST:'på sikt (ikke aktiv nå)'}[tf]||'snart';
   var grade=lv.grade||'?', score=lv.score||0;
+  var maxScore=lv.max_score||6;
   var gradeWord={'A+':'veldig sterk signal','A':'sterk signal','B':'middels signal','C':'svakt signal'}[grade]||'signal';
 
-  // Main sentence
-  var maxScore=lv.max_score||6;
+  // Hovedsetning med retning + grade
   var main=lv.name+' ser ut til å <strong>'+dirNorsk+'</strong> '+tfWord+'. Samlet styrke: <strong>'+score+'/'+maxScore+'</strong> — '+gradeWord+'.';
 
-  // Top 3 true criteria as tags
-  var trueTags=sd.filter(function(s){return s.verdi;}).slice(0,4).map(function(s){
-    var info=SCORE_NO[s.kryss]||{t:s.kryss,c:'info'};
-    return'<span class="why-tag '+info.c+'">✓ '+info.t+'</span>';
-  }).join('');
-
-  // False (missing) criteria — show top 2 so user knows what's lacking
-  var falseTags=sd.filter(function(s){return !s.verdi;}).slice(0,2).map(function(s){
-    var info=SCORE_NO[s.kryss]||{t:s.kryss,c:'info'};
-    return'<span class="why-tag" style="background:var(--s);color:var(--m);border-color:var(--b2);opacity:.7">✗ '+info.t+'</span>';
-  }).join('');
-
-  // COT sentence
+  // COT-setning (klartekst)
   var cotLine='';
   if(cot.bias){
     var cotDir=cot.bias.toLowerCase().includes('bull')||cot.bias.toLowerCase().includes('long');
@@ -989,18 +977,20 @@ function buildExplain(lv){
     cotLine='Store profesjonelle tradere ('+(cot.source||'CFTC')+') '+(agrees?'<strong style="color:var(--bull)">støtter</strong>':'<strong style="color:var(--bear)">motarbeider</strong>')+' denne retningen akkurat nå.';
   }
 
-  // Warning
+  // Event-risk-advarsel
   var warnLine='';
   if(brisk.length){
     warnLine='<div class="why-warn">⚠️ <strong>Nyhetsvarsling:</strong> '+brisk[0].title+' ('+brisk[0].cet+') — kan gi plutselige bevegelser. Vurder å vente eller redusere størrelse.</div>';
   }
+
+  // Detaljer vises nå i Driver-familier-seksjonen under (schema 2.0).
+  // Ingen separate ✓/✗-tags — de dupliserte info fra de 6 familiebarene.
 
   return '<div class="why-box">'+
     '<div class="why-dir" style="color:'+dirCol+'">'+dirEmoji+' '+dirLabel+'</div>'+
     '<div class="why-line">'+main+'</div>'+
     (cotLine?'<div class="why-line" style="font-size:12px;color:var(--m)">'+cotLine+'</div>':'')+
     warnLine+
-    '<div class="why-tags">'+trueTags+falseTags+'</div>'+
   '</div>';
 }
 
