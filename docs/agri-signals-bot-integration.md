@@ -207,19 +207,24 @@ CORRELATED_GROUPS = {
 
 ## Score-forklaring
 
-Signaler scores 0–12+ basert på:
+Signaler scores 0–18 basert på 7 komponenter (`push_agri_signals.score_crop`):
 
 | Komponent | Verdi | Beskrivelse |
 |-----------|-------|-------------|
-| Outlook score | 0–5 | Kombinert vær+COT+yield fundamental |
+| Outlook score | 0–5 | Kombinert vær+COT+yield fundamental (abs-verdi) |
 | Yield stress | 0–3 | < 40 = kritisk (3), < 55 = svak (2), < 70 = middels (1) |
 | Weather urgency | 0–2 | Score ≥ 3 = akutt (2), ≥ 2 = forhøyet (1) |
 | ENSO risk | 0–2 | enso_adj > 0.5 = 2, > 0 = 1 |
+| Conab shock | 0–2 | Brasiliansk avlingsestimat m/m-revisjon (≥ 2.5 % = 2, ≥ 1.0 % = 1) |
+| UNICA mix | 0–2 | Sukker-mix + crush yoy (kun Sugar) |
+| Cross-confirm | 0–2 | Multi-kilde-validering på tvers av outlook/COT/Conab/UNICA |
+
+I tillegg: `agri_analog.py` kan legge til 0–2 poeng (K-NN mot 15 år historisk vær), men denne brukes hovedsakelig som metadata.
 
 **Grade:**
-- **A** (score ≥ 7): MAKRO timeframe → character A+ → full size
-- **B** (score ≥ 5): SWING timeframe → character B → half size
-- **C** (score < 5): WATCHLIST → character C → quarter size
+- **A** (score ≥ 7): MAKRO timeframe → character A+ → full size (men halvert pga agri-multiplikator i bot)
+- **B** (score ≥ 5): SWING timeframe → character B → half size (= kvart total)
+- **C** (score < 5): **droppes** — sendes ikke til boten (`push_agri_signals.py:868`: "C-grade sendes ikke til boten")
 
 ---
 
@@ -250,9 +255,11 @@ Signaler scores 0–12+ basert på:
 
 ## ENSO-kontekst
 
-Nåværende status (april 2026):
-- **ENSO fase:** Nøytral (ONI = -0.16)
-- **Prognose:** 72% sjanse for El Nino innen mai-juli (IRI Columbia)
-- **ECMWF SEAS5:** SST anomali +2.73°C innen oktober (sterk El Nino-signal)
+ENSO-fasen leses **live fra NOAA CPC ONI** av `fetch_agri.py` og lagres i `data/agri/latest.json`. Påvirker yield-scoring per region via `enso_adj`-faktor.
 
-El Nino-effekter per region påvirker yield-scoring med halv vekt (forecast, ikke aktiv).
+> *Tidligere snapshot (april 2026, kun illustrasjon — sjekk `data/agri/latest.json` for live verdier):*
+> - **ENSO fase:** Nøytral (ONI = -0.16)
+> - **Prognose:** 72 % sjanse for El Niño innen mai-juli (IRI Columbia)
+> - **ECMWF SEAS5:** SST anomali +2.73 °C innen oktober (sterk El Niño-signal)
+>
+> El Niño-effekter per region påvirker yield-scoring med halv vekt når den er forecast (ikke aktiv).
