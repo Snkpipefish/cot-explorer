@@ -82,6 +82,8 @@ class GroupResult:
     grade:           str
     horizon:         str
     direction:       str                 # "bull"/"bear"/"?"
+    data_quality:    str    = "fresh"    # "fresh" | "degraded" | "stale"
+    quality_notes:   list   = field(default_factory=list)  # f.eks. "DGS2 arvet 18h fra cache"
 
     def flat_drivers(self, limit: int = 8) -> list[str]:
         """Returnér alle drivers flatet med familie-prefiks, toppen først."""
@@ -105,6 +107,8 @@ class GroupResult:
             "active_driver_groups":  self.active_driver_groups,
             "horizon":          self.horizon,
             "direction":        self.direction,
+            "data_quality":     self.data_quality,
+            "quality_notes":    self.quality_notes,
             "driver_groups": {
                 k: {"score": round(v.score, 2), "weight": v.weight,
                     "drivers": v.drivers}
@@ -577,21 +581,78 @@ def compute_risk_event(geo_active: bool = False,
     return GroupScore(score=score, drivers=drivers[:3])
 
 
-def _risk_gate_grade(current_grade: str, risk_factors: int) -> str:
-    """Kap grade ved kritisk event-nærhet.
+def _risk_gate_grade(current_grade: str, risk_factors: int,
+                     data_quality: str = "fresh") -> str:
+    """Kap grade ved kritisk event-nærhet ELLER degraded/stale data.
 
     risk_factors >= 5 (USDA blackout + nær event + VIX ekstrem) → maks B
     risk_factors >= 3 (f.eks. USDA blackout alene, eller geo+elevert)  → maks A (ikke A+)
+
+    Fase 3: data_quality-gate (orthogonal til risk_factors; strengeste cap vinner):
+      data_quality == "stale"    → maks B (vi stoler ikke nok til å gi A)
+      data_quality == "degraded" → maks A (ikke A+)
     """
     order = ["C", "B", "A", "A+"]
     cap   = None
-    if risk_factors >= 5:
+    if risk_factors >= 5 or data_quality == "stale":
         cap = "B"
-    elif risk_factors >= 3:
+    elif risk_factors >= 3 or data_quality == "degraded":
         cap = "A"
     if cap and order.index(current_grade) > order.index(cap):
         return cap
     return current_grade
+
+
+# ─── DATA-QUALITY-INSPEKTØR ───────────────────────────────────────────────
+
+# Hvilke context-keys krever vi fresh data for? (Kritiske makro-inputs.)
+# Hvis noen av disse er arvet fra cache (_fallback=True i source-data), må vi
+# flagge degraded. Hvis de mangler helt (None), er det ikke degraded — bare
+# fraværende signal.
+_QUALITY_CRITICAL_INPUTS = {
+    # (context_key, pretty_name)
+    "real_yield_10y": "DFII10 (real yield)",
+    "term_spread":    "Yield curve (DGS10-DGS2)",
+    "fund_instrument_score": "FRED fundamental score",
+}
+
+
+def _assess_data_quality(context: dict) -> tuple[str, list[str]]:
+    """Inspiser context for _fallback-flagg og returner (quality, notes).
+
+    Context kan inneholde raw verdier (f.eks. real_yield_10y=1.9) ELLER dict-
+    versjoner med _fallback-metadata hvis oppstrøms-laget har beriket dem.
+    Vi leser begge former uten å krasje.
+    """
+    notes: list[str] = []
+    degraded = False
+    stale    = False
+
+    # Direkte flagg-nøkler hvis oppstrøms har sendt inn meta-dict
+    for key, pretty in _QUALITY_CRITICAL_INPUTS.items():
+        meta = context.get(f"_meta_{key}")
+        if isinstance(meta, dict):
+            if meta.get("_fallback"):
+                notes.append(f"{pretty} arvet fra cache")
+                degraded = True
+            age = meta.get("_age_hours")
+            if isinstance(age, (int, float)) and age > 168:   # >7d = stale
+                notes.append(f"{pretty} {age/24:.1f}d gammel")
+                stale = True
+
+    # COT-staleness (ukentlig rapport, max 14d før stale)
+    cot_age_days = context.get("_cot_age_days")
+    if isinstance(cot_age_days, (int, float)):
+        if cot_age_days > 20:
+            notes.append(f"COT {cot_age_days:.0f}d gammel")
+            stale = True
+        elif cot_age_days > 10:
+            notes.append(f"COT {cot_age_days:.0f}d gammel")
+            degraded = True
+
+    if stale:    return "stale", notes
+    if degraded: return "degraded", notes
+    return "fresh", notes
 
 
 # ─── FAMILIE 6: STRUCTURE ────────────────────────────────────────────────
@@ -803,7 +864,10 @@ def score_asset(
     # Risk-gate: kapp grade hvis event-risiko er kritisk
     # Risk-score 0.0 = ingen events, 1.0 = mange event-faktorer
     risk_factors = int(round(risk.score * 4)) if risk.score > 0 else 0
-    final_grade = _risk_gate_grade(base_grade, risk_factors)
+
+    # Fase 3: data-kvalitets-gate (orthogonal til risk-gate)
+    data_quality, quality_notes = _assess_data_quality(context)
+    final_grade = _risk_gate_grade(base_grade, risk_factors, data_quality)
 
     return GroupResult(
         driver_groups=driver_groups,
@@ -814,4 +878,6 @@ def score_asset(
         direction=direction if direction in ("bull", "bear") else
                   ("bull" if direction in ("buy", "long") else
                    "bear" if direction in ("sell", "short") else "?"),
+        data_quality=data_quality,
+        quality_notes=quality_notes,
     )

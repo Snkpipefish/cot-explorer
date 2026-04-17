@@ -93,6 +93,9 @@ def build_context_for_asset(asset: str,
         "dxy_chg5d":   macro_context.get("dxy_chg5d"),
         "vix_regime":  macro_context.get("vix_regime", "normal"),
         "geo_active":  macro_context.get("geo_active", False),
+        # Fase 3: propager data-quality-flagg (COT-alder spesifikt per asset)
+        "_cot_age_days": macro_context.get(f"_cot_age_days_{asset}")
+                          or macro_context.get("_cot_age_days"),
     }
 
     fund = sources.get("fundamentals", {})
@@ -102,8 +105,18 @@ def build_context_for_asset(asset: str,
     if market_rates.get("dfii10"):
         ctx["real_yield_10y"] = market_rates["dfii10"].get("value")
         ctx["real_yield_chg"] = market_rates["dfii10"].get("chg_5d")
+        # Fase 3: eksponer staleness-meta for data-quality-gate i driver_matrix
+        ctx["_meta_real_yield_10y"] = {
+            "_fallback":  bool(market_rates["dfii10"].get("_fallback")),
+            "_age_hours": market_rates["dfii10"].get("_age_hours"),
+        }
     if market_rates.get("term_spread") is not None:
         ctx["term_spread"] = market_rates["term_spread"]
+        ts_meta = market_rates.get("_term_spread_meta") or {}
+        ctx["_meta_term_spread"] = {
+            "_fallback":  bool(ts_meta.get("_fallback")),
+            "_age_hours": ts_meta.get("_age_hours"),
+        }
 
     # ── FX ──
     if asset_class == "fx":
@@ -181,6 +194,11 @@ def build_context_for_asset(asset: str,
     elif asset_class == "crypto":
         crypto = sources.get("crypto", {})
         ctx["fear_greed"] = (crypto.get("fear_greed") or {}).get("value")
+
+    # Fase 1: fear_greed er nå relevant for metaller (safe-haven), indekser
+    # (contrarian), og crypto. Propager fra macro_context for ikke-crypto.
+    if asset_class in ("metals", "indices") and "fear_greed" not in ctx:
+        ctx["fear_greed"] = macro_context.get("fear_greed")
 
     # ── Event-risk (universelle) ──
     upcoming = macro_context.get(f"upcoming_event_{asset}")

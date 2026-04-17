@@ -1561,6 +1561,21 @@ for inst in INSTRUMENTS:
     # Build macro-context fra lokal scope
     _market_rates = (fund_data.get("market_rates") or {})
     _dfii10 = _market_rates.get("dfii10") or {}
+
+    # Fase 3: beregn alder på COT-data for aktivt asset (brukes i data-quality-gate)
+    _active_cot_date = ""
+    if cot_source == "ICE":
+        _active_cot_date = ice_entry.get("date", "")
+    elif cot_source in ("ICE+CFTC", "CFTC"):
+        _active_cot_date = cftc_entry.get("date", "") or ice_entry.get("date", "")
+    _cot_age_days = None
+    if _active_cot_date:
+        try:
+            _cot_age_days = (datetime.now(timezone.utc).date() -
+                             datetime.strptime(_active_cot_date, "%Y-%m-%d").date()).days
+        except Exception:
+            pass
+
     _macro_ctx = {
         "dxy_chg5d": (prices.get("DXY") or {}).get("chg5d") if key != "DXY" else chg5,
         "vix_regime": "extreme" if _vix_now >= 35
@@ -1575,6 +1590,8 @@ for inst in INSTRUMENTS:
         "real_yield_chg":      _dfii10.get("chg_5d"),
         "fear_greed":          fg["score"] if isinstance(fg, dict) and "score" in fg else None,
         "gold_silver_ratio_z": _gs_ratio_z,
+        # Fase 3: COT-alder for data-quality-gate (per-asset)
+        "_cot_age_days":       _cot_age_days,
     }
     _ctx_groups = dgm.build_context_for_asset(inst["key"], _DRIVER_SOURCES, _macro_ctx)
     group_result = dm.score_asset(
