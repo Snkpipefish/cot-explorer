@@ -64,6 +64,17 @@ DXY_MOMENTUM_THRESHOLD = 2.0   # 2% chg5d = full penalty
 PUSH_THRESHOLDS = {"SCALP": 1.5, "SWING": 2.5, "MAKRO": 3.5}
 HORIZON_PRIORITY = {"MAKRO": 0, "SWING": 1, "SCALP": 2, "WATCHLIST": 3}
 
+# ─── AGRI SCORE-SKALA ───────────────────────────────────────────
+# Agri bruker egen additiv skala (ikke driver_matrix 0-6). Teoretisk maks =
+# outlook(5) + yield(3) + weather(2) + enso(2) + conab(2) + unica(2) + cross(2) = 18.
+# Brukes av push_signals.py for `max_score`-feltet (UI score_pct = score/max).
+AGRI_MAX_SCORE = 18
+
+# ─── AGRI SIGNAL-AGING ──────────────────────────────────────────
+# Maks avstand (i ATR-multipler) mellom live pris og entry før agri-signal
+# regnes som utdatert. Speiler `should_push`-logikken for tekniske signaler.
+AGRI_MAX_AGE_ATR = {"SCALP": 1.5, "SWING": 2.5, "MAKRO": 4.0}
+
 # ─── HORISONT-CONFIG (sendes til boten via signal_server) ────────
 HORIZON_CONFIGS = {
     "SCALP": {

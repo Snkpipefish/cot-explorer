@@ -186,9 +186,14 @@ def rescore():
         else:
             dir_color = "bull" if above_sma else "bear"
 
-        # Olje supply-disruption-override (beholdes fra fetch_all)
+        # Olje supply-disruption-override (beholdes fra fetch_all).
+        # Logger override-grunn for transparens i UI/payload.
         if key in ("Brent", "WTI") and lv.get("oil_supply_disruption"):
             dir_color = "bull"
+            lv["dir_override_reason"] = "oil_supply_disruption"
+        elif lv.get("dir_override_reason") == "oil_supply_disruption":
+            # Disruption har klarert — fjern override-flagget
+            lv.pop("dir_override_reason", None)
 
         # ── TREND sub-signaler ──────────────────────────────────
         momentum_aligned = (chg20 > 0.5 and above_sma) or \
