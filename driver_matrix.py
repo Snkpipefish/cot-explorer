@@ -16,8 +16,8 @@ Seks familier:
   STRUCTURE     — HTF-nivå, SMC, fibo                            (composite)
 
 Hver familie returnerer (score 0-1, drivers list[str]). Grade bygges av:
-  - total = sum(family_score * horizon_weight)
-  - active_families = count der score >= 0.3
+  - total = sum(group_score * horizon_weight)
+  - active_driver_groups = count der score >= 0.3
   - grade kombinerer begge i grade()
 """
 
@@ -29,10 +29,10 @@ from typing import Optional
 
 # ─── FAMILIE-INTERNE TERSKLER ────────────────────────────────────────────
 
-FAMILY_ACTIVE_THRESHOLD = 0.3   # Score >= dette teller som "aktiv familie"
+GROUP_ACTIVE_THRESHOLD = 0.3   # Score >= dette teller som "aktiv familie"
 
 # Grade krever både poeng OG antall aktive familier
-# Kalibrert for realistiske family-scores (0.5-0.8 per aktive familie):
+# Kalibrert for realistiske gruppe-scores (0.5-0.8 per aktive familie):
 #   4+ active × 1.0 = 4.0 score → A+
 #   3+ active × 1.0 = 3.0 score → A
 #   2+ active × 1.0 = 2.0 score → B
@@ -44,7 +44,7 @@ GRADE_RULES = [
     ("B",  2.0, 2),
 ]
 
-HORIZON_FAMILY_WEIGHTS = {
+HORIZON_GROUP_WEIGHTS = {
     "SCALP":  {"trend": 1.2, "positioning": 0.5, "macro": 0.7,
                "fundamental": 0.5, "risk": 0.8, "structure": 1.3},
     "SWING":  {"trend": 1.0, "positioning": 1.0, "macro": 1.0,
@@ -57,7 +57,7 @@ HORIZON_FAMILY_WEIGHTS = {
 HORIZON_GATES = [
     # (horizon, min_score, min_active, extra_check)
     # MAKRO: 4+ familier, høyt score, må inkludere fundamental eller macro
-    ("MAKRO", 3.5, 4, lambda families: (families.get("fundamental", 0) + families.get("macro", 0)) >= 0.7),
+    ("MAKRO", 3.5, 4, lambda driver_groups: (driver_groups.get("fundamental", 0) + driver_groups.get("macro", 0)) >= 0.7),
     ("SWING", 2.5, 3, None),
     ("SCALP", 1.5, 2, None),
 ]
@@ -66,7 +66,7 @@ HORIZON_GATES = [
 # ─── DATAKLASSER ─────────────────────────────────────────────────────────
 
 @dataclass
-class FamilyScore:
+class GroupScore:
     """Resultat fra én familie-funksjon."""
     score:   float          # 0-1
     drivers: list[str]      # Tekst-drivere for display
@@ -74,11 +74,11 @@ class FamilyScore:
 
 
 @dataclass
-class FamilyResult:
+class GroupResult:
     """Samlet resultat for alle 6 familier."""
-    families:        dict[str, FamilyScore]
+    driver_groups:        dict[str, GroupScore]
     total_score:     float
-    active_families: int
+    active_driver_groups: int
     grade:           str
     horizon:         str
     direction:       str                 # "bull"/"bear"/"?"
@@ -87,11 +87,11 @@ class FamilyResult:
         """Returnér alle drivers flatet med familie-prefiks, toppen først."""
         order = ["fundamental", "macro", "positioning", "trend", "structure", "risk"]
         out = []
-        for fam_key in order:
-            fam = self.families.get(fam_key)
-            if not fam:
+        for group_key in order:
+            grp = self.driver_groups.get(group_key)
+            if not grp:
                 continue
-            for d in fam.drivers:
+            for d in grp.drivers:
                 out.append(d)
                 if len(out) >= limit:
                     return out
@@ -102,15 +102,15 @@ class FamilyResult:
         return {
             "grade":            self.grade,
             "score":            round(self.total_score, 2),
-            "active_families":  self.active_families,
+            "active_driver_groups":  self.active_driver_groups,
             "horizon":          self.horizon,
             "direction":        self.direction,
-            "families": {
+            "driver_groups": {
                 k: {"score": round(v.score, 2), "weight": v.weight,
                     "drivers": v.drivers}
-                for k, v in self.families.items()
+                for k, v in self.driver_groups.items()
             },
-            "family_drivers":   self.flat_drivers(limit=8),
+            "group_drivers":   self.flat_drivers(limit=8),
         }
 
 
@@ -118,7 +118,7 @@ class FamilyResult:
 
 def compute_trend(sma200_aligned: bool,
                   momentum_aligned: bool,
-                  d1_4h_congruent: bool) -> FamilyScore:
+                  d1_4h_congruent: bool) -> GroupScore:
     """Composite trend-score fra tre delsignaler (ikke additivt 3×).
 
     Alle tre gir 1.0. En av tre gir 0.33. Ingen gir 0.0.
@@ -130,14 +130,14 @@ def compute_trend(sma200_aligned: bool,
     if sma200_aligned:    drivers.append("SMA200-align")
     if momentum_aligned:  drivers.append("Momentum 20d +")
     if d1_4h_congruent:   drivers.append("D1+4H kongruent")
-    return FamilyScore(score=score, drivers=drivers)
+    return GroupScore(score=score, drivers=drivers)
 
 
 # ─── FAMILIE 2: POSITIONING (COT) ────────────────────────────────────────
 
 def compute_positioning(cot_bias_aligns: bool,
                         cot_pct: Optional[float],
-                        cot_momentum_aligns: bool) -> FamilyScore:
+                        cot_momentum_aligns: bool) -> GroupScore:
     """Composite COT-score.
 
     cot_bias_aligns:    bias (LONG/SHORT) = signal-retning
@@ -157,7 +157,7 @@ def compute_positioning(cot_bias_aligns: bool,
         drivers.append(f"COT sterk ({abs(cot_pct or 0):.0f}% net)")
     if cot_momentum_aligns:
         drivers.append("COT momentum +")
-    return FamilyScore(score=score, drivers=drivers)
+    return GroupScore(score=score, drivers=drivers)
 
 
 # ─── FAMILIE 3: MACRO ────────────────────────────────────────────────────
@@ -170,7 +170,7 @@ def compute_macro(asset_class: str,
                   real_yield_chg: Optional[float] = None,
                   term_spread: Optional[float] = None,
                   fear_greed: Optional[int] = None,
-                  fund_instrument_score: Optional[float] = None) -> FamilyScore:
+                  fund_instrument_score: Optional[float] = None) -> GroupScore:
     """Macro-composite. Asset-class-spesifikk tolkning av felles makrodata."""
     components: list[tuple[float, str]] = []   # (bidrag 0-1, driver-tekst)
 
@@ -246,10 +246,10 @@ def compute_macro(asset_class: str,
     # Beregn composite: snitt av bidrag, med minimum 0.3 per bidrag
     filtered = [(s, d) for s, d in components if s >= 0.3]
     if not filtered:
-        return FamilyScore(score=0.0, drivers=[])
+        return GroupScore(score=0.0, drivers=[])
     total = min(sum(s for s, _ in filtered) / max(len(filtered), 1), 1.0)
     drivers = [d for _, d in filtered]
-    return FamilyScore(score=total, drivers=drivers[:3])
+    return GroupScore(score=total, drivers=drivers[:3])
 
 
 # ─── FAMILIE 4: FUNDAMENTAL (asset-class-specific) ───────────────────────
@@ -258,7 +258,7 @@ def compute_fundamental_metals(direction: str,
                                comex_stress: Optional[float],
                                registered_oz_change: Optional[float],
                                gold_silver_ratio_z: Optional[float] = None,
-                               asset: str = "Gold") -> FamilyScore:
+                               asset: str = "Gold") -> GroupScore:
     """Metals (Gold/Silver): COMEX inventory + GS-ratio."""
     components = []
     is_bull = direction in ("buy", "bull", "long")
@@ -291,16 +291,16 @@ def compute_fundamental_metals(direction: str,
 
     filtered = [(s, d) for s, d in components if s >= 0.3]
     if not filtered:
-        return FamilyScore(score=0.0, drivers=[])
+        return GroupScore(score=0.0, drivers=[])
     total = min(sum(s for s, _ in filtered) / max(len(filtered), 1), 1.0)
-    return FamilyScore(score=total, drivers=[d for _, d in filtered][:3])
+    return GroupScore(score=total, drivers=[d for _, d in filtered][:3])
 
 
 def compute_fundamental_energy(direction: str,
                                shipping_risk: Optional[str],
                                oilgas_signal: Optional[str],
                                oil_supply_disruption: bool = False,
-                               brent_wti_spread: Optional[float] = None) -> FamilyScore:
+                               brent_wti_spread: Optional[float] = None) -> GroupScore:
     """Energy (Oil): shipping + oilgas + backwardation."""
     components = []
     is_bull = direction in ("buy", "bull", "long")
@@ -331,9 +331,9 @@ def compute_fundamental_energy(direction: str,
 
     filtered = [(s, d) for s, d in components if s >= 0.3]
     if not filtered:
-        return FamilyScore(score=0.0, drivers=[])
+        return GroupScore(score=0.0, drivers=[])
     total = min(sum(s for s, _ in filtered) / max(len(filtered), 1), 1.0)
-    return FamilyScore(score=total, drivers=[d for _, d in filtered][:3])
+    return GroupScore(score=total, drivers=[d for _, d in filtered][:3])
 
 
 def compute_fundamental_grains(direction: str,
@@ -341,7 +341,7 @@ def compute_fundamental_grains(direction: str,
                                conab_yoy: Optional[float],
                                usda_blackout: bool,
                                yield_score: Optional[float],
-                               enso_risk: int = 0) -> FamilyScore:
+                               enso_risk: int = 0) -> GroupScore:
     """Grains (Corn/Wheat/Soy/Cotton): Conab + USDA + yield + ENSO."""
     components = []
     is_bull = direction in ("buy", "bull", "long", "BUY")
@@ -378,9 +378,9 @@ def compute_fundamental_grains(direction: str,
 
     filtered = [(s, d) for s, d in components if s >= 0.3]
     if not filtered:
-        return FamilyScore(score=0.0, drivers=[])
+        return GroupScore(score=0.0, drivers=[])
     total = min(sum(s for s, _ in filtered) / max(len(filtered), 1), 1.0)
-    return FamilyScore(score=total, drivers=[d for _, d in filtered][:3])
+    return GroupScore(score=total, drivers=[d for _, d in filtered][:3])
 
 
 def compute_fundamental_softs(direction: str,
@@ -393,7 +393,7 @@ def compute_fundamental_softs(direction: str,
                               harmattan_severity: float = 0.0,
                               frost_severity: float = 0.0,
                               yield_score: Optional[float] = None,
-                              asset: str = "Sugar") -> FamilyScore:
+                              asset: str = "Sugar") -> GroupScore:
     """Softs (Sugar/Coffee/Cocoa/Cotton): UNICA + Conab café + BRL + harmattan."""
     components = []
     is_bull = direction in ("buy", "bull", "long", "BUY")
@@ -452,18 +452,18 @@ def compute_fundamental_softs(direction: str,
     positive = [(s, d) for s, d in components if s >= 0.3]
     negative_sum = sum(s for s, _ in components if s < 0)
     if not positive:
-        return FamilyScore(score=0.0, drivers=[])
+        return GroupScore(score=0.0, drivers=[])
     total = sum(s for s, _ in positive) / max(len(positive), 1)
     total = max(min(total + negative_sum, 1.0), 0.0)
     drivers = [d for _, d in positive][:3]
     if negative_sum < 0:
         drivers.append(f"Motvind {negative_sum:+.1f}")
-    return FamilyScore(score=total, drivers=drivers)
+    return GroupScore(score=total, drivers=drivers)
 
 
 def compute_fundamental_fx(direction: str,
                            fund_instrument_score: Optional[float],
-                           rate_spread_diff: Optional[float] = None) -> FamilyScore:
+                           rate_spread_diff: Optional[float] = None) -> GroupScore:
     """FX: FRED instrument-score + rente-spread mot motpart-valuta."""
     components = []
     is_bull = direction in ("buy", "bull", "long")
@@ -487,15 +487,15 @@ def compute_fundamental_fx(direction: str,
 
     filtered = [(s, d) for s, d in components if s >= 0.3]
     if not filtered:
-        return FamilyScore(score=0.0, drivers=[])
+        return GroupScore(score=0.0, drivers=[])
     total = min(sum(s for s, _ in filtered) / max(len(filtered), 1), 1.0)
-    return FamilyScore(score=total, drivers=[d for _, d in filtered][:2])
+    return GroupScore(score=total, drivers=[d for _, d in filtered][:2])
 
 
 def compute_fundamental_indices(direction: str,
                                 fund_instrument_score: Optional[float],
                                 vix_regime: str = "normal",
-                                term_spread: Optional[float] = None) -> FamilyScore:
+                                term_spread: Optional[float] = None) -> GroupScore:
     """Indices (SPX/NAS): FRED + VIX + yield curve."""
     components = []
     is_bull = direction in ("buy", "bull", "long")
@@ -520,9 +520,9 @@ def compute_fundamental_indices(direction: str,
 
     filtered = [(s, d) for s, d in components if s >= 0.3]
     if not filtered:
-        return FamilyScore(score=0.0, drivers=[])
+        return GroupScore(score=0.0, drivers=[])
     total = min(sum(s for s, _ in filtered) / max(len(filtered), 1), 1.0)
-    return FamilyScore(score=total, drivers=[d for _, d in filtered][:2])
+    return GroupScore(score=total, drivers=[d for _, d in filtered][:2])
 
 
 # ─── FAMILIE 5: RISK/EVENT ───────────────────────────────────────────────
@@ -531,7 +531,7 @@ def compute_risk_event(geo_active: bool = False,
                        upcoming_event_hours: Optional[float] = None,
                        event_name: str = "",
                        usda_blackout: bool = False,
-                       vix_regime: str = "normal") -> FamilyScore:
+                       vix_regime: str = "normal") -> GroupScore:
     """Risk/event — positiv familie-score kun når det er konkrete positive
     event-setups ELLER når risk er nær kritisk. Ingen events = 0.0 (ikke
     aktiv) slik at "ingen nyheter" ikke falskelig teller som driver.
@@ -565,15 +565,15 @@ def compute_risk_event(geo_active: bool = False,
 
     if risk_factors == 0:
         # Ingen risikofaktorer → familien er ikke aktiv (teller ikke i
-        # active_families). Ingen drivere returneres.
-        return FamilyScore(score=0.0, drivers=[])
+        # active_driver_groups). Ingen drivere returneres.
+        return GroupScore(score=0.0, drivers=[])
 
     # Høyere risk → høyere score i denne familien (ikke som "bra trade" men
     # som "risk-regime-oppmerksomhet"). Score kan tolkes som confidence i
     # event-analysen; den telles likevel i driver-diversitet.
     # Samtidig: gate i _risk_gate_grade() forhindrer A/A+ ved kritisk risk.
     score = min(risk_factors * 0.25, 1.0)
-    return FamilyScore(score=score, drivers=drivers[:3])
+    return GroupScore(score=score, drivers=drivers[:3])
 
 
 def _risk_gate_grade(current_grade: str, risk_factors: int) -> str:
@@ -597,7 +597,7 @@ def _risk_gate_grade(current_grade: str, risk_factors: int) -> str:
 
 def compute_structure(nearest_level_weight: int = 0,
                       smc_confirms: bool = False,
-                      fibo_zone_hit: bool = False) -> FamilyScore:
+                      fibo_zone_hit: bool = False) -> GroupScore:
     """HTF-nivå, SMC-bekreftelse, fibo-zone."""
     components = []
     # Nivå-vekt 0-5 → score 0-1
@@ -610,32 +610,32 @@ def compute_structure(nearest_level_weight: int = 0,
         components.append((0.5, "Fibo-zone"))
 
     if not components:
-        return FamilyScore(score=0.0, drivers=[])
+        return GroupScore(score=0.0, drivers=[])
     total = min(sum(s for s, _ in components) / max(len(components), 1), 1.0)
-    return FamilyScore(score=total, drivers=[d for _, d in components][:2])
+    return GroupScore(score=total, drivers=[d for _, d in components][:2])
 
 
 # ─── AGGREGATE: score_asset + grade + horizon ────────────────────────────
 
-def grade(total_score: float, active_families: int) -> str:
+def grade(total_score: float, active_driver_groups: int) -> str:
     for g, min_sc, min_fam in GRADE_RULES:
-        if total_score >= min_sc and active_families >= min_fam:
+        if total_score >= min_sc and active_driver_groups >= min_fam:
             return g
     return "C"
 
 
-def determine_horizon(families: dict[str, float],
+def determine_horizon(driver_groups: dict[str, float],
                       total_unweighted: float,
-                      active_families: int) -> str:
+                      active_driver_groups: int) -> str:
     """Velg høyeste horisont hvor både score- og familie-krav er møtt.
-    Bruker nåværende active_families som gate; inkluderer asset-class-
+    Bruker nåværende active_driver_groups som gate; inkluderer asset-class-
     spesifikk sjekk for MAKRO (må ha fundamental/macro-bidrag)."""
     for horizon, min_score, min_active, extra_check in HORIZON_GATES:
         if total_unweighted < min_score:
             continue
-        if active_families < min_active:
+        if active_driver_groups < min_active:
             continue
-        if extra_check is not None and not extra_check(families):
+        if extra_check is not None and not extra_check(driver_groups):
             continue
         return horizon
     return "WATCHLIST"
@@ -658,7 +658,7 @@ def score_asset(
     fibo_zone_hit: bool = False,
     # Macro / fundamental (kwargs passerer til asset-specific funksjoner)
     **context,
-) -> FamilyResult:
+) -> GroupResult:
     """Hovedkoordinator — kaller alle 6 familier og aggregerer.
 
     context inkluderer typisk:
@@ -751,7 +751,7 @@ def score_asset(
         )
     else:
         # crypto eller annet → tom fundamental
-        fundamental = FamilyScore(score=0.0, drivers=[])
+        fundamental = GroupScore(score=0.0, drivers=[])
 
     # Familie 5 — RISK/EVENT
     risk = compute_risk_event(
@@ -769,7 +769,7 @@ def score_asset(
         fibo_zone_hit=fibo_zone_hit,
     )
 
-    families = {
+    driver_groups = {
         "trend":       trend,
         "positioning": positioning,
         "macro":       macro,
@@ -779,25 +779,25 @@ def score_asset(
     }
 
     # risk-familien er et GATE, ikke et additivt bidrag. Den telles IKKE i
-    # active_families og IKKE i total_score-summeringen. Den brukes kun til
+    # active_driver_groups og IKKE i total_score-summeringen. Den brukes kun til
     # å kappe grade ved kritisk event-nærhet (se _risk_gate_grade nedenfor).
     NON_SCORING = {"risk"}
 
-    score_raw_map = {k: v.score for k, v in families.items()
+    score_raw_map = {k: v.score for k, v in driver_groups.items()
                      if k not in NON_SCORING}
-    active_count = sum(1 for s in score_raw_map.values() if s >= FAMILY_ACTIVE_THRESHOLD)
+    active_count = sum(1 for s in score_raw_map.values() if s >= GROUP_ACTIVE_THRESHOLD)
     total_unweighted = sum(score_raw_map.values())
 
     horizon = horizon_hint or determine_horizon(
         score_raw_map, total_unweighted, active_count)
 
     # Anvend horizon-vekter på de SCORING-familiene
-    weights = HORIZON_FAMILY_WEIGHTS.get(horizon, HORIZON_FAMILY_WEIGHTS["SWING"])
+    weights = HORIZON_GROUP_WEIGHTS.get(horizon, HORIZON_GROUP_WEIGHTS["SWING"])
     weighted_total = 0.0
-    for k, fam in families.items():
-        fam.weight = weights.get(k, 1.0)
+    for k, grp in driver_groups.items():
+        grp.weight = weights.get(k, 1.0)
         if k not in NON_SCORING:
-            weighted_total += fam.score * fam.weight
+            weighted_total += grp.score * grp.weight
 
     base_grade = grade(weighted_total, active_count)
 
@@ -806,10 +806,10 @@ def score_asset(
     risk_factors = int(round(risk.score * 4)) if risk.score > 0 else 0
     final_grade = _risk_gate_grade(base_grade, risk_factors)
 
-    return FamilyResult(
-        families=families,
+    return GroupResult(
+        driver_groups=driver_groups,
         total_score=weighted_total,
-        active_families=active_count,
+        active_driver_groups=active_count,
         grade=final_grade,
         horizon=horizon if final_grade != "C" else "WATCHLIST",
         direction=direction if direction in ("bull", "bear") else

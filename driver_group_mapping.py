@@ -1,5 +1,5 @@
 """
-family_mapping.py — Asset-class-mapping og data-henting for driver_matrix.
+driver_group_mapping.py — Asset-class-mapping og data-henting for driver_matrix.
 
 Holder all logikk for å hente riktig per-asset-data fra de ulike kildene
 (data/comex, data/shipping, data/oilgas, data/fundamentals, data/conab,

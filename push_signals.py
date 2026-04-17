@@ -536,8 +536,8 @@ def push_flask(signals):
         return
     payload = json.dumps({
         # Schema 2.0: driver-familie-matrise (erstatter 9-kriterie-scoring).
-        # Felt `families`, `active_families`, `family_drivers` per signal.
-        "schema_version": "2.0",
+        # Felt `driver_groups`, `active_driver_groups`, `group_drivers` per signal.
+        "schema_version": "2.1",
         "signals":   signals,
         "generated": generated,
         "global_state": {
@@ -573,7 +573,7 @@ push_discord(message)
 _now_iso = datetime.now(timezone.utc).isoformat()
 
 # Tekniske signaler i Flask-format
-# Schema 2.0: propagere families + active_families + family_drivers
+# Schema 2.1: propagere driver_groups + active_driver_groups + group_drivers
 flask_signals = [{
     "key":            key,
     "name":           d.get("name", key),
@@ -588,9 +588,9 @@ flask_signals = [{
     "horizon_config": HORIZON_CONFIGS.get(
         d.get("horizon", d.get("timeframe_bias", "SWING")), {}),
     # ── Driver-familie-matrise (fikset C1) ──────────────────────
-    "families":        d.get("families", {}),
-    "active_families": d.get("active_families"),
-    "family_drivers":  d.get("family_drivers", []),
+    "driver_groups":        d.get("driver_groups", {}),
+    "active_driver_groups": d.get("active_driver_groups"),
+    "group_drivers":  d.get("group_drivers", []),
     "created_at":     _now_iso,
 } for key, d in top]
 
@@ -627,10 +627,10 @@ if AGRI_SIGNALS_FILE.exists():
                 "yield_score":      asig.get("yield_score"),
                 "weather_outlook":  asig.get("weather_outlook"),
                 "drivers":          asig.get("drivers", []),
-                # Schema 2.0: propagere families fra agri_signals.json
-                "families":         asig.get("families", {}),
-                "active_families":  asig.get("active_families"),
-                "family_drivers":   asig.get("family_drivers", []),
+                # Schema 2.1: propagere driver_groups fra agri_signals.json
+                "driver_groups":         asig.get("driver_groups", {}),
+                "active_driver_groups":  asig.get("active_driver_groups"),
+                "group_drivers":   asig.get("group_drivers", []),
                 "created_at":       _now_iso,
             })
     except Exception:

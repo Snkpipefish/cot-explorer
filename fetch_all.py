@@ -13,9 +13,9 @@ except:
 
 # Driver-familie-matrise (fikser C1-korrelasjons-bias, schema 2.0)
 import driver_matrix as dm
-import family_mapping as fm
+import driver_group_mapping as dgm
 
-_DRIVER_SOURCES = fm.load_all_sources(Path(os.path.expanduser("~/cot-explorer")))
+_DRIVER_SOURCES = dgm.load_all_sources(Path(os.path.expanduser("~/cot-explorer")))
 
 BASE = os.path.expanduser("~/cot-explorer/data")
 OUT  = os.path.join(BASE, "macro", "latest.json")
@@ -1516,7 +1516,7 @@ for inst in INSTRUMENTS:
     nearest_level_weight = max(nearest_sup_w, nearest_res_w)
 
     # ── Driver-familie-matrise (schema 2.0) ──────────────
-    # Se driver_matrix.py: 6 familier → grade krever multi-family confluens
+    # Se driver_matrix.py: 6 driver-grupper → grade krever multi-group confluens
     # (fikser C1-korrelasjons-bias).
     momentum_aligned = (chg20 > 0.5 and above_sma) or (chg20 < -0.5 and not above_sma)
     # Build macro-context fra lokal scope
@@ -1530,8 +1530,8 @@ for inst in INSTRUMENTS:
         "oil_supply_disruption": _oil_supply_disruption,
         "term_spread": (fund_data.get("market_rates") or {}).get("term_spread"),
     }
-    _ctx_family = fm.build_context_for_asset(inst["key"], _DRIVER_SOURCES, _macro_ctx)
-    family_result = dm.score_asset(
+    _ctx_groups = dgm.build_context_for_asset(inst["key"], _DRIVER_SOURCES, _macro_ctx)
+    group_result = dm.score_asset(
         direction=dir_color,
         sma200_aligned=above_sma,
         momentum_aligned=momentum_aligned,
@@ -1542,12 +1542,12 @@ for inst in INSTRUMENTS:
         nearest_level_weight=nearest_level_weight,
         smc_confirms=smc_confirms_ok,
         fibo_zone_hit=False,   # Fibo-zone ikke i dagens pipeline
-        **_ctx_family,
+        **_ctx_groups,
     )
-    horizon      = family_result.horizon
-    score        = round(family_result.total_score, 2)
+    horizon      = group_result.horizon
+    score        = round(group_result.total_score, 2)
     max_score    = 6.0   # Sum av 5 scoring-familier × vekt 1.0 på SWING
-    grade        = family_result.grade
+    grade        = group_result.grade
     grade_color  = ("bull" if grade in ("A+", "A") else
                     "warn" if grade == "B" else "bear")
 
@@ -1563,12 +1563,12 @@ for inst in INSTRUMENTS:
 
     # Legacy score_details (for bakover-kompat med dashbord): flat oversikt over familier
     score_details = [
-        {"kryss": f"Familie: {fam_key}",
-         "id":    f"family_{fam_key}",
+        {"kryss": f"Familie: {group_key}",
+         "id":    f"group_{group_key}",
          "verdi": fam.score >= 0.3,
          "vekt":  round(fam.weight, 2),
          "poeng": round(fam.score * fam.weight, 2)}
-        for fam_key, fam in family_result.families.items()
+        for group_key, fam in group_result.driver_groups.items()
     ]
     # Behold criteria-dict som skygge for evt. kode som leser den
     criteria = {
@@ -1601,12 +1601,12 @@ for inst in INSTRUMENTS:
         if horizon == "MAKRO":    horizon = "SWING"
         elif horizon == "SWING":  horizon = "SCALP"
         else:                     horizon = "WATCHLIST"
-        # Re-vei family-scores med ny horisont-vekting
+        # Re-vei gruppe-scores med ny horisont-vekting
         if horizon != "WATCHLIST":
-            new_weights = dm.HORIZON_FAMILY_WEIGHTS.get(horizon,
-                             dm.HORIZON_FAMILY_WEIGHTS["SWING"])
+            new_weights = dm.HORIZON_GROUP_WEIGHTS.get(horizon,
+                             dm.HORIZON_GROUP_WEIGHTS["SWING"])
             new_total = 0.0
-            for fk, fs in family_result.families.items():
+            for fk, fs in group_result.driver_groups.items():
                 if fk == "risk":
                     continue
                 fs.weight = new_weights.get(fk, 1.0)
@@ -1616,7 +1616,7 @@ for inst in INSTRUMENTS:
                 base_penalty = 1.0 if horizon in ("SWING", "MAKRO") else 0.5
                 penalty = round(base_penalty * dxy_momentum_strength, 2)
                 score = max(0, round(score - penalty, 2))
-            grade = dm.grade(score, family_result.active_families)
+            grade = dm.grade(score, group_result.active_driver_groups)
             grade_color = ("bull" if grade in ("A+", "A") else
                            "warn" if grade == "B" else "bear")
         else:
@@ -1748,13 +1748,13 @@ for inst in INSTRUMENTS:
         "score_pct":     round(score/max_score*100) if max_score else 0,
         "score_details": score_details,
         # Nye felter fra driver_matrix (schema 2.0)
-        "families":        {
+        "driver_groups":        {
             k: {"score": round(v.score, 2), "weight": round(v.weight, 2),
                 "drivers": v.drivers}
-            for k, v in family_result.families.items()
+            for k, v in group_result.driver_groups.items()
         },
-        "active_families": family_result.active_families,
-        "family_drivers":  family_result.flat_drivers(limit=8),
+        "active_driver_groups": group_result.active_driver_groups,
+        "group_drivers":  group_result.flat_drivers(limit=8),
         "horizon":       horizon,
         "adr_utilization": adr,
         "correlation_group": CORRELATION_GROUPS.get(inst["key"]),

@@ -28,13 +28,13 @@ def test_c1_trend_plus_cot_alone_max_b():
     )
     assert result.grade in ("B", "C"), \
         f"C1 FAIL: trend+COT alene ga {result.grade}, forventet B eller C"
-    assert result.active_families <= 2, \
-        f"C1 FAIL: {result.active_families} familier aktive, forventet ≤2"
+    assert result.active_driver_groups <= 2, \
+        f"C1 FAIL: {result.active_driver_groups} familier aktive, forventet ≤2"
     print(f"PASS: trend+COT alene → grade={result.grade}, "
-          f"active_families={result.active_families}, score={result.total_score:.2f}")
+          f"active_driver_groups={result.active_driver_groups}, score={result.total_score:.2f}")
 
 
-def test_four_family_confluence_gives_a():
+def test_four_groups_confluence_gives_a():
     """4 uavhengige familier med moderat score → minst A."""
     result = dm.score_asset(
         direction="bull",
@@ -46,14 +46,14 @@ def test_four_family_confluence_gives_a():
         comex_stress=45, registered_oz_change=-60000,
     )
     assert result.grade in ("A+", "A"), \
-        f"FAIL: 4+ family confluence ga {result.grade}, forventet A/A+"
-    assert result.active_families >= 4, \
-        f"FAIL: {result.active_families} familier, forventet ≥4"
-    print(f"PASS: 4-family confluence → grade={result.grade}, "
-          f"active_families={result.active_families}, score={result.total_score:.2f}")
+        f"FAIL: 4+ grupper confluence ga {result.grade}, forventet A/A+"
+    assert result.active_driver_groups >= 4, \
+        f"FAIL: {result.active_driver_groups} familier, forventet ≥4"
+    print(f"PASS: 4-grupper confluence → grade={result.grade}, "
+          f"active_driver_groups={result.active_driver_groups}, score={result.total_score:.2f}")
 
 
-def test_single_family_gives_c():
+def test_single_group_gives_c():
     """Kun én familie aktiv → alltid C."""
     result = dm.score_asset(
         direction="bull",
@@ -62,9 +62,9 @@ def test_single_family_gives_c():
         # Alt annet = 0
     )
     assert result.grade == "C", \
-        f"FAIL: single family ga {result.grade}, forventet C"
-    print(f"PASS: single family → grade={result.grade}, "
-          f"active_families={result.active_families}")
+        f"FAIL: enkelt gruppe ga {result.grade}, forventet C"
+    print(f"PASS: enkelt gruppe → grade={result.grade}, "
+          f"active_driver_groups={result.active_driver_groups}")
 
 
 def test_risk_gate_caps_grade_at_usda_blackout():
@@ -82,7 +82,7 @@ def test_risk_gate_caps_grade_at_usda_blackout():
     assert result.grade != "A+", \
         f"FAIL: risk-gate slo ikke inn, ga {result.grade}"
     print(f"PASS: USDA blackout risk-gate → grade={result.grade} "
-          f"(ikke A+), risk.score={result.families['risk'].score:.2f}")
+          f"(ikke A+), risk.score={result.driver_groups['risk'].score:.2f}")
 
 
 def test_horizon_auto_determination():
@@ -95,8 +95,8 @@ def test_horizon_auto_determination():
         nearest_level_weight=3, smc_confirms=True,
     )
     assert result.horizon in ("SWING", "SCALP"), \
-        f"FAIL: 3-family confluence ga horisont {result.horizon}"
-    print(f"PASS: auto-horizon for 3-family SWING → {result.horizon}")
+        f"FAIL: 3-grupper confluence ga horisont {result.horizon}"
+    print(f"PASS: auto-horizon for 3-grupper SWING → {result.horizon}")
 
 
 if __name__ == "__main__":
@@ -105,8 +105,8 @@ if __name__ == "__main__":
     print("═" * 60)
     tests = [
         test_c1_trend_plus_cot_alone_max_b,
-        test_four_family_confluence_gives_a,
-        test_single_family_gives_c,
+        test_four_groups_confluence_gives_a,
+        test_single_group_gives_c,
         test_risk_gate_caps_grade_at_usda_blackout,
         test_horizon_auto_determination,
     ]
