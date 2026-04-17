@@ -137,15 +137,20 @@ def rescore():
             horizon = "WATCHLIST"
             grade, grade_color = "C", "bear"
 
-        # Oppdater kun hvis noe endret seg
-        if (lv.get("horizon") != horizon or
-            lv.get("score") != score or
-            lv.get("grade") != grade):
-            lv["horizon"] = horizon
-            lv["score"] = score
-            lv["max_score"] = max_score
-            lv["grade"] = grade
-            lv["score_details"] = score_details
+        # Oppdater kun session + evt. horizon-downgrade ved signal-flip.
+        # score/max_score/grade/score_details eies na av driver_matrix i
+        # fetch_all.py (schema 2.0). Hvis rescore overskriver dem med legacy
+        # 9-kriterie-verdier (SCALP=5.0, SWING=7.5, MAKRO=9.0) blir det
+        # inkonsistent med driver matrix-skala (SCALP=4.2, SWING=5.0, MAKRO=5.2).
+        prev_horizon = lv.get("horizon")
+        if prev_horizon != horizon:
+            # Kun horizon-endring hvis rescore-beregningen valgte en
+            # STRENGERE horisont (f.eks. etter signal-flip).
+            HORIZON_RANK = {"MAKRO": 0, "SWING": 1, "SCALP": 2, "WATCHLIST": 3}
+            if HORIZON_RANK.get(horizon, 3) > HORIZON_RANK.get(prev_horizon, 3):
+                lv["horizon"] = horizon
+                updated += 1
+        if lv.get("session_now") != session_now or lv.get("in_session") != sesjon_riktig:
             lv["session_now"] = session_now
             lv["in_session"] = sesjon_riktig
             updated += 1

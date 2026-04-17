@@ -672,7 +672,7 @@ function renderDashboard(macro,signals,logData,cotData){
         '<div class="sig-top">'+
           '<span class="sig-name">'+(s.name||s.instrument||'-')+'</span>'+
           '<span class="sig-dir '+dirCol+'">'+dirLabel+'</span>'+
-          '<span class="tgrade '+gradeCol+'">'+(s.grade||'-')+' '+(s.score||0)+'/'+(s.max_score||6)+'</span>'+
+          '<span class="tgrade '+gradeCol+'">'+(s.grade||'-')+' '+(s.score||0)+'/'+(s.max_score||5)+'</span>'+
           sDqBadge+
           '<span class="tgrade" style="background:var(--s);font-size:10px">'+horizon+'</span>'+
         '</div>'+
@@ -963,7 +963,7 @@ function buildExplain(lv){
   var dirNorsk=dir==='bull'?'stige':'falle';
   var tfWord={MAKRO:'over uker til måneder',SWING:'de neste dagene til uker',SCALP:'intradag (timer til dager)',WATCHLIST:'på sikt (ikke aktiv nå)'}[tf]||'snart';
   var grade=lv.grade||'?', score=lv.score||0;
-  var maxScore=lv.max_score||6;
+  var maxScore=lv.max_score||5;
   var gradeWord={'A+':'veldig sterk signal','A':'sterk signal','B':'middels signal','C':'svakt signal'}[grade]||'signal';
 
   // Hovedsetning med retning + grade
@@ -1107,7 +1107,7 @@ function renderIdeer(m){
         '<div class="tic-head" onclick="togIde('+i+')">'+
           '<span class="tcls">'+clsLv+'</span>'+
           '<div><div class="tname">'+lv.name+'</div><div class="tsub">'+(lv.label||'')+'</div></div>'+
-          '<span class="tgrade '+gc+'">'+lv.grade+' '+(lv.score||0)+'/'+(lv.max_score||6)+'</span>'+
+          '<span class="tgrade '+gc+'">'+lv.grade+' '+(lv.score||0)+'/'+(lv.max_score||5)+'</span>'+
           dqBadge+
           '<span class="tgrade '+tfCol+'">'+tf+'</span>'+
           '<span class="tbias '+(lv.dir_color||'neutral')+'">'+biasText+'</span>'+
@@ -1122,7 +1122,7 @@ function renderIdeer(m){
             '<div class="setup-side">'+renderSetupSide(lv.setup_short,'SHORT',lv.resistances)+'</div>'+
           '</div>'+
           '<div class="score-section">'+
-            '<div class="ct">Styrkeindikator — '+(lv.score||0)+' av '+(lv.max_score||6)+' ('+(lv.score_pct||0)+'%) — '+(lv.horizon||lv.timeframe_bias||'?')+'</div>'+
+            '<div class="ct">Styrkeindikator — '+(lv.score||0)+' av '+(lv.max_score||5)+' ('+(lv.score_pct||0)+'%) — '+(lv.horizon||lv.timeframe_bias||'?')+'</div>'+
             '<div class="score-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:'+lv.score_pct+'%;background:'+(gc==='bull'?'var(--bull)':gc==='warn'?'var(--warn)':'var(--bear)')+'"></div></div></div>'+
           '</div>'+
           (dgBarsHtml?'<div class="dg-section">'+

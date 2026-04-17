@@ -213,7 +213,7 @@ for key, d in top:
         "horizon":   horizon,
         "grade":    d.get("grade", "?"),
         "score":    d.get("score", 0),
-        "max_score": d.get("max_score", 6),
+        "max_score": d.get("max_score", 5),  # SWING max = 5.0 fra driver_matrix
         "score_pct": d.get("score_pct", 0),
         "score_details": d.get("score_details", {}),
         # Schema 2.0: driver-familie-matrise + data-kvalitet

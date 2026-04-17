@@ -1648,7 +1648,12 @@ for inst in INSTRUMENTS:
     )
     horizon      = group_result.horizon
     score        = round(group_result.total_score, 2)
-    max_score    = 6.0   # Sum av 5 scoring-familier × vekt 1.0 på SWING
+    # Max_score fra faktiske horisont-vekter som driver_matrix valgte internt.
+    # "WATCHLIST" er UI-label; intern horisont kan være SCALP/SWING/MAKRO med
+    # egne vekter. Summer non-risk familievekter for å få riktig max.
+    max_score    = round(sum(
+        g.weight for k, g in group_result.driver_groups.items() if k != "risk"
+    ), 2) or 5.0
     grade        = group_result.grade
     grade_color  = ("bull" if grade in ("A+", "A") else
                     "warn" if grade == "B" else "bear")
