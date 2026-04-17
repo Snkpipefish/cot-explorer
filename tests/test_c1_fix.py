@@ -85,6 +85,34 @@ def test_risk_gate_caps_grade_at_usda_blackout():
           f"(ikke A+), risk.score={result.driver_groups['risk'].score:.2f}")
 
 
+def test_risk_gate_b_cap_at_extreme_event_pile_up():
+    """Risk_factors >= 5 skal kappe grade til B.
+
+    Konstruerer en pile-up: USDA blackout (3) + VIX ekstrem (2) + nær event
+    (3) = 8 risk_factors. Tidligere var dette dead code fordi risk_factors
+    ble derivert fra `score * 4` (capped på 4 → B-cap aldri trigget). Etter
+    fixen i compute_risk_event (returnerer (GroupScore, int) tuple) skal
+    B-cap nå være aktiv.
+    """
+    result = dm.score_asset(
+        direction="bull",
+        asset="Corn", asset_class="grains",
+        sma200_aligned=True, momentum_aligned=True, d1_4h_congruent=True,
+        cot_bias_aligns=True, cot_pct=25.0, cot_momentum_aligns=True,
+        nearest_level_weight=4, smc_confirms=True,
+        dxy_chg5d=-2.0, yield_score=30, conab_mom=-5.0, conab_yoy=-12,
+        usda_blackout=True,
+        vix_regime="extreme",
+        upcoming_event_hours=1.0,
+        event_name="NFP",
+    )
+    # Uten gate ville dette gitt A+ (perfekt setup). Med risk_factors=8 → B.
+    assert result.grade == "B", \
+        f"FAIL: B-cap (risk_factors >= 5) slo ikke inn, ga {result.grade}"
+    print(f"PASS: pile-up risk → grade={result.grade} "
+          f"(forventet B; tidligere dead code før compute_risk_event tuple-fix)")
+
+
 def test_horizon_auto_determination():
     """Horisont skal settes basert på antall familier + score."""
     # SWING: 3 familier, moderat score
@@ -361,6 +389,7 @@ if __name__ == "__main__":
         test_four_groups_confluence_gives_a,
         test_single_group_gives_c,
         test_risk_gate_caps_grade_at_usda_blackout,
+        test_risk_gate_b_cap_at_extreme_event_pile_up,
         test_horizon_auto_determination,
         # Fase 1-4 nye tester
         test_fred_score_only_in_fundamental_not_macro,

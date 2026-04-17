@@ -114,54 +114,51 @@ vix_regime = vix_obj.get("regime", "normal")
 
 
 # ── Conab / UNICA — last med stale-gate og graceful degradation ──────────────
-# data_status holder fersk/stale/missing per kilde slik at signal-payload kan
-# propagere `data_quality` til UI/bot (samme semantikk som driver_matrix).
+# data_status holder fresh/stale/missing/corrupt per kilde slik at signal-
+# payload kan propagere `data_quality` til UI/bot (samme semantikk som
+# driver_matrix). Status og data lastes i én operasjon for å unngå at
+# en korrupt fil med ny mtime feilaktig flagges som "fresh".
 data_status: dict[str, str] = {}
 
 
-def _file_status(path: Path, stale_days: int) -> str:
-    """Returner 'fresh' | 'stale' | 'missing' for en JSON-kilde."""
+def _load_with_status(path: Path, stale_days: int) -> tuple[str, dict | None]:
+    """Last JSON og returner (status, data). Status er én av:
+      - "fresh":   fila eksisterer, er ung, parsing OK
+      - "stale":   fila eksisterer men er > stale_days gammel
+      - "missing": fila eksisterer ikke
+      - "corrupt": fila eksisterer og er ung, men JSON-parsing feilet
+
+    Konsoliderer tidligere _file_status + _safe_load_json (som ga falskt
+    "fresh" hvis fetch-prosessen halv-skrev fila — ny mtime maskerte at
+    JSON ikke kunne parses).
+    """
     if not path.exists():
-        return "missing"
+        return "missing", None
     age_s = (datetime.now(timezone.utc).timestamp() - path.stat().st_mtime)
     if age_s > stale_days * 86400:
-        return "stale"
-    return "fresh"
-
-
-def _safe_load_json(path: Path, stale_days: int) -> dict | None:
-    """Last JSON hvis fila finnes og ikke er eldre enn stale_days.
-    Returnerer None ved manglende/korrupt/stale data — kalleren skal
-    tolerere None ved å hoppe over relevant scoring."""
-    if not path.exists():
-        return None
+        print(f"  {path.name}: stale ({age_s/86400:.1f}d > {stale_days}d) — ignorert")
+        return "stale", None
     try:
-        age_s = (datetime.now(timezone.utc).timestamp() - path.stat().st_mtime)
-        if age_s > stale_days * 86400:
-            print(f"  {path.name}: stale ({age_s/86400:.1f}d > {stale_days}d) — ignorert")
-            return None
         with open(path, encoding="utf-8") as f:
-            return json.load(f)
+            return "fresh", json.load(f)
     except Exception as exc:
-        print(f"  {path.name}: kunne ikke laste ({exc}) — ignorert")
-        return None
+        print(f"  {path.name}: corrupt ({exc}) — ignorert")
+        return "corrupt", None
 
 
-data_status["conab"] = _file_status(CONAB_FILE, CONAB_STALE_DAYS)
-data_status["unica"] = _file_status(UNICA_FILE, UNICA_STALE_DAYS)
-conab_data = _safe_load_json(CONAB_FILE, CONAB_STALE_DAYS)
-unica_data = _safe_load_json(UNICA_FILE, UNICA_STALE_DAYS)
+data_status["conab"], conab_data = _load_with_status(CONAB_FILE, CONAB_STALE_DAYS)
+data_status["unica"], unica_data = _load_with_status(UNICA_FILE, UNICA_STALE_DAYS)
 
 
 def _agri_data_quality(crop_key: str, instrument: str) -> tuple[str, list[str]]:
     """Bestem data_quality + quality_notes for et agri-signal.
 
     Logikk:
-      - crop avhenger av Conab (grains/coffee/cotton/soy) og status != fresh → degraded
-      - crop avhenger av UNICA (sugar) og status != fresh → degraded
-      - Begge missing/stale samtidig → stale
-      - USDA blackout (selv om signalet allerede er filtrert) flagges som degraded
-    Same semantikk som driver_matrix._assess_data_quality.
+      - crop avhenger av Conab (grains/coffee/cotton/soy) og status != fresh → degraded/stale
+      - crop avhenger av UNICA (sugar) og status != fresh → degraded/stale
+      - "missing" eller "corrupt" → stale (kritisk avhengighet borte)
+      - "stale" (gammel mtime) → degraded (data finnes, bare gamle)
+    Samme semantikk som driver_matrix._assess_data_quality.
     """
     notes: list[str] = []
     degraded = False
@@ -171,14 +168,16 @@ def _agri_data_quality(crop_key: str, instrument: str) -> tuple[str, list[str]]:
     relies_on_unica = (crop_key == "sugar")
 
     if relies_on_conab and data_status.get("conab") != "fresh":
-        notes.append(f"Conab {data_status.get('conab','?')}")
-        if data_status.get("conab") == "missing":
+        st = data_status.get("conab", "?")
+        notes.append(f"Conab {st}")
+        if st in ("missing", "corrupt"):
             stale = True
         else:
             degraded = True
     if relies_on_unica and data_status.get("unica") != "fresh":
-        notes.append(f"UNICA {data_status.get('unica','?')}")
-        if data_status.get("unica") == "missing":
+        st = data_status.get("unica", "?")
+        notes.append(f"UNICA {st}")
+        if st in ("missing", "corrupt"):
             stale = True
         else:
             degraded = True
@@ -426,15 +425,17 @@ def _cross_confirm(crop: dict, crop_key: str, direction: str) -> tuple[int, list
 
     Bekreftelses-typer (max +2 totalt):
 
-    A. YIELD-CROSS (grains + café):
-       Open-Meteo yield_score < 55  AND  Conab yoy_change_pct < -3
-       → feltbasert avlingsnedgang bekreftes av agrometeorologisk stress
-       → +1 for BUY-retning (tight supply)
+    A. YIELD-CROSS (grains + café) — symmetrisk:
+       BUY:  Open-Meteo yield_score < 55  AND  Conab yoy_change_pct < -3
+             → feltbasert avlingsnedgang + agrometeorologisk stress (knapphet)
+       SELL: Open-Meteo yield_score > 85  AND  Conab yoy_change_pct > +3
+             → rekord-yields + Conab-overflod (supply-press ned)
 
-    B. CRUSH-CROSS (kun sugar):
-       UNICA crush YoY < -3  AND  agri-region wx_score >= 2
-       → mindre crush enn ifjor + akutt værstress i sukkerregion
-       → +1 for BUY-retning (supply press fortsetter)
+    B. CRUSH-CROSS (kun sugar) — symmetrisk:
+       BUY:  UNICA crush YoY < -3  AND  agri-region wx_score >= 2
+             → mindre crush + akutt værstress (supply-knapphet)
+       SELL: UNICA crush YoY > +3  AND  agri-region wx_score <= 1
+             → mer crush + benignt vær (supply-overflod)
 
     C. STRUCTURAL-TREND (grains + café):
        Conab yoy_change_pct >= +10  OR  <= -10
@@ -445,39 +446,45 @@ def _cross_confirm(crop: dict, crop_key: str, direction: str) -> tuple[int, list
     score = 0
     drivers = []
 
-    # A. YIELD-CROSS — Open-Meteo yield_score + Conab YoY
+    # A. YIELD-CROSS — Open-Meteo yield_score + Conab YoY (symmetrisk BUY/SELL)
     conab_key = CONAB_KEYS.get(crop_key or "")
     conab_crop = None
     if conab_data and conab_key:
         conab_crop = (conab_data.get("crops") or {}).get(conab_key)
     yield_score = crop.get("yield_score")
-    if (conab_crop is not None
-            and yield_score is not None
-            and direction == "BUY"):
+    if conab_crop is not None and yield_score is not None:
         conab_yoy = conab_crop.get("yoy_change_pct")
-        if (conab_yoy is not None
-                and yield_score < 55
-                and conab_yoy < -3):
-            score += 1
-            drivers.append(
-                f"Krysssjekk: yield_score {yield_score} + Conab YoY "
-                f"{conab_yoy:+.1f}% → supply-stress bekreftet"
-            )
+        if conab_yoy is not None:
+            if direction == "BUY" and yield_score < 55 and conab_yoy < -3:
+                score += 1
+                drivers.append(
+                    f"Krysssjekk: yield_score {yield_score} + Conab YoY "
+                    f"{conab_yoy:+.1f}% → supply-stress bekreftet"
+                )
+            elif direction == "SELL" and yield_score > 85 and conab_yoy > 3:
+                score += 1
+                drivers.append(
+                    f"Krysssjekk: yield_score {yield_score} + Conab YoY "
+                    f"{conab_yoy:+.1f}% → supply-overflod bekreftet"
+                )
 
-    # B. CRUSH-CROSS — UNICA crush YoY + akutt vær i sukker-region
-    if (crop_key == "sugar"
-            and unica_data
-            and direction == "BUY"):
+    # B. CRUSH-CROSS — UNICA crush YoY + vær i sukker-region (symmetrisk BUY/SELL)
+    if crop_key == "sugar" and unica_data:
         crush_yoy = unica_data.get("crush_accumulated_yoy_pct")
         wx_score = crop.get("avg_wx_score", 0) or 0
-        if (crush_yoy is not None
-                and crush_yoy < -3
-                and wx_score >= 2):
-            score += 1
-            drivers.append(
-                f"Krysssjekk: UNICA crush {crush_yoy:+.1f}% YoY + vær-stress "
-                f"(wx_score={wx_score}) → supply-press fortsetter"
-            )
+        if crush_yoy is not None:
+            if direction == "BUY" and crush_yoy < -3 and wx_score >= 2:
+                score += 1
+                drivers.append(
+                    f"Krysssjekk: UNICA crush {crush_yoy:+.1f}% YoY + vær-stress "
+                    f"(wx_score={wx_score}) → supply-press fortsetter"
+                )
+            elif direction == "SELL" and crush_yoy > 3 and wx_score <= 1:
+                score += 1
+                drivers.append(
+                    f"Krysssjekk: UNICA crush {crush_yoy:+.1f}% YoY + benignt vær "
+                    f"(wx_score={wx_score}) → supply-overflod fortsetter"
+                )
 
     # C. STRUCTURAL-TREND — Conab YoY som strukturell bias (ikke shock)
     #    Dette er vekst/nedgang vs forrige safra-år — priset inn av markedet,
@@ -1029,6 +1036,9 @@ signals.sort(key=lambda s: s["score"], reverse=True)
 
 # ── Skriv agri_signals.json ──────────────────────────────
 output = {
+    # 2.2: data_quality + quality_notes på hver signal, symmetrisk SELL-mirror
+    # i cross_confirm + yield_stress, korrupt-JSON-deteksjon i source-loader.
+    "schema_version": "2.2",
     "generated":   now_ts,
     "cot_date":    agri.get("cot_date", ""),
     "enso_phase":  agri.get("enso", {}).get("phase", "?"),
