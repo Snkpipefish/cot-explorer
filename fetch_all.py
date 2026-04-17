@@ -14,6 +14,8 @@ except:
 # Driver-familie-matrise (fikser C1-korrelasjons-bias, schema 2.0)
 import driver_matrix as dm
 import driver_group_mapping as dgm
+# Fase 2.1: disaggregated COT-analytics (MM percentile, MM-Comm divergens, OI)
+import cot_analytics as ca
 
 _DRIVER_SOURCES = dgm.load_all_sources(Path(os.path.expanduser("~/cot-explorer")))
 
@@ -1094,6 +1096,30 @@ _gs_ratio_z = _compute_gs_ratio_z()
 if _gs_ratio_z is not None:
     print(f"  Gold/Silver ratio z-score (20d): {_gs_ratio_z:+.2f}")
 
+# ── Fase 2.1: last eller bygg disaggregated COT-analytics-cache ────────────
+# Cachen gjenbrukes til COT-date endrer seg (ukentlig). Ved cache-miss tar
+# bygging ~35s én gang (leser 16 år × 283 markeder fra data/history/).
+_analytics_path  = os.path.join(BASE, "cot_analytics", "latest.json")
+_latest_cot_date = max((d.get("date", "") for d in cot_data.values() if d.get("date")),
+                       default="")
+_cache = ca.load_cache(_analytics_path)
+_cot_analytics = {}
+if _cache and _cache.get("cot_date") == _latest_cot_date:
+    _cot_analytics = _cache.get("assets", {})
+    print(f"  COT-analytics lastet fra cache ({_latest_cot_date}, "
+          f"{len(_cot_analytics)} assets)")
+else:
+    try:
+        _now_iso = datetime.now(timezone.utc).isoformat()
+        _cache = ca.build_cache(os.path.expanduser("~/cot-explorer"), _now_iso)
+        ca.save_cache(_cache, _analytics_path)
+        _cot_analytics = _cache.get("assets", {})
+        print(f"  COT-analytics bygget ({_cache.get('cot_date')}, "
+              f"{len(_cot_analytics)} assets)")
+    except Exception as _e:
+        print(f"  COT-analytics FEIL: {_e} — scoring fortsetter uten sub-signaler")
+        _cot_analytics = {}
+
 for inst in INSTRUMENTS:
     print(f"Henter {inst['navn']}...")
 
@@ -1593,6 +1619,19 @@ for inst in INSTRUMENTS:
         # Fase 3: COT-alder for data-quality-gate (per-asset)
         "_cot_age_days":       _cot_age_days,
     }
+
+    # ── Fase 2.1: per-asset disaggregated COT-analytics sub-signaler ────
+    _asset_analytics = _cot_analytics.get(key, {})
+    if _asset_analytics.get("data_quality") == "fresh":
+        _macro_ctx["mm_net_pctile_52w"]    = _asset_analytics.get("mm_net_pctile_52w")
+        _macro_ctx["mm_comm_divergence_z"] = _asset_analytics.get("mm_comm_divergence_z")
+        _macro_ctx["index_investor_bias"]  = _asset_analytics.get("index_investor_bias")
+        # OI-regime krever direction (per-asset) — beregnes her, ikke i cachen
+        _oi_avg_4w = _asset_analytics.get("oi_change_4w_avg", 0)
+        _oi_cur    = _asset_analytics.get("change_oi_current", 0)
+        if _oi_avg_4w or _oi_cur:
+            _oi_regime, _ = ca.oi_regime(_oi_cur, [_oi_avg_4w], dir_color)
+            _macro_ctx["oi_regime_label"] = _oi_regime
     _ctx_groups = dgm.build_context_for_asset(inst["key"], _DRIVER_SOURCES, _macro_ctx)
     group_result = dm.score_asset(
         direction=dir_color,

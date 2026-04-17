@@ -98,6 +98,15 @@ def build_context_for_asset(asset: str,
                           or macro_context.get("_cot_age_days"),
     }
 
+    # Fase 2.1: disaggregated COT-analytics. Per-asset sub-signaler hentes fra
+    # macro_context der fetch_all.py har allerede slaatt opp fra cot_analytics-
+    # cachen. Hver er None-safe -> compute_positioning_v2 faller tilbake til
+    # legacy-beregninger hvis verdien mangler.
+    for k in ("mm_net_pctile_52w", "mm_comm_divergence_z",
+              "oi_regime_label", "index_investor_bias"):
+        if macro_context.get(k) is not None:
+            ctx[k] = macro_context[k]
+
     fund = sources.get("fundamentals", {})
     market_rates = fund.get("market_rates") or {}
 
