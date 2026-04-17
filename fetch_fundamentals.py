@@ -528,6 +528,10 @@ MARKET_RATES = {
     "dgs2":   "DGS2",    # 2-year Treasury yield
     "dfii10": "DFII10",  # 10-year TIPS real yield
 }
+# Per-serie max fresh/degraded-alder. Brukes av scoring-laget til staleness-gate.
+# Market rates publiseres daglig (virkedager), så >48h = helg-tolerert, >7d = stale.
+MARKET_RATES_TTL_HOURS = {"dgs10": (48, 168), "dgs2": (48, 168), "dfii10": (48, 168)}
+
 market_rates = {}
 for key, fred_id in MARKET_RATES.items():
     print(f"  Henter market rate {key} ({fred_id})...")
@@ -539,14 +543,57 @@ for key, fred_id in MARKET_RATES.items():
             "value":    round(curr, 3),
             "chg_5d":   round(curr - prev_week, 3),
             "date":     obs[-1][0],
+            "_fallback": False,
         }
         print(f"    → {curr:.2f}% (5d chg {curr - prev_week:+.3f})")
     time.sleep(0.15)
 
-# Yield curve spread
+# Fase 0.2: cache-fallback ved FRED-feil (5xx / timeout). Arv forrige verdi med
+# _fallback=True slik at scoring-laget kan velge å kappe grade ved degraded data.
+missing_rates = [k for k in MARKET_RATES if k not in market_rates]
+if missing_rates:
+    prev = _load_previous_output() or {}
+    prev_rates = prev.get("market_rates", {})
+    for k in missing_rates:
+        if k in prev_rates and "value" in prev_rates[k]:
+            # Behold _age_hours fra forrige run hvis den allerede var fallback,
+            # slik at vi sporer hvor lenge vi har vært uten fersk data.
+            inherited = {**prev_rates[k], "_fallback": True}
+            market_rates[k] = inherited
+            print(f"  {k.upper()} FEIL — arvet {inherited['value']:.2f}% "
+                  f"fra {inherited.get('date','?')} (_fallback=True)")
+        else:
+            print(f"  {k.upper()} FEIL og ingen cache — term_spread kan ikke beregnes")
+
+# Fase 0.3: beregn _age_hours + _fresh for hver rate (DGS2/DGS10/DFII10)
+_now = datetime.now(timezone.utc)
+for k, rate in market_rates.items():
+    if not isinstance(rate, dict) or "date" not in rate:
+        continue
+    try:
+        # FRED-datoer er 'YYYY-MM-DD' (dato uten tid). Anta close på UTC-ettermiddag.
+        dt = datetime.fromisoformat(rate["date"] + "T21:00:00+00:00")
+        age_h = (_now - dt).total_seconds() / 3600
+        fresh_ttl, degraded_ttl = MARKET_RATES_TTL_HOURS.get(k, (48, 168))
+        rate["_age_hours"] = round(age_h, 1)
+        rate["_fresh"]     = age_h <= fresh_ttl
+    except Exception:
+        pass
+
+# Yield curve spread — beregnes også fra arvet cache hvis minst én side er arvet.
+# Da flagges term_spread med _fallback=True slik at scoring vet det.
 if "dgs10" in market_rates and "dgs2" in market_rates:
-    market_rates["term_spread"] = round(
-        market_rates["dgs10"]["value"] - market_rates["dgs2"]["value"], 3)
+    spread_val = round(market_rates["dgs10"]["value"] - market_rates["dgs2"]["value"], 3)
+    fallback_ts = bool(market_rates["dgs10"].get("_fallback") or
+                       market_rates["dgs2"].get("_fallback"))
+    market_rates["term_spread"] = spread_val
+    # Legg også inn som dict for staleness-lesing (backward-compat: _get kan lese begge)
+    market_rates["_term_spread_meta"] = {
+        "value":     spread_val,
+        "_fallback": fallback_ts,
+        "_age_hours": max(market_rates["dgs10"].get("_age_hours", 0),
+                          market_rates["dgs2"].get("_age_hours", 0)),
+    }
 
 # 7. Lagre
 output = {

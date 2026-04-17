@@ -1055,6 +1055,45 @@ assert INSTRUMENTS and INSTRUMENTS[0]["key"] == "DXY", (
     "er avhengig av at DXY-direction er satt før USD-parene iterer."
 )
 
+
+def _compute_gs_ratio_z(window: int = 20):
+    """Rolling z-score av Gold/Silver-ratio fra bot-history.
+
+    Brukes i metals fundamental-scoring (driver_matrix.compute_fundamental_metals):
+      Z > +2  → Gold dyr vs Silver → bear Gold / bull Silver
+      Z < -2  → Gold billig vs Silver → bull Gold / bear Silver
+    Returnerer None hvis for lite data eller std=0 (konstante priser).
+    """
+    try:
+        hist_path = os.path.expanduser("~/cot-explorer/data/prices/bot_history.json")
+        if not os.path.exists(hist_path):
+            return None
+        with open(hist_path) as f:
+            hist = json.load(f)
+        gold   = [e["price"] for e in hist.get("Gold",   []) if e.get("price")]
+        silver = [e["price"] for e in hist.get("Silver", []) if e.get("price")]
+        if len(gold) < 5 or len(silver) < 5:
+            return None
+        n = min(len(gold), len(silver), window)
+        ratios = [g / s for g, s in zip(gold[-n:], silver[-n:]) if s]
+        if len(ratios) < 5:
+            return None
+        mean = sum(ratios) / len(ratios)
+        var  = sum((r - mean) ** 2 for r in ratios) / len(ratios)
+        std  = var ** 0.5
+        if std <= 0:
+            return None
+        return round((ratios[-1] - mean) / std, 2)
+    except Exception as e:
+        print(f"  GS-ratio-z FEIL: {e}")
+        return None
+
+
+# Beregn én gang før scoring-loopen (samme verdi for Gold og Silver)
+_gs_ratio_z = _compute_gs_ratio_z()
+if _gs_ratio_z is not None:
+    print(f"  Gold/Silver ratio z-score (20d): {_gs_ratio_z:+.2f}")
+
 for inst in INSTRUMENTS:
     print(f"Henter {inst['navn']}...")
 
@@ -1520,6 +1559,8 @@ for inst in INSTRUMENTS:
     # (fikser C1-korrelasjons-bias).
     momentum_aligned = (chg20 > 0.5 and above_sma) or (chg20 < -0.5 and not above_sma)
     # Build macro-context fra lokal scope
+    _market_rates = (fund_data.get("market_rates") or {})
+    _dfii10 = _market_rates.get("dfii10") or {}
     _macro_ctx = {
         "dxy_chg5d": (prices.get("DXY") or {}).get("chg5d") if key != "DXY" else chg5,
         "vix_regime": "extreme" if _vix_now >= 35
@@ -1528,7 +1569,12 @@ for inst in INSTRUMENTS:
         "brl_chg5d": ((prices.get("USDBRL") or {}).get("chg5d")
                       or (prices.get("BRL") or {}).get("chg5d")),
         "oil_supply_disruption": _oil_supply_disruption,
-        "term_spread": (fund_data.get("market_rates") or {}).get("term_spread"),
+        "term_spread": _market_rates.get("term_spread"),
+        # Fase 0.1: lekk real yields, fear&greed og GS-ratio-z inn i scoringen
+        "real_yield_10y":      _dfii10.get("value"),
+        "real_yield_chg":      _dfii10.get("chg_5d"),
+        "fear_greed":          fg["score"] if isinstance(fg, dict) and "score" in fg else None,
+        "gold_silver_ratio_z": _gs_ratio_z,
     }
     _ctx_groups = dgm.build_context_for_asset(inst["key"], _DRIVER_SOURCES, _macro_ctx)
     group_result = dm.score_asset(
