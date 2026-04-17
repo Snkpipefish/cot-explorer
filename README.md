@@ -177,9 +177,9 @@ Kjører `update.sh`: full pipeline (se tabell under)
 
 ## Signal-varsling og trading bot
 
-`push_signals.py` sender de beste tradingideene til Telegram, Discord og Flask-server via én `/push-alert` endpoint. Tekniske og agri-signaler merges inn i samme `signals.json` og samme Flask-push. Agri-signaler merkes med `source: "agri_fundamental"` slik at boten kan rekalibrere entry/SL/T1 med live ATR. Agri-signaler pushes til Flask uavhengig av om det finnes tekniske signaler i samme kjøring (Telegram/Discord-meldingen hopper over når kun agri er tilstede). Begge typer signaler dropper ut hvis live pris har vandret > N×ATR fra entry (SCALP 1.5, SWING 2.5, MAKRO 4.0).
+`push_signals.py` sender de beste tradingideene til Telegram, Discord og Flask-server via én `/push-alert` endpoint. Tekniske og agri-signaler merges inn i samme `signals.json` og samme Flask-push. Agri-signaler merkes med `source: "agri_fundamental"` slik at boten kan rekalibrere entry/SL/T1 med live ATR. Agri-signaler pushes til Flask uavhengig av om det finnes tekniske signaler i samme kjøring (Telegram/Discord-meldingen hopper over når kun agri er tilstede). **Aging-filter er fjernet (schema 2.2)** — boten håndterer signal-utløp via `horizon_config.exit_timeout_*`-feltene (SCALP 8 candles, SWING 96 candles, MAKRO 288 candles) i stedet.
 
-`push_agri_signals.py` genererer fundamentale agri-setups basert på outlook (vær + COT + yield + ENSO) og skriver til `agri_signals.json`. Ingen separat Flask-push — `push_signals.py` merger dette inn. Agri-signaler propagerer `data_quality` (`fresh`/`degraded`/`stale`) basert på Conab/UNICA-staleness; en avling som scorer A med manglende Conab-data flagges som `degraded` med `quality_notes` slik at brukeren ser hvilken kilde som mangler.
+`push_agri_signals.py` genererer fundamentale agri-setups basert på outlook (vær + COT + yield + ENSO) og skriver til `agri_signals.json`. Ingen separat Flask-push — `push_signals.py` merger dette inn. Agri-signaler propagerer `data_quality` (`fresh`/`degraded`/`stale`) basert på Conab/UNICA-staleness — inkludert **`corrupt`-deteksjon** (halv-skrevne JSON-filer flagges som stale, ikke fresh). En avling som scorer A med manglende eller korrupt Conab-data flagges som `stale` med `quality_notes` slik at brukeren ser hvilken kilde som mangler.
 
 **Scoring-arkitektur (schema 2.0 — 6-familie driver matrix):**
 - `driver_matrix.py` — 6-familie scoring (TREND, POSITIONING, MACRO, FUNDAMENTAL, RISK/EVENT, STRUCTURE) med confluens-gate som fikser C1 korrelasjons-bias
@@ -202,7 +202,7 @@ Både `fetch_all.py` (hver 4. time) og `rescore.py` (hver time via update_prices
 
 ```json
 {
-  "schema_version": "2.0",
+  "schema_version": "2.2",
   "generated": "2026-04-17 16:00 UTC",
   "global_state": {
     "geo_active": true,
@@ -248,7 +248,7 @@ Både `fetch_all.py` (hver 4. time) og `rescore.py` (hver time via update_prices
 }
 ```
 
-- `schema_version` — schema 2.0 inkluderer `driver_groups` per signal. Bot validerer; ukjent versjon gir WARN (ikke block). Signal-server sjekker at alle `driver_groups.*.score` ∈ [0, 1].
+- `schema_version` — schema 2.2 inkluderer `driver_groups` per signal + `data_quality`/`quality_notes` på alle signaler + `dir_override_reason` på tekniske + symmetrisk SELL-mirror i agri cross_confirm. Bot validerer; ukjent versjon gir WARN (ikke block). Signal-server sjekker at alle `driver_groups.*.score` ∈ [0, 1].
 - `vix_regime` — string enum `{normal, elevated, extreme}`.
 - `created_at` — per-signal TTL-sjekk i bot (SCALP 15min / SWING 4t / MAKRO 24t).
 
