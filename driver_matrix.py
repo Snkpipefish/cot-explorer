@@ -157,29 +157,122 @@ def compute_trend(sma200_aligned: bool,
 
 # ─── FAMILIE 2: POSITIONING (COT) ────────────────────────────────────────
 
+def compute_positioning_v2(cot_bias_aligns: bool,
+                           cot_pct: Optional[float],
+                           cot_momentum_aligns: bool,
+                           direction: str = "bull",
+                           # Fase 2.1: disaggregated/TFF sub-signaler (None-safe)
+                           mm_net_pctile_52w:    Optional[float] = None,
+                           mm_comm_divergence_z: Optional[float] = None,
+                           oi_regime_label:      Optional[str]   = None,
+                           index_investor_bias:  Optional[str]   = None,
+                           ) -> GroupScore:
+    """POSITIONING-familie med 3 legacy + opptil 4 disaggregated sub-signaler.
+
+    Legacy (alltid aktive hvis data finnes):
+      - bias_aligns: COT-nettposisjonering peker samme vei som retning (±4% terskel)
+      - strength:    |cot_pct|/25 cappet 1.0 (fallback hvis mm_net_pctile_52w=None)
+      - momentum:    COT-endring peker samme vei som nett (klassisk momentum-filter)
+
+    Nye sub-signaler (aktiveres når cot_analytics leverer data):
+      - MM-percentile 52w: contrarian-lesning (bunn/topp 10-20% av historikk)
+      - MM-Commercial divergens-z: spread mellom spekulanter og hedgers
+      - OI-regime: stigende OI i retning = bekreftelse; mot retning = advarsel (−)
+      - Index investor bias: strukturelt long/short-bidrag (agri, supplemental)
+
+    Bakoverkompatibel: uten nye kwargs oppfører v2 seg som legacy.
+    C1 bevares: én familie kan ikke alene gi A-grade.
+    """
+    is_bull = direction in ("buy", "bull", "long")
+    is_bear = direction in ("sell", "bear", "short")
+
+    subs: list[tuple[float, Optional[str]]] = []
+
+    # ─── Legacy 1: bias_aligns ──────────────────────────────────────
+    if cot_bias_aligns:
+        subs.append((1.0, f"COT bias align ({(cot_pct or 0):+.1f}%)"))
+    else:
+        subs.append((0.0, None))
+
+    # ─── Legacy 2: momentum_aligns ──────────────────────────────────
+    if cot_momentum_aligns:
+        subs.append((1.0, "COT momentum +"))
+    else:
+        subs.append((0.0, None))
+
+    # ─── Styrke: MM-percentile hvis tilgjengelig, ellers legacy cot_pct ─────
+    if mm_net_pctile_52w is not None:
+        p = mm_net_pctile_52w
+        # Contrarian-lesning: ekstrem MM-long = topp-signal (bearish), vice versa
+        if is_bull and p <= 10:
+            subs.append((1.0, f"MM percentile {p:.0f} (bunn — contra-bull)"))
+        elif is_bull and p <= 20:
+            subs.append((0.5, f"MM percentile {p:.0f} (lav)"))
+        elif is_bear and p >= 90:
+            subs.append((1.0, f"MM percentile {p:.0f} (topp — contra-bear)"))
+        elif is_bear and p >= 80:
+            subs.append((0.5, f"MM percentile {p:.0f} (høy)"))
+        else:
+            subs.append((0.0, None))
+    else:
+        # Legacy strength-fallback (cot_pct/25-cap)
+        strength = min(abs(cot_pct or 0) / 25.0, 1.0)
+        label = f"COT sterk ({abs(cot_pct or 0):.0f}% net)" if strength >= 0.6 else None
+        subs.append((strength, label))
+
+    # ─── MM-Commercial divergens (sterkere enn percentile alene) ─────
+    if mm_comm_divergence_z is not None:
+        z = mm_comm_divergence_z
+        # Positiv z = MM mer long enn Commercial historisk (topp-signal for bears)
+        # Negativ z = MM mer short enn Commercial historisk (bunn-signal for bulls)
+        if is_bear and z >= 1.5:
+            subs.append((1.0, f"MM/Comm divergens z={z:+.1f} (topp-signal)"))
+        elif is_bear and z >= 1.0:
+            subs.append((0.5, f"MM/Comm divergens z={z:+.1f}"))
+        elif is_bull and z <= -1.5:
+            subs.append((1.0, f"MM/Comm divergens z={z:+.1f} (bunn-signal)"))
+        elif is_bull and z <= -1.0:
+            subs.append((0.5, f"MM/Comm divergens z={z:+.1f}"))
+
+    # ─── OI-regime (kan gi negativt bidrag!) ────────────────────────
+    if oi_regime_label == "confirmation":
+        subs.append((0.5, "OI stigende (bekrefter)"))
+    elif oi_regime_label == "warning":
+        subs.append((-0.3, "OI stigende mot retning (advarsel)"))
+    # liquidation og stable bidrar 0 (ikke-aktive)
+
+    # ─── Index Investor-flow (strukturelt, kun agri) ────────────────
+    if index_investor_bias == "structural_long" and is_bull:
+        subs.append((0.3, "Indeksfond strukturelt long"))
+    elif index_investor_bias == "structural_short" and is_bear:
+        subs.append((0.3, "Indeksfond strukturelt short"))
+
+    # Aggregering: snitt av ikke-null bidrag, clamp til [0, 1]
+    active = [(s, d) for s, d in subs if s != 0.0]
+    if not active:
+        return GroupScore(score=0.0, drivers=[])
+    avg = sum(s for s, _ in active) / len(active)
+    score = max(0.0, min(avg, 1.0))
+    drivers = [d for _, d in active if d][:3]
+    return GroupScore(score=score, drivers=drivers)
+
+
+# Backward-compat alias for eksterne kallere og eksisterende tester.
 def compute_positioning(cot_bias_aligns: bool,
                         cot_pct: Optional[float],
                         cot_momentum_aligns: bool) -> GroupScore:
-    """Composite COT-score.
+    """Legacy 3-signal-versjon. Beholdt som alias — delegerer til v2 med
+    direction='bull' og ingen disaggregerte kwargs.
 
-    cot_bias_aligns:    bias (LONG/SHORT) = signal-retning
-    cot_pct:            netto posisjonering i %, absolutt verdi
-                        25%+ = full styrke (cap 1.0)
-    cot_momentum_aligns: Δ i posisjonering peker samme vei som retning
+    Merk: uten direction kan ikke v2 tolke percentile-ekstremer — derfor
+    denne aliasen er kun til backward-compat for eksterne kall som ikke
+    vet om retningen.
     """
-    bias_score = 1.0 if cot_bias_aligns else 0.0
-    strength   = min(abs(cot_pct or 0) / 25.0, 1.0)
-    momentum   = 1.0 if cot_momentum_aligns else 0.0
-    score = (bias_score + strength + momentum) / 3.0
-
-    drivers = []
-    if cot_bias_aligns:
-        drivers.append(f"COT bias align ({(cot_pct or 0):+.1f}%)")
-    if strength >= 0.6:
-        drivers.append(f"COT sterk ({abs(cot_pct or 0):.0f}% net)")
-    if cot_momentum_aligns:
-        drivers.append("COT momentum +")
-    return GroupScore(score=score, drivers=drivers)
+    return compute_positioning_v2(
+        cot_bias_aligns=cot_bias_aligns,
+        cot_pct=cot_pct,
+        cot_momentum_aligns=cot_momentum_aligns,
+    )
 
 
 # ─── FAMILIE 3: MACRO ────────────────────────────────────────────────────
@@ -769,8 +862,19 @@ def score_asset(
     # Familie 1 — TREND
     trend = compute_trend(sma200_aligned, momentum_aligned, d1_4h_congruent)
 
-    # Familie 2 — POSITIONING
-    positioning = compute_positioning(cot_bias_aligns, cot_pct, cot_momentum_aligns)
+    # Familie 2 — POSITIONING (v2 med disaggregated COT-analytics)
+    # Legger til nye sub-signaler fra cot_analytics hvis de finnes i context.
+    # Hvis ikke, oppfører v2 seg som legacy (None-safe).
+    positioning = compute_positioning_v2(
+        cot_bias_aligns=cot_bias_aligns,
+        cot_pct=cot_pct,
+        cot_momentum_aligns=cot_momentum_aligns,
+        direction=direction,
+        mm_net_pctile_52w=context.get("mm_net_pctile_52w"),
+        mm_comm_divergence_z=context.get("mm_comm_divergence_z"),
+        oi_regime_label=context.get("oi_regime_label"),
+        index_investor_bias=context.get("index_investor_bias"),
+    )
 
     # Familie 3 — MACRO
     macro = compute_macro(

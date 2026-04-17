@@ -249,6 +249,109 @@ def test_gs_ratio_z_extreme_silver_bull():
           f"{result.driver_groups['fundamental'].drivers}")
 
 
+# ──────────────────────────────────────────────────────────────
+# Fase 2.1 regresjonstester (disaggregated COT / positioning_v2)
+# ──────────────────────────────────────────────────────────────
+
+def test_mm_percentile_extreme_bull_activates_positioning():
+    """MM på bunn-percentile (ekstremt underbefolket long) + bull-retning →
+    contrarian-bull signal aktiverer POSITIONING selv uten COT-bias-match."""
+    result = dm.score_asset(
+        direction="bull", asset="Gold", asset_class="metals",
+        cot_bias_aligns=False, cot_pct=-5.0, cot_momentum_aligns=False,
+        mm_net_pctile_52w=5.0,   # Bunn 5 %
+    )
+    drivers = " ".join(result.driver_groups["positioning"].drivers)
+    assert "percentile" in drivers.lower() or "contra-bull" in drivers, \
+        f"FAIL: MM bunn-percentile ga ikke contrarian-signal: {drivers}"
+    assert result.driver_groups["positioning"].score > 0.3, \
+        f"FAIL: score for lav ({result.driver_groups['positioning'].score})"
+    print(f"PASS: MM=5 pctile + bull → POSITIONING drivers: "
+          f"{result.driver_groups['positioning'].drivers}")
+
+
+def test_mm_comm_divergence_bear_topp_signal():
+    """MM mye mer long enn Commercial (z=+2) + bear-retning = klassisk topp-signal."""
+    result = dm.score_asset(
+        direction="bear", asset="Gold", asset_class="metals",
+        cot_bias_aligns=True, cot_pct=-10, cot_momentum_aligns=False,
+        mm_comm_divergence_z=2.0,
+    )
+    drivers = " ".join(result.driver_groups["positioning"].drivers)
+    assert "divergens" in drivers.lower() or "topp-signal" in drivers, \
+        f"FAIL: MM/Comm divergens-ekstrem ga ikke topp-signal: {drivers}"
+    print(f"PASS: MM/Comm z=+2 bear → drivers: "
+          f"{result.driver_groups['positioning'].drivers}")
+
+
+def test_oi_warning_reduces_positioning():
+    """Stigende OI mot handelsretning skal redusere POSITIONING-score."""
+    baseline = dm.score_asset(
+        direction="bull", asset="Gold", asset_class="metals",
+        cot_bias_aligns=True, cot_pct=15.0, cot_momentum_aligns=True,
+    )
+    with_warning = dm.score_asset(
+        direction="bull", asset="Gold", asset_class="metals",
+        cot_bias_aligns=True, cot_pct=15.0, cot_momentum_aligns=True,
+        oi_regime_label="warning",   # OI bygger opp mot bull-retning
+    )
+    assert with_warning.driver_groups["positioning"].score \
+         < baseline.driver_groups["positioning"].score, \
+        f"FAIL: OI warning reduserte ikke score " \
+        f"(baseline={baseline.driver_groups['positioning'].score}, " \
+        f"warning={with_warning.driver_groups['positioning'].score})"
+    print(f"PASS: OI warning reduserer score: "
+          f"{baseline.driver_groups['positioning'].score:.2f} → "
+          f"{with_warning.driver_groups['positioning'].score:.2f}")
+
+
+def test_c1_still_holds_with_positioning_v2():
+    """POSITIONING v2 kan ha 5-6 sub-signaler på maks, men C1-prinsippet skal
+    holde: én familie alene kan ikke gi A-grade uten 3+ aktive familier."""
+    r = dm.score_asset(
+        direction="bull", asset="Gold", asset_class="metals",
+        cot_bias_aligns=True, cot_pct=25.0, cot_momentum_aligns=True,
+        mm_net_pctile_52w=3,          # Bunn-ekstrem
+        mm_comm_divergence_z=-2.0,    # Bunn-divergens
+        oi_regime_label="confirmation",
+    )
+    assert r.grade == "C", f"C1-brudd: POSITIONING alene ga {r.grade}"
+    assert r.active_driver_groups <= 1
+    print(f"PASS: POSITIONING maks alene → grade={r.grade} (C1 holder)")
+
+
+def test_positioning_v2_backward_compat():
+    """Uten nye kwargs skal v2 gi samme score som legacy-versjonen."""
+    r = dm.score_asset(
+        direction="bull", asset="EURUSD", asset_class="fx",
+        cot_bias_aligns=True, cot_pct=20, cot_momentum_aligns=True,
+        # Ingen mm_net_pctile_52w osv.
+    )
+    # 3 legacy subs, alle på 1.0 (strength=20/25=0.8) → ~(1+0.8+1)/3 = 0.93
+    assert r.driver_groups["positioning"].score > 0.8, \
+        f"FAIL: backward-compat score lav: {r.driver_groups['positioning'].score}"
+    print(f"PASS: backward-compat uten nye kwargs → "
+          f"score={r.driver_groups['positioning'].score:.2f}")
+
+
+def test_index_investor_structural_long_for_agri_bull():
+    """Index investor structurally long + bull Corn → additiv POSITIONING-bidrag."""
+    baseline = dm.score_asset(
+        direction="bull", asset="Corn", asset_class="grains",
+        cot_bias_aligns=True, cot_pct=10, cot_momentum_aligns=False,
+    )
+    with_idx = dm.score_asset(
+        direction="bull", asset="Corn", asset_class="grains",
+        cot_bias_aligns=True, cot_pct=10, cot_momentum_aligns=False,
+        index_investor_bias="structural_long",
+    )
+    drivers = " ".join(with_idx.driver_groups["positioning"].drivers)
+    assert "Indeksfond" in drivers, \
+        f"FAIL: index investor ga ikke driver: {drivers}"
+    print(f"PASS: Index investor long + bull Corn → drivers: "
+          f"{with_idx.driver_groups['positioning'].drivers}")
+
+
 if __name__ == "__main__":
     print("═" * 60)
     print(" C1 regression tests — driver_matrix")
@@ -268,6 +371,13 @@ if __name__ == "__main__":
         test_data_quality_stale_caps_to_b,
         test_grade_pct_scales_across_horizons,
         test_gs_ratio_z_extreme_silver_bull,
+        # Fase 2.1 positioning_v2 nye tester
+        test_mm_percentile_extreme_bull_activates_positioning,
+        test_mm_comm_divergence_bear_topp_signal,
+        test_oi_warning_reduces_positioning,
+        test_c1_still_holds_with_positioning_v2,
+        test_positioning_v2_backward_compat,
+        test_index_investor_structural_long_for_agri_bull,
     ]
     passed = 0
     failed = 0
