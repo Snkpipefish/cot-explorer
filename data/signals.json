@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-17 05:46 UTC",
+  "generated": "2026-04-17 06:01 UTC",
   "cot_date": "2026-04-07",
   "global_state": {
     "geo_active": true,
@@ -253,6 +253,121 @@
       }
     },
     {
+      "key": "Silver",
+      "name": "Sølv",
+      "action": "BUY",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "B",
+      "score": 2.68,
+      "max_score": 6.0,
+      "score_pct": 45,
+      "score_details": [
+        {
+          "kryss": "Trendbildet (SMA/momentum/align)",
+          "id": "group_trend",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.67,
+          "drivers": [
+            "SMA200-align",
+            "Momentum 20d +"
+          ]
+        },
+        {
+          "kryss": "COT-posisjonering",
+          "id": "group_positioning",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.45,
+          "drivers": [
+            "COT bias align (+9.0%)"
+          ]
+        },
+        {
+          "kryss": "Makrobilde (DXY/VIX/renter)",
+          "id": "group_macro",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        },
+        {
+          "kryss": "Fundamentalt (asset-spesifikt)",
+          "id": "group_fundamental",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.76,
+          "drivers": [
+            "COMEX stress 61"
+          ]
+        },
+        {
+          "kryss": "Event-risiko (kalender/geo)",
+          "id": "group_risk",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        },
+        {
+          "kryss": "Teknisk struktur (HTF/SMC)",
+          "id": "group_structure",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.8,
+          "drivers": [
+            "HTF-nivå w4"
+          ]
+        }
+      ],
+      "current": 79.135,
+      "entry": 78.606,
+      "sl": 77.5887,
+      "t1": 82.68349,
+      "t2": 95.86,
+      "rr_t1": 4.01,
+      "rr_t2": 16.96,
+      "sl_type": "struktur",
+      "cot_bias": "LONG",
+      "cot_pct": 9.0,
+      "correlation_group": "precious_metals",
+      "adr_utilization": {
+        "pct": 53.4,
+        "ok_for_scalp": true,
+        "available": true
+      },
+      "atr_d1": 2.86521,
+      "horizon_config": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {
+          "fx": 3.0,
+          "gold": 4.0,
+          "silver": 4.0,
+          "oil": 3.5,
+          "index": 3.0
+        },
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
+      }
+    },
+    {
       "key": "AUDUSD",
       "name": "AUD/USD",
       "action": "BUY",
@@ -318,7 +433,7 @@
           ]
         }
       ],
-      "current": 0.71683,
+      "current": 0.71676,
       "entry": 0.71669,
       "sl": 0.7154,
       "t1": 0.71846,
@@ -335,118 +450,6 @@
         "available": true
       },
       "atr_d1": 0.00726,
-      "horizon_config": {
-        "confirmation_tf": "5min",
-        "confirmation_max_candles": 6,
-        "confirmation_escape_atr_factor": 0.5,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0015,
-        "entry_zone_margin_atr": 0.3,
-        "exit_t1_close_pct": 0.5,
-        "exit_t2_close_pct": 0.25,
-        "exit_trail_tf": "5min",
-        "exit_trail_atr_mult": {
-          "fx": 2.0,
-          "gold": 2.5,
-          "silver": 2.5,
-          "oil": 2.5,
-          "index": 2.0
-        },
-        "exit_ema_tf": "5min",
-        "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 8,
-        "exit_timeout_partial_pct": 0.5,
-        "exit_timeout_full_candles": 16,
-        "exit_geo_spike_atr_mult": 2.0,
-        "sizing_base_risk_usd": 20
-      }
-    },
-    {
-      "key": "GBPUSD",
-      "name": "GBP/USD",
-      "action": "BUY",
-      "timeframe": "SCALP",
-      "horizon": "SCALP",
-      "grade": "B",
-      "score": 2.01,
-      "max_score": 6.0,
-      "score_pct": 34,
-      "score_details": [
-        {
-          "kryss": "Trendbildet (SMA/momentum/align)",
-          "id": "group_trend",
-          "verdi": true,
-          "vekt": 1.2,
-          "poeng": 0.8,
-          "drivers": [
-            "SMA200-align",
-            "Momentum 20d +"
-          ]
-        },
-        {
-          "kryss": "COT-posisjonering",
-          "id": "group_positioning",
-          "verdi": true,
-          "vekt": 0.5,
-          "poeng": 0.24,
-          "drivers": [
-            "COT bias align (+10.9%)"
-          ]
-        },
-        {
-          "kryss": "Makrobilde (DXY/VIX/renter)",
-          "id": "group_macro",
-          "verdi": false,
-          "vekt": 0.7,
-          "poeng": 0.0,
-          "drivers": []
-        },
-        {
-          "kryss": "Fundamentalt (asset-spesifikt)",
-          "id": "group_fundamental",
-          "verdi": false,
-          "vekt": 0.5,
-          "poeng": 0.0,
-          "drivers": []
-        },
-        {
-          "kryss": "Event-risiko (kalender/geo)",
-          "id": "group_risk",
-          "verdi": false,
-          "vekt": 0.8,
-          "poeng": 0.0,
-          "drivers": []
-        },
-        {
-          "kryss": "Teknisk struktur (HTF/SMC)",
-          "id": "group_structure",
-          "verdi": true,
-          "vekt": 1.3,
-          "poeng": 0.98,
-          "drivers": [
-            "HTF-nivå w4",
-            "SMC-bekreftelse"
-          ]
-        }
-      ],
-      "current": 1.35195,
-      "entry": 1.35192,
-      "sl": 1.35003,
-      "t1": 1.35682,
-      "t2": 1.35737,
-      "rr_t1": 2.6,
-      "rr_t2": 2.89,
-      "sl_type": "struktur",
-      "cot_bias": "LONG",
-      "cot_pct": 10.9,
-      "correlation_group": "usd_pairs",
-      "adr_utilization": {
-        "pct": 17.3,
-        "ok_for_scalp": true,
-        "available": true
-      },
-      "atr_d1": 0.01107,
       "horizon_config": {
         "confirmation_tf": "5min",
         "confirmation_max_candles": 6,
@@ -766,9 +769,9 @@
     }
   ],
   "_meta": {
-    "generated_at": "2026-04-17T05:46:16Z",
+    "generated_at": "2026-04-17T06:01:53Z",
     "script": "push_signals.py",
-    "macro_date": "2026-04-17 05:45 UTC",
+    "macro_date": "2026-04-17 06:00 UTC",
     "cot_date": "2026-04-07"
   }
 }
