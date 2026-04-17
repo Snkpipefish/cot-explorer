@@ -1,12 +1,15 @@
 # Detaljert: Hvordan Trading Setups Genereres
 
+*Oppdatert for schema 2.0 — 6-familie driver matrix med disaggregated COT-analytics.*
+
 ## Oversikt
 
 Trading-setups genereres i to parallelle pipelines — teknisk og agri-fundamental:
 
 ```
 TEKNISK PIPELINE:
-fetch_all.py        → data/macro/latest.json     (nivåer, score, setups)
+fetch_all.py        → data/macro/latest.json     (nivåer, driver-familie-scores, setups)
+                    → data/cot_analytics/latest.json  (MM-percentile, divergens-z, OI-regime)
 push_signals.py     → data/signals.json          (horisont-filtrert, for bot)
                     → POST /push-alert            (til signal_server.py)
 signal_server.py    → latest_signals.json         (oversatt til bot-format)
@@ -36,22 +39,20 @@ For hvert av 14 instrumenter (10 tradeable + 4 kun-pris) hentes prisdata fra 3 k
 
 **Instrumenter:**
 
-| Instrument | Klasse | Sesjon | COT |
+| Instrument | Klasse | Sesjon | Primær COT-kilde |
 |-----------|--------|--------|-----|
-| EURUSD | A | London 08:00–12:00 | CFTC Euro FX |
-| USDJPY | A | London 08:00–12:00 | CFTC Japanese Yen |
-| GBPUSD | A | London 08:00–12:00 | CFTC British Pound |
-| AUDUSD | A | London 08:00–12:00 | — |
-| Gold | B | London Fix / NY Fix | CFTC Gold |
-| Silver | B | London Fix / NY Fix | CFTC Silver |
-| Brent | B | London Fix / NY Fix | ICE+CFTC (OI-vektet) |
-| WTI | B | London Fix / NY Fix | CFTC Crude Oil |
-| SPX | C | NY Open 14:30–17:00 | CFTC S&P 500 |
-| NAS100 | C | NY Open 14:30–17:00 | CFTC Nasdaq Mini |
+| EURUSD | A | London 08:00–12:00 | TFF (Leveraged Funds) |
+| USDJPY | A | London 08:00–12:00 | TFF (Leveraged Funds) |
+| GBPUSD | A | London 08:00–12:00 | TFF (Leveraged Funds) |
+| AUDUSD | A | London 08:00–12:00 | TFF (Leveraged Funds) |
+| Gold | B | London Fix / NY Fix | Disaggregated (Managed Money) |
+| Silver | B | London Fix / NY Fix | Disaggregated (Managed Money) |
+| Brent | B | London Fix / NY Fix | ICE + CFTC Disaggregated (OI-vektet) |
+| WTI | B | London Fix / NY Fix | Disaggregated (Managed Money) |
+| SPX | C | NY Open 14:30–17:00 | Disaggregated (Managed Money) |
+| NAS100 | C | NY Open 14:30–17:00 | Disaggregated (Managed Money) |
 | VIX | C | NY (kun posisjonsstørrelse) | — |
-| DXY | A | London (kun display) | CFTC USD Index |
-| USDCHF | A | London (kun pris) | — |
-| USDNOK | A | London (kun pris) | — |
+| DXY | A | London (kun display) | Disaggregated (Managed Money) |
 
 ### 1.2 Beregninger per instrument
 
@@ -63,6 +64,7 @@ Fra prisdata beregnes:
 - **PDH/PDL/PDC** — Previous Day High/Low/Close
 - **PWH/PWL** — Previous Week High/Low
 - **Endring** 1d, 5d, 20d i prosent
+- **Gold/Silver-ratio z-score (20d)** — beregnes én gang fra `bot_history.json`, brukes i metals FUNDAMENTAL
 
 ### 1.3 VIX Term-struktur
 
@@ -74,22 +76,9 @@ Hentes FØR instrument-loopen (VIX9D, VIX, VIX3M fra Yahoo Finance):
 | Backwardation | VIX9D > VIX > VIX3M | Frykt — kortsiktig stress |
 | Flat | Spreaden < 5% | Nøytralt |
 
-Brukes som kriterium 13 i scoring, men **ikke gratis poeng**:
-- **Risk assets**: contango gir kun poeng hvis VIX < 20 (ekte rolig marked)
-- **Safe havens** (Gold, Silver, USDJPY, USDCHF): backwardation = bullish, contango + VIX < 18 = bearish
+VIX-regime mappes til `extreme`/`elevated`/`normal` og er en input til MACRO-familien (ikke lenger eget scoring-kriterie).
 
-### 1.4 ADR-utnyttelse
-
-Beregnes per instrument fra siste 26 bars med 15min-data (~6.5 timer):
-
-```
-today_range = 15min high - 15min low (siste 26 bars)
-adr_utilization = today_range / ATR(D1)
-```
-
-ADR < 70% = OK for scalp (fortsatt rom for bevegelse). Manglende 15min-data gir **ikke** poeng (default False).
-
-### 1.5 Nivåer (Support & Resistance)
+### 1.4 Nivåer (Support & Resistance)
 
 Nivåer identifiseres fra tre tidsrammer og tagges med vekt:
 
@@ -104,9 +93,9 @@ Nivåer identifiseres fra tre tidsrammer og tagges med vekt:
 #### Nøkkelnivåer — automatisk tagget
 | Nivå | Vekt | Kilde |
 |------|------|-------|
-| PDH/PDL | 3 | Previous Day High/Low |
-| PDC | 2 | Previous Day Close |
-| PWH/PWL | 4 | Previous Week High/Low |
+| PWH/PWL | 4-5 | Previous Week High/Low |
+| PDH/PDL | 3-4 | Previous Day High/Low |
+| PDC | 2-3 | Previous Day Close |
 | SMA200 | 3 | 200-dagers glidende snitt |
 | Runde tall | 1-2 | Psykologiske nivåer |
 
@@ -121,63 +110,84 @@ Alle nivåer merges via `merge_tagged_levels()`:
 - Sorteres etter avstand fra nåpris
 - Maks 6 nivåer per side (support/resistance)
 
-### 1.6 COT-data
+### 1.5 COT-data (to lag)
 
-Fra `data/combined/latest.json` + ukentlige COT-filer:
+**Aggregert COT** — bestemmer `cot_bias`, `cot_pct` og `cot_momentum` per asset:
+- Net posisjon for Managed Money / Hedge Funds (spekulanter) / OI
+- Ukentlig endring (`change_spec_net`)
+- Bias: LONG hvis net_pct > +4 %, SHORT hvis < -4 %, ellers NØYTRAL
+- Kilde-kombinasjoner:
 
-- **Net posisjon** for Managed Money (spekulanter)
-- **Net endring** siste uke
-- **Net % av Open Interest**
-- **Bias**: LONG hvis net > 0, SHORT hvis net < 0
-- **Momentum**: Stigende/Synkende basert på ukesendring
-- **Enighet**: Sjekker om TFF og Disaggregated rapporter er enige
-
-**COT momentum** (nytt kriterium 5): Henter `change_spec_net` fra ukentlige COT-rapportfiler (`data/tff/`, `data/disaggregated/`). Positiv endring = bullish momentum, negativ = bearish. Bruker IKKE timeseries-filer (utdaterte).
-
-COT-kilder per instrument:
 | Instrument | Primær | Fallback | Kombinering |
 |---|---|---|---|
 | Brent | ICE Futures Europe | CFTC | OI-vektet snitt |
 | Hvete / Raps / Mais | Euronext (MiFID II) | CFTC | OI-vektet snitt |
-| Alle andre | CFTC | — | — |
+| FX | TFF (Hedge Funds) | — | — |
+| Alle andre | CFTC Disaggregated | — | — |
 
-### 1.7 Makro-indikatorer
+**Disaggregated analytics** — beregnes én gang per ny COT-release (fredag kveld) av `cot_analytics.py` og cachres i `data/cot_analytics/latest.json`:
 
-- **VIX** — markedsvolatilitet
-- **DXY** — dollarindeks
-- **10Y/3M yield** — rentekurve
-- **HYG** — high yield credit spread
-- **TIP** — inflasjonsforventninger
+| Felt | Beregning | Brukes til |
+|---|---|---|
+| `mm_net_pctile_52w` | Rank-percentile av MM-net-posisjon over rullende 52 uker | Contrarian-signal (bunn/topp-ekstremer) |
+| `mm_comm_divergence_z` | Robust z-score av (MM_net − Commercial_net) via median/MAD | Topp/bunn-divergens-signal |
+| `change_oi_current` + `oi_change_4w_avg` | 4-ukers OI-trend | OI-regime-klassifisering |
+| `index_investor_bias` | Supplemental indeksfond net / OI > 5 % | Strukturelt agri-bias |
+| `history_weeks` / `data_quality` | Antall ukentlige datapunkter i lookback | Graceful degradation (<26 uker → `insufficient_history`) |
 
-### 1.8 Nyhetssentiment
+Historikk hentes fra `data/history/<report_type>/YYYY.json` (16 års arkiv: 2010-2025) + `data/<report_type>/<YYYY-MM-DD>.json` (ukentlig). Dedupliseres på (date, market).
 
-Hentes fra Google News RSS + BBC RSS:
+### 1.6 Makro-indikatorer
+
+- **VIX** — markedsvolatilitet (brukes i MACRO-familien som regime-proxy)
+- **DXY chg5d** — dollarindeks 5-dagers endring (MACRO, ikke for FX)
+- **Real yields (DFII10)** — 10-års TIPS yield + 5d-endring (MACRO, især metaller)
+- **Yield curve (term_spread = DGS10 − DGS2)** — resesjonsignal (MACRO, især indekser)
+- **Fear & Greed** fra CNN — risk-regime-proxy (MACRO for crypto/metaller/indekser)
+- **HYG/TIP/Copper/EEM** — display-indikatorer på dashboard (brukes ikke direkte i driver matrix)
+
+Staleness-metadata: hver rate har `_fallback=True` hvis arvet fra cache (FRED 5xx) og `_age_hours` / `_fresh`-felt per per-input TTL (48h fresh for market rates).
+
+### 1.7 Nyhetssentiment
+
+Fra Google News RSS + BBC RSS:
 - Siste 30 overskrifter scores mot risk_on/risk_off nøkkelordlister
 - Net score: (risk_on_count - risk_off_count) / total → -1.0 til +1.0
-- Label: risk_on hvis ≥ 0.3, risk_off hvis ≤ -0.3, ellers neutral
-- **Sterk konsensus krevd** for scoring-poeng: |score| ≥ 0.5
-- **Nyhetsmotvind**: |score| ≥ 0.4 og mot retning → -1.0 score-penalty
-- Sjekkes for krigs-/sanksjonsord → `geo_active`
+- Brukes til `geo_active`-flagg (aktiveres av krigs-/sanksjonsord eller oljespike) som mater RISK/EVENT-familien
 
-### 1.9 Fundamentals
+### 1.8 FRED Fundamentals
 
 Fra `data/fundamentals/latest.json`:
-- Instrument-spesifikk fundamental score (-1 til +1)
-- Bias: bullish/bearish/neutral
+- Aggregert USD-bias-score per instrument (±1.5 skala) basert på 14 FRED-indikatorer (GDP, CPI, PPI, PCE, ISM PMI, NFP, Unemployment, Initial Claims, JOLTS, ADP, Fed Funds, Retail Sales, Consumer Confidence)
+- Cache-fallback: ved FRED 5xx arves verdier fra forrige run med `_fallback=True`
+- Brukes **kun** i FUNDAMENTAL-familien for FX og indekser (ikke dobbelttelt i MACRO — C1-fiks fra Fase 1)
+
+### 1.9 Asset-spesifikke fundamentals
+
+Per asset-klasse leses egne kilder (via `driver_group_mapping.build_context_for_asset()`):
+
+| Asset-klasse | Kilder |
+|---|---|
+| Metaller | `comex_stress`, `registered_oz_change`, `gold_silver_ratio_z` |
+| Energi | `shipping_risk`, `oilgas_signal`, `brent_wti_spread`, `oil_supply_disruption` |
+| Grains | `conab_mom`, `conab_yoy`, `yield_score`, `enso_risk`, `usda_blackout` |
+| Softs | `unica_mix_sugar`, `unica_mix_qoq`, `unica_crush_yoy`, `conab_coffee_*`, `brl_chg5d`, `harmattan_severity`, `frost_severity` |
+| Crypto | `fear_greed` (risk-regime) |
 
 ### 1.10 Kalender
 
-Fra `data/fundamentals/latest.json`:
-- Neste 4 timers økonomiske hendelser
-- Brukes som "binary risk" filter (kriterium 9)
+Fra `data/calendar/latest.json`:
+- Neste økonomiske hendelser med impact-nivå
+- USDA Crop Progress (mandager) + Export Sales (torsdager) for agri-blackout
+- Mater RISK/EVENT-familien via `upcoming_event_hours`
 
 ---
 
-## Steg 2: Retningsbestemmelse og Vektet Scoring (fetch_all.py)
+## Steg 2: Retningsbestemmelse og 6-familie Driver Matrix Scoring (fetch_all.py)
 
-### Sammensatt retningsbestemmelse (dir_color)
+### 2.1 Retning (dir_color) — beholdt fra tidligere
 
-En vektet `dir_score` bestemmer bull/bear-retning per instrument:
+En vektet `dir_score` bestemmer bull/bear-retning per instrument **før** driver-matrisen scorer styrken:
 
 | Signal | Vekt | Betingelse |
 |--------|------|------------|
@@ -189,71 +199,130 @@ En vektet `dir_score` bestemmer bull/bear-retning per instrument:
 | DXY-bias | ±0.5 | XXXUSD: invers DXY. USDXXX: følger DXY |
 | Momentum-divergens | -0.5 | Straff når chg5 og chg20 peker motsatt (>0.3%) |
 
-**Hysterese:** dir_score > 0.5 → bull, < -0.5 → bear, mellom → SMA200 avgjør. Forhindrer flip ved marginale endringer.
+**Hysterese:** dir_score > 0.5 → bull, < -0.5 → bear, mellom → SMA200 avgjør.
 
-**Maks dir_score:** ±5.5 (alle signaler enige)
+**Olje-override:** Hvis shipping/oilgas rapporterer `oil_supply_disruption`, tvinges `dir_color=bull` for Brent/WTI (supply-squeeze).
 
-### 9 kriterier
+### 2.2 6-familie Driver Matrix (driver_matrix.score_asset)
 
-Kun reelle setup-faktorer — boten håndterer entry-timing, event-risiko og ADR selv.
+Direction er bestemt. `driver_matrix` evaluerer nå 6 uavhengige driver-familier for å score **styrken** av setup-et. **C1-prinsippet**: grade krever confluens på tvers av **uavhengige** datakildefamilier — ikke flere signaler fra samme kilde.
 
-| # | Kriterie | SCALP | SWING | MAKRO |
-|---|---------|-------|-------|-------|
-| 1 | **SMA200** — pris > 200d snitt | 1.0 | 1.0 | 1.0 |
-| 2 | **Momentum 20d** — chg20 > 0.5% i SMA200-retning | 1.0 | 1.0 | 1.0 |
-| 3 | **COT bekrefter** — spekulanter i retning | — | 1.0 | 1.0 |
-| 4 | **COT sterk >10%** — net > 10% av OI | — | 0.5 | 1.0 |
-| 5 | **COT momentum Δ** — ukentlig endring bekrefter | — | 1.0 | 1.0 |
-| 6 | **HTF-nivå weight≥3** — D1/ukentlig nærme | 1.0 | 1.0 | 1.0 |
-| 7 | **D1+4H kongruent** — begge EMA9 peker likt | 1.0 | 1.0 | 1.0 |
-| 8 | **Fundamental FRED** — fundamental bekrefter | — | — | 1.0 |
-| 9 | **SMC bekrefter** — BOS + markedsstruktur | 1.0 | 1.0 | 1.0 |
-| | **Maks total** | **5.0** | **7.5** | **9.0** |
+| # | Familie | Datakilder | Composite-score |
+|---|---|---|---|
+| 1 | **TREND** | SMA200-align, 20d-momentum, D1+4H EMA9-kongruens | (n_active / 3), 0-1 |
+| 2 | **POSITIONING** | COT bias-align, styrke, momentum + MM-percentile 52w, MM-Comm divergens-z, OI-regime, Index Investor | Snitt av ikke-null sub-signaler, 0-1 |
+| 3 | **MACRO** | DXY chg5d, VIX-regime, real yields (DFII10), Fear & Greed, term_spread | Snitt av kvalifiserte bidrag (≥0.3), 0-1 |
+| 4 | **FUNDAMENTAL** | Asset-spesifikk (se 1.9). For FX/indekser: FRED instrument-score | Snitt av kvalifiserte bidrag, 0-1 |
+| 5 | **RISK/EVENT** | USDA blackout, geo-aktiv, nær event, VIX ekstrem | `min(risk_factors × 0.25, 1.0)` — **NON_SCORING**, kun grade-gate |
+| 6 | **STRUCTURE** | Nærmeste HTF-nivå-vekt, SMC-bekreftelse, fibo-zone | Snitt, 0-1 |
 
-Fjernet (boten sin jobb): `price_at_level`, `no_event_risk`, `adr_utilization`, `news_sentiment`, `vix_term_structure`.
+### 2.3 POSITIONING sub-signaler — alpha-rik utvidelse
 
-### Score-justeringer (etter vekting)
+`compute_positioning_v2` har opptil 7 sub-signaler (per-asset). Hver gir 0-1 bidrag (OI-warning kan gi −0.3). Graceful degradation: ved `<26 uker` historikk eller manglende disaggregated-data faller den tilbake til legacy-logikk.
 
-| Justering | Penalty | Når |
-|-----------|---------|-----|
-| DXY-konflikt | -2.0 (SWING/MAKRO) / -1.0 (SCALP) | USD-par med retning motstridende DXY |
-| Signal-flip | Nedgradering 1 horisont-nivå | Retning eller horisont endret siden forrige kjøring |
+| Sub-signal | Aktivering |
+|---|---|
+| `cot_bias_aligns` | LONG/SHORT bias ↔ retning → 1.0 |
+| `cot_momentum_aligns` | `change_spec_net` peker samme vei som net → 1.0 |
+| `cot_pct / 25` cap (legacy) eller `mm_net_pctile_52w` (ny) | Se under |
+| MM-percentile 52w | bull + pctile ≤ 10 → 1.0 (contrarian-bull). bull + pctile ≤ 20 → 0.5. bear + pctile ≥ 90 → 1.0. bear + pctile ≥ 80 → 0.5 |
+| MM-Commercial divergens-z | bear + z ≥ 1.5 → 1.0 (topp-signal). bull + z ≤ -1.5 → 1.0 (bunn-signal). ±1.0 til 1.5 → 0.5 |
+| OI-regime | confirmation (stigende OI i retning) → +0.5. warning (stigende OI mot retning) → **−0.3** |
+| Index Investor-bias (supplemental, kun agri) | structural_long + bull → +0.3. structural_short + bear → +0.3 |
 
-### Horisont-bestemmelse
+Aggregering: snitt av alle ikke-null bidrag, clampet til [0, 1.0].
 
-Krever **både** rå bool-telling OG minimum vektet score (kvalitetssikring):
+### 2.4 MACRO sub-signaler
 
-| Betingelse | Tilleggskrav | Min vektet score | Horisont |
-|-----------|--------------|-----------------|----------|
-| ≥ 6/9 treff + COT + weight ≥ 4 | Vektet score ≥ 7.0 | 7.0/9.0 | **MAKRO** |
-| ≥ 5/9 treff + weight ≥ 3 | Vektet score ≥ 5.0 | 5.0/7.5 | **SWING** |
-| ≥ 3/9 treff | — | — | **SCALP** |
-| < 3 treff | — | — | **WATCHLIST** |
+| Asset-class | DXY chg5d | VIX-regime | Real yields | Fear & Greed | Term spread |
+|---|---|---|---|---|---|
+| FX | — | — | — | — | (kun carry-fallback hvis FRED mangler) |
+| Metaller | ±0.33-1.0 (svak DXY = bull) | elevated/extreme → safe-haven | <0 = bull, chg<-0.1 = akselerasjon | fear≤25 bull | — |
+| Energi | ±0.33-1.0 | — | — | — | — |
+| Grains/Softs | ±0.33-1.0 | — | — | — | — |
+| Indekser | — | elevated/extreme → bear | — | greed≥75 bear, fear≤20 bull | <-0.3 + bear → bidrag |
+| Crypto | — | — | — | fear≤25 bull, greed≥75 bear | — |
+
+### 2.5 FUNDAMENTAL — asset-spesifikk
+
+| Asset-class | Innhold |
+|---|---|
+| Metaller | COMEX stress (≥40 bull), registered oz-endring, GS-ratio-z > 2 (sølv bull, gull bear) |
+| Energi | Supply-disruption (0.8 bull), shipping HIGH (0.6 bull), oilgas-signal, brent_wti_spread > 3 = backwardation |
+| Grains | Conab m/m (abs ≥ 1 % + motsatt retning av pris), Conab yoy, yield_score (<40 kritisk), ENSO-risk |
+| Softs | UNICA mix + qoq, UNICA crush yoy, Conab café, BRL chg5d (svak BRL = motvind), harmattan, frost, yield_score |
+| FX | FRED `fund_instrument_score` (USD-bias ±1.5), rate_spread_diff (hvis tilgjengelig) |
+| Indekser | FRED `fund_instrument_score` |
+| Crypto | (tom — utvides senere) |
+
+### 2.6 STRUCTURE
+
+| Sub-signal | Bidrag |
+|---|---|
+| Nearest HTF-nivå weight ≥ 3 | `weight / 5` (cap 1.0) |
+| SMC-bekreftelse (BOS + struktur-align) | 0.7 |
+| Fibo-zone hit | 0.5 |
+
+### 2.7 Horisont-bestemmelse
+
+`driver_matrix.determine_horizon()` velger høyeste horisont hvor både score- og familie-krav er møtt:
+
+| Horisont | Min unweighted score | Min aktive familier | Tilleggskrav |
+|----------|---------------------|--------------------|--------------|
+| MAKRO | ≥ 3.5 | 4 | `fundamental + macro ≥ 0.7` |
+| SWING | ≥ 2.5 | 3 | — |
+| SCALP | ≥ 1.5 | 2 | London/NY-sesjon |
+| WATCHLIST | under dette | — | — |
 
 **SCALP utenfor optimal sesjon → WATCHLIST** automatisk.
 
-Horisonten bestemmer:
-1. Hvilke vekter som brukes for scoring
-2. Grade-terskler
-3. Push-terskler
-4. Horizon_config (bekreftelses-TF, exit-regler, sizing)
+### 2.8 Horisont-vekter
 
-### Signal-stabilitet
+Etter horisont er valgt, multipliseres hver familie med horisont-spesifikk vekt:
+
+| Familie | SCALP | SWING | MAKRO |
+|---|---|---|---|
+| TREND | 1.2 | 1.0 | 0.8 |
+| POSITIONING | 0.5 | 1.0 | 1.3 |
+| MACRO | 0.7 | 1.0 | 1.3 |
+| FUNDAMENTAL | 0.5 | 1.0 | 1.3 |
+| STRUCTURE | 1.3 | 1.0 | 0.5 |
+
+`weighted_total = sum(family_score × horizon_weight)`. Max per horisont: SCALP=4.2, SWING=5.0, MAKRO=5.2.
+
+### 2.9 Grade — prosent-basert (Fase 4)
+
+Grade-terskler uttrykt som prosent av max-score per horisont, slik at A i SCALP = A i SWING = A i MAKRO i **relativ edge**:
+
+| Grade | Min % av max | Min aktive familier |
+|---|---|---|
+| A+ | 75 % | 4 |
+| A | 55 % | 3 |
+| B | 35 % | 2 |
+| C | under dette | — |
+
+Konkret terskel (weighted_total): A+ ≥ 3.15 (SCALP) / 3.75 (SWING) / 3.9 (MAKRO).
+
+### 2.10 Grade-caps: risk-gate + staleness-gate
+
+Etter initial grade-beregning kappes grade hvis:
+
+| Trigger | Grade-cap |
+|---|---|
+| `risk_factors ≥ 5` (USDA blackout + nær event + VIX ekstrem) | B |
+| `risk_factors ≥ 3` (f.eks. USDA blackout alene, eller geo+elevert) | A (ikke A+) |
+| `data_quality = "degraded"` (én kritisk input `_fallback=True`) | A (ikke A+) |
+| `data_quality = "stale"` (COT > 20d, eller kritisk input > 7d cache-stale) | B |
+
+Strengeste cap vinner. `quality_notes` logger konkrete grunner (f.eks. "DGS2 arvet 18h fra cache", "COT 12d gammel").
+
+### 2.11 Signal-stabilitet
 
 `signal_stability.json` lagrer forrige kjørings verdier per instrument. Ved neste kjøring:
 - **Retning flippet** (bull → bear) → nedgradér 1 nivå (MAKRO→SWING→SCALP→WATCHLIST)
 - **Horisont flippet** (SWING → SCALP → SWING) → nedgradér 1 nivå
-- Score rekalkuleres for ny horisont
 
 Dette forhindrer at ustabile signaler pushes til boten.
-
-### Grade per horisont
-
-| Horisont | A+ | A | B | C |
-|----------|----|---|---|---|
-| MAKRO | ≥ 8.0 | ≥ 7.0 | ≥ 5.5 | < 5.5 |
-| SWING | ≥ 6.5 | ≥ 5.5 | ≥ 4.0 | < 4.0 |
-| SCALP | ≥ 4.5 | ≥ 3.5 | ≥ 2.5 | < 2.5 |
 
 ---
 
@@ -263,15 +332,13 @@ Level-to-level setups — **strukturbasert**, ikke mekanisk ATR.
 
 ### Entry-valg — horizon-tilpasset
 
-Entry-nivå velges ulikt per horisont:
-
 | Horisont | Strategi | Maks avstand |
 |----------|----------|-------------|
 | SCALP | Nærmeste nivå (tight entry) | 1.0×ATR(D1) |
 | SWING | Sterkeste weight innen 3×ATR(D1) | 3.0×ATR(D1) |
 | MAKRO | Sterkeste weight innen 5×ATR(D1) | 5.0×ATR(D1) |
 
-SWING/MAKRO prioriterer sterke HTF-nivåer (PWH/PWL w5, PDH/PDL w4) over nære svake nivåer (15m w1). Boten overvåker entry-sonen — COT Explorer identifiserer bare det beste nivået.
+SWING/MAKRO prioriterer sterke HTF-nivåer (PWH/PWL w5, PDH/PDL w4) over nære svake nivåer (15m w1).
 
 **LONG**: Sterkeste støttenivå innen horizon-avstand under nåpris
 **SHORT**: Sterkeste motstandsnivå innen horizon-avstand over nåpris
@@ -293,19 +360,21 @@ SL plasseres **ved strukturen**, ikke mekanisk ATR fra nåpris:
 | Råvarer | 0.25×ATR(D1) |
 | Aksjer | 0.20×ATR(D1) |
 
-### Take Profit
+### Take Profit — horisont-cap + min R:R
 
-**T1**: Nærmeste motstandsnivå (for LONG) med høyest HTF-vekt som gir R:R ≥ 1.5:
-- Prioriterer høyere vekt (D1/ukentlig) over nærmere nivåer
-- T1 kvalitet: `htf` (vekt ≥ 3), `4h` (vekt ≥ 2), `weak` (vekt < 2)
+| Horisont | T1-cap | T2-cap | Min R:R |
+|---|---|---|---|
+| SCALP | 2.0×ATR(D1) | 3.0×ATR(D1) | 1.0 |
+| SWING | 5.0×ATR(D1) | 8.0×ATR(D1) | 1.3 |
+| MAKRO | Ingen cap | Ingen cap | 1.5 |
 
-**T2**: Neste motstandsnivå etter T1, eller T1 + risk-avstand som fallback.
+T1 velges som nærmeste motstandsnivå (LONG) med høyest HTF-vekt som gir R:R ≥ min_rr. T2 er neste nivå etter T1 med R:R ≥ 1.0, innen T2-cap.
 
 ### R:R-beregning
 
 ```
 risk = |entry - SL|
-R:R_T1 = |T1 - entry| / risk    (minimum 1.5)
+R:R_T1 = |T1 - entry| / risk
 R:R_T2 = |T2 - entry| / risk
 ```
 
@@ -315,26 +384,26 @@ R:R_T2 = |T2 - entry| / risk
 
 ### Horisont-basert filtrering
 
-Fra alle instrumenter filtreres kun de som passerer:
-
-1. **Horisont-terskel** — vektet score ≥ terskel for sin horisont
+1. **Horisont-terskel** — weighted_total ≥ terskel for sin horisont
 2. **Klar retning** — `dir_color` er "bull" eller "bear"
 3. **Aktiv setup** — `setup_long` (bull) eller `setup_short` (bear) eksisterer
 4. **Tradeable** — DXY ekskludert
 5. **Ikke WATCHLIST** — pushes aldri
 
-### Push-terskler
+### Push-terskler (0-6 skala fra driver matrix)
 
-| Horisont | Minimum vektet score |
-|----------|---------------------|
-| SCALP | 3.0 |
-| SWING | 4.5 |
-| MAKRO | 5.5 |
+| Horisont | Minimum weighted score |
+|----------|-----------------------|
+| SCALP | 1.5 |
+| SWING | 2.5 |
+| MAKRO | 3.5 |
 | WATCHLIST | Aldri |
+
+(Legacy 9-kriterie-systemet brukte 3.0/4.5/5.5 på 0-9 skala — fortsatt tilgjengelig i `rescore.py`, men erstattet i hovedscoringen via driver_matrix.)
 
 ### Signal aging (entry distance)
 
-Signaler avvises hvis pris har beveget seg for langt fra entry (bruker D1 ATR):
+Signaler avvises hvis pris har beveget seg for langt fra entry:
 
 | Horisont | Maks avstand |
 |----------|-------------|
@@ -342,17 +411,21 @@ Signaler avvises hvis pris har beveget seg for langt fra entry (bruker D1 ATR):
 | SWING | 2.5×ATR(D1) |
 | MAKRO | 4.0×ATR(D1) |
 
-### Sortering
+### Sortering og limiter
 
-Sorteres etter:
-1. Horisont-prioritet (MAKRO > SWING > SCALP)
-2. Score (høyest først)
+Sorteres etter horisont-prioritet (MAKRO > SWING > SCALP), deretter score. Maks 5 signaler per kjøring (`PUSH_MAX_SIGNALS`).
 
-Maks 5 signaler per kjøring.
+Korrelasjonsgrenser (VIX-regime-avhengig):
+
+| Regime | VIX | Precious | Indices | Energy | USD pairs | Total maks |
+|--------|-----|----------|---------|--------|-----------|------------|
+| Normal | < 25 | 2 | 1 | 1 | 2 | 6 |
+| Risk-off | 25–35 | 1 | 1 | 1 | 1 | 3 |
+| Crisis | > 35 | 1 | 1 | 1 | 1 | 2 |
 
 ### Horizon Config
 
-Hvert signal inkluderer en `horizon_config` med parametre for boten:
+Hvert signal inkluderer `horizon_config` med parametre for boten:
 
 **SCALP:**
 ```json
@@ -408,26 +481,47 @@ Hvert signal inkluderer en `horizon_config` med parametre for boten:
 }
 ```
 
-> **Merk:** Trail ATR-multiplikatorene er kompensert for at boten bruker 15m ATR internt. SWING ×8-10 tilsvarer ~3× 1H ATR. MAKRO ×12-15 tilsvarer ~2.5× D1 ATR.
-
-### Global State
+### Flask-payload til `/push-alert` (schema 2.0)
 
 ```json
 {
-  "geo_active": true,
-  "vix_regime": "normal",
-  "oil_geo_warning": true,
-  "oil_warning_reason": "Brent +27% 20d · krig/angrep i nyheter"
+  "schema_version": "2.0",
+  "generated": "2026-04-17 16:00 UTC",
+  "global_state": {
+    "geo_active": true,
+    "vix_regime": "elevated",
+    "correlation_regime": "normal"
+  },
+  "signals": [
+    {
+      "key": "eurusd", "name": "EUR/USD",
+      "horizon": "SWING", "direction": "bull", "grade": "A",
+      "score": 3.2, "max_score": 6.0, "score_pct": 53,
+      "setup": {"entry": ..., "sl": ..., "t1": ..., "t2": ..., "rr_t1": 1.47},
+      "cot": {"bias": "LONG", "pct": 12.4},
+      "driver_groups": {
+        "trend":       {"score": 1.0, "weight": 1.0, "drivers": ["SMA200-align", "Momentum 20d +"]},
+        "positioning": {"score": 0.75, "weight": 1.0, "drivers": ["COT bias align (+12.4%)", "MM percentile 18 (lav)"]},
+        "macro":       {"score": 0.45, "weight": 1.0, "drivers": ["DXY svak -1.5%"]},
+        "fundamental": {"score": 0.60, "weight": 1.0, "drivers": ["FRED fund +0.8"]},
+        "risk":        {"score": 0.00, "weight": 1.0, "drivers": []},
+        "structure":   {"score": 0.40, "weight": 1.0, "drivers": ["HTF-nivå w3"]}
+      },
+      "active_driver_groups": 5,
+      "correlation_group": "usd_pairs",
+      "atr_d1": 94.44,
+      "horizon_config": {...},
+      "created_at": "2026-04-17T16:00:00+00:00"
+    }
+  ]
 }
 ```
 
-**Geo-aktiv** trigges av:
-- Krigs-/sanksjonsord i nyheter (iran, israel, attack, war, strike, sanction, invasion, escalat)
-- Brent opp mer enn 15% over 20 dager
+Signal-server validerer at alle `driver_groups.*.score` ∈ [0, 1].
 
-### Olje supply-disruption
+### Olje supply-disruption blokkering
 
-Leser shipping og oilgas-data (Hormuz, Suez, Midtøsten-konflikt). Når noen av disse har `risk = HIGH`:
+Leser shipping og oilgas-data (Hormuz, Suez, Midtøsten-konflikt). Når noen har `risk = HIGH`:
 
 - **Olje SHORT-signaler blokkeres helt** — supply-squeeze = bullish for oljepris
 - `dir_color` er allerede tvunget til `bull` i fetch_all.py
@@ -447,15 +541,25 @@ Fra `data/agri/latest.json` (generert av `fetch_agri.py`):
 - **Vekstsyklus**: Såing → Vekst → Blomstring → Modning → Høsting
 - **Yield-kvalitetsestimat**: estimate_yield_quality(wx_score, enso_adj)
 
-### Scoring per avling
+Pluss:
+- `data/conab/latest.json` — Brasiliansk avlingsestimat m/m + YoY per asset
+- `data/unica/latest.json` — Brasiliansk sukker-mix + crush yoy
+
+### Scoring per avling (separat fra driver matrix)
+
+Agri bruker egen additiv scoring (ikke 6-familie matrix):
 
 | Komponent | Poeng | Hva det sjekker |
 |-----------|-------|-----------------|
-| Outlook total_score | 0–5 | Abs(vær + COT + yield) |
+| `outlook total_score` | 0–5 | Abs(vær + COT + yield) |
 | Yield stress | 0–3 | Lav yield_score = prispress opp |
 | Weather urgency | 0–2 | Akutt tørke/flom (wx_score ≥ 3) |
 | ENSO risk | 0–2 | El Niño/La Niña-effekt (enso_adj) |
-| **Total** | **0–12** | Sum av alle komponenter |
+| Conab shock | 0–2 | m/m ≥ 1.0 % i retning av signal |
+| UNICA mix | 0–2 | sukker-mix + crush-yoy for Sugar |
+| Cross-confirm | 0–2 | Multi-kilde validering |
+| Analog match | 0–2 | K-NN mot 15 år historisk vær (`agri_analog.py`) |
+| **Total** | **0–20** | Sum av alle komponenter |
 
 ### Filtrering
 
@@ -463,12 +567,13 @@ Fra `data/agri/latest.json` (generert av `fetch_agri.py`):
 - **Kun in-season avlinger** — utenfor sesong er data upålitelig
 - **Kun tradeable instrumenter** — palmeolje og ris filtreres bort
 - **Grade C droppes** — kun A (score ≥ 7) og B (score ≥ 5) sendes til bot
+- **USDA blackout**: ±3h fra Crop Progress / Export Sales blokkerer signalet
 
 ### Retning og horisont
 
 | Grade | Score | Horisont |
 |-------|-------|----------|
-| A | ≥ 7 | MAKRO |
+| A | ≥ 7 | MAKRO (eller SWING) |
 | B | ≥ 5 | SWING |
 | C | < 5 | Sendes ikke |
 
@@ -477,9 +582,7 @@ Retning bestemmes av outlook-signal:
 - BEARISH / STERKT BEARISH → SELL
 - NØYTRAL → ingen signal
 
-### Entry/SL/T1-beregning
-
-Basert på estimert ATR (prosent av pris per instrument):
+### Entry/SL/T1-beregning (ATR%-basert)
 
 ```
 ATR = pris × atr_pct / 100
@@ -506,7 +609,7 @@ ATR-estimater per instrument:
 | Coffee | 2.5% | Svært volatil |
 | Cocoa | 2.8% | Ekstremt volatil |
 
-**Boten rekalibrerer** entry/SL/T1 med live ATR(14) hvis estimat avviker > 30%.
+**Boten rekalibrerer** entry/SL/T1 med live ATR(14) hvis estimat avviker > 30 %.
 
 ### Priskilde-prioritet
 
@@ -527,15 +630,15 @@ Flask-serveren oversetter signaler til bot-format.
 margin = horizon_config.entry_zone_margin  (0.15%/0.25%/0.40%)
 entry_zone = [entry - margin × entry, entry + margin × entry]
 ```
-For olje med geo-warning: margin utvides til 0.4%.
+For olje med geo-warning: margin utvides til 0.4 %.
 
 #### Character (for bot størrelse)
 
-| Grade + Score | Character |
-|--------------|-----------|
-| A+/A | A+ |
+| Grade | Character |
+|-------|-----------|
+| A+, A | A+ |
 | B | B |
-| C | C |
+| C | C (pushes ikke) |
 
 ### Agri-signaler (POST /push-agri-alert → GET /agri-signals)
 
@@ -545,6 +648,12 @@ Konverterer agri-format til standard bot-format:
 - `confirmation_candle_limit`: 12 (1 time for bekreftelse)
 - `source`: "agri_fundamental"
 - `valid_until`: 24 timer fra generering
+
+### Schema 2.0 validering
+
+Signal-server validerer `driver_groups`-dict per signal:
+- Alle `driver_groups.{trend,positioning,macro,fundamental,risk,structure}.score` ∈ [0, 1]
+- Schema-versjoner < 2.0 gir WARN (ikke block)
 
 ### Session-tider
 
@@ -574,8 +683,6 @@ Boten henter to signal-kilder hvert 60. sekund:
 - `GET /agri-signals` — agri-fundamentale signaler (offset 10s)
 
 ### Confirmation per horisont
-
-Confirmation skjer på horizon_config.confirmation_tf:
 
 | Horisont | TF | Maks candles | Poeng krevd |
 |----------|----|-------------|-------------|
@@ -611,8 +718,7 @@ Horizon-basert risiko (USD):
 | SWING | $40 |
 | MAKRO | $60 |
 
-For agri-instrumenter: halvparten av normal størrelse.
-Maks samtidige agri-posisjoner: 2.
+For agri-instrumenter: halvparten av normal størrelse. Maks samtidige agri-posisjoner: 2.
 
 ### Correlation Groups
 
@@ -643,7 +749,6 @@ Maks samtidige agri-posisjoner: 2.
 | **T1** | Pris ≥ T1 | Lukk 33%, SL → break-even |
 | **T2** | Pris ≥ T2 | Lukk 33%, trail aktivert |
 | **Trail** | Trail stop truffet (8-10× 15m ATR ≈ 3× 1H ATR) | Lukk remaining |
-| **EMA9** | Deaktivert for SWING (exit_ema_tf=1H) | — |
 | **Give-back** | Peak ≥85-90% av T1, nå ≤30-45% | Lukk alt (pre-T1) |
 | **Partial timeout** | 96 candles (8 timer) | Lukk 50% eller trail |
 | **Full timeout** | 120 timer (5 dager) | Lukk alt remaining |
@@ -658,7 +763,6 @@ Maks samtidige agri-posisjoner: 2.
 | **T1** | Pris ≥ T1 | Lukk 25%, SL → break-even |
 | **T2** | Pris ≥ T2 | Lukk 25%, trail aktivert |
 | **Trail** | Trail stop truffet (12-15× 15m ATR ≈ 2.5× D1 ATR) | Lukk remaining |
-| **EMA9** | Deaktivert for MAKRO (exit_ema_tf=D1) | — |
 | **Give-back** | Peak ≥85-90% av T1, nå ≤30-45% | Lukk alt (pre-T1) |
 | **Partial timeout** | 288 candles (24 timer) | Lukk 50% eller trail |
 | **Full timeout** | 360 timer (15 dager) | Lukk alt remaining |
@@ -690,14 +794,14 @@ Boten bruker 15m ATR for trailing uavhengig av horizon_config.exit_trail_tf. Mul
 
 ### Geo R:R minimum
 
-Under geo-events: min R:R = 1.5 (senket fra 2.0 — oppblåst ATR gir bredere SL, per-horizon minimum er allerede konservativt).
+Under geo-events: min R:R = 1.5 (senket fra 2.0 — oppblåst ATR gir bredere SL).
 
 ### Agri-spesifikke regler
 
 - **Session-filter**: Trades avvises utenfor likvide timer (spread for vid)
 - **Maks 2 samtidige agri-posisjoner**
 - **Strengere spread-grense**: 1.5×normal_spread (vs 3.0× for standard)
-- **ATR-rekalibrering**: Hvis estimert ATR avviker > 30% fra live ATR(14), justeres entry/SL/T1
+- **ATR-rekalibrering**: Hvis estimert ATR avviker > 30 % fra live ATR(14), justeres entry/SL/T1
 
 ### Reconcile ved restart
 
@@ -721,60 +825,84 @@ pnl_usd -= spread_cost + commission  (fra cTrader deal-events)
 ## Dataflyt-diagram
 
 ```
-               Yahoo/Stooq/Finnhub/FRED         Open-Meteo/NOAA/CFTC
-                        │                                │
-                   fetch_all.py                    fetch_agri.py
-                        │                                │
-                ┌───────┴───────┐                ┌───────┴───────┐
-                │               │                │               │
-          Prisdata         COT-data          Vær/ENSO        Agri COT
-          ATR/EMA/SMA      CFTC + ICE       Yield/Vekst     Euronext
-                │               │                │               │
-                └───────┬───────┘                └───────┬───────┘
-                        │                                │
-               Nivå-identifisering                Outlook scoring
-               (intraday/swing/SMC)              (yield+vær+ENSO+COT)
-                        │                                │
-                14-punkt vektet score             Agri signal score
-                + horisont-bestemmelse            (A/B filtrering)
-                        │                                │
-                  Setup-generering                Entry/SL/T1-beregning
-                  (make_setup_l2l)                (ATR%-basert)
-                        │                                │
-              data/macro/latest.json           data/agri/latest.json
-                        │                                │
-                  push_signals.py              push_agri_signals.py
-                  (horisont-filtrering)        (score ≥ 5, grade A/B)
-                        │                                │
-               ┌────────┴────────┐              ┌────────┴────────┐
-               │                 │              │                 │
-       data/signals.json    POST /push-alert  agri_signals.json  POST /push-agri-alert
-       (GitHub Pages)       (signal_server)   (GitHub Pages)     (signal_server)
-                                 │                                │
-                          latest_signals.json          latest_agri_signals.json
-                                 │                                │
-                                 └──────────┬─────────────────────┘
-                                            │
-                                      trading_bot.py
-                                      (cTrader Open API)
-                                            │
-                                    ┌───────┼───────┐
-                                    │       │       │
-                              Entry zone  Confirm  Session
-                              detection   (tf)     filter
-                                    │       │       │
-                                    └───────┼───────┘
-                                            │
-                                     Position opened
-                                            │
-                              ┌─────────────┼─────────────┐
-                              │             │             │
-                        T1 (25-50%)    Trail/EMA9     Timeout
-                        per horisont   per horisont   per horisont
-                              │
-                        signal_log.json
-                        (PnL + result → git push)
+       Yahoo/Stooq/Finnhub/FRED               Open-Meteo/NOAA/CFTC
+                 │                                    │
+           fetch_all.py                          fetch_agri.py
+                 │                                    │
+    ┌────────────┼────────────┐                 ┌─────┴─────┐
+    │            │            │                 │           │
+ Prisdata   COT (agg +    Makro (DXY,       Vær/ENSO   Agri COT
+ ATR/EMA   disaggr.)      VIX, yields,     Yield/Vekst  Euronext
+ SMA/SMC   cot_analytics  F&G, FRED)
+    │            │            │                 │           │
+    └────────────┼────────────┘                 └─────┬─────┘
+                 │                                    │
+         driver_matrix.score_asset           Agri outlook scoring
+         (6 familier + C1 + grade)           (yield+vær+ENSO+COT)
+         (data_quality gate)                        │
+                 │                                  │
+         Setup-generering                 Entry/SL/T1-beregning
+         (make_setup_l2l)                 (ATR%-basert)
+                 │                                  │
+       data/macro/latest.json            data/agri/latest.json
+       data/cot_analytics/latest.json           │
+                 │                              │
+           push_signals.py              push_agri_signals.py
+           (horisont-filtrering,        (score ≥ 5, grade A/B,
+            pct-grade-terskler,          USDA-blackout-sjekk)
+            staleness-gate)                    │
+                 │                             │
+      ┌──────────┴──────────┐        ┌─────────┴──────────┐
+      │                     │        │                    │
+data/signals.json    POST /push-alert  agri_signals.json  POST /push-agri-alert
+(GitHub Pages)       (signal_server)   (GitHub Pages)     (signal_server)
+                          │                                │
+                   latest_signals.json          latest_agri_signals.json
+                          │                                │
+                          └──────────┬─────────────────────┘
+                                     │
+                                trading_bot.py
+                                (cTrader Open API)
+                                     │
+                            ┌────────┼────────┐
+                            │        │        │
+                      Entry zone  Confirm   Session
+                      detection   (tf)      filter
+                            │        │        │
+                            └────────┼────────┘
+                                     │
+                              Position opened
+                                     │
+                        ┌────────────┼────────────┐
+                        │            │            │
+                  T1 (25-50%)   Trail/EMA9    Timeout
+                  per horisont  per horisont  per horisont
+                        │
+                  signal_log.json
+                  (PnL + result → git push)
 ```
+
+---
+
+## Viktige prinsipper
+
+### C1 — uavhengig confluens
+Grade kan ikke nå A/A+ uten confluens på tvers av **uavhengige** datakildefamilier. Selv om POSITIONING-familien har 7 sub-signaler på maks, må minst 2 andre familier også være aktive for A-grade.
+
+### Graceful degradation
+Manglende data kollapser ikke scoringen:
+- < 26 ukers COT-historikk → MM-percentile = None → legacy `cot_pct/25`-fallback
+- FRED 5xx → arvet cache-verdi med `_fallback=True` → grade cappet til A
+- COT > 20 d gammel → `data_quality=stale` → grade cappet til B
+- Manglende disaggregated-data → compute_positioning_v2 bruker kun 3 legacy-sub-signaler
+
+### Staleness er synlig
+`GroupResult.data_quality` og `quality_notes` logger konkret hvilke inputs som er degraded. Bot leser kun `grade`, men audit-info er synlig i `data/macro/latest.json`.
+
+### Tester
+- `tests/test_c1_fix.py` — 19 tester (driver matrix, C1-fiks, data_quality-gate, positioning_v2)
+- `tests/test_cot_analytics.py` — 12 tester (percentile, z-score, OI-regime)
+- Alle rene funksjoner — testbart uten filsystem
 
 ---
 
@@ -788,6 +916,11 @@ cat data/signals.json | python3 -m json.tool
 cat data/agri_signals.json | python3 -m json.tool
 ```
 
+For å se COT-analytics-cache:
+```bash
+cat data/cot_analytics/latest.json | python3 -m json.tool
+```
+
 For å se historikk:
 ```bash
 cat data/signal_log.json | python3 -c "
@@ -798,4 +931,10 @@ for e in d['entries']:
     pnl = e.get('pnl', {})
     print(f\"{e.get('timestamp','')}  {sig.get('instrument',''):12s}  {e.get('exit_reason','open'):20s}  \${pnl.get('pnl_usd','?')}\")
 "
+```
+
+For å kjøre scoring-tester:
+```bash
+python3 tests/test_c1_fix.py
+python3 tests/test_cot_analytics.py
 ```
