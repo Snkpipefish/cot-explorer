@@ -647,14 +647,16 @@ def compute_risk_event(geo_active: bool = False,
                        upcoming_event_hours: Optional[float] = None,
                        event_name: str = "",
                        usda_blackout: bool = False,
-                       vix_regime: str = "normal") -> GroupScore:
+                       vix_regime: str = "normal") -> tuple[GroupScore, int]:
     """Risk/event — positiv familie-score kun når det er konkrete positive
     event-setups ELLER når risk er nær kritisk. Ingen events = 0.0 (ikke
     aktiv) slik at "ingen nyheter" ikke falskelig teller som driver.
 
-    Denne familien anses som modifier; i score_asset brukes den som vanlig
-    additiv familie (med horisont-vekt). Høy-risk-gate håndteres separat
-    via _risk_gate_grade() som kapper grade ved kritisk event-nærhet.
+    Returnerer (GroupScore, risk_factors) — risk_factors er den rå int-summen
+    som _risk_gate_grade trenger for å bestemme grade-cap. Tidligere ble den
+    derivert fra `score * 4`, men siden score capper på 1.0 ble derivert
+    risk_factors maks 4 — som gjorde B-cap (≥5) til død kode. Nå passes
+    den hele veien.
     """
     risk_factors = 0
     drivers = []
@@ -682,14 +684,14 @@ def compute_risk_event(geo_active: bool = False,
     if risk_factors == 0:
         # Ingen risikofaktorer → familien er ikke aktiv (teller ikke i
         # active_driver_groups). Ingen drivere returneres.
-        return GroupScore(score=0.0, drivers=[])
+        return GroupScore(score=0.0, drivers=[]), 0
 
     # Høyere risk → høyere score i denne familien (ikke som "bra trade" men
     # som "risk-regime-oppmerksomhet"). Score kan tolkes som confidence i
     # event-analysen; den telles likevel i driver-diversitet.
     # Samtidig: gate i _risk_gate_grade() forhindrer A/A+ ved kritisk risk.
     score = min(risk_factors * 0.25, 1.0)
-    return GroupScore(score=score, drivers=drivers[:3])
+    return GroupScore(score=score, drivers=drivers[:3]), risk_factors
 
 
 def _risk_gate_grade(current_grade: str, risk_factors: int,
@@ -944,8 +946,8 @@ def score_asset(
         # crypto eller annet → tom fundamental
         fundamental = GroupScore(score=0.0, drivers=[])
 
-    # Familie 5 — RISK/EVENT
-    risk = compute_risk_event(
+    # Familie 5 — RISK/EVENT (returnerer (GroupScore, risk_factors))
+    risk, risk_factors = compute_risk_event(
         geo_active=context.get("geo_active", False),
         upcoming_event_hours=context.get("upcoming_event_hours"),
         event_name=context.get("event_name", ""),
@@ -992,9 +994,9 @@ def score_asset(
 
     base_grade = grade(weighted_total, active_count, horizon=horizon)
 
-    # Risk-gate: kapp grade hvis event-risiko er kritisk
-    # Risk-score 0.0 = ingen events, 1.0 = mange event-faktorer
-    risk_factors = int(round(risk.score * 4)) if risk.score > 0 else 0
+    # Risk-gate: kapp grade hvis event-risiko er kritisk.
+    # risk_factors er int-summen direkte fra compute_risk_event (ikke derivert
+    # fra score, som ville cappet på 4 og gjort B-cap til død kode).
 
     # Fase 3: data-kvalitets-gate (orthogonal til risk-gate)
     data_quality, quality_notes = _assess_data_quality(context)

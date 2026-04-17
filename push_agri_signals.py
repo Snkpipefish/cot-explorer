@@ -114,6 +114,21 @@ vix_regime = vix_obj.get("regime", "normal")
 
 
 # ── Conab / UNICA — last med stale-gate og graceful degradation ──────────────
+# data_status holder fersk/stale/missing per kilde slik at signal-payload kan
+# propagere `data_quality` til UI/bot (samme semantikk som driver_matrix).
+data_status: dict[str, str] = {}
+
+
+def _file_status(path: Path, stale_days: int) -> str:
+    """Returner 'fresh' | 'stale' | 'missing' for en JSON-kilde."""
+    if not path.exists():
+        return "missing"
+    age_s = (datetime.now(timezone.utc).timestamp() - path.stat().st_mtime)
+    if age_s > stale_days * 86400:
+        return "stale"
+    return "fresh"
+
+
 def _safe_load_json(path: Path, stale_days: int) -> dict | None:
     """Last JSON hvis fila finnes og ikke er eldre enn stale_days.
     Returnerer None ved manglende/korrupt/stale data — kalleren skal
@@ -132,8 +147,47 @@ def _safe_load_json(path: Path, stale_days: int) -> dict | None:
         return None
 
 
+data_status["conab"] = _file_status(CONAB_FILE, CONAB_STALE_DAYS)
+data_status["unica"] = _file_status(UNICA_FILE, UNICA_STALE_DAYS)
 conab_data = _safe_load_json(CONAB_FILE, CONAB_STALE_DAYS)
 unica_data = _safe_load_json(UNICA_FILE, UNICA_STALE_DAYS)
+
+
+def _agri_data_quality(crop_key: str, instrument: str) -> tuple[str, list[str]]:
+    """Bestem data_quality + quality_notes for et agri-signal.
+
+    Logikk:
+      - crop avhenger av Conab (grains/coffee/cotton/soy) og status != fresh → degraded
+      - crop avhenger av UNICA (sugar) og status != fresh → degraded
+      - Begge missing/stale samtidig → stale
+      - USDA blackout (selv om signalet allerede er filtrert) flagges som degraded
+    Same semantikk som driver_matrix._assess_data_quality.
+    """
+    notes: list[str] = []
+    degraded = False
+    stale = False
+
+    relies_on_conab = crop_key in CONAB_KEYS
+    relies_on_unica = (crop_key == "sugar")
+
+    if relies_on_conab and data_status.get("conab") != "fresh":
+        notes.append(f"Conab {data_status.get('conab','?')}")
+        if data_status.get("conab") == "missing":
+            stale = True
+        else:
+            degraded = True
+    if relies_on_unica and data_status.get("unica") != "fresh":
+        notes.append(f"UNICA {data_status.get('unica','?')}")
+        if data_status.get("unica") == "missing":
+            stale = True
+        else:
+            degraded = True
+
+    if stale:
+        return "stale", notes
+    if degraded:
+        return "degraded", notes
+    return "fresh", notes
 if conab_data:
     _n = len(conab_data.get("crops", {}))
     print(f"  Conab lastet: {_n} crops, lev={conab_data.get('grains_levantamento')}")
@@ -494,16 +548,26 @@ def score_crop(crop, crop_key: str | None = None):
     else:
         return None  # Ingen handel på nøytral
 
-    # Yield-stress: lav yield → sterkt prispress opp
+    # Yield-stress: retnings-symmetrisk.
+    #   BUY:  lav yield → supply-knapphet → bullish prispress
+    #   SELL: høy yield → supply-overflod → bearish prispress
     yield_score = crop.get("yield_score")
     yield_stress = 0
     if yield_score is not None:
-        if yield_score < 40:
-            yield_stress = 3    # Kritisk
-        elif yield_score < 55:
-            yield_stress = 2    # Svak
-        elif yield_score < 70:
-            yield_stress = 1    # Middels
+        if direction == "BUY":
+            if yield_score < 40:
+                yield_stress = 3    # Kritisk
+            elif yield_score < 55:
+                yield_stress = 2    # Svak
+            elif yield_score < 70:
+                yield_stress = 1    # Middels
+        else:  # SELL
+            if yield_score > 85:
+                yield_stress = 3    # Rekord-overflod
+            elif yield_score > 70:
+                yield_stress = 2    # Sterk
+            elif yield_score > 60:
+                yield_stress = 1    # God
 
     # Vær-hastighet: akutt stress gir sterkere signal
     wx_score = crop.get("avg_wx_score", 0)
@@ -521,15 +585,8 @@ def score_crop(crop, crop_key: str | None = None):
     if worst.get("enso_adj", 0) > 0.5:
         enso_risk = 2
 
-    # Total
+    # Total — abs(o_score) gjør at både BULLISH og BEARISH outlook bidrar likt
     total = abs(o_score) + yield_stress + weather_urgency + enso_risk
-
-    # Retning-flip: SELL-signaler har negativ score
-    if direction == "SELL":
-        # For SELL: yield_stress er IKKE bullish, men outlook er bearish
-        # Kun outlook + overflod teller
-        if yield_score and yield_score > 85:
-            total += 1  # Høy yield = bearish prispress
 
     # Conab shock-komponent (m/m-revisjon i Brasil-estimat)
     conab_score, conab_drivers_txt = _conab_shock(crop_key or "", direction)
@@ -925,8 +982,9 @@ for crop in agri.get("crop_summary", []):
         "structure":   _g_struct,
     }
     _active_driver_groups = sum(1 for f in _driver_groups_dict.values() if f["score"] >= 0.3)
-    # Normalisert score 0-6 (for schema 2.0-kompat)
-    _score_06 = round(sum(f["score"] * f["weight"] for fk, f in _driver_groups_dict.items() if fk != "risk"), 2)
+
+    # Data-quality propagering (samme semantikk som driver_matrix._assess_data_quality)
+    _data_quality, _quality_notes = _agri_data_quality(crop_key, instrument)
 
     sig = {
         "key":            instrument,
@@ -949,6 +1007,8 @@ for crop in agri.get("crop_summary", []):
         "driver_groups":        _driver_groups_dict,
         "active_driver_groups": _active_driver_groups,
         "group_drivers":  scoring.get("drivers", [])[:8],
+        "data_quality":   _data_quality,
+        "quality_notes":  _quality_notes,
         "atr_source":     levels.get("atr_source", "estimated"),
         "cot_bias":       cot.get("bias"),
         "cot_pct":        cot.get("net_pct"),

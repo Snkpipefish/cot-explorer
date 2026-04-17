@@ -27,7 +27,6 @@ BASE          = Path(__file__).parent
 DATA_FILE     = BASE / "data" / "macro" / "latest.json"
 SIGNAL_LOG    = BASE / "data" / "signal_log.json"
 SIGNALS_OUT   = BASE / "data" / "signals.json"
-MIN_SCORE     = int(os.environ.get("PUSH_MIN_SCORE",   "7"))
 MAX_SIGNALS   = int(os.environ.get("PUSH_MAX_SIGNALS", "5"))
 TG_TOKEN      = os.environ.get("TELEGRAM_TOKEN",  "")
 TG_CHAT_ID    = os.environ.get("TELEGRAM_CHAT_ID","")
@@ -88,8 +87,28 @@ def active_setup(d):
 from scoring_config import (
     PUSH_THRESHOLDS, HORIZON_PRIORITY, HORIZON_CONFIGS,
     CORRELATION_GROUPS, CORRELATION_REGIME_CONFIGS, VIX_CORRELATION_THRESHOLDS,
-    AGRI_CORRELATION_SUBGROUPS,
+    AGRI_CORRELATION_SUBGROUPS, AGRI_MAX_SCORE, AGRI_MAX_AGE_ATR,
 )
+
+
+def _agri_signal_too_aged(asig: dict, live_prices: dict) -> bool:
+    """Drop agri-signal hvis live pris har vandret > N×ATR fra entry.
+
+    Speiler `should_push`-logikken for tekniske signaler. Bruker live pris
+    fra `macro["prices"]` hvis tilgjengelig, ellers `current` fra signal
+    (som er prisen ved generation-tid).
+    """
+    entry = asig.get("entry")
+    atr = asig.get("atr_est")
+    horizon = asig.get("timeframe", "SWING")
+    if not (entry and atr and atr > 0):
+        return False
+    instrument = asig.get("key", "")
+    live = (live_prices.get(instrument) or {}).get("price") or asig.get("current")
+    if not live:
+        return False
+    max_dist = AGRI_MAX_AGE_ATR.get(horizon, 2.5)
+    return abs(live - entry) / atr > max_dist
 
 
 def should_push(d):
@@ -240,11 +259,17 @@ for key, d in top:
 # ── Merge agri-signaler inn i signals.json ────────────────
 AGRI_SIGNALS_FILE = BASE / "data" / "agri_signals.json"
 agri_merged = 0
+agri_dropped_aged = 0
+_macro_prices = macro.get("prices", {})
 if AGRI_SIGNALS_FILE.exists():
     try:
         with open(AGRI_SIGNALS_FILE) as _af:
             agri_data = json.load(_af)
         for asig in agri_data.get("signals", []):
+            # Signal-aging: drop hvis live pris har vandret > N×ATR fra entry
+            if _agri_signal_too_aged(asig, _macro_prices):
+                agri_dropped_aged += 1
+                continue
             horizon = asig.get("timeframe", "SWING")
             signals_json["signals"].append({
                 "key":       asig.get("key", ""),
@@ -254,7 +279,7 @@ if AGRI_SIGNALS_FILE.exists():
                 "horizon":   horizon,
                 "grade":     asig.get("grade", "C"),
                 "score":     asig.get("score", 0),
-                "max_score": 10,
+                "max_score": AGRI_MAX_SCORE,   # Faktisk teoretisk maks (18)
                 "current":   asig.get("current"),
                 "entry":     asig.get("entry"),
                 "sl":        asig.get("sl"),
@@ -268,6 +293,9 @@ if AGRI_SIGNALS_FILE.exists():
                 "source":    "agri_fundamental",
                 "correlation_group": AGRI_CORRELATION_SUBGROUPS.get(asig.get("key",""), "agri"),
                 "horizon_config": HORIZON_CONFIGS.get(horizon, {}),
+                # Schema 2.0: data-quality propagering
+                "data_quality":  asig.get("data_quality", "fresh"),
+                "quality_notes": asig.get("quality_notes", []),
                 # Agri-spesifikk ekstradata
                 "yield_score":     asig.get("yield_score"),
                 "weather_outlook": asig.get("weather_outlook"),
@@ -276,6 +304,8 @@ if AGRI_SIGNALS_FILE.exists():
             agri_merged += 1
         if agri_merged:
             print(f"  Agri: {agri_merged} signaler merget inn i signals.json")
+        if agri_dropped_aged:
+            print(f"  Agri: {agri_dropped_aged} signaler droppet (aged > N×ATR fra entry)")
     except Exception as e:
         print(f"  Agri merge feilet: {e}")
 
@@ -295,11 +325,10 @@ if geo_active:
     print(f"  🌍 GEO AKTIV: kvart-størrelse på alle trades")
 
 if not top:
-    # Ingen nye tekniske signaler — vi pusher IKKE tom liste til Flask
-    # (det ville tømt eksisterende signaler på serveren). Lar serveren
-    # beholde forrige push til neste oppdatering faktisk har signaler.
-    print(f"Ingen signaler over horisont-terskler — beholder eksisterende liste (ingen push)")
-    sys.exit(0)
+    # Ingen nye tekniske signaler. Vi avbryter IKKE her — agri-signaler kan
+    # fortsatt være tilstede og må pushes til Flask. Telegram/Discord/signal-
+    # logg-evaluering hopper vi over siden de er tekniske-orientert.
+    print(f"Ingen tekniske signaler over horisont-terskler — sjekker agri og hopper Telegram/Discord")
 
 
 # ── Signal-logg ───────────────────────────────────────────
@@ -445,9 +474,10 @@ def build_message():
     return "\n".join(lines).strip()
 
 
-message = build_message()
-print(message)
-print()
+message = build_message() if top else ""
+if top:
+    print(message)
+    print()
 
 
 # ── Push til Telegram ─────────────────────────────────────
@@ -572,8 +602,12 @@ def push_flask(signals):
 
 
 # ── Kjør pushes ───────────────────────────────────────────
-push_telegram(message)
-push_discord(message)
+# Telegram/Discord pushes kun hvis vi har tekniske signaler — formatet er
+# bygget rundt fmt_signal() som forventer driver_groups+setup-data fra
+# trading_levels. Agri-signaler når Flask-endepunktet uansett.
+if top:
+    push_telegram(message)
+    push_discord(message)
 # Per-signal created_at — botens TTL-sjekk ser på denne, ikke kun fil-nivå valid_until
 _now_iso = datetime.now(timezone.utc).isoformat()
 
@@ -596,15 +630,23 @@ flask_signals = [{
     "driver_groups":        d.get("driver_groups", {}),
     "active_driver_groups": d.get("active_driver_groups"),
     "group_drivers":  d.get("group_drivers", []),
+    "data_quality":   d.get("data_quality", "fresh"),
+    "quality_notes":  d.get("quality_notes", []),
+    "dir_override_reason": d.get("dir_override_reason"),
     "created_at":     _now_iso,
 } for key, d in top]
 
 # Agri-signaler i Flask-format (samme /push-alert endpoint)
+agri_flask_dropped_aged = 0
 if AGRI_SIGNALS_FILE.exists():
     try:
         with open(AGRI_SIGNALS_FILE) as _af2:
             _agri2 = json.load(_af2)
         for asig in _agri2.get("signals", []):
+            # Signal-aging: drop hvis live pris har vandret > N×ATR fra entry
+            if _agri_signal_too_aged(asig, _macro_prices):
+                agri_flask_dropped_aged += 1
+                continue
             horizon = asig.get("timeframe", "SWING")
             flask_signals.append({
                 "key":       asig.get("key", ""),
@@ -613,7 +655,7 @@ if AGRI_SIGNALS_FILE.exists():
                 "direction": asig.get("action", "BUY").lower().replace("buy","bull").replace("sell","bear"),
                 "grade":     asig.get("grade", "C"),
                 "score":     asig.get("score", 0),
-                "max_score": 10,
+                "max_score": AGRI_MAX_SCORE,    # Faktisk teoretisk maks (18)
                 "setup": {
                     "entry":   asig.get("entry"),
                     "sl":      asig.get("sl"),
@@ -629,6 +671,8 @@ if AGRI_SIGNALS_FILE.exists():
                 "correlation_group": "agri",
                 "source":           "agri_fundamental",
                 "horizon_config":   HORIZON_CONFIGS.get(horizon, {}),
+                "data_quality":     asig.get("data_quality", "fresh"),
+                "quality_notes":    asig.get("quality_notes", []),
                 "yield_score":      asig.get("yield_score"),
                 "weather_outlook":  asig.get("weather_outlook"),
                 "drivers":          asig.get("drivers", []),
@@ -640,5 +684,12 @@ if AGRI_SIGNALS_FILE.exists():
             })
     except Exception:
         pass
+if agri_flask_dropped_aged:
+    print(f"  Agri Flask: {agri_flask_dropped_aged} signaler droppet (aged > N×ATR fra entry)")
 
-push_flask(flask_signals)
+# Push kun hvis vi har signaler (tekniske ELLER agri). Tom liste til Flask
+# ville tømt eksisterende signaler på serveren — vi lar dem stå isteden.
+if flask_signals:
+    push_flask(flask_signals)
+else:
+    print("Ingen signaler (tekniske eller agri) — Flask push hoppet over")

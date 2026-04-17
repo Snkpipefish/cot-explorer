@@ -1477,10 +1477,12 @@ for inst in INSTRUMENTS:
     # ── Olje supply-disruption override ─────────────────────
     # Når Hormuz/Midtøsten har HIGH risk → olje kan ikke shortes
     # Supply-squeeze = bullish for pris, SHORT er for farlig
+    _oil_dir_overridden = False
     if _oil_supply_disruption and key in ("Brent", "WTI"):
         if dir_color == "bear":
             dir_color = "bull"  # Tving bullish — supply-disruption trumfer teknisk
             dir_score = 0.6     # Mild bull, ikke sterk — la scoren reflektere usikkerhet
+            _oil_dir_overridden = True
 
     # Lagre DXY-retning og momentum for bruk i USD-par
     if key == "DXY":
@@ -1887,6 +1889,7 @@ for inst in INSTRUMENTS:
         "binary_risk":   get_binary_risk(inst["key"]),
         "oil_supply_disruption": _oil_supply_disruption if key in ("Brent", "WTI") else None,
         "oil_supply_reason": _oil_supply_reason if key in ("Brent", "WTI") and _oil_supply_disruption else None,
+        "dir_override_reason": "oil_supply_disruption" if _oil_dir_overridden else None,
         "smc": {
             "structure":    smc["structure"]    if smc else None,
             "supply_zones": smc["supply_zones"] if smc else [],
