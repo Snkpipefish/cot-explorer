@@ -88,6 +88,7 @@ from scoring_config import (
     CORRELATION_GROUPS, CORRELATION_REGIME_CONFIGS, VIX_CORRELATION_THRESHOLDS,
     AGRI_CORRELATION_SUBGROUPS, AGRI_MAX_SCORE,
 )
+from driver_matrix import HORIZON_MAX_SCORE
 
 
 def should_push(d):
@@ -215,7 +216,7 @@ for key, d in top:
         "horizon":   horizon,
         "grade":    d.get("grade", "?"),
         "score":    d.get("score", 0),
-        "max_score": d.get("max_score", 5),  # SWING max = 5.0 fra driver_matrix
+        "max_score": d.get("max_score", HORIZON_MAX_SCORE.get(horizon, HORIZON_MAX_SCORE["SWING"])),
         "score_pct": d.get("score_pct", 0),
         "score_details": d.get("score_details", {}),
         # Schema 2.0: driver-familie-matrise + data-kvalitet
@@ -242,13 +243,32 @@ for key, d in top:
 
 # ── Merge agri-signaler inn i signals.json ────────────────
 AGRI_SIGNALS_FILE = BASE / "data" / "agri_signals.json"
+# Race-defense: agri_signals.json kan være fra forrige kjøring hvis
+# push_agri_signals.py krasjet eller henger. update.sh kjører hver 4. time;
+# vi tolererer opp til 8t (2× syklus) før vi flagger payload som stale.
+AGRI_FILE_STALE_HOURS = 8
 agri_merged = 0
+agri_file_stale = False
 if AGRI_SIGNALS_FILE.exists():
     try:
+        _agri_age_h = (datetime.now(timezone.utc).timestamp()
+                        - AGRI_SIGNALS_FILE.stat().st_mtime) / 3600
+        if _agri_age_h > AGRI_FILE_STALE_HOURS:
+            agri_file_stale = True
+            print(f"  Agri-fila er {_agri_age_h:.1f}t gammel "
+                  f"(> {AGRI_FILE_STALE_HOURS}t) — flagger signaler som stale")
         with open(AGRI_SIGNALS_FILE) as _af:
             agri_data = json.load(_af)
         for asig in agri_data.get("signals", []):
             horizon = asig.get("timeframe", "SWING")
+            # Hvis fila er stale (skjult feil i push_agri_signals.py), forr
+            # data_quality nedover slik at boten/UI ser at signalet ikke er
+            # ferskt selv om det opprinnelig ble generert som "fresh".
+            _dq = asig.get("data_quality", "fresh")
+            _notes = list(asig.get("quality_notes", []))
+            if agri_file_stale:
+                _dq = "stale"
+                _notes.append(f"agri_signals.json {_agri_age_h:.0f}t gammel")
             signals_json["signals"].append({
                 "key":       asig.get("key", ""),
                 "name":      asig.get("name", asig.get("key", "")),
@@ -271,9 +291,9 @@ if AGRI_SIGNALS_FILE.exists():
                 "source":    "agri_fundamental",
                 "correlation_group": AGRI_CORRELATION_SUBGROUPS.get(asig.get("key",""), "agri"),
                 "horizon_config": HORIZON_CONFIGS.get(horizon, {}),
-                # Schema 2.0: data-quality propagering
-                "data_quality":  asig.get("data_quality", "fresh"),
-                "quality_notes": asig.get("quality_notes", []),
+                # Schema 2.2: data-quality propagering (med race-defense)
+                "data_quality":  _dq,
+                "quality_notes": _notes,
                 # Agri-spesifikk ekstradata
                 "yield_score":     asig.get("yield_score"),
                 "weather_outlook": asig.get("weather_outlook"),
@@ -281,7 +301,8 @@ if AGRI_SIGNALS_FILE.exists():
             })
             agri_merged += 1
         if agri_merged:
-            print(f"  Agri: {agri_merged} signaler merget inn i signals.json")
+            print(f"  Agri: {agri_merged} signaler merget inn i signals.json"
+                  + (" (stale)" if agri_file_stale else ""))
     except Exception as e:
         print(f"  Agri merge feilet: {e}")
 
@@ -405,7 +426,13 @@ def fmt_signal(key, d):
     tf        = d.get("horizon", d.get("timeframe_bias", "SWING"))
     grade     = d.get("grade", "?")
     score     = d.get("score", 0)
-    max_sc    = d.get("max_score", 14)
+    # max_score-fallback: agri har 18, tekniske bruker horisont-spesifikk maks
+    # fra driver_matrix (SCALP=4.2, SWING=5.0, MAKRO=5.2). Ingen 14-magic.
+    if d.get("source") == "agri_fundamental":
+        _fallback_max = AGRI_MAX_SCORE
+    else:
+        _fallback_max = HORIZON_MAX_SCORE.get(tf, HORIZON_MAX_SCORE["SWING"])
+    max_sc    = d.get("max_score", _fallback_max)
     curr      = d.get("current", 0)
     p         = 5 if curr < 100 else 2
     cot       = d.get("cot", {})
@@ -588,7 +615,7 @@ if top:
 _now_iso = datetime.now(timezone.utc).isoformat()
 
 # Tekniske signaler i Flask-format
-# Schema 2.1: propagere driver_groups + active_driver_groups + group_drivers
+# Schema 2.2: propagere driver_groups + active_driver_groups + group_drivers
 flask_signals = [{
     "key":            key,
     "name":           d.get("name", key),
@@ -596,7 +623,11 @@ flask_signals = [{
     "direction":      d.get("dir_color", "?"),
     "grade":          d.get("grade", "?"),
     "score":          d.get("score", 0),
-    "max_score":      d.get("max_score", 6.0),   # 0-6 i schema 2.0
+    # max_score-fallback: horisont-spesifikk fra driver_matrix (SCALP=4.2,
+    # SWING=5.0, MAKRO=5.2). Tidligere 6.0 underrapporterte score_pct.
+    "max_score":      d.get("max_score", HORIZON_MAX_SCORE.get(
+        d.get("horizon", d.get("timeframe_bias", "SWING")),
+        HORIZON_MAX_SCORE["SWING"])),
     "setup":          active_setup(d),
     "cot":            d.get("cot", {}),
     "correlation_group": d.get("correlation_group"),
@@ -642,12 +673,16 @@ if AGRI_SIGNALS_FILE.exists():
                 "correlation_group": "agri",
                 "source":           "agri_fundamental",
                 "horizon_config":   HORIZON_CONFIGS.get(horizon, {}),
-                "data_quality":     asig.get("data_quality", "fresh"),
-                "quality_notes":    asig.get("quality_notes", []),
+                # Race-defense: hvis fila er stale, override data_quality
+                "data_quality":     ("stale" if agri_file_stale
+                                       else asig.get("data_quality", "fresh")),
+                "quality_notes":    (list(asig.get("quality_notes", []))
+                                       + ([f"agri_signals.json {_agri_age_h:.0f}t gammel"]
+                                          if agri_file_stale else [])),
                 "yield_score":      asig.get("yield_score"),
                 "weather_outlook":  asig.get("weather_outlook"),
                 "drivers":          asig.get("drivers", []),
-                # Schema 2.1: propagere driver_groups fra agri_signals.json
+                # Schema 2.2: propagere driver_groups fra agri_signals.json
                 "driver_groups":         asig.get("driver_groups", {}),
                 "active_driver_groups":  asig.get("active_driver_groups"),
                 "group_drivers":   asig.get("group_drivers", []),

@@ -334,6 +334,10 @@ def rescore():
         lv["group_drivers"]         = result.flat_drivers(limit=8)
         lv["data_quality"]          = result.data_quality
         lv["quality_notes"]         = result.quality_notes
+        # dir_override_reason settes/clears tidligere i loopen via in-place
+        # mutasjon av lv. Eksplisitt write-back her sikrer at feltet bevares
+        # selv om noen senere refaktorerer write-back til å bygge ny dict.
+        lv["dir_override_reason"]   = lv.get("dir_override_reason")
         lv["session_now"]           = session_now
         lv["in_session"]            = sesjon_ok
         updated += 1
