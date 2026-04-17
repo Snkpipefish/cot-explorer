@@ -127,23 +127,36 @@ def _load_with_status(path: Path, stale_days: int) -> tuple[str, dict | None]:
       - "stale":   fila eksisterer men er > stale_days gammel
       - "missing": fila eksisterer ikke
       - "corrupt": fila eksisterer og er ung, men JSON-parsing feilet
+      - "io_error": disk-/permission-feil (ikke datafeil)
 
     Konsoliderer tidligere _file_status + _safe_load_json (som ga falskt
     "fresh" hvis fetch-prosessen halv-skrev fila — ny mtime maskerte at
     JSON ikke kunne parses).
+
+    Skiller "corrupt" (semantisk dårlig data fra fetch-script) fra
+    "io_error" (transient disk-feil) slik at operatør kan diagnostisere
+    rett klasse av problem. Begge gir samme nedstrøms-effekt (data_quality
+    degradering), men feilmeldingen er forskjellig.
     """
     if not path.exists():
         return "missing", None
-    age_s = (datetime.now(timezone.utc).timestamp() - path.stat().st_mtime)
+    try:
+        age_s = (datetime.now(timezone.utc).timestamp() - path.stat().st_mtime)
+    except OSError as exc:
+        print(f"  {path.name}: io_error stat ({exc}) — ignorert")
+        return "io_error", None
     if age_s > stale_days * 86400:
         print(f"  {path.name}: stale ({age_s/86400:.1f}d > {stale_days}d) — ignorert")
         return "stale", None
     try:
         with open(path, encoding="utf-8") as f:
             return "fresh", json.load(f)
-    except Exception as exc:
+    except json.JSONDecodeError as exc:
         print(f"  {path.name}: corrupt ({exc}) — ignorert")
         return "corrupt", None
+    except (OSError, PermissionError, MemoryError) as exc:
+        print(f"  {path.name}: io_error ({exc}) — ignorert")
+        return "io_error", None
 
 
 data_status["conab"], conab_data = _load_with_status(CONAB_FILE, CONAB_STALE_DAYS)
@@ -167,17 +180,20 @@ def _agri_data_quality(crop_key: str, instrument: str) -> tuple[str, list[str]]:
     relies_on_conab = crop_key in CONAB_KEYS
     relies_on_unica = (crop_key == "sugar")
 
+    # missing/corrupt/io_error = kritisk avhengighet borte → stale.
+    # stale (gammel mtime, men data finnes) → degraded (vi har data, bare gamle).
+    _CRITICAL = ("missing", "corrupt", "io_error")
     if relies_on_conab and data_status.get("conab") != "fresh":
         st = data_status.get("conab", "?")
         notes.append(f"Conab {st}")
-        if st in ("missing", "corrupt"):
+        if st in _CRITICAL:
             stale = True
         else:
             degraded = True
     if relies_on_unica and data_status.get("unica") != "fresh":
         st = data_status.get("unica", "?")
         notes.append(f"UNICA {st}")
-        if st in ("missing", "corrupt"):
+        if st in _CRITICAL:
             stale = True
         else:
             degraded = True
@@ -507,7 +523,9 @@ def _cross_confirm(crop: dict, crop_key: str, direction: str) -> tuple[int, list
 
     # D. ANALOG-ÅR — K-NN mot 15-år ERA5 vær-historikk
     #    Hvis historiske analog-år med ligende vær-mønster ga prispress i
-    #    retning av signalet → bekreftelse. Kappet til 1 poeng per signal.
+    #    retning av signalet → bekreftelse. Kappet til 1 poeng per signal
+    #    (binær, ikke float — bevarer int-kontrakten på return-typen og
+    #    sikrer at grade-buckets sammenlignes deterministisk).
     if _ANALOG_OK:
         try:
             analog_score, analog_drivers = agri_analog.analog_direction_score(
@@ -515,8 +533,7 @@ def _cross_confirm(crop: dict, crop_key: str, direction: str) -> tuple[int, list
                 current_month=datetime.now().month,
             )
             if analog_score >= 0.15:
-                # Skala analog-score til cross_confirm. 1.0 analog = full 1.0 bidrag.
-                score += round(analog_score, 2)
+                score += 1
                 drivers += analog_drivers
         except Exception:
             pass   # Graceful degradation
