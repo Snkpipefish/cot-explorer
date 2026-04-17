@@ -925,7 +925,7 @@ Manglende data kollapser ikke scoringen:
 `GroupResult.data_quality` og `quality_notes` logger konkret hvilke inputs som er degraded. Bot leser kun `grade`, men audit-info er synlig i `data/macro/latest.json`.
 
 ### Tester
-- `tests/test_c1_fix.py` — 19 tester (driver matrix, C1-fiks, data_quality-gate, positioning_v2)
+- `tests/test_c1_fix.py` — 20 tester (driver matrix, C1-fiks, data_quality-gate, positioning_v2, B-cap risk-stack-up)
 - `tests/test_cot_analytics.py` — 12 tester (percentile, z-score, OI-regime)
 - Alle rene funksjoner — testbart uten filsystem
 

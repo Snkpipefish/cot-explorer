@@ -34,7 +34,7 @@ Agri-signaler ligger som egne objekter i `signals[]`-arrayet. Boten gjenkjenner 
 
 ```json
 {
-  "schema_version": "2.1",
+  "schema_version": "2.2",
   "generated": "2026-04-17 16:00 UTC",
   "global_state": {
     "geo_active": false,
@@ -115,7 +115,7 @@ Begge typer kommer i samme `/push-alert`-payload — boten skiller på `source`:
 | Aging-filter (live pris vs entry) | **Fjernet** (schema 2.2) — bot håndterer via `exit_timeout_*` | **Fjernet** (schema 2.2) — bot håndterer via `exit_timeout_*` |
 | Entry-basis | Teknisk S/R-nivå (struktur + SMC) | ATR-prosent estimat (pullback −0.3×ATR) |
 | SL-basis | Struktur (under demand-sone) + ATR | 1.5× estimert ATR |
-| `data_quality` | Fra `_assess_data_quality` (FRED/COT-staleness) | Fra Conab/UNICA-staleness (inkl. `corrupt`-deteksjon) |
+| `data_quality` | Fra `_assess_data_quality` (FRED/COT-staleness) | Fra Conab/UNICA-staleness (inkl. `corrupt`- og `io_error`-deteksjon + race-defense på `agri_signals.json` mtime > 8t) |
 | Bot-størrelse | VIX × horisont-base | **Halvert** uansett (lavere likviditet) |
 | Maks samtidige | Korrelasjons-bucketed (`MAX_CONCURRENT`) | Bot-side (scoring håndhever ikke lenger subgruppe-cap) |
 
@@ -246,9 +246,9 @@ Hvert agri-signal får `data_quality` propagert til payloaden:
 |---|---|---|
 | `fresh` | Conab og UNICA er ferske og lastet OK | ingen |
 | `degraded` | Én avhengighet er stale (men finnes på disk) | A (ikke A+) |
-| `stale` | Én avhengighet mangler helt på disk | B (kappet) |
+| `stale` | Én avhengighet `missing` / `corrupt` / `io_error`, **eller** `agri_signals.json` selv er > 8 t gammel (race-defense) | B (kappet) |
 
-`quality_notes`-listen viser konkrete grunner (f.eks. `["Conab missing"]`, `["UNICA stale"]`). Logikken finnes i `push_agri_signals._agri_data_quality()` og speiler `driver_matrix._assess_data_quality` for konsistens på tvers av tekniske/agri.
+`quality_notes`-listen viser konkrete grunner (f.eks. `["Conab missing"]`, `["UNICA stale"]`, `["agri_signals.json 9t gammel"]`). Logikken finnes i `push_agri_signals._agri_data_quality()` (per-source) og `push_signals.py` (fil-mtime race-defense), som begge speiler `driver_matrix._assess_data_quality` for konsistens på tvers av tekniske/agri.
 
 ---
 
