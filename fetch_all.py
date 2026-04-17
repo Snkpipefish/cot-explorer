@@ -117,9 +117,7 @@ TD_INTERVAL = {"1d": "1day", "15m": "15min", "60m": "1h"}
 TD_SIZE     = {"1y": 365, "5d": 500, "60d": 500, "30d": 35}
 
 from scoring_config import (
-    SCORE_WEIGHTS, MAX_WEIGHTED_SCORE, GRADE_THRESHOLDS, SCORE_LABELS_NO,
     CORRELATION_GROUPS, MAX_CONCURRENT, DXY_MOMENTUM_THRESHOLD,
-    determine_horizon, calculate_weighted_score, get_grade,
 )
 
 # Stooq-symboler (ingen API-nøkkel, nær sanntid i markedstid)

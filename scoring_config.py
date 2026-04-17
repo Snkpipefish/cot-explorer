@@ -1,47 +1,14 @@
 """
-scoring_config.py — Delte scoring-konstanter og funksjoner.
+scoring_config.py — Delte scoring-konstanter.
 
 Importert av: fetch_all.py, rescore.py, push_signals.py
 Ingen side-effekter: ingen I/O, ingen API-kall, ingen print.
+
+Schema 2.0 (2026-04): legacy 9-kriterie-scoring (SCORE_WEIGHTS, MAX_WEIGHTED_SCORE,
+GRADE_THRESHOLDS, calculate_weighted_score, get_grade, determine_horizon) er
+fjernet — erstattet av driver_matrix.py som hovedscoring-motor. Denne filen
+inneholder nå kun korrelasjons-grenser, horisont-konfig og push-terskler.
 """
-
-# ─── VEKTER PER KRITERIUM PER HORISONT ───────────────────────────
-# 9 kriterier — kun reelle setup-faktorer
-# fred_fundamental kun for MAKRO (makrodata er månedlig, ikke relevant for kort sikt)
-SCORE_WEIGHTS = {
-    "sma200":             {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "momentum_20d":       {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "cot_confirms":       {"SCALP": 0,    "SWING": 1.0,  "MAKRO": 1.0},
-    "cot_strong":         {"SCALP": 0,    "SWING": 0.5,  "MAKRO": 1.0},
-    "cot_momentum":       {"SCALP": 0,    "SWING": 1.0,  "MAKRO": 1.0},
-    "htf_level_weight":   {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "d1_4h_congruent":    {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-    "fred_fundamental":   {"SCALP": 0,    "SWING": 0,    "MAKRO": 1.0},
-    "smc_confirms":       {"SCALP": 1.0,  "SWING": 1.0,  "MAKRO": 1.0},
-}
-# MAX: SCALP=5.0, SWING=7.5, MAKRO=9.0
-MAX_WEIGHTED_SCORE = {
-    h: sum(w[h] for w in SCORE_WEIGHTS.values())
-    for h in ("SCALP", "SWING", "MAKRO")
-}
-
-GRADE_THRESHOLDS = {
-    "SCALP": {"A+": 4.5, "A": 3.5, "B": 2.5},
-    "SWING": {"A+": 6.5, "A": 5.5, "B": 4.0},
-    "MAKRO": {"A+": 8.0, "A": 7.0, "B": 5.5},
-}
-
-SCORE_LABELS_NO = {
-    "sma200":             "Over SMA200",
-    "momentum_20d":       "Momentum 20d",
-    "cot_confirms":       "COT bekrefter",
-    "cot_strong":         "COT sterk (>10%)",
-    "cot_momentum":       "COT momentum Δ",
-    "htf_level_weight":   "HTF-nivå ≥ 3",
-    "d1_4h_congruent":    "D1+4H kongruent",
-    "fred_fundamental":   "Fundamental (FRED)",
-    "smc_confirms":       "SMC bekrefter",
-}
 
 # ─── KORRELASJONSGRUPPER (for bot max-posisjoner) ────────────────
 CORRELATION_GROUPS = {
@@ -169,53 +136,6 @@ HORIZON_CONFIGS = {
 }
 
 
-# ─── DELTE SCORING-FUNKSJONER ────────────────────────────────────
-
-def determine_horizon(criteria, nearest_level_weight):
-    """Bestem horisont basert på 9 reelle kriterier, nivå-vekt OG vektet kvalitet.
-    Max 9 kriterier: SCALP=5.0, SWING=7.5, MAKRO=9.0"""
-    has_cot     = criteria.get("cot_confirms", False)
-    raw_count   = sum(1 for v in criteria.values() if v)
-    def _tentative_score(h):
-        return sum(SCORE_WEIGHTS.get(c, {}).get(h, 0) for c, v in criteria.items() if v)
-    # MAKRO: ≥6/9 treff + COT + sterk HTF-nivå + score ≥7.0/10.0
-    if raw_count >= 6 and has_cot and nearest_level_weight >= 4:
-        if _tentative_score("MAKRO") >= 7.0:
-            return "MAKRO"
-    # SWING: ≥5/9 treff + HTF-nivå ≥3 + score ≥5.0/8.5
-    if raw_count >= 5 and nearest_level_weight >= 3:
-        if _tentative_score("SWING") >= 5.0:
-            return "SWING"
-    # SCALP: ≥3/9 treff
-    if raw_count >= 3:
-        return "SCALP"
-    return "WATCHLIST"
-
-
-def calculate_weighted_score(criteria, horizon):
-    """Beregn vektet score. Returnerer (score, max, details_list)."""
-    h = horizon if horizon != "WATCHLIST" else "SCALP"
-    score = 0.0
-    details = []
-    for crit_id, passed in criteria.items():
-        weight = SCORE_WEIGHTS.get(crit_id, {}).get(h, 0)
-        earned = weight if passed else 0
-        details.append({
-            "kryss":  SCORE_LABELS_NO.get(crit_id, crit_id),
-            "id":     crit_id,
-            "verdi":  passed,
-            "vekt":   weight,
-            "poeng":  earned,
-        })
-        score += earned
-    return round(score, 1), MAX_WEIGHTED_SCORE[h], details
-
-
-def get_grade(score, horizon):
-    if horizon == "WATCHLIST":
-        return "C", "bear"
-    t = GRADE_THRESHOLDS[horizon]
-    if score >= t["A+"]:  return "A+", "bull"
-    elif score >= t["A"]: return "A",  "bull"
-    elif score >= t["B"]: return "B",  "warn"
-    return "C", "bear"
+# Legacy scoring-funksjoner (determine_horizon, calculate_weighted_score,
+# get_grade) er fjernet i schema 2.0. Bruk driver_matrix.score_asset i
+# stedet — den tar over scoring på tvers av fetch_all.py og rescore.py.
