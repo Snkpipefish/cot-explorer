@@ -7,13 +7,20 @@
 Trading-setups genereres i to parallelle pipelines — teknisk og agri-fundamental:
 
 ```
-TEKNISK PIPELINE:
+TEKNISK PIPELINE (full update — hver 4. time via update.sh):
 fetch_all.py        → data/macro/latest.json     (nivåer, driver-familie-scores, setups)
                     → data/cot_analytics/latest.json  (MM-percentile, divergens-z, OI-regime)
 push_signals.py     → data/signals.json          (horisont-filtrert, for bot)
                     → POST /push-alert            (til signal_server.py)
 signal_server.py    → latest_signals.json         (oversatt til bot-format)
 trading_bot.py      → cTrader (Skilling)          (entry, confirmation, exit)
+
+INTRATIME RE-SCORING (hver time via update_prices.sh):
+fetch_prices.py     → patcher priser i data/macro/latest.json (bevarer trading_levels)
+fetch_oilgas.py     → oppdaterer data/oilgas/latest.json
+rescore.py          → re-evaluerer ALLE 11 instrumenter via driver_matrix med
+                       ferske priser + oppdatert dir_color + DXY/VIX-regime
+                       (gjenbruker COT/fundamentals/SMC fra forrige fetch_all)
 
 AGRI-FUNDAMENTAL PIPELINE:
 fetch_agri.py           → data/agri/latest.json       (vær, COT, yield, ENSO)
@@ -399,7 +406,7 @@ R:R_T2 = |T2 - entry| / risk
 | MAKRO | 3.5 |
 | WATCHLIST | Aldri |
 
-(Legacy 9-kriterie-systemet brukte 3.0/4.5/5.5 på 0-9 skala — fortsatt tilgjengelig i `rescore.py`, men erstattet i hovedscoringen via driver_matrix.)
+(Legacy 9-kriterie-systemet brukte 3.0/4.5/5.5 på 0-9 skala — **fullstendig fjernet** i schema 2.0. `rescore.py` (kjøres hver time) ble migrert til driver_matrix i commit 644c669, og `scoring_config.py` har ikke lenger legacy-funksjoner (commit 349a2b7). Driver-matrix er eneste scoring-motor.)
 
 ### Signal aging (entry distance)
 
@@ -496,7 +503,7 @@ Hvert signal inkluderer `horizon_config` med parametre for boten:
     {
       "key": "eurusd", "name": "EUR/USD",
       "horizon": "SWING", "direction": "bull", "grade": "A",
-      "score": 3.2, "max_score": 6.0, "score_pct": 53,
+      "score": 2.77, "max_score": 5.0, "score_pct": 55,
       "setup": {"entry": ..., "sl": ..., "t1": ..., "t2": ..., "rr_t1": 1.47},
       "cot": {"bias": "LONG", "pct": 12.4},
       "driver_groups": {
