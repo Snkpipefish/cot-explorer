@@ -380,6 +380,95 @@ def test_index_investor_structural_long_for_agri_bull():
           f"{with_idx.driver_groups['positioning'].drivers}")
 
 
+# ─── Runde 4: olje supply-disruption som POSITIONING-bias ───────────────
+
+def test_oil_disruption_no_bull_bias_in_positioning():
+    """LONG-signal på olje: POSITIONING skal IKKE få bull-bonus fra supply-
+    disruption (FUNDAMENTAL_energy gir allerede +0.8). Score skal være
+    uendret mellom med/uten disruption-flagg når direction='bull'."""
+    baseline = dm.compute_positioning_v2(
+        cot_bias_aligns=True, cot_pct=10, cot_momentum_aligns=True,
+        direction="bull",
+    )
+    with_disrupt = dm.compute_positioning_v2(
+        cot_bias_aligns=True, cot_pct=10, cot_momentum_aligns=True,
+        direction="bull", oil_supply_disruption=True,
+    )
+    assert abs(with_disrupt.score - baseline.score) < 0.001, \
+        f"FAIL: bull-disruption endret POSITIONING-score (skal være uendret), " \
+        f"baseline={baseline.score}, ny={with_disrupt.score}"
+    drivers = " ".join(with_disrupt.drivers)
+    assert "Supply disruption" not in drivers, \
+        f"FAIL: bull skal ikke ha supply-driver i POSITIONING (FUNDAMENTAL dekker)"
+    print(f"PASS: oil disruption + bull → POSITIONING uendret "
+          f"({baseline.score:.2f}) — FUNDAMENTAL_energy dekker bull-bidrag")
+
+
+def test_oil_disruption_positioning_bias_bear():
+    """SHORT-signal på olje med supply-disruption → POSITIONING får -0.4-bidrag."""
+    baseline = dm.compute_positioning_v2(
+        cot_bias_aligns=True, cot_pct=-10, cot_momentum_aligns=True,
+        direction="bear",
+    )
+    with_disrupt = dm.compute_positioning_v2(
+        cot_bias_aligns=True, cot_pct=-10, cot_momentum_aligns=True,
+        direction="bear", oil_supply_disruption=True,
+    )
+    assert with_disrupt.score < baseline.score, \
+        f"FAIL: bear-disruption skulle redusere score, baseline={baseline.score}, ny={with_disrupt.score}"
+    drivers = " ".join(with_disrupt.drivers)
+    assert "Supply disruption (advarer SHORT)" in drivers, \
+        f"FAIL: forventet 'Supply disruption (advarer SHORT)' i drivers: {drivers}"
+    print(f"PASS: oil disruption + bear → POSITIONING penalty "
+          f"({baseline.score:.2f} → {with_disrupt.score:.2f}) drivers: {with_disrupt.drivers}")
+
+
+def test_oil_score_asset_propagates_disruption_context():
+    """score_asset for energy med oil_supply_disruption=True i context →
+    POSITIONING-score skal være LAVERE enn uten flagget (bear-penalty -0.4
+    aktiveres). Vi sammenligner score istedenfor driver-tekst fordi
+    drivers[:3] kan presse ut supply-driveren ved mange aktive sub-signaler."""
+    without_disrupt = dm.score_asset(
+        direction="bear",
+        sma200_aligned=False, momentum_aligned=True, d1_4h_congruent=True,
+        cot_bias_aligns=True, cot_pct=-15, cot_momentum_aligns=True,
+        asset="Brent", asset_class="energy",
+        oil_supply_disruption=False,
+        shipping_risk="HIGH",
+    )
+    with_disrupt = dm.score_asset(
+        direction="bear",
+        sma200_aligned=False, momentum_aligned=True, d1_4h_congruent=True,
+        cot_bias_aligns=True, cot_pct=-15, cot_momentum_aligns=True,
+        asset="Brent", asset_class="energy",
+        oil_supply_disruption=True,
+        shipping_risk="HIGH",
+    )
+    pos_baseline = without_disrupt.driver_groups["positioning"].score
+    pos_disrupt  = with_disrupt.driver_groups["positioning"].score
+    assert pos_disrupt < pos_baseline, \
+        f"FAIL: context-propagering brutt — POSITIONING-score skulle synke, " \
+        f"baseline={pos_baseline:.2f}, med disruption={pos_disrupt:.2f}"
+    print(f"PASS: score_asset propagerer oil_supply_disruption → POSITIONING "
+          f"({pos_baseline:.2f} → {pos_disrupt:.2f})")
+
+
+def test_oil_disruption_does_not_force_dir_color():
+    """Etter runde 4: oil_supply_disruption skal IKKE flippe direction internt
+    i driver_matrix. score_asset skal ta direction som gitt og lar POSITIONING
+    håndtere bias-justeringen."""
+    bear_with_disrupt = dm.score_asset(
+        direction="bear",
+        sma200_aligned=False, momentum_aligned=True, d1_4h_congruent=True,
+        cot_bias_aligns=True, cot_pct=-15, cot_momentum_aligns=True,
+        asset="Brent", asset_class="energy",
+        oil_supply_disruption=True,
+    )
+    assert bear_with_disrupt.direction == "bear", \
+        f"FAIL: driver_matrix skulle ikke flippe direction, fikk {bear_with_disrupt.direction}"
+    print(f"PASS: driver_matrix bevarer direction='bear' selv med oil_supply_disruption=True")
+
+
 if __name__ == "__main__":
     print("═" * 60)
     print(" C1 regression tests — driver_matrix")
@@ -407,6 +496,11 @@ if __name__ == "__main__":
         test_c1_still_holds_with_positioning_v2,
         test_positioning_v2_backward_compat,
         test_index_investor_structural_long_for_agri_bull,
+        # Runde 4: olje supply-disruption som POSITIONING-bias
+        test_oil_disruption_no_bull_bias_in_positioning,
+        test_oil_disruption_positioning_bias_bear,
+        test_oil_score_asset_propagates_disruption_context,
+        test_oil_disruption_does_not_force_dir_color,
     ]
     passed = 0
     failed = 0

@@ -201,9 +201,12 @@ for key, d in top:
     setup = active_setup(d)
     if not setup:
         continue
-    # Blokkér olje SHORT ved supply-disruption
+    # Safety-gate: blokkér olje SHORT ved supply-disruption.
+    # Runde 4: dir_color reflekterer nå teknisk virkelighet (bear kan oppstå),
+    # POSITIONING-bias gir score-reduksjon for synlighet, men denne gaten er
+    # siste forsvar mot å pushe SHORT på Brent/WTI mens Hormuz/Mideast er HIGH.
     if _oil_disruption and key in ("Brent", "WTI") and d.get("dir_color") == "bear":
-        print(f"  ⛽ {key} SHORT blokkert — supply-disruption aktiv")
+        print(f"  ⛽ {key} SHORT blokkert — supply-disruption aktiv (safety-gate; POSITIONING viser bias)")
         continue
     p   = 5 if (d.get("current") or 0) < 100 else 2
     cot = d.get("cot", {})
@@ -641,7 +644,11 @@ flask_signals = [{
     "quality_notes":  d.get("quality_notes", []),
     "dir_override_reason": d.get("dir_override_reason"),
     "created_at":     _now_iso,
-} for key, d in top]
+} for key, d in top
+   # Safety-gate: speil signals.json-filteret. Hvis tekniske olje-SHORTs
+   # filtreres ut der ved supply-disruption, må Flask-payloaden også droppe
+   # dem for å unngå at boten åpner SHORT som signal-server tror er gyldig.
+   if not (_oil_disruption and key in ("Brent", "WTI") and d.get("dir_color") == "bear")]
 
 # Agri-signaler i Flask-format (samme /push-alert endpoint)
 if AGRI_SIGNALS_FILE.exists():

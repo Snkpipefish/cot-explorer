@@ -1474,15 +1474,14 @@ for inst in INSTRUMENTS:
     else:
         dir_color = "bull" if above_sma else "bear"
 
-    # ── Olje supply-disruption override ─────────────────────
-    # Når Hormuz/Midtøsten har HIGH risk → olje kan ikke shortes
-    # Supply-squeeze = bullish for pris, SHORT er for farlig
-    _oil_dir_overridden = False
-    if _oil_supply_disruption and key in ("Brent", "WTI"):
-        if dir_color == "bear":
-            dir_color = "bull"  # Tving bullish — supply-disruption trumfer teknisk
-            dir_score = 0.6     # Mild bull, ikke sterk — la scoren reflektere usikkerhet
-            _oil_dir_overridden = True
+    # ── Olje supply-disruption (runde 4: hard dir-flip fjernet) ────
+    # dir_color reflekterer nå teknisk virkelighet selv ved disruption.
+    # Tre-lags-beskyttelse:
+    #   1. POSITIONING-bias (±0.4) i driver_matrix gir SHORT lavere score,
+    #      LONG bekreftelse — synlighet i grade-beregningen.
+    #   2. dir_color = bear hvis teknisk peker bear (ingen skjuling).
+    #   3. push_signals.py blokkerer eksplisitt SHORT-push på Brent/WTI
+    #      mens oil_supply_disruption=True (safety-gate, siste forsvar).
 
     # Lagre DXY-retning og momentum for bruk i USD-par
     if key == "DXY":
@@ -1889,7 +1888,9 @@ for inst in INSTRUMENTS:
         "binary_risk":   get_binary_risk(inst["key"]),
         "oil_supply_disruption": _oil_supply_disruption if key in ("Brent", "WTI") else None,
         "oil_supply_reason": _oil_supply_reason if key in ("Brent", "WTI") and _oil_supply_disruption else None,
-        "dir_override_reason": "oil_supply_disruption" if _oil_dir_overridden else None,
+        # Runde 4: hard dir-flip fjernet — olje-disruption synes nå i
+        # POSITIONING-driver "Supply disruption …" istedenfor dette flagget.
+        "dir_override_reason": None,
         "smc": {
             "structure":    smc["structure"]    if smc else None,
             "supply_zones": smc["supply_zones"] if smc else [],

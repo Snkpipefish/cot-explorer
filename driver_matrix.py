@@ -166,6 +166,9 @@ def compute_positioning_v2(cot_bias_aligns: bool,
                            mm_comm_divergence_z: Optional[float] = None,
                            oi_regime_label:      Optional[str]   = None,
                            index_investor_bias:  Optional[str]   = None,
+                           # Runde 4: olje supply-disruption som POSITIONING-bias
+                           # (erstatter hard dir_color-flip i fetch_all/rescore)
+                           oil_supply_disruption: bool           = False,
                            ) -> GroupScore:
     """POSITIONING-familie med 3 legacy + opptil 4 disaggregated sub-signaler.
 
@@ -246,6 +249,16 @@ def compute_positioning_v2(cot_bias_aligns: bool,
         subs.append((0.3, "Indeksfond strukturelt long"))
     elif index_investor_bias == "structural_short" and is_bear:
         subs.append((0.3, "Indeksfond strukturelt short"))
+
+    # ─── Supply disruption bias (kun olje fra context for energy) ────
+    # Asymmetrisk design: kun BEAR får penalty (-0.4). BULL er allerede
+    # dekket av FUNDAMENTAL_energy +0.8 — å legge en bull-bonus i POSITIONING
+    # ville (a) dobbel-telle samme driver, og (b) faktisk *redusere* score
+    # når andre POSITIONING-snitt > 0.4 (snitt-aggregering trekker ned ved
+    # lavt bidrag). Magnitude -0.4 > -0.3 (OI-warning) fordi supply-disruption
+    # er primær risiko. Hard SHORT-blokk gjøres i push_signals som safety-gate.
+    if oil_supply_disruption and is_bear:
+        subs.append((-0.4, "Supply disruption (advarer SHORT)"))
 
     # Aggregering: snitt av ikke-null bidrag, clamp til [0, 1]
     active = [(s, d) for s, d in subs if s != 0.0]
@@ -876,6 +889,7 @@ def score_asset(
         mm_comm_divergence_z=context.get("mm_comm_divergence_z"),
         oi_regime_label=context.get("oi_regime_label"),
         index_investor_bias=context.get("index_investor_bias"),
+        oil_supply_disruption=context.get("oil_supply_disruption", False),
     )
 
     # Familie 3 — MACRO
