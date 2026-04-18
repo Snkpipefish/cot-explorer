@@ -540,8 +540,8 @@ function adaptSignal(raw){
   const horizon = raw.horizon || raw.timeframe || 'SWING';
   const score_pct = raw.score_pct != null ? raw.score_pct
                     : (raw.score && raw.max_score) ? Math.round(100 * raw.score / raw.max_score) : 0;
-  /* rare = A+ or score_pct >= 75 */
-  const rare = raw.grade === 'A+' || score_pct >= 75;
+  /* rare = A+ eller solid A (A-grade er allerede relativt sjelden) */
+  const rare = raw.grade === 'A+' || raw.grade === 'A';
   /* ensure driver_groups exists with all 6 keys */
   const dg = raw.driver_groups || {};
   const driver_groups = {};
@@ -925,13 +925,36 @@ function famLevel(s, key){
   return s>=0.6?'hi': s>=0.3?'mid':'lo';
 }
 
-function starString(pct){
-  let n=1; if(pct>=90)n=5; else if(pct>=75)n=4; else if(pct>=60)n=3; else if(pct>=45)n=2;
+/* Stars grade-basert (A+/A/B/C) — harmoniserer tekniske og agri.
+   Bumper +1 stjerne når score_pct er toppskikt innen sin grade. */
+function starString(sigOrGrade, score_pct){
+  const grade = typeof sigOrGrade === 'object' ? sigOrGrade.grade : sigOrGrade;
+  const pct = typeof sigOrGrade === 'object' ? sigOrGrade.score_pct : (score_pct || 0);
+  let n;
+  if (grade === 'A+')      n = 5;
+  else if (grade === 'A')  n = pct >= 70 ? 5 : 4;
+  else if (grade === 'B')  n = pct >= 50 ? 4 : 3;
+  else if (grade === 'C')  n = 2;
+  else                     n = 1;
   return '★'.repeat(n) + '<span class="star-dim">'+'★'.repeat(5-n)+'</span>';
 }
 
 /* ═══ FLAVOR (quest card short) ═══ */
 function buildShortFlavor(sig){
+  /* Agri-signaler: bruk fundamental-drivere (vær/yield/COT) */
+  if (sig.agri){
+    const dir = sig.direction==='bull' ? 'Åkeren peker nordover' : 'Åkeren peker sørover';
+    const bits = [];
+    const yph = yieldPhrase(sig.agri.yield_score, sig.direction);
+    if (yph) bits.push(yph.replace(/<[^>]+>/g,''));
+    const wph = weatherPhrase(sig.agri.weather_outlook);
+    if (wph) bits.push(wph);
+    /* Fallback til første driver-string hvis ingen vær/yield */
+    if (!bits.length && sig.agri.drivers && sig.agri.drivers.length) bits.push(sig.agri.drivers[0]);
+    if (!bits.length) return dir + '.';
+    return dir + '. ' + bits[0] + (bits[1] ? '. ' + bits[1] : '') + '.';
+  }
+  /* Tekniske: bruk 6-familie-matrisen */
   const hi=[]; for(const k of ['trend','positioning','macro','fundamental','structure']){
     if(sig.driver_groups[k].score>=0.6) hi.push(FAM_HI_PHRASE[k]);
   }
@@ -1053,7 +1076,12 @@ function buildNarrative(sig){
 
 /* ═══ RENDER QUESTS ═══ */
 function renderQuests(){
-  const sorted=[...SIGNALS].sort((a,b)=>b.score_pct-a.score_pct);
+  /* Primær: grade (A+ > A > B > C), sekundær: score_pct desc */
+  const gradeRank = {'A+':4,'A':3,'B':2,'C':1};
+  const sorted=[...SIGNALS].sort((a,b)=>{
+    const g = (gradeRank[b.grade]||0) - (gradeRank[a.grade]||0);
+    return g !== 0 ? g : (b.score_pct - a.score_pct);
+  });
   const top=sorted.slice(0,5), rest=sorted.slice(5);
 
   document.getElementById('questGrid').innerHTML = top.map(s=>`
@@ -1073,13 +1101,25 @@ function renderQuests(){
         <div class="qstat target"><div class="l">MÅL</div><div class="v">${fmt(s.setup.t1)}</div></div>
       </div>
       <div class="qfam">
-        ${Object.keys(FAM_INITIAL).map(k=>{
+        ${s.agri ? (()=>{
+          /* Agri-badges: YIELD, VÆR, COT, CONAB, UNICA, ENSO (fra drivers[]) */
+          const drvText = (s.agri.drivers||[]).join(' | ').toLowerCase();
+          const badges = [
+            {k:'Y', label:'YIELD', lvl: s.agri.yield_score==null||s.agri.yield_score===0 ? 'lo' : (s.direction==='bull'?(s.agri.yield_score<40?'hi':s.agri.yield_score<70?'mid':'lo'):(s.agri.yield_score>85?'hi':s.agri.yield_score>70?'mid':'lo'))},
+            {k:'V', label:'VÆR', lvl: /tørke|flom|frost|storm|drought|flood/.test(drvText)||(s.agri.weather_outlook||'').match(/tørke|flom|frost/i) ? 'hi' : (s.agri.weather_outlook?'mid':'lo')},
+            {k:'C', label:'COT', lvl: Math.abs(s.cot.pct)>=10 ? 'hi' : Math.abs(s.cot.pct)>=4 ? 'mid' : 'lo'},
+            {k:'B', label:'CONAB', lvl: /conab/.test(drvText) ? 'hi' : 'lo'},
+            {k:'U', label:'UNICA', lvl: /unica|sugar-mix|crush/.test(drvText) ? 'hi' : 'lo'},
+            {k:'E', label:'ENSO', lvl: /el niño|la niña|enso/.test(drvText) ? 'hi' : 'lo'}
+          ];
+          return badges.map(b => `<div class="fam ${b.lvl}" title="${b.label}">${b.k}</div>`).join('');
+        })() : Object.keys(FAM_INITIAL).map(k=>{
           const lvl=famLevel(s.driver_groups[k].score, k);
           return `<div class="fam ${lvl}" title="${FAM_LABELS[k]}: ${(s.driver_groups[k].score*100)|0}%">${FAM_INITIAL[k]}</div>`;
         }).join('')}
       </div>
       <div class="qmeta">
-        <div class="stars">${starString(s.score_pct)}</div>
+        <div class="stars">${starString(s)}</div>
         <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:10px;color:var(--m)"><span class="dq-dot ${s.data_quality}"></span>${s.data_quality}</span>
           <span class="reward">${s.setup.rr_t1.toFixed(1)}R</span>
@@ -1093,9 +1133,20 @@ function renderQuests(){
       <div class="mini-ic">${s.icon}</div>
       <div class="mini-name">${s.name}</div>
       <div class="mini-dir ${s.direction==='bull'?'long':'short'}">${s.direction==='bull'?'LONG':'SHORT'}</div>
-      <div class="mini-stars">${starString(s.score_pct)}</div>
+      <div class="mini-stars">${starString(s)}</div>
       <div class="mini-fam">
-        ${Object.keys(FAM_INITIAL).map(k=>{
+        ${s.agri ? (()=>{
+          const drvText = (s.agri.drivers||[]).join(' | ').toLowerCase();
+          const badges = [
+            {k:'Y', lvl: s.agri.yield_score==null||s.agri.yield_score===0 ? 'lo' : (s.direction==='bull'?(s.agri.yield_score<40?'hi':s.agri.yield_score<70?'mid':'lo'):(s.agri.yield_score>85?'hi':s.agri.yield_score>70?'mid':'lo'))},
+            {k:'V', lvl: /tørke|flom|frost|drought|flood/.test(drvText)||(s.agri.weather_outlook||'').match(/tørke|flom|frost/i) ? 'hi' : (s.agri.weather_outlook?'mid':'lo')},
+            {k:'C', lvl: Math.abs(s.cot.pct)>=10 ? 'hi' : Math.abs(s.cot.pct)>=4 ? 'mid' : 'lo'},
+            {k:'B', lvl: /conab/.test(drvText) ? 'hi' : 'lo'},
+            {k:'U', lvl: /unica|sugar-mix|crush/.test(drvText) ? 'hi' : 'lo'},
+            {k:'E', lvl: /el niño|la niña|enso/.test(drvText) ? 'hi' : 'lo'}
+          ];
+          return badges.map(b=>`<div class="mini-fdot ${b.lvl}">${b.k}</div>`).join('');
+        })() : Object.keys(FAM_INITIAL).map(k=>{
           const lvl=famLevel(s.driver_groups[k].score,k);
           return `<div class="mini-fdot ${lvl==='hi'?'hi':lvl==='mid'?'mid':'lo'}">${FAM_INITIAL[k]}</div>`;
         }).join('')}
@@ -1115,7 +1166,7 @@ function openModal(key){
       <div class="modal-icon">${s.icon}</div>
       <div>
         <div class="modal-title">${s.name} · ${s.direction==='bull'?'LONG':'SHORT'} · ${s.horizon}</div>
-        <div class="modal-sub">${starString(s.score_pct)} &nbsp; Skatte-score ${(s.score_pct)|0}%</div>
+        <div class="modal-sub">${starString(s)} &nbsp; Skatte-score ${(s.score_pct)|0}%</div>
       </div>
       <div class="modal-grade">GRADE ${s.grade}</div>
     </div>
