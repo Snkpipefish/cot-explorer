@@ -403,9 +403,9 @@ html,body{overflow-x:hidden;max-width:100vw}
 <header class="topbar">
   <div class="logo">MARKEDS<span class="em">PULS</span></div>
   <div class="tb-stats">
-    <span class="chip streak"><span class="ic">🔥</span> 7-DAGS STRIPE</span>
-    <span class="chip vix"><span class="ic">⚓</span> VIX 18.2</span>
-    <span class="chip rank"><span class="ic">☠</span> CAPTAIN LVL 14</span>
+    <span class="chip streak" id="chipStreak"><span class="ic">🔥</span> <span id="chipStreakVal">— STRIPE</span></span>
+    <span class="chip vix" id="chipVix"><span class="ic">⚓</span> <span id="chipVixVal">VIX —</span></span>
+    <span class="chip rank" id="chipLevel"><span class="ic">☠</span> <span id="chipLevelVal">CAPTAIN LVL —</span></span>
   </div>
 </header>
 
@@ -682,6 +682,22 @@ function renderSkipsloggen(entries){
 
   document.getElementById('botRank').textContent =
     `◆ CAPTAIN · LEVEL ${level} · ${totalR_won.toFixed(1)}R PLYNDRET`;
+
+  /* topbar chip — level */
+  const chipLvl = document.getElementById('chipLevelVal');
+  if (chipLvl) chipLvl.textContent = `CAPTAIN LVL ${level}`;
+
+  /* win-streak: fortløpende vinnere fra nyeste lukkede trade bakover */
+  const closedSorted = [...closed].sort((a,b)=> (b.closed_at||'').localeCompare(a.closed_at||''));
+  let streak = 0;
+  for (const e of closedSorted){
+    if ((e.result||'').toLowerCase()==='win') streak++;
+    else break;
+  }
+  const chipStreak = document.getElementById('chipStreakVal');
+  if (chipStreak){
+    chipStreak.textContent = streak >= 1 ? `${streak}-STRIPE` : 'INGEN STRIPE';
+  }
   document.getElementById('botXpFill').style.width = Math.max(1, xpPct) + '%';
   document.getElementById('botXpLabel').innerHTML =
     `${intoLevel.toFixed(1)}R / 10R &nbsp; · &nbsp; ${toNext.toFixed(1)}R til Level ${level+1} (hver level = 10R vunnet)`;
@@ -1583,10 +1599,37 @@ function updatePipeBanner(results){
   `;
 }
 
+/* ═══ TOPBAR — VIX fra macro/latest.json ═══ */
+async function loadTopbar(){
+  try{
+    const res = await fetch('data/macro/latest.json', {cache:'no-store'});
+    if (!res.ok) return;
+    const d = await res.json();
+    /* VIX i macro/latest.json: prices.VIX.price eller vix_regime.value */
+    const vix = d.prices?.VIX?.price ?? d.vix_regime?.value ?? d.prices?.VIX?.last;
+    const regime = typeof d.vix_regime === 'string' ? d.vix_regime : d.vix_regime?.regime;
+    const el = document.getElementById('chipVixVal');
+    const chip = document.getElementById('chipVix');
+    if (el && vix != null){
+      el.textContent = `VIX ${Number(vix).toFixed(1)}`;
+      /* Farge-hint basert på regime: normal=teal, elevated=gold, extreme=coral */
+      if (chip && regime){
+        chip.style.borderColor = regime==='extreme' ? 'var(--coral)'
+                              : regime==='elevated' ? 'var(--gold)'
+                              : 'var(--teal)';
+        chip.style.color = regime==='extreme' ? 'var(--coral)'
+                         : regime==='elevated' ? 'var(--gold)'
+                         : 'var(--teal)';
+      }
+    }
+  } catch(_){}
+}
+
 /* init */
 loadSignals();
 loadSignalLog();
 loadPipeline();
+loadTopbar();
 </script>
 </body>
 </html>
