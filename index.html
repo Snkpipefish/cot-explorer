@@ -646,6 +646,10 @@ async function loadSignalLog(){
     const res = await fetch('data/signal_log.json', {cache:'no-store'});
     if (!res.ok) throw new Error('signal_log.json HTTP '+res.status);
     const data = await res.json();
+    /* Stash tidsstempel for footer */
+    const ts = parseTime(data.last_updated);
+    if (ts) window.dataTimes.log = ts;
+    renderRefreshStamp();
     renderSkipsloggen(data.entries || []);
   } catch(err){
     console.error('[loadSignalLog]', err);
@@ -899,6 +903,9 @@ async function loadSignals(){
     if (techRes.status === 'fulfilled' && techRes.value.ok){
       const d = await techRes.value.json();
       techSignals = d.signals || [];
+      /* Stash signals.json 'generated' for footer */
+      const ts = parseTime(d.generated);
+      if (ts) window.dataTimes.quests = ts;
     }
     let agriByKey = {};
     if (agriRes.status === 'fulfilled' && agriRes.value.ok){
@@ -933,6 +940,7 @@ async function loadSignals(){
       return;
     }
     renderQuests();
+    renderRefreshStamp();
   } catch(err){
     console.error('[loadSignals]', err);
     document.getElementById('questGrid').innerHTML =
@@ -1679,6 +1687,10 @@ async function loadPipeline(){
   const oldestFresh = results.filter(x=>x.r.status==='fresh').length;
   const total = results.length;
 
+  /* Stash newest pipeline-tidsstempel for footer */
+  if (newest) window.dataTimes.map = newest;
+  renderRefreshStamp();
+
   // update each card
   for (const {gi,ii,r} of results){
     const card = document.querySelector(`.pipe-card[data-gi="${gi}-${ii}"]`);
@@ -1743,22 +1755,45 @@ async function loadTopbar(){
 }
 
 /* ═══ REFRESH — ved page load + når fanen får fokus ═══ */
-function updateRefreshStamp(){
+window.dataTimes = { log: null, quests: null, map: null };
+
+function getActiveTab(){
+  const t = document.querySelector('.tab.active');
+  return t ? t.dataset.tab : 'quests';
+}
+
+function renderRefreshStamp(){
   const el = document.getElementById('lastRefresh');
   if (!el) return;
+  const tab = getActiveTab();
+  const ts = window.dataTimes[tab];
+  const labels = { log:'Loggen', quests:'Skattene', map:'Pipelinen' };
+  if (!ts){ el.textContent = `${labels[tab]}: ingen tidsstempel`; return; }
   const now = new Date();
-  const hh = String(now.getHours()).padStart(2,'0');
-  const mm = String(now.getMinutes()).padStart(2,'0');
-  const ss = String(now.getSeconds()).padStart(2,'0');
-  el.textContent = `Sist oppdatert ${hh}:${mm}:${ss}`;
+  const ageMin = Math.round((now - ts) / 60000);
+  const hh = String(ts.getHours()).padStart(2,'0');
+  const mm = String(ts.getMinutes()).padStart(2,'0');
+  const dd = String(ts.getDate()).padStart(2,'0');
+  const mo = String(ts.getMonth()+1).padStart(2,'0');
+  const sameDay = ts.toDateString() === now.toDateString();
+  const stamp = sameDay ? `${hh}:${mm}` : `${dd}.${mo} ${hh}:${mm}`;
+  let agePart;
+  if (ageMin < 1) agePart = 'nå nettopp';
+  else if (ageMin < 60) agePart = `${ageMin} min siden`;
+  else if (ageMin < 1440) agePart = `${Math.floor(ageMin/60)}t siden`;
+  else agePart = `${Math.floor(ageMin/1440)}d siden`;
+  el.textContent = `${labels[tab]} sist oppdatert ${stamp} (${agePart})`;
 }
+
 async function refreshAll(){
   await Promise.all([loadSignals(), loadSignalLog(), loadPipeline(), loadTopbar()]);
-  updateRefreshStamp();
+  renderRefreshStamp();
 }
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') refreshAll();
 });
+/* Oppdater footer når fane byttes */
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', renderRefreshStamp));
 
 /* init */
 refreshAll();
