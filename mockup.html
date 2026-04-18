@@ -345,15 +345,15 @@ footer{text-align:center;padding:26px;margin-top:40px;font-family:'IM Fell Engli
     <div class="bot-hero">
       <div class="bot-avatar">🐒</div>
       <div class="bot-info">
-        <div class="rank" id="botRank">◆ CAPTAIN · LEVEL — · — R PLYNDRET</div>
+        <div class="rank">◆ CAPTAIN · LEVEL 14 · 32R PLYNDRET</div>
         <div class="name">Skilling, den salte bot</div>
-        <div class="xp-bar"><div class="xp-fill" id="botXpFill" style="width:0%"></div></div>
-        <div class="xp-label" id="botXpLabel">— R / — R · — til neste level</div>
+        <div class="xp-bar"><div class="xp-fill"></div></div>
+        <div class="xp-label">32.4R / 40R &nbsp; · &nbsp; 7.6R til Level 15 (hver level = 10R vunnet)</div>
       </div>
       <div class="bot-stats">
-        <div class="bstat"><div class="v gold" id="botHitRate">—</div><div class="l">HIT RATE</div></div>
-        <div class="bstat"><div class="v" id="botPnl30d">—</div><div class="l">30D PNL</div></div>
-        <div class="bstat"><div class="v coral" id="botOpen">—</div><div class="l">ÅPNE</div></div>
+        <div class="bstat"><div class="v gold">63%</div><div class="l">HIT RATE</div></div>
+        <div class="bstat"><div class="v">+4.2R</div><div class="l">30D PNL</div></div>
+        <div class="bstat"><div class="v coral">2</div><div class="l">ÅPNE</div></div>
       </div>
     </div>
 
@@ -362,7 +362,55 @@ footer{text-align:center;padding:26px;margin-top:40px;font-family:'IM Fell Engli
       <div class="sect-sub">— Pulserende gull = kampen raser ennå</div>
     </div>
 
-    <div class="log-scroll" id="logScroll">
+    <div class="log-scroll">
+      <div class="log-row open">
+        <div class="log-date">18. APR 09:12</div>
+        <div class="log-dir open-tag">LONG ●</div>
+        <div class="log-desc">WTI — boarded ved $73.40, vinden holder fra OPEC-siden</div>
+        <div class="log-pnl o">I KAMP</div>
+      </div>
+      <div class="log-row open">
+        <div class="log-date">18. APR 08:45</div>
+        <div class="log-dir open-tag">SHORT ●</div>
+        <div class="log-desc">EUR/USD — seilet inn ved 1.0920, venter på land</div>
+        <div class="log-pnl o">I KAMP</div>
+      </div>
+      <div class="log-row">
+        <div class="log-date">17. APR 14:48</div>
+        <div class="log-dir short">SHORT</div>
+        <div class="log-desc">GBP/USD — trailet hjem, dollaren slo inn hardt</div>
+        <div class="log-pnl w">+2.1R</div>
+      </div>
+      <div class="log-row">
+        <div class="log-date">17. APR 08:03</div>
+        <div class="log-dir short">SHORT</div>
+        <div class="log-desc">Gull — stormen snudde, kuttet anker ved stop</div>
+        <div class="log-pnl l">−1.0R</div>
+      </div>
+      <div class="log-row">
+        <div class="log-date">16. APR 22:17</div>
+        <div class="log-dir long">LONG</div>
+        <div class="log-desc">NAS100 — fanget breakout, plyndret til T2 under fullmåne</div>
+        <div class="log-pnl w">+3.4R</div>
+      </div>
+      <div class="log-row">
+        <div class="log-date">16. APR 10:02</div>
+        <div class="log-dir long">LONG</div>
+        <div class="log-desc">Bitcoin — red strømmen rett etter CPI-bølgen</div>
+        <div class="log-pnl w">+1.8R</div>
+      </div>
+      <div class="log-row">
+        <div class="log-date">15. APR 15:30</div>
+        <div class="log-dir long">LONG</div>
+        <div class="log-desc">Cotton — fanget supply-sjokket, skatten var dypere enn ventet</div>
+        <div class="log-pnl w">+2.6R</div>
+      </div>
+      <div class="log-row">
+        <div class="log-date">15. APR 09:00</div>
+        <div class="log-dir short">SHORT</div>
+        <div class="log-desc">USD/JPY — avviste NY-rallyet, trailet ut ved EMA9-krysset</div>
+        <div class="log-pnl w">+1.5R</div>
+      </div>
     </div>
   </section>
 
@@ -426,252 +474,8 @@ document.querySelectorAll('.tab').forEach(t=>{
   });
 });
 
-/* ═══ NUMBER FORMATTER — symbol-aware precision ═══ */
-function fmt(n){
-  if (n == null || isNaN(n)) return '—';
-  const a = Math.abs(n);
-  if (a >= 10000) return Math.round(n).toLocaleString('no-NO');
-  if (a >= 1000)  return n.toLocaleString('no-NO', {maximumFractionDigits:1});
-  if (a >= 100)   return n.toFixed(2);
-  if (a >= 10)    return n.toFixed(2);
-  if (a >= 1)     return n.toFixed(3);
-  return n.toFixed(5);
-}
-
-/* ═══ ICON MAP — key/name → emoji ═══ */
-const ICON_MAP = {
-  SPX:'📈', spx:'📈', spx500:'📈', NAS100:'📈', nas:'📈', nasdaq:'📈',
-  EURUSD:'💶', eurusd:'💶', GBPUSD:'💷', gbpusd:'💷', USDJPY:'💴', usdjpy:'💴', AUDUSD:'💱', audusd:'💱',
-  USDCHF:'💱', USDCAD:'💱', NZDUSD:'💱', USDNOK:'💱', EURGBP:'💱', DXY:'💵',
-  Gold:'🥇', gold:'🥇', Silver:'🥈', silver:'🥈',
-  Brent:'🛢', brent:'🛢', WTI:'🛢', wti:'🛢', NatGas:'⛽',
-  Cotton:'🧵', Wheat:'🌾', Corn:'🌽', Soybean:'🫘', Coffee:'☕', Sugar:'🍬', Cocoa:'🍫',
-  BTC:'₿', ETH:'◆', SOL:'◇', XRP:'✦', ADA:'♣', DOGE:'🐕', Ripple:'✦'
-};
-function iconFor(sig){
-  return ICON_MAP[sig.key] || ICON_MAP[sig.key?.toLowerCase?.()]
-    || ICON_MAP[sig.name] || (sig.source==='agri_fundamental'?'🌾':'⚓');
-}
-
-/* ═══ ADAPTER — real signals.json/agri_signals.json → render shape ═══ */
-function adaptSignal(raw){
-  /* handle BOTH nested (setup.*, cot.*) and flat (entry, sl, cot_bias) */
-  const dir = raw.direction ||
-    (['BUY','bull','LONG'].includes(raw.action) ? 'bull'
-     : ['SELL','bear','SHORT'].includes(raw.action) ? 'bear' : null);
-  const setup = raw.setup || {entry:raw.entry, sl:raw.sl, t1:raw.t1, t2:raw.t2, rr_t1:raw.rr_t1};
-  const cot = raw.cot || {bias: raw.cot_bias, pct: raw.cot_pct};
-  const horizon = raw.horizon || raw.timeframe || 'SWING';
-  const score_pct = raw.score_pct != null ? raw.score_pct
-                    : (raw.score && raw.max_score) ? Math.round(100 * raw.score / raw.max_score) : 0;
-  /* rare = A+ or score_pct >= 75 */
-  const rare = raw.grade === 'A+' || score_pct >= 75;
-  /* ensure driver_groups exists with all 6 keys */
-  const dg = raw.driver_groups || {};
-  const driver_groups = {};
-  for (const k of ['trend','positioning','macro','fundamental','risk','structure']) {
-    driver_groups[k] = {
-      score: (dg[k] && typeof dg[k].score === 'number') ? dg[k].score : 0,
-      drivers: (dg[k] && Array.isArray(dg[k].drivers)) ? dg[k].drivers : []
-    };
-  }
-  return {
-    key: raw.key || raw.name,
-    name: (raw.name || raw.key || '').toUpperCase(),
-    icon: iconFor(raw),
-    direction: dir,
-    horizon,
-    grade: raw.grade || 'C',
-    score: raw.score || 0,
-    max_score: raw.max_score || 5,
-    score_pct,
-    data_quality: raw.data_quality || 'fresh',
-    quality_notes: raw.quality_notes || [],
-    setup: {entry: setup.entry, sl: setup.sl, t1: setup.t1, rr_t1: setup.rr_t1 || 0},
-    cot: {bias: cot.bias || 'NØYTRAL', pct: cot.pct || 0},
-    driver_groups,
-    active_driver_groups: raw.active_driver_groups || 0,
-    source: raw.source || 'technical',
-    rare
-  };
-}
-
-/* ═══ PIRATE FLAVOR — deterministisk per trade ═══ */
-const PIRATE_WIN = {
-  T1_HIT:     ['første skatten tatt', 'plyndret i ett stormløp', 'bordet og tok kista med det samme', 'brakk porten ved første angrep'],
-  T2_HIT:     ['plyndret to ganger på én reise', 'fulgte helt inn til andre skattekista', 'skatten kom dobbelt'],
-  TRAIL:      ['trailet hjem gjennom brannen', 'red strømmen hele veien til havnen', 'holdt kursen og sanket belønning for belønning'],
-  EMA9:       ['hoppet av da vinden snudde — skatten i hånden', 'EMA9 vinket farvel med gull om bord'],
-  TIMEOUT:    ['tiden dro ut, men skatten endte i kista', 'seilte ut på tiden — men lomma er full'],
-  BE_TIMEOUT: ['ingen skatt, men heller ingen skade'],
-  _default:   ['erobret etter lang seilas', 'plyndret med hell og flaks']
-};
-const PIRATE_LOSS = {
-  SL:         ['stormen fanget oss — kuttet anker', 'slapp unna i tåken', 'uvær — måtte seile hjem tomhendt'],
-  'GEO-SPIKE':['geopolitisk lyn slo ned — nødlukking under fullmåne', 'ble blåst av kurs av et eksplosivt signal', 'krigsklokken ringte — ut med nød'],
-  TIMEOUT:    ['seilte i stampe — tiden tok skatten med seg', 'ble aldri klart, hoppet av uten bytte'],
-  TRAIL:      ['trailen knakk — kuttet seilene i siste stund'],
-  EMA9:       ['EMA9 krysset feil vei — måtte ut'],
-  _default:   ['motvind — kapteinen tok ordet']
-};
-const PIRATE_OPEN = {
-  _default:   ['bordet ved {E}, venter på tidevann', 'kastet anker ved {E} — kampen raser ennå', 'seilet inn ved {E}, holder kurs', 'boardet ved {E}, utkikken er spent']
-};
-
-function hash32(s){ let h=0; for (let i=0;i<s.length;i++) h = ((h<<5)-h) + s.charCodeAt(i) | 0; return Math.abs(h); }
-function pickPirate(bank, key, seed, instr, entry){
-  const arr = bank[key] || bank._default || ['{I}'];
-  const tpl = arr[seed % arr.length];
-  return tpl.replace('{I}', instr).replace('{E}', entry != null ? fmt(entry) : '');
-}
-
-/* ═══ R-BEREGNING PER ENTRY ═══ */
-function computeR(entry){
-  const sig = entry.signal || {};
-  const pnl = entry.pnl || {};
-  const risk = Math.abs(sig.entry - sig.stop);
-  if (!risk) return null;
-  const exitPrice = pnl.exit_price ?? pnl.close_price;
-  if (exitPrice == null) return null;
-  const dir = (sig.direction||'').toUpperCase();
-  const sign = (dir==='BUY'||dir==='LONG'||dir==='BULL') ? 1 : -1;
-  return (exitPrice - sig.entry) * sign / risk;
-}
-
-/* ═══ DATOFORMATERING ═══ */
-function fmtLogDate(iso){
-  if (!iso) return '—';
-  const d = new Date(iso.replace(' UTC', 'Z').replace(' ', 'T'));
-  if (isNaN(d)) return iso;
-  const months = ['JAN','FEB','MAR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DES'];
-  const dd = String(d.getDate()).padStart(2,'0');
-  const hh = String(d.getHours()).padStart(2,'0');
-  const mm = String(d.getMinutes()).padStart(2,'0');
-  return `${dd}. ${months[d.getMonth()]} ${hh}:${mm}`;
-}
-
-/* ═══ SKIPSLOGGEN ═══ */
-async function loadSignalLog(){
-  try{
-    const res = await fetch('data/signal_log.json', {cache:'no-store'});
-    if (!res.ok) throw new Error('signal_log.json HTTP '+res.status);
-    const data = await res.json();
-    renderSkipsloggen(data.entries || []);
-  } catch(err){
-    console.error('[loadSignalLog]', err);
-    document.getElementById('logScroll').innerHTML =
-      '<div style="color:var(--coral);font-family:\'IM Fell English\',serif;font-style:italic;padding:40px;text-align:center">⚠ Klarte ikke å hente skipsloggen: '+err.message+'</div>';
-  }
-}
-
-function renderSkipsloggen(entries){
-  /* split open vs closed */
-  const open = entries.filter(e => !e.closed_at);
-  const closed = entries.filter(e => e.closed_at);
-  const wins  = closed.filter(e => (e.result||'').toLowerCase()==='win');
-  const losses= closed.filter(e => (e.result||'').toLowerCase()==='loss');
-
-  /* compute R per entry */
-  const rMap = new Map();
-  closed.forEach(e => { const r = computeR(e); if (r != null) rMap.set(e, r); });
-  const totalR_won = wins.reduce((a,e)=> a + Math.max(0, rMap.get(e)||0), 0);
-  const net30R = closed
-    .filter(e => (Date.now() - new Date((e.closed_at||'').replace(' UTC','Z').replace(' ','T'))) < 30*864e5)
-    .reduce((a,e)=> a + (rMap.get(e)||0), 0);
-  const hitRate = closed.length ? Math.round(100 * wins.length / closed.length) : null;
-
-  /* level math — each 10R won = one level */
-  const level = Math.floor(totalR_won / 10) + 1;
-  const nextLevelAt = level * 10;
-  const intoLevel = totalR_won - (level-1)*10;
-  const toNext = nextLevelAt - totalR_won;
-  const xpPct = (intoLevel / 10) * 100;
-
-  document.getElementById('botRank').textContent =
-    `◆ CAPTAIN · LEVEL ${level} · ${totalR_won.toFixed(1)}R PLYNDRET`;
-  document.getElementById('botXpFill').style.width = Math.max(1, xpPct) + '%';
-  document.getElementById('botXpLabel').innerHTML =
-    `${intoLevel.toFixed(1)}R / 10R &nbsp; · &nbsp; ${toNext.toFixed(1)}R til Level ${level+1} (hver level = 10R vunnet)`;
-  document.getElementById('botHitRate').textContent = hitRate != null ? hitRate+'%' : '—';
-  document.getElementById('botPnl30d').textContent  = (net30R>=0?'+':'') + net30R.toFixed(1) + 'R';
-  document.getElementById('botPnl30d').style.color = net30R >= 0 ? 'var(--teal)' : 'var(--coral)';
-  document.getElementById('botOpen').textContent = String(open.length);
-
-  /* build rows — open first (newest first), then closed newest first */
-  const sorted = [
-    ...open.sort((a,b)=> (b.timestamp||'').localeCompare(a.timestamp||'')),
-    ...closed.sort((a,b)=> (b.closed_at||'').localeCompare(a.closed_at||''))
-  ];
-
-  if (!sorted.length){
-    document.getElementById('logScroll').innerHTML =
-      '<div style="color:var(--t-dim);font-family:\'IM Fell English\',serif;font-style:italic;padding:40px;text-align:center">⚓ Skipsloggen er tom. Første tokt venter.</div>';
-    return;
-  }
-
-  document.getElementById('logScroll').innerHTML = sorted.map(e => {
-    const sig = e.signal || {};
-    const instr = (sig.instrument || 'ukjent').toUpperCase().replace(/USD$/,'/USD').replace('/USD/USD','/USD');
-    const dir = (sig.direction||'').toUpperCase();
-    const isBuy = dir==='BUY'||dir==='LONG'||dir==='BULL';
-    const open = !e.closed_at;
-    const seed = hash32((sig.id || '') + (e.exit_reason||'') + (e.result||'open'));
-
-    let flavor, pnlHtml, dirHtml;
-    if (open){
-      flavor = pickPirate(PIRATE_OPEN, '_default', seed, instr, sig.entry);
-      pnlHtml = '<div class="log-pnl o">I KAMP</div>';
-      dirHtml = `<div class="log-dir open-tag">${isBuy?'LONG':'SHORT'} ●</div>`;
-    } else {
-      const result = (e.result||'').toLowerCase();
-      const reason = e.exit_reason || '_default';
-      const bank = result === 'win' ? PIRATE_WIN : PIRATE_LOSS;
-      flavor = pickPirate(bank, reason, seed, instr, sig.entry);
-      const r = rMap.get(e);
-      if (r != null){
-        const rStr = (r>=0?'+':'') + r.toFixed(1) + 'R';
-        pnlHtml = `<div class="log-pnl ${r>=0?'w':'l'}">${rStr.replace('-','−')}</div>`;
-      } else {
-        pnlHtml = `<div class="log-pnl ${result==='win'?'w':'l'}">${result==='win'?'WIN':'LOSS'}</div>`;
-      }
-      dirHtml = `<div class="log-dir ${isBuy?'long':'short'}">${isBuy?'LONG':'SHORT'}</div>`;
-    }
-    return `
-      <div class="log-row${open?' open':''}">
-        <div class="log-date">${fmtLogDate(open ? e.timestamp : e.closed_at)}</div>
-        ${dirHtml}
-        <div class="log-desc">${instr} — ${flavor}</div>
-        ${pnlHtml}
-      </div>`;
-  }).join('');
-}
-
-/* SIGNALS populated async from /data/signals.json (already includes merged agri) */
-let SIGNALS = [];
-
-async function loadSignals(){
-  try{
-    const res = await fetch('data/signals.json', {cache:'no-store'});
-    if (!res.ok) throw new Error('signals.json HTTP '+res.status);
-    const data = await res.json();
-    const raw = (data.signals || []).filter(s => s && (s.direction || s.action));
-    SIGNALS = raw.map(adaptSignal).filter(s => s.direction); // drop signals without clear dir
-    if (SIGNALS.length === 0) {
-      document.getElementById('questGrid').innerHTML =
-        '<div style="color:var(--t-dim);font-family:\'IM Fell English\',serif;font-style:italic;font-size:15px;padding:40px;text-align:center;grid-column:1/-1">☠ Ingen skatter i havet akkurat nå. Kom tilbake ved neste tidevann.</div>';
-      document.getElementById('miniList').innerHTML = '';
-      return;
-    }
-    renderQuests();
-  } catch(err){
-    console.error('[loadSignals]', err);
-    document.getElementById('questGrid').innerHTML =
-      '<div style="color:var(--coral);font-family:\'IM Fell English\',serif;font-style:italic;font-size:15px;padding:40px;text-align:center;grid-column:1/-1">⚠ Klarte ikke å hente skattekartet: '+err.message+'</div>';
-  }
-}
-
-/* ═══ LEGACY FAKE DATA (unused when fetch succeeds — kept for offline/dev) ═══ */
-const FAKE_SIGNALS = [
+/* ═══ FAKE SIGNAL DATA (mirrors schema 2.2) ═══ */
+const SIGNALS = [
   {key:'Cotton', name:'BOMULL', icon:'🧵', direction:'bull', horizon:'MAKRO', grade:'A',
    score:9.0, max_score:18, score_pct:92, data_quality:'fresh',
    setup:{entry:78.95, sl:78.61, t1:79.52, rr_t1:1.68},
@@ -882,9 +686,9 @@ function renderQuests(){
       </div>
       <div class="qflavor">"${buildShortFlavor(s)}"</div>
       <div class="qstats">
-        <div class="qstat"><div class="l">ENTRY</div><div class="v">${fmt(s.setup.entry)}</div></div>
-        <div class="qstat stop"><div class="l">STOP</div><div class="v">${fmt(s.setup.sl)}</div></div>
-        <div class="qstat target"><div class="l">MÅL</div><div class="v">${fmt(s.setup.t1)}</div></div>
+        <div class="qstat"><div class="l">ENTRY</div><div class="v">${s.setup.entry}</div></div>
+        <div class="qstat stop"><div class="l">STOP</div><div class="v">${s.setup.sl}</div></div>
+        <div class="qstat target"><div class="l">MÅL</div><div class="v">${s.setup.t1}</div></div>
       </div>
       <div class="qfam">
         ${Object.keys(FAM_INITIAL).map(k=>{
@@ -952,9 +756,9 @@ function openModal(key){
     </div>
 
     <div class="setup-grid">
-      <div class="setup-cell"><div class="l">ENTRY</div><div class="v">${fmt(s.setup.entry)}</div></div>
-      <div class="setup-cell stop"><div class="l">STOP</div><div class="v">${fmt(s.setup.sl)}</div></div>
-      <div class="setup-cell target"><div class="l">MÅL T1</div><div class="v">${fmt(s.setup.t1)}</div></div>
+      <div class="setup-cell"><div class="l">ENTRY</div><div class="v">${s.setup.entry}</div></div>
+      <div class="setup-cell stop"><div class="l">STOP</div><div class="v">${s.setup.sl}</div></div>
+      <div class="setup-cell target"><div class="l">MÅL T1</div><div class="v">${s.setup.t1}</div></div>
     </div>
 
     <div class="modal-foot">
@@ -969,216 +773,69 @@ function closeModal(){ document.getElementById('questModal').classList.remove('o
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 
 /* ═══ PIPELINE DASHBOARD ═══ */
-/* hourly:true = kjører hver time via update_prices.sh — pause helg */
-const PIPE_SPEC = [
+const PIPE_GROUPS = [
   {title:'☠ CORE PIPELINE', items:[
-    {ic:'📡', n:'signals.json', d:'Aktive tradingsignaler', path:'data/signals.json', max:6, hourly:true},
-    {ic:'🌾', n:'agri_signals.json', d:'Fundamentale agri-setups', path:'data/agri_signals.json', max:8},
-    {ic:'📜', n:'signal_log.json', d:'Bot-trade historikk', path:'data/signal_log.json', max:48},
-    {ic:'🗺️', n:'macro/latest.json', d:'Priser, driver-scores, nivåer', path:'data/macro/latest.json', max:6, hourly:true}
+    {ic:'📡', n:'signals.json', d:'Aktive tradingsignaler', age:'1t 48m', max:4, status:'fresh'},
+    {ic:'🌾', n:'agri_signals.json', d:'Fundamentale agri-setups', age:'1t 48m', max:8, status:'fresh'},
+    {ic:'📜', n:'signal_log.json', d:'Bot-trade historikk', age:'23m', max:48, status:'fresh'},
+    {ic:'🗺️', n:'macro/latest.json', d:'Priser, driver-scores, nivåer', age:'8m', max:6, status:'fresh'}
   ]},
   {title:'⚓ BOT-PRISER (helg-vindu)', items:[
-    {ic:'💱', n:'prices/bot_history.json', d:'Rullerende 500 candles per symbol', path:'data/prices/bot_history.json', max:2, hourly:true, useLM:true},
-    {ic:'📊', n:'prices/wti.json', d:'WTI intradag (prøve)', path:'data/prices/wti.json', max:6, hourly:true, useLM:true},
-    {ic:'📊', n:'prices/eurusd.json', d:'EUR/USD intradag (prøve)', path:'data/prices/eurusd.json', max:6, hourly:true, useLM:true}
+    {ic:'💱', n:'prices/bot_history.json', d:'Rullerende 500 candles per symbol', age:'8m', max:2, status:'fresh'},
+    {ic:'🐒', n:'live_prices.json (scalp_edge)', d:'21 symboler fra bot', age:'13m', max:2, status:'fresh'},
+    {ic:'📊', n:'prices/*.json (per instrument)', d:'Intradag historikk', age:'8m', max:6, status:'fresh'}
   ]},
   {title:'💱 CFTC / COT (fredag-pulse)', items:[
-    {ic:'🏛', n:'combined/latest.json', d:'Kombinert CFTC COT-datasett', path:'data/combined/latest.json', max:192, useLM:true},
-    {ic:'🧮', n:'cot_analytics/latest.json', d:'MM-percentile, divergens-z, OI-regime', path:'data/cot_analytics/latest.json', max:240}
+    {ic:'📅', n:'disaggregated/ + tff/ + supplemental/', d:'Ukentlige COT-rapporter', age:'3d 12t', max:192, status:'fresh'},
+    {ic:'🏛', n:'combined/latest.json', d:'Kombinert COT-datasett', age:'1t 48m', max:24, status:'fresh'},
+    {ic:'🧮', n:'cot_analytics/latest.json', d:'MM-percentile, z-score, OI-regime', age:'3d 12t', max:240, status:'fresh'}
   ]},
   {title:'🌍 EKSTERN COT', items:[
-    {ic:'🛢', n:'ice_cot/latest.json', d:'ICE Brent / Gasoil / TTF', path:'data/ice_cot/latest.json', max:192},
-    {ic:'🌾', n:'euronext_cot/latest.json', d:'Hvete / raps / mais (MiFID II)', path:'data/euronext_cot/latest.json', max:192}
+    {ic:'🛢', n:'ice_cot/latest.json', d:'ICE Brent/Gasoil/TTF', age:'3d 12t', max:192, status:'fresh'},
+    {ic:'🌾', n:'euronext_cot/latest.json', d:'Hvete/raps/mais (MiFID II)', age:'5d 2t', max:192, status:'aging'}
   ]},
   {title:'🏦 FUNDAMENTALS & KALENDER', items:[
-    {ic:'🏛', n:'fundamentals/latest.json', d:'FRED makrodata (14 indikatorer)', path:'data/fundamentals/latest.json', max:48},
-    {ic:'📅', n:'calendar/latest.json', d:'ForexFactory events', path:'data/calendar/latest.json', max:24}
+    {ic:'🏛', n:'fundamentals/latest.json', d:'FRED makrodata (14 indikatorer)', age:'11t 20m', max:48, status:'fresh'},
+    {ic:'📅', n:'calendar/latest.json', d:'ForexFactory events', age:'1t 48m', max:24, status:'fresh'}
   ]},
   {title:'🏭 SEKTOR-DATA', items:[
-    {ic:'🛢', n:'oilgas/latest.json', d:'Energipriser + segment-score', path:'data/oilgas/latest.json', max:24, hourly:true},
-    {ic:'⛴', n:'shipping/latest.json', d:'Baltic indices + ruter', path:'data/shipping/latest.json', max:24},
-    {ic:'🌾', n:'agri/latest.json', d:'Vær, yield, COT, ENSO', path:'data/agri/latest.json', max:6, hourly:true},
-    {ic:'₿', n:'crypto/latest.json', d:'Priser, Fear&Greed, BTC COT', path:'data/crypto/latest.json', max:24, hourly:true},
-    {ic:'🏦', n:'comex/latest.json', d:'COMEX lagerbeholdning', path:'data/comex/latest.json', max:24},
-    {ic:'🇧🇷', n:'conab/latest.json', d:'Brasil avlingsestimat', path:'data/conab/latest.json', max:20},
-    {ic:'🇧🇷', n:'unica/latest.json', d:'Brasil sukkerrør-crush', path:'data/unica/latest.json', max:12}
+    {ic:'🛢', n:'oilgas/latest.json', d:'Energipriser + segment-score', age:'8m', max:24, status:'fresh'},
+    {ic:'⛴', n:'shipping/latest.json', d:'Baltic indices + ruter', age:'1t 48m', max:24, status:'fresh'},
+    {ic:'🌾', n:'agri/latest.json', d:'Vær, yield, COT, ENSO', age:'1t 48m', max:6, status:'fresh'},
+    {ic:'₿', n:'crypto/latest.json', d:'Priser, Fear&Greed, BTC COT', age:'8m', max:24, status:'fresh'},
+    {ic:'🏦', n:'comex/latest.json', d:'COMEX lagerbeholdning', age:'1t 48m', max:24, status:'fresh'},
+    {ic:'🇧🇷', n:'conab/latest.json', d:'Brasil avlingsestimat', age:'18t 42m', max:20, status:'aging'},
+    {ic:'🇧🇷', n:'unica/latest.json', d:'Brasil sukkerrør-crush', age:'6t 10m', max:12, status:'fresh'}
   ]},
   {title:'🌐 GEO / INTEL', items:[
-    {ic:'🌋', n:'geointel/seismic.json', d:'USGS jordskjelv', path:'data/geointel/seismic.json', max:24},
-    {ic:'📰', n:'geointel/intel.json', d:'Google News RSS metaller', path:'data/geointel/intel.json', max:24}
+    {ic:'🌋', n:'geointel/seismic.json', d:'USGS jordskjelv', age:'1t 48m', max:24, status:'fresh'},
+    {ic:'📰', n:'geointel/intel.json', d:'Google News RSS metaller', age:'1t 48m', max:24, status:'fresh'}
   ]}
 ];
 
-/* Weekend pause: Sat 04:15 CET → Sun 22:30 CET (prices timer) */
-function isWeekendPause(){
-  const now = new Date();
-  const day = now.getDay(); // 0=Sun,6=Sat
-  // Convert to Oslo time approx — server runs in UTC; use local display time
-  const h = now.getHours(), m = now.getMinutes();
-  if (day === 6 && (h > 4 || (h === 4 && m >= 15))) return true; // Sat ≥ 04:15
-  if (day === 0 && (h < 22 || (h === 22 && m < 30))) return true; // Sun < 22:30
-  return false;
-}
-
-function parseTime(raw){
-  if (!raw) return null;
-  if (typeof raw !== 'string') return null;
-  let s = raw.replace(' UTC', 'Z').replace(' ', 'T');
-  const d = new Date(s);
-  return isNaN(d) ? null : d;
-}
-
-function extractTimestamp(json, headers){
-  if (!json && !headers) return null;
-  if (json && typeof json === 'object'){
-    const meta = json._meta || {};
-    const candidates = [
-      meta.generated_at,
-      json.generated,
-      json.updated,
-      json.last_updated,
-      json.date
-    ];
-    for (const c of candidates){
-      const d = parseTime(c);
-      if (d) return d;
-    }
-  }
-  // fallback to Last-Modified
-  if (headers){
-    const lm = headers.get('last-modified');
-    if (lm){ const d = new Date(lm); if (!isNaN(d)) return d; }
-  }
-  return null;
-}
-
-function ageString(ms){
-  if (ms == null) return '—';
-  const sec = Math.floor(ms/1000);
-  if (sec < 60) return sec+'s';
-  const min = Math.floor(sec/60);
-  if (min < 60) return min+'m';
-  const hr = Math.floor(min/60);
-  const remMin = min % 60;
-  if (hr < 24) return remMin ? `${hr}t ${remMin}m` : `${hr}t`;
-  const day = Math.floor(hr/24);
-  const remHr = hr % 24;
-  return remHr ? `${day}d ${remHr}t` : `${day}d`;
-}
-
-function statusFor(ageMs, maxHours, hourly){
-  if (ageMs == null) return 'stale';
-  if (hourly && isWeekendPause()) return 'paused';
-  const ageH = ageMs / 36e5;
-  if (ageH >= maxHours) return 'stale';
-  if (ageH >= maxHours * 0.8) return 'aging';
-  return 'fresh';
-}
-
-async function checkPipe(item){
-  try{
-    if (item.useLM){
-      // HEAD would be ideal but GitHub Pages may not support it cleanly; use GET with small response
-      const res = await fetch(item.path, {method:'GET', cache:'no-store'});
-      if (!res.ok) return {status:'stale', age:'mangler', ts:null};
-      const headers = res.headers;
-      // Try parse as JSON too in case _meta is present and cheap
-      let json = null;
-      try{ json = await res.json(); } catch(_){}
-      const ts = extractTimestamp(json, headers);
-      const ageMs = ts ? (Date.now() - ts.getTime()) : null;
-      return {status: statusFor(ageMs, item.max, item.hourly), age: ageString(ageMs), ts};
-    }
-    const res = await fetch(item.path, {cache:'no-store'});
-    if (!res.ok){
-      if (res.status === 404) return {status:'stale', age:'mangler', ts:null};
-      return {status:'stale', age:'feil '+res.status, ts:null};
-    }
-    let json = null;
-    try{ json = await res.json(); } catch(_){}
-    const ts = extractTimestamp(json, res.headers);
-    const ageMs = ts ? (Date.now() - ts.getTime()) : null;
-    return {status: statusFor(ageMs, item.max, item.hourly), age: ageString(ageMs), ts};
-  } catch(err){
-    return {status:'stale', age:'feil', ts:null};
-  }
-}
-
-async function loadPipeline(){
-  // initial render with loading state
-  document.getElementById('pipeGroups').innerHTML = PIPE_SPEC.map(g=>`
-    <div class="pipe-group">
-      <div class="pipe-gtitle">${g.title}</div>
-      <div class="pipe-grid">
-        ${g.items.map((it,i)=>`
-          <div class="pipe-card" data-gi="${PIPE_SPEC.indexOf(g)}-${i}">
-            <div class="pipe-ic">${it.ic}</div>
-            <div class="pipe-info">
-              <div class="pn">${it.n}</div>
-              <div class="pd">${it.d}</div>
-            </div>
-            <div class="pipe-age">
-              <div class="age-v">…</div>
-              <div class="age-s">SJEKKER</div>
-            </div>
+document.getElementById('pipeGroups').innerHTML = PIPE_GROUPS.map(g=>`
+  <div class="pipe-group">
+    <div class="pipe-gtitle">${g.title}</div>
+    <div class="pipe-grid">
+      ${g.items.map(it=>`
+        <div class="pipe-card ${it.status}">
+          <div class="pipe-ic">${it.ic}</div>
+          <div class="pipe-info">
+            <div class="pn">${it.n}</div>
+            <div class="pd">${it.d}</div>
           </div>
-        `).join('')}
-      </div>
+          <div class="pipe-age ${it.status}">
+            <div class="age-v">${it.age}</div>
+            <div class="age-s">${it.status.toUpperCase()}</div>
+          </div>
+        </div>
+      `).join('')}
     </div>
-  `).join('');
-
-  // fetch all in parallel
-  const all = PIPE_SPEC.flatMap((g,gi)=> g.items.map((it,ii)=>
-    checkPipe(it).then(r => ({gi,ii,r}))
-  ));
-  const results = await Promise.all(all);
-
-  // update pipe banner
-  const newest = results.map(x=>x.r.ts).filter(Boolean).sort((a,b)=>b-a)[0];
-  const oldestFresh = results.filter(x=>x.r.status==='fresh').length;
-  const total = results.length;
-
-  // update each card
-  for (const {gi,ii,r} of results){
-    const card = document.querySelector(`.pipe-card[data-gi="${gi}-${ii}"]`);
-    if (!card) continue;
-    card.classList.add(r.status);
-    const ageEl = card.querySelector('.pipe-age');
-    ageEl.classList.add(r.status);
-    ageEl.querySelector('.age-v').textContent = r.age;
-    ageEl.querySelector('.age-s').textContent = r.status.toUpperCase();
-  }
-
-  // update top banner
-  updatePipeBanner(results);
-}
-
-function updatePipeBanner(results){
-  const banner = document.querySelector('.pipe-banner');
-  if (!banner) return;
-  const fresh = results.filter(r=>r.r.status==='fresh').length;
-  const aging = results.filter(r=>r.r.status==='aging').length;
-  const stale = results.filter(r=>r.r.status==='stale').length;
-  const paused = results.filter(r=>r.r.status==='paused').length;
-  const macro = results.find(r=>PIPE_SPEC[r.gi].items[r.ii].path==='data/macro/latest.json');
-  const siglog = results.find(r=>PIPE_SPEC[r.gi].items[r.ii].path==='data/signal_log.json');
-
-  const weekend = isWeekendPause();
-  const overallClass = (stale>0)?'stale':(aging>0?'aging':'fresh');
-  banner.innerHTML = `
-    <div><span class="lbl">STATUS</span> <span class="val ${overallClass==='fresh'?'ok':''}" style="${overallClass==='stale'?'color:var(--coral)':overallClass==='aging'?'color:var(--gold)':''}">
-      ●  ${fresh} fresh · ${aging} aging · ${stale} stale${paused?` · ${paused} pause`:''}
-    </span></div>
-    <div><span class="lbl">SISTE MAKRO</span> <span class="val">${macro?.r?.age || '—'} siden</span></div>
-    <div><span class="lbl">SISTE TRADE</span> <span class="val">${siglog?.r?.age || '—'} siden</span></div>
-    <div><span class="lbl">HELG-PAUSE</span> <span class="val ${weekend?'weekend':''}">${weekend?'AKTIV — priser stille':'Lør 04:15 → Søn 22:30'}</span></div>
-  `;
-}
+  </div>
+`).join('');
 
 /* init */
-loadSignals();
-loadSignalLog();
-loadPipeline();
+renderQuests();
 </script>
 </body>
 </html>
