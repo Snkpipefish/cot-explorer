@@ -489,6 +489,7 @@ html,body{overflow-x:hidden;max-width:100vw}
 
 <footer>
   ⚓ Markedspuls · En salt bot navigerer de syv hav
+  <div id="lastRefresh" style="margin-top:8px;font-size:11px;color:var(--m);opacity:.7">Oppdaterer...</div>
 </footer>
 
 </div>
@@ -1741,11 +1742,26 @@ async function loadTopbar(){
   } catch(_){}
 }
 
+/* ═══ REFRESH — ved page load + når fanen får fokus ═══ */
+function updateRefreshStamp(){
+  const el = document.getElementById('lastRefresh');
+  if (!el) return;
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  el.textContent = `Sist oppdatert ${hh}:${mm}:${ss}`;
+}
+async function refreshAll(){
+  await Promise.all([loadSignals(), loadSignalLog(), loadPipeline(), loadTopbar()]);
+  updateRefreshStamp();
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') refreshAll();
+});
+
 /* init */
-loadSignals();
-loadSignalLog();
-loadPipeline();
-loadTopbar();
+refreshAll();
 </script>
 </body>
 </html>
