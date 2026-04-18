@@ -1052,22 +1052,112 @@ const PIRATE_HORIZON = {
   SWING:'Flere døgns seilas — tiden er med oss hvis vinden holder',
   SCALP:'Kort stormangrep — inn og ut før kveldsvakten sovner'
 };
-const FAM_HI_PHRASE = {
-  trend:       'Vinden står i ryggen — kursen holder seil for seil',
-  positioning: 'De store fondene seiler ved vår side — hedgerne har forlatt skuta',
-  macro:       'Makrovinden blåser riktig vei — dollarsmilet smiler',
-  fundamental: 'Skattkartet er tydelig — supply-brønnen lyser som en fyrlykt',
-  structure:   'Fast grunn under oss — nivået står som en klippe',
-  risk:        'Storm i horisonten — pass på de svarte skyene'
+/* Flere varianter per familie — velges deterministisk per signal */
+const FAM_HI_VARIANTS = {
+  trend: [
+    'Vinden står i ryggen — kursen holder seil for seil',
+    'Langsiktig trend peker som et kompass',
+    'Motorvinden blåser vår vei gjennom hele dekket',
+    'Seilene er fulle — kursen setter seg selv',
+    'Trenden ruller som tidevannet — stoppe den er umulig',
+    'Stormvinden bærer oss i riktig retning'
+  ],
+  positioning: [
+    'De store fondene seiler ved vår side — hedgerne har forlatt skuta',
+    'Fond-flåten stiller seg opp bak oss',
+    'COT-kompasset peker samme retning som vårt',
+    'Smarte penger strømmer inn i samme havn',
+    'Managed Money har pakket ut for dette toktet',
+    'Spekulantene har mønstret samme mannskap'
+  ],
+  macro: [
+    'Makrovinden blåser riktig vei — dollarsmilet smiler',
+    'Renter og volatilitet står på vårt lag',
+    'Global strøm setter kursen for oss',
+    'Verdens-kartet peker mot samme havn',
+    'Realrentene åpner himmelen over oss',
+    'Makrobildet er klart som en vinternatt'
+  ],
+  fundamental: [
+    'Skattkartet er tydelig — supply-brønnen lyser som en fyrlykt',
+    'Etterspørselen trekker ballasten fremover',
+    'Fundamentene er støpt i malm',
+    'Lagrene forteller hele historien',
+    'Supply-ledninger er strammere enn en seilknute',
+    'Fundamental-veret varsler klart'
+  ],
+  structure: [
+    'Fast grunn under oss — nivået står som en klippe',
+    'Struktur-nivåene holder som fortøyninger',
+    'Entry-nivået er hugget i stein',
+    'SMC-sonen beskytter vår flanke',
+    'Order blocks står som festningsverk',
+    'HTF-nivået tegner kursen for oss'
+  ],
+  risk: [
+    'Storm i horisonten — pass på de svarte skyene',
+    'Utkikken melder uvær i det fjerne',
+    'Mørke skyer samler seg over havet — hold øye',
+    'Vinden kan snu — hold trossen stram'
+  ]
 };
-const FAM_MID_PHRASE = {
-  trend:       'Vinden hjelper oss halvveis',
-  positioning: 'Fondene flytter seg i vår retning',
-  macro:       'Makrobildet er tålelig',
-  fundamental: 'Skattkartet gir antydninger',
-  structure:   'Struktur er akseptabel',
-  risk:        'Lett dis på havet'
+const FAM_MID_VARIANTS = {
+  trend: [
+    'Vinden hjelper oss halvveis',
+    'Trenden lener seg i vår retning',
+    'Lett medvind fra trend-siden'
+  ],
+  positioning: [
+    'Fondene flytter seg i vår retning',
+    'COT-kompasset lener seg vår vei',
+    'Spekulantene har snudd noen seil'
+  ],
+  macro: [
+    'Makrobildet er tålelig',
+    'Makrovindene drar i begge retninger',
+    'Global vær er nøytralt vennlig'
+  ],
+  fundamental: [
+    'Skattkartet gir antydninger',
+    'Fundamentene er akseptable',
+    'Supply-siden støtter oss moderat'
+  ],
+  structure: [
+    'Struktur er akseptabel',
+    'Tekniske nivåer gir noe dekning',
+    'HTF-nivået er innen rekkevidde'
+  ],
+  risk: [
+    'Lett dis på havet',
+    'Smårisiko i horisonten'
+  ]
 };
+
+/* Varierende åpninger — pirat + retning */
+const DIR_OPENERS_BULL = [
+  'Kursen peker nordover',
+  'Kompasset viser nord',
+  'Vi seiler mot soloppgangen',
+  'Flagget rister i nordavinden',
+  'Utkikken roper "land i nord"',
+  'Skipet legger ut på nord-tokt',
+  'Tidevannet trekker oss oppover',
+  'Masten står stødig mot nord'
+];
+const DIR_OPENERS_BEAR = [
+  'Kursen peker sørover',
+  'Kompasset viser sør',
+  'Vi seiler bort fra solen',
+  'Strømmen drar oss sørover',
+  'Skipet rir tidevannet nedover',
+  'Utkikken sukker — sør venter',
+  'Flagget henger lavt mot sør',
+  'Nedtrekket drar i keelen'
+];
+
+/* Legacy compatibility — bygg første variant for direkte oppslag */
+const FAM_HI_PHRASE  = Object.fromEntries(Object.entries(FAM_HI_VARIANTS).map(([k,v])=>[k,v[0]]));
+const FAM_MID_PHRASE = Object.fromEntries(Object.entries(FAM_MID_VARIANTS).map(([k,v])=>[k,v[0]]));
 const FAM_LABELS = {trend:'TREND',positioning:'COT/FOND',macro:'MAKRO',fundamental:'FUNDAMENT',risk:'RISIKO',structure:'STRUKTUR'};
 const FAM_INITIAL = {trend:'T',positioning:'P',macro:'M',fundamental:'F',risk:'R',structure:'S'};
 
@@ -1090,32 +1180,58 @@ function starString(sigOrGrade, score_pct){
   return '★'.repeat(n) + '<span class="star-dim">'+'★'.repeat(5-n)+'</span>';
 }
 
-/* ═══ FLAVOR (quest card short) ═══ */
+/* ═══ FLAVOR (quest card short) — deterministisk variantvalg per signal ═══ */
+const AGRI_OPENERS_BULL = ['Åkeren peker nordover','Feltet lover gull','Avlingen trekker oss nord','Bøndene ber til regngudene','Jorda ruller sin egen historie'];
+const AGRI_OPENERS_BEAR = ['Åkeren peker sørover','Feltet oversvømmes av avling','Overfloden drar prisen ned','Lagrene renner over','Jorda skulle ønske mindre regn'];
+
+function pickVariant(arr, seed){ return arr[seed % arr.length]; }
+
 function buildShortFlavor(sig){
-  /* Agri-signaler: bruk fundamental-drivere (vær/yield/COT) */
+  const seed = hash32((sig.key||sig.name||'') + (sig.horizon||'') + (sig.direction||''));
+  /* Agri */
   if (sig.agri){
-    const dir = sig.direction==='bull' ? 'Åkeren peker nordover' : 'Åkeren peker sørover';
+    const openers = sig.direction==='bull' ? AGRI_OPENERS_BULL : AGRI_OPENERS_BEAR;
+    const dir = pickVariant(openers, seed);
     const bits = [];
     const yph = yieldPhrase(sig.agri.yield_score, sig.direction);
     if (yph) bits.push(yph.replace(/<[^>]+>/g,''));
     const wph = weatherPhrase(sig.agri.weather_outlook);
     if (wph) bits.push(wph);
-    /* Fallback til første driver-string hvis ingen vær/yield */
     if (!bits.length && sig.agri.drivers && sig.agri.drivers.length) bits.push(sig.agri.drivers[0]);
     if (!bits.length) return dir + '.';
     return dir + '. ' + bits[0] + (bits[1] ? '. ' + bits[1] : '') + '.';
   }
-  /* Tekniske: bruk 6-familie-matrisen */
-  const hi=[]; for(const k of ['trend','positioning','macro','fundamental','structure']){
-    if(sig.driver_groups[k].score>=0.6) hi.push(FAM_HI_PHRASE[k]);
+  /* Tekniske — finn aktive familier, velg variant per seed */
+  const hiKeys = [];
+  for (const k of ['trend','positioning','macro','fundamental','structure']){
+    if (sig.driver_groups[k].score >= 0.6) hiKeys.push(k);
   }
-  const risk=sig.driver_groups.risk.score;
-  const dir= sig.direction==='bull' ? 'Kursen peker nordover' : 'Kursen peker sørover';
-  if(hi.length===0) return dir+' — men få vinder vil stå for oss.';
-  let s = dir + '. ' + hi[0];
-  if(hi.length>1) s += ', og ' + hi[1].toLowerCase();
+  const openers = sig.direction==='bull' ? DIR_OPENERS_BULL : DIR_OPENERS_BEAR;
+  const dir = pickVariant(openers, seed);
+  if (hiKeys.length === 0) return dir + ' — men få vinder vil stå for oss.';
+
+  /* Velg første familie: rotér start-indeks basert på seed for å spre hvilken familie som fremheves først */
+  const startIdx = seed % hiKeys.length;
+  const k1 = hiKeys[startIdx];
+  const k2 = hiKeys.length > 1 ? hiKeys[(startIdx + 1) % hiKeys.length] : null;
+
+  const p1 = pickVariant(FAM_HI_VARIANTS[k1], seed);
+  const p2 = k2 ? pickVariant(FAM_HI_VARIANTS[k2], seed >> 3) : null;
+
+  /* Varierende bindeledd */
+  const connectors = [', og ', '. I tillegg ', '. Samtidig ', ' — dessuten ', ', mens ', '. På toppen av det hele: '];
+  const conn = k2 ? pickVariant(connectors, seed >> 5) : null;
+
+  let s = dir + '. ' + p1;
+  if (k2){
+    const p2lc = p2.charAt(0).toLowerCase() + p2.slice(1);
+    s += conn + p2lc;
+  }
   s += '.';
-  if(risk>=0.25) s += ' ' + FAM_HI_PHRASE.risk + '.';
+  const risk = sig.driver_groups.risk.score;
+  if (risk >= 0.25){
+    s += ' ' + pickVariant(FAM_HI_VARIANTS.risk, seed >> 7) + '.';
+  }
   return s;
 }
 
