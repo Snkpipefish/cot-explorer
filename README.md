@@ -9,7 +9,7 @@ Repo: https://github.com/Snkpipefish/cot-explorer
 
 En statisk nettside (GitHub Pages) med tre dashboards som viser daglige trading-ideer og markedsintelligens. Navigasjonen har **5 hovedtaber** som deler seg over to HTML-filer:
 
-- **🏠 Markedspuls** (`index.html`) — Oversikt, Setups & Trades, Makro & COT, Priser & Kalender
+- **🏴‍☠️ Markedspuls** (`index.html`) — 3 faner: Skipsloggen, Skatter, Kartrommet (pirat-/Monkey Island-tema)
 - **⛽ Energi & Shipping** (`metals-intel.html#energy`) — Olje/gass-priser, COT, segment-scoring, shipping, Mapbox-kart
 - **🏦 Metaller** (`metals-intel.html#metals`) — COMEX lager, metall-COT, geo-intel, Mapbox-kart
 - **🌾 Avlinger** (`metals-intel.html#agri`) — Avlings-analyse, vær, vekstsyklus, agri-COT, Mapbox-kart
@@ -17,34 +17,35 @@ En statisk nettside (GitHub Pages) med tre dashboards som viser daglige trading-
 
 ---
 
-## Markedspuls (`index.html`)
+## Markedspuls (`index.html`) — Pirat-redesign (v2)
 
-4 under-faner:
+Designet som et pirat-/Monkey Island-tema over en neon-arcade base. Gamifisert framing (XP, nivåer, stjerner, quests) uten å skjule tallene. Mobil-tilpasset (topbar komprimerer, faner er kompakte, grid → 1 kolonne under 720 px).
 
-### 🏠 Oversikt (standard) — "Dumbass-oversikt"
-Én scrollbar side som forklarer alt i klarspråk:
+**Topbar:** MARKEDSPULS-logo (gull-pixel-font) + tre chips: 🔥 `N PLYNDRINGER` (win-streak siste 7 dager), ⚓ VIX, ☠ CAPTAIN LVL (avledet fra sum R vunnet). Alle chips leser ekte data — ingen hardkodede tall.
 
-- **Stemningsbanner** — 🟢/🟡/🔴 basert på VIX-nivå med forklaring
-- **4 nøkkeltall** — VIX, Dollar-retning, Nyhetssentiment, Neste store hendelse
-- **Hva skjer nå?** — 6 kort: Aksjer (SPX), Gull, Olje (Brent), Dollar (DXY), Store investorer (COT), Boten (win-rate + åpne trades)
-- **Topp signaler** — Maks 3 beste setups med entry/SL/TP i klarspråk
+3 faner:
 
-### 💡 Setups & Trades
-- **VIX-regime** + posisjonsstørrelse + aktive A/A+-signaler
-- **Setup-kort** med expandable detaljer (12-punkt konfluens, SMC-analyse, nivåer)
-- **Signal-logg** med stats + trade-tabell fra boten
+### ⚓ Skipsloggen — Bot & Signal-logg
+Kapteinens logg for trade-boten (`signal_log.json`).
 
-### 🌐 Makro & COT
-- **Dollar Smile-modell** + VIX-regime + Safe-haven hierarki
-- **Makroindikatorer** — HYG, TIP, TNX, IRX, Kobber, EEM
-- **Rente & Kreditt** — realrenter, spreader, vekst
-- **VIX term-struktur** — contango/backwardation
-- **COT-posisjoner** — 600+ markeder med søk, accordion-grupper, klikk for historikkgraf
+- **Bot-hero** — avatar + bot-status + nøkkeltall (win-rate, åpne tokt, sum R, nivå + XP-bar der XP = sum R vunnet mot terskel 10R/nivå)
+- **Trade-log** — rader per hendelse (åpen = pulserende prikk; lukket = R-verdi i gull/koral). Klikk en rad → modal med full trade-detalj: entry / SL / T1 / exit, PnL i USD og NOK, pips, lots, varighet, grade, horisont + pirat-formulert flavor pr trade (deterministisk seed slik at samme trade alltid får samme tekst).
 
-### 💹 Priser & Kalender
-- **Markedspriser** — Indekser, Valuta, Råvarer med 1d/5d/20d endring
-- **Økonomisk kalender** — High/Medium impact events (filtrerer bort passerte)
-- **Korrelasjonstabell** — 20-dagers Pearson (responsiv for mobil)
+### 🏴‍☠️ Skatter — Setups & Quests
+Aktive signaler fra `signals.json` (tekniske + agri merget).
+
+- **Topp-5 quests** — store kort med instrument, retning (LONG/SHORT-badge), horisont, kort pirat-flavor (flere varianter per driver-familie, deterministisk seed per signal så hvert kort får unik formulering), ENTRY / STOP / MÅL, driver-familie-badges (T·P·M·F·R·S for teknisk; V·V·C·B·U·E for agri — Vær / avling / COT / Bomull-spesifikt / etc.), stjerner (avledet fra grade: A+=5★, A=4★, B=3★, C=2★), fresh-indikator og R:R
+- **Liste-visning** under topp-5 — kompakt rad pr resterende signal
+- **Modal ved klikk** — pirat-formulert full analyse: hvorfor grade A/A+, hvilke driver-familier som peker samme vei, yield/vær-narrativ for agri, grunn til SL-nivå. Bruker `driver_groups`-skårer + `drivers[]`-array fra `signals.json` direkte
+- **Agri-scoring** — bruker eget skala-mapping: agri grade A (score ≥ 7/18 = 39 %) gir 4★, ikke 2★ som prosent-basert mapping ville gitt. Grade-basert stjerne-mapping er konsistent på tvers av tekniske og agri
+
+### 🗺️ Kartrommet — Pipeline-kontrollbord
+Status-dashboard for at hele data-pipelinen er fersk. IKKE en repetisjon av data-taben — dette er et driftsverktøy for å sjekke at alt oppdateres riktig.
+
+- **Grupperte pipe-kort** (COT / Priser / Shipping & Energi / Makro / Landbruk / Krypto / Geo-intel) med status per fil: fresh (grønn), aging (gul), stale (koral)
+- **Alder-visning** med fast minimum-bredde så lange filnavn ikke presser klokken ut av kortet
+- **Weekend-pause-modus** — pris-filer flagges ikke som stale i helger (markedet er stengt — ventet)
+- **Kildetid** per gruppe (leser `_meta.generated_at` fra hver fil)
 
 ---
 
@@ -756,23 +757,18 @@ Alle tre dashboards (`index.html`, `metals-intel.html`, `crypto-intel.html`) pol
 
 `index.html` laster alle 5 JSON-filer parallelt med `Promise.all()` i stedet for sekvensielt — ~2-3× raskere initial lasting.
 
-### Schema 2.0-visualisering på dashboardet
+### Schema 2.0-visualisering på Skatter-fanen
 
-Setups & Trades-taben (og Topp signaler-kortene på Oversikt) viser per instrument:
+Hvert quest-kort og modal viser per instrument:
 
-- **Grade-badge** (A+/A/B/C) + **score-brøk** (f.eks. "A 2.77/5.0")
-- **Data-quality-badge** ●Fresh / ●Degraded / ●Stale ved siden av grade — viser om scoring bygger på ferske eller arvet/stale data. Tooltip viser konkrete `quality_notes`.
-- **Driver-familier-seksjon** (per setup-kort, åpent): 6 horisontale barer (TREND / POSITIONING / MACRO / FUNDAMENTAL / STRUCTURE / RISK/EVENT) med score 0-1, fargekodet (grønn ≥ 0.7, gul ≥ 0.3, svak ellers, inaktiv ved 0). Topp 3 driver-strenger per familie vises i klartekst under baren.
-- **"N aktive av 5"** confluens-teller i header
-- **Mini driver-indikator** på Topp signaler-kortene: 6 små fargede bokstaver (T·P·M·F·S·R) med tooltip per familie
+- **Grade → stjerner** — A+=5★, A=4★, B=3★, C=2★ (grade-basert, ikke prosent-basert, så agri grade A ≈ teknisk grade A visuelt)
+- **Data-quality-badge** ●Fresh / ●Degraded / ●Stale — viser om scoring bygger på ferske eller arvet/stale data
+- **Driver-familie-badges** (topp-5 kort + modal): 6 små fargede bokstaver — T·P·M·F·R·S for teknisk (Trend / Positioning / Macro / Fundamental / Risk / Structure), egne bokstaver for agri (V·V·C·B·U·E for Vær / Yield / COT / osv)
+- **Pirat-narrativ i modal** — bygger fulltekst-forklaring av driver-familier fra `driver_groups`-score + `drivers[]`-streng-array. Flere varianter per familie + deterministisk seed per signal = unik formulering per kort, stabil over re-render
+- **Kort flavor på kortet** — 1-2 setninger med varierende åpning ("Kursen peker nordover", "Utkikken roper land i nord", "Tidevannet trekker oss oppover" osv.) + 1-2 familie-fraser hentet fra varianter-pool, bundet med varierende bindeledd
+- **Agri-spesifikk narrativ** — bruker `yield_score`, `weather_outlook` og `drivers[]` fra `agri_signals.json` for å bygge vær-/avlings-tekst ("Feltet lover gull. Avlingen er middels (yield 61/100) — knapphet bygger seg. Tørken herjer feltene")
 
-Driver-strenger fra `driver_matrix` oversettes via `translateDriver()`-funksjon i `index.html` til klarspråk norsk. Eksempler:
-- `MM percentile 5 (bunn — contra-bull)` → "MM-fond historisk lav (5 pctile) — contrarian-bull"
-- `MM/Comm divergens z=+2.0 (topp-signal)` → "Fond ekstrem long vs hedgere ekstrem short — klassisk toppsignal"
-- `OI stigende mot retning (advarsel)` → "Nye posisjoner bygger mot vår retning — advarsel"
-- `Real yields negative` → "Negative realrenter — støtter gull/safe-havens"
-
-Den gamle `score-items`-griden (6 dots med kryss-tekst fra 9-kriterie-tiden) er fjernet — Driver-familier-seksjonen erstatter den med rikere visualisering.
+Driver-strenger fra `driver_matrix` oversettes til pirat-formulert klarspråk i modal.
 
 ---
 
