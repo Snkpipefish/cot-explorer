@@ -142,11 +142,14 @@ else
     echo "  UNICA: hopper over (ikke man/tor 00-04)" >> "$LOG"
 fi
 
+# Push agri-signaler FØRST (skriver agri_signals.json som push_signals.py leser).
+# Tidligere kjørte push_signals.py først, men race-defense i push_signals flagget
+# da alltid forrige kjørings agri-fila som "stale" (eldre enn 8t) fordi den
+# ennå ikke var oppdatert i denne kjøringen.
+python3 push_agri_signals.py >> "$LOG" 2>&1 && echo "  agri-signals OK" >> "$LOG" || echo "  agri-signals FEIL" >> "$LOG"
+
 # Push signaler — kjøres alltid (skriver signals.json og signal_log.json)
 python3 push_signals.py >> "$LOG" 2>&1 && echo "  signals OK" >> "$LOG" || echo "  signals FEIL" >> "$LOG"
-
-# Push agri-signaler (avlingsbaserte trading-setups)
-python3 push_agri_signals.py >> "$LOG" 2>&1 && echo "  agri-signals OK" >> "$LOG" || echo "  agri-signals FEIL" >> "$LOG"
 
 # K5: Sync trade-log fra scalp_edge-boten før git-add.
 # Boten eier ~/scalp_edge/signal_log.json og oppdaterer den ved hver
