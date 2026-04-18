@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Markedspuls — Mockup v0.2</title>
+<title>Markedspuls</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Inter:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -106,7 +106,8 @@ body::before{
   display:grid;grid-template-columns:80px 1fr auto;gap:20px;align-items:center;
   margin-bottom:20px;position:relative;overflow:hidden;
 }
-.bot-hero::after{content:"☠";position:absolute;right:-10px;bottom:-30px;font-size:180px;color:rgba(94,234,212,.05);pointer-events:none}
+.bot-hero::after{content:"☠";position:absolute;right:-10px;bottom:-30px;font-size:180px;color:rgba(94,234,212,.05);pointer-events:none;z-index:0}
+.bot-hero > *{position:relative;z-index:1}
 .bot-avatar{
   width:80px;height:80px;border-radius:50%;
   background:radial-gradient(circle,var(--teal-dim) 0%,#0a2b26 70%);
@@ -338,6 +339,7 @@ html,body{overflow-x:hidden;max-width:100vw}
   .pipe-banner .lbl{font-size:8px}
   .pipe-banner .val{font-size:14px}
   .bot-hero{grid-template-columns:1fr;gap:14px;padding:16px;text-align:center}
+  .bot-hero::after{display:none}
   .bot-avatar{margin:0 auto;width:64px;height:64px;font-size:30px}
   .bot-info .name{font-size:22px}
   .bot-stats{justify-content:space-around;gap:10px}
@@ -486,7 +488,7 @@ html,body{overflow-x:hidden;max-width:100vw}
 </div>
 
 <footer>
-  ⚓ Markedspuls · En salt bot navigerer de syv hav · Mockup v0.2
+  ⚓ Markedspuls · En salt bot navigerer de syv hav
 </footer>
 
 </div>
@@ -652,6 +654,9 @@ async function loadSignalLog(){
 }
 
 function renderSkipsloggen(entries){
+  /* store globally so modal can look up by index */
+  LOG_ENTRIES = entries;
+
   /* split open vs closed */
   const open = entries.filter(e => !e.closed_at);
   const closed = entries.filter(e => e.closed_at);
@@ -661,6 +666,7 @@ function renderSkipsloggen(entries){
   /* compute R per entry */
   const rMap = new Map();
   closed.forEach(e => { const r = computeR(e); if (r != null) rMap.set(e, r); });
+  LOG_RMAP = rMap;
   const totalR_won = wins.reduce((a,e)=> a + Math.max(0, rMap.get(e)||0), 0);
   const net30R = closed
     .filter(e => (Date.now() - new Date((e.closed_at||'').replace(' UTC','Z').replace(' ','T'))) < 30*864e5)
@@ -723,14 +729,143 @@ function renderSkipsloggen(entries){
       }
       dirHtml = `<div class="log-dir ${isBuy?'long':'short'}">${isBuy?'LONG':'SHORT'}</div>`;
     }
+    const idx = LOG_ENTRIES.indexOf(e);
     return `
-      <div class="log-row${open?' open':''}">
+      <div class="log-row${open?' open':''}" onclick="openLogModal(${idx})" style="cursor:pointer">
         <div class="log-date">${fmtLogDate(open ? e.timestamp : e.closed_at)}</div>
         ${dirHtml}
         <div class="log-desc">${instr} — ${flavor}</div>
         ${pnlHtml}
       </div>`;
   }).join('');
+}
+
+/* store entries globally for modal lookup */
+let LOG_ENTRIES = [], LOG_RMAP = new Map();
+
+function openLogModal(idx){
+  const e = LOG_ENTRIES[idx];
+  if (!e) return;
+  const sig = e.signal || {};
+  const pnl = e.pnl || {};
+  const instr = (sig.instrument || 'ukjent').toUpperCase().replace(/USD$/,'/USD').replace('/USD/USD','/USD');
+  const dir = (sig.direction||'').toUpperCase();
+  const isBuy = dir==='BUY'||dir==='LONG'||dir==='BULL';
+  const open = !e.closed_at;
+  const seed = hash32((sig.id || '') + (e.exit_reason||'') + (e.result||'open'));
+  const result = (e.result||'').toLowerCase();
+  const reason = e.exit_reason || null;
+  const r = LOG_RMAP.get(e);
+  const flavor = open ? pickPirate(PIRATE_OPEN, '_default', seed, instr, sig.entry)
+                      : pickPirate(result==='win'?PIRATE_WIN:PIRATE_LOSS, reason||'_default', seed, instr, sig.entry);
+
+  /* duration */
+  const tOpen = sig && (e.timestamp||'').replace(' UTC','Z').replace(' ','T');
+  const tClose = (e.closed_at||'').replace(' UTC','Z').replace(' ','T');
+  const dOpen = tOpen ? new Date(tOpen) : null;
+  const dClose = tClose ? new Date(tClose) : (open ? new Date() : null);
+  const durMs = (dOpen && dClose) ? (dClose - dOpen) : null;
+  const duration = durMs != null ? ageString(durMs) : '—';
+
+  /* risk per unit */
+  const risk = Math.abs((sig.entry||0) - (sig.stop||0));
+
+  const exitPrice = pnl.exit_price ?? pnl.close_price;
+  const pnlUsd = pnl.pnl_usd;
+  const pnlNok = pnl.pnl_nok;
+  const pips = pnl.pips;
+  const lots = pnl.qty_lots ?? sig.lots;
+
+  /* grade badge class */
+  const gradeClass = (sig.grade||'').startsWith('A') ? 'gold' : 'coral';
+
+  /* determine icon from instrument */
+  const fakeSig = {key: sig.instrument, name: sig.instrument};
+  const icon = iconFor(fakeSig) || '⚓';
+
+  const statusLine = open ? `<span style="color:var(--gold)">● I KAMP</span> · åpnet for ${duration} siden`
+                          : `<span style="color:${result==='win'?'var(--teal)':'var(--coral)'}">${result==='win'?'SEIER':'TAP'}</span> · ${reason||'—'} · holdt i ${duration}`;
+
+  const rStr = r != null ? ((r>=0?'+':'')+r.toFixed(2)+'R') : '—';
+
+  const narrativeLines = [];
+  narrativeLines.push(`⚓ ${instr} — ${flavor}`);
+  if (!open){
+    if (reason === 'T1_HIT') narrativeLines.push('Første skattkista ble brutt åpen ved T1.');
+    else if (reason === 'T2_HIT') narrativeLines.push('Begge skattkister erobret — sjelden seilas.');
+    else if (reason === 'TRAIL') narrativeLines.push('Trailingen holdt gjennom hele overfarten.');
+    else if (reason === 'SL') narrativeLines.push('Stormen brøt gjennom forsvaret — stop-loss.');
+    else if (reason === 'GEO-SPIKE') narrativeLines.push('Geopolitisk lyn — nødlukking under fullmåne.');
+    else if (reason === 'EMA9') narrativeLines.push('EMA9 snudde — hoppet av kursen.');
+    else if (reason === 'TIMEOUT') narrativeLines.push('Tiden tok skatten — timeout.');
+  }
+
+  document.getElementById('modalInner').innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-head">
+      <div class="modal-icon">${icon}</div>
+      <div>
+        <div class="modal-title">${instr} · ${isBuy?'LONG':'SHORT'} · ${sig.horizon||'—'}</div>
+        <div class="modal-sub">${statusLine}</div>
+      </div>
+      <div class="modal-grade" style="${gradeClass==='coral'?'background:rgba(251,113,133,.15);color:var(--coral);border-color:var(--coral)':''}">GRADE ${sig.grade||'—'}</div>
+    </div>
+
+    <div class="narr-scroll">
+      ${narrativeLines.map(l=>`<div class="narr-line">${l}</div>`).join('')}
+    </div>
+
+    <div class="fam-break">
+      <div class="fam-row">
+        <div class="fam-label">R-RESULTAT</div>
+        <div class="fam-bar"><div class="fam-fill ${r==null?'lo':r>=0?'hi':'lo'}" style="width:${r==null?'10':Math.min(100,Math.abs(r||0)*25)|0}%"></div></div>
+        <div class="fam-score" style="color:${r==null?'var(--m)':r>=0?'var(--teal)':'var(--coral)'}">${rStr}</div>
+      </div>
+      ${pnlUsd != null ? `
+      <div class="fam-row">
+        <div class="fam-label">PNL USD</div>
+        <div class="fam-bar"><div class="fam-fill ${pnlUsd>=0?'hi':'lo'}" style="width:${Math.min(100,Math.abs(pnlUsd)*2)|0}%"></div></div>
+        <div class="fam-score" style="color:${pnlUsd>=0?'var(--teal)':'var(--coral)'}">${pnlUsd>=0?'+':''}$${fmt(pnlUsd)}</div>
+      </div>` : ''}
+      ${pnlNok != null ? `
+      <div class="fam-row">
+        <div class="fam-label">PNL NOK</div>
+        <div class="fam-bar"><div class="fam-fill ${pnlNok>=0?'hi':'lo'}" style="width:${Math.min(100,Math.abs(pnlNok)/5)|0}%"></div></div>
+        <div class="fam-score" style="color:${pnlNok>=0?'var(--teal)':'var(--coral)'}">${pnlNok>=0?'+':''}${fmt(pnlNok)} kr</div>
+      </div>` : ''}
+      ${pips != null ? `
+      <div class="fam-row">
+        <div class="fam-label">PIPS</div>
+        <div class="fam-bar"><div class="fam-fill ${pips>=0?'hi':'lo'}" style="width:${Math.min(100,Math.abs(pips)*3)|0}%"></div></div>
+        <div class="fam-score" style="color:${pips>=0?'var(--teal)':'var(--coral)'}">${pips>=0?'+':''}${fmt(pips)}</div>
+      </div>` : ''}
+    </div>
+
+    <div class="setup-grid">
+      <div class="setup-cell"><div class="l">ENTRY</div><div class="v">${fmt(sig.entry)}</div></div>
+      <div class="setup-cell stop"><div class="l">STOP</div><div class="v">${fmt(sig.stop)}</div></div>
+      <div class="setup-cell target"><div class="l">T1</div><div class="v">${fmt(sig.t1)}</div></div>
+    </div>
+
+    ${exitPrice != null ? `
+    <div class="setup-grid" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="setup-cell" style="border-color:var(--gold);background:rgba(251,191,36,.08)"><div class="l">EXIT PRIS</div><div class="v" style="color:var(--gold)">${fmt(exitPrice)}</div></div>
+      <div class="setup-cell"><div class="l">LOTS</div><div class="v">${lots||'—'}</div></div>
+      <div class="setup-cell"><div class="l">RISK/UNIT</div><div class="v">${fmt(risk)}</div></div>
+    </div>` : `
+    <div class="setup-grid" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="setup-cell"><div class="l">LOTS</div><div class="v">${lots||'—'}</div></div>
+      <div class="setup-cell"><div class="l">RISK/UNIT</div><div class="v">${fmt(risk)}</div></div>
+      <div class="setup-cell"><div class="l">RISK %</div><div class="v">${sig.risk_pct!=null?sig.risk_pct+'%':'—'}</div></div>
+    </div>`}
+
+    <div class="modal-foot">
+      <span>Åpnet: ${fmtLogDate(e.timestamp)}</span>
+      ${e.closed_at ? `<span>Lukket: ${fmtLogDate(e.closed_at)}</span>` : `<span>Varighet: ${duration}</span>`}
+      <span>ID: ${(sig.id||'—').slice(0,16)}</span>
+    </div>
+  `;
+  document.getElementById('questModal').classList.add('open');
 }
 
 /* SIGNALS populated async from /data/signals.json (already includes merged agri) */
