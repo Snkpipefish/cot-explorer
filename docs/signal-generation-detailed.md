@@ -210,7 +210,7 @@ En vektet `dir_score` bestemmer bull/bear-retning per instrument **før** driver
 
 **Hysterese:** dir_score > 0.5 → bull, < -0.5 → bear, mellom → SMA200 avgjør.
 
-**Olje-override:** Hvis shipping/oilgas rapporterer `oil_supply_disruption`, tvinges `dir_color=bull` for Brent/WTI (supply-squeeze).
+**Olje supply-disruption (runde 4):** Hvis shipping/oilgas rapporterer `oil_supply_disruption`, behandles det i tre lag (ingen hard `dir_color`-flip lenger): (1) POSITIONING-bias `-0.4` for SHORT-signaler i `compute_positioning_v2`, (2) `dir_color` reflekterer teknisk virkelighet, (3) `push_signals.py` blokkerer eksplisitt SHORT-push på Brent/WTI som safety-gate. Bull-bidrag dekkes fortsatt av FUNDAMENTAL_energy `+0.8`.
 
 ### 2.2 6-familie Driver Matrix (driver_matrix.score_asset)
 
@@ -545,14 +545,15 @@ Hvert signal inkluderer `horizon_config` med parametre for boten:
 
 Signal-server validerer at alle `driver_groups.*.score` ∈ [0, 1]. Tekniske bruker `max_score` 4.2/5.0/5.2 (per horisont fra driver_matrix), agri bruker `max_score = 18` (sum av maks-poeng for alle 7 komponenter). Boten tar kun tradet — den sammenligner ikke score på tvers, så ulike skalaer er kun synlige i UI (`score_pct = score / max_score`).
 
-### Olje supply-disruption blokkering
+### Olje supply-disruption — tre-lags-beskyttelse (runde 4)
 
 Leser shipping og oilgas-data (Hormuz, Suez, Midtøsten-konflikt). Når noen har `risk = HIGH`:
 
-- **Olje SHORT-signaler blokkeres helt** — supply-squeeze = bullish for oljepris
-- `dir_color` er allerede tvunget til `bull` i fetch_all.py
-- `oil_supply_disruption = true` synlig i trading_levels for Brent/WTI
-- Deaktiveres automatisk når risk synker (dynamisk, ikke hardkodet)
+1. **POSITIONING-bias** (`driver_matrix.compute_positioning_v2`): SHORT-signaler får `-0.4` sub-signal med driver `"Supply disruption (advarer SHORT)"`. Dette gjør at grade reflekterer risikoen i scoringen (synlig for brukeren). Bull-side får ingen bias her — `compute_fundamental_energy` gir allerede `+0.8` for bull supply-disruption.
+2. **`dir_color` reflekterer teknisk virkelighet** — vi tvinger ikke lenger `bull` i fetch_all/rescore. Dette gjør backtesting mulig (vi kan se hva systemet ville sagt naturlig).
+3. **Safety-gate i `push_signals.py`** — eksplisitt blokk på Brent/WTI SHORT-push så lenge `oil_supply_disruption=True`. Siste forsvarsverk i tilfelle POSITIONING-bias ikke er sterk nok til å presse signalet til WATCHLIST.
+
+`oil_supply_disruption = true` synlig i `trading_levels` for Brent/WTI. Deaktiveres automatisk når risk synker.
 
 ---
 

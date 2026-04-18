@@ -198,7 +198,7 @@ Både `fetch_all.py` (hver 4. time) og `rescore.py` (hver time via update_prices
 - Sortert etter horisont-prioritet (MAKRO > SWING > SCALP), deretter score
 - **DXY ekskludert** (ikke-tradeable indeks)
 - **Oil war-spread beskyttelse**: Brent +15% 20d ELLER krig-nøkkelord → `oil_geo_warning=true`
-- **Olje supply-disruption**: Når Hormuz/Midtøsten har HIGH risk i shipping/oilgas-data → olje SHORT blokkeres automatisk, dir_color tvinges bull
+- **Olje supply-disruption**: Når Hormuz/Midtøsten har HIGH risk i shipping/oilgas-data → POSITIONING-bias `-0.4` for SHORT + eksplisitt SHORT-blokk i push_signals.py (safety-gate). `dir_color` reflekterer teknisk virkelighet (ingen hard flip lenger)
 
 ### Flask-payload til /push-alert
 
@@ -354,7 +354,7 @@ Sammensatt score bestemmer bull/bear-retning per instrument **før** driver-matr
 
 Hysterese: bull krever > 0.5, bear < -0.5. Mellom → SMA200 bestemmer.
 
-### Olje supply-disruption override
+### Olje supply-disruption — tre-lags-beskyttelse (runde 4)
 
 Leser `data/shipping/latest.json` og `data/oilgas/latest.json` ved oppstart:
 
@@ -364,11 +364,13 @@ Leser `data/shipping/latest.json` og `data/oilgas/latest.json` ved oppstart:
 | Shipping | Suez/Rødehavet | `risk = HIGH` (tilleggsinfo) |
 | Oilgas | Midtøsten-konflikt | `risk = HIGH` |
 
-Når aktiv:
-- `dir_color` tvinges til `bull` for Brent og WTI (supply-squeeze = bullish)
-- SHORT-signaler blokkeres i `push_signals.py`
-- `oil_supply_disruption = true` og `oil_supply_reason` synlig i output
-- Deaktiveres automatisk når shipping/oilgas risk synker under HIGH
+Når aktiv (tidligere rundens hard `dir_color`-flip er **fjernet** — ble migrert til POSITIONING-bias for synlighet og backtest-kompatibilitet):
+
+1. **POSITIONING-bias** i `compute_positioning_v2`: SHORT-signaler får `-0.4` med driver `"Supply disruption (advarer SHORT)"`. Bull dekkes fortsatt av FUNDAMENTAL_energy `+0.8` (ingen dobbel-telling).
+2. **`dir_color` reflekterer teknisk virkelighet** — bear kan oppstå selv ved disruption (gjør backtesting mulig).
+3. **Safety-gate i `push_signals.py`**: eksplisitt blokk på Brent/WTI SHORT-push (både til signals.json og Flask) så lenge `oil_supply_disruption=True`.
+
+`oil_supply_disruption = true` og `oil_supply_reason` synlig i output. Deaktiveres automatisk når shipping/oilgas risk synker under HIGH.
 
 ### Horisont-bestemmelse
 
