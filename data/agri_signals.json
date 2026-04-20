@@ -1,12 +1,33 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-04-20 14:02 UTC",
+  "generated": "2026-04-20 18:01 UTC",
   "cot_date": "2026-04-15",
   "enso_phase": "Nøytral",
   "global_state": {
     "geo_active": true,
     "vix_regime": "normal",
-    "usda_blackout": null
+    "usda_blackout": {
+      "Corn": {
+        "report": "Crop Progress",
+        "time_utc": "2026-04-20 20:00 UTC",
+        "hours_away": 2.0
+      },
+      "Wheat": {
+        "report": "Crop Progress",
+        "time_utc": "2026-04-20 20:00 UTC",
+        "hours_away": 2.0
+      },
+      "Soybean": {
+        "report": "Crop Progress",
+        "time_utc": "2026-04-20 20:00 UTC",
+        "hours_away": 2.0
+      },
+      "Cotton": {
+        "report": "Crop Progress",
+        "time_utc": "2026-04-20 20:00 UTC",
+        "hours_away": 2.0
+      }
+    }
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -17,103 +38,19 @@
   },
   "signals": [
     {
-      "key": "Cotton",
-      "name": "Bomull",
-      "action": "BUY",
-      "timeframe": "MAKRO",
-      "grade": "A",
-      "score": 11.0,
-      "current": 79.61,
-      "entry": 79.54,
-      "sl": 79.19,
-      "t1": 80.12,
-      "t2": 80.35,
-      "rr_t1": 1.66,
-      "rr_t2": 2.31,
-      "sl_type": "atr_prosent",
-      "t1_source": "atr_fallback",
-      "atr_est": 0.23,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 4.0%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.5,
-          "weight": 1.3,
-          "drivers": [
-            "Krysssjekk: yield_score 0 + Conab YoY -5.8% → supply-stress bekreftet",
-            "Værstress i USA Delta – Bomull & Ris (tørt)",
-            "2 risiko-regioner"
-          ]
-        },
-        "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 2,
-      "group_drivers": [
-        "Krysssjekk: yield_score 0 + Conab YoY -5.8% → supply-stress bekreftet",
-        "Værstress i USA Delta – Bomull & Ris (tørt)",
-        "2 risiko-regioner",
-        "COT: bull FALLER (net +4%)",
-        "Yield kritisk — risiko for lav produksjon",
-        "Prognose El Niño: Gunstig regn",
-        "ECMWF: El Niño sannsynlig — Gunstig regn forventet"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 4.0,
-      "cot_zscore": 6.18,
-      "source": "agri_fundamental",
-      "yield_score": 0,
-      "yield_quality": "Kritisk",
-      "weather_outlook": "tørt",
-      "growth_stage": "Såing",
-      "season_pct": 64,
-      "drivers": [
-        "Krysssjekk: yield_score 0 + Conab YoY -5.8% → supply-stress bekreftet",
-        "Værstress i USA Delta – Bomull & Ris (tørt)",
-        "2 risiko-regioner",
-        "COT: bull FALLER (net +4%)"
-      ]
-    },
-    {
       "key": "Sugar",
       "name": "Sukker",
       "action": "BUY",
       "timeframe": "MAKRO",
       "grade": "A",
       "score": 7.2,
-      "current": 13.42,
-      "entry": 13.4,
-      "sl": 13.32,
+      "current": 13.56,
+      "entry": 13.54,
+      "sl": 13.46,
       "t1": 13.78,
       "t2": 14.0,
-      "rr_t1": 4.75,
-      "rr_t2": 7.5,
+      "rr_t1": 3.0,
+      "rr_t2": 5.75,
       "sl_type": "atr_prosent",
       "t1_source": "52w_low",
       "atr_est": 0.05,
@@ -181,253 +118,6 @@
         "2 risiko-regioner",
         "COT: spekulanter øker short (net -14% av OI)",
         "Yield kritisk — risiko for lav produksjon"
-      ]
-    },
-    {
-      "key": "Wheat",
-      "name": "Hvete",
-      "action": "BUY",
-      "timeframe": "MAKRO",
-      "grade": "A",
-      "score": 7.0,
-      "current": 595.3,
-      "entry": 594.84,
-      "sl": 592.52,
-      "t1": 618.5,
-      "t2": 630.0,
-      "rr_t1": 10.2,
-      "rr_t2": 15.16,
-      "sl_type": "atr_prosent",
-      "t1_source": "52w_high",
-      "atr_est": 1.55,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bear -2.6%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.45833333333333326,
-          "weight": 1.3,
-          "drivers": [
-            "Struktur: Conab YoY -16.0% (trigo) → knapphet vs forrige safra",
-            "Analog: bullish +5.3% 90d (n=3, range +3.1..+53.2%, år: 2012(+53.2%), 2015(+5.3%), 2025(+3.1%))",
-            "Værstress i India – Punjab / Haryana (tørke)"
-          ]
-        },
-        "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 2,
-      "group_drivers": [
-        "Struktur: Conab YoY -16.0% (trigo) → knapphet vs forrige safra",
-        "Analog: bullish +5.3% 90d (n=3, range +3.1..+53.2%, år: 2012(+53.2%), 2015(+5.3%), 2025(+3.1%))",
-        "Værstress i India – Punjab / Haryana (tørke)",
-        "COT: spekulanter øker short (net -3% av OI)",
-        "Prognose El Niño: Gunstig regn",
-        "ECMWF: El Niño sannsynlig — Gunstig regn forventet"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bear",
-      "cot_pct": -2.6,
-      "cot_zscore": 3.85,
-      "source": "agri_fundamental",
-      "yield_score": 60,
-      "yield_quality": "Middels",
-      "weather_outlook": "tørke",
-      "growth_stage": "Aksing",
-      "season_pct": 82,
-      "drivers": [
-        "Struktur: Conab YoY -16.0% (trigo) → knapphet vs forrige safra",
-        "Analog: bullish +5.3% 90d (n=3, range +3.1..+53.2%, år: 2012(+53.2%), 2015(+5.3%), 2025(+3.1%))",
-        "Værstress i India – Punjab / Haryana (tørke)",
-        "COT: spekulanter øker short (net -3% av OI)"
-      ]
-    },
-    {
-      "key": "Soybean",
-      "name": "Soyabønner",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 6.2,
-      "current": 1176.44,
-      "entry": 1175.91,
-      "sl": 1173.26,
-      "t1": 1211.0,
-      "t2": 1225.0,
-      "rr_t1": 13.24,
-      "rr_t2": 18.52,
-      "sl_type": "atr_prosent",
-      "t1_source": "52w_high",
-      "atr_est": 1.76,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 16.8%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.25,
-          "weight": 1.3,
-          "drivers": [
-            "Værstress i Brazil – Mato Grosso (tørt)",
-            "COT: spekulanter øker long (net +17% av OI)",
-            "Yield kritisk (tidlig) — risiko for lav produksjon"
-          ]
-        },
-        "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 1,
-      "group_drivers": [
-        "Værstress i Brazil – Mato Grosso (tørt)",
-        "COT: spekulanter øker long (net +17% av OI)",
-        "Yield kritisk (tidlig) — risiko for lav produksjon",
-        "Prognose El Niño: Gunstig regn",
-        "ECMWF: El Niño sannsynlig — Gunstig regn forventet"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 16.8,
-      "cot_zscore": 1.38,
-      "source": "agri_fundamental",
-      "yield_score": 32,
-      "yield_quality": "Kritisk (tidlig)",
-      "weather_outlook": "tørt",
-      "growth_stage": "Såing",
-      "season_pct": 22,
-      "drivers": [
-        "Værstress i Brazil – Mato Grosso (tørt)",
-        "COT: spekulanter øker long (net +17% av OI)",
-        "Yield kritisk (tidlig) — risiko for lav produksjon",
-        "Prognose El Niño: Gunstig regn"
-      ]
-    },
-    {
-      "key": "Corn",
-      "name": "Mais",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 5.9,
-      "current": 454.2,
-      "entry": 453.91,
-      "sl": 452.48,
-      "t1": 465.5,
-      "t2": 470.0,
-      "rr_t1": 8.1,
-      "rr_t2": 11.25,
-      "sl_type": "atr_prosent",
-      "t1_source": "26w_high",
-      "atr_est": 0.95,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 8.5%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.25,
-          "weight": 1.3,
-          "drivers": [
-            "Værstress i Brazil – Mato Grosso (tørt)",
-            "COT: bull FALLER (net +8%)",
-            "Yield kritisk — risiko for lav produksjon"
-          ]
-        },
-        "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 1,
-      "group_drivers": [
-        "Værstress i Brazil – Mato Grosso (tørt)",
-        "COT: bull FALLER (net +8%)",
-        "Yield kritisk — risiko for lav produksjon",
-        "Prognose El Niño: Gunstig regn",
-        "ECMWF: El Niño sannsynlig — Gunstig regn forventet"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 8.5,
-      "cot_zscore": 0.94,
-      "source": "agri_fundamental",
-      "yield_score": 10,
-      "yield_quality": "Kritisk",
-      "weather_outlook": "tørt",
-      "growth_stage": "Vegetativ vekst",
-      "season_pct": 73,
-      "drivers": [
-        "Værstress i Brazil – Mato Grosso (tørt)",
-        "COT: bull FALLER (net +8%)",
-        "Yield kritisk — risiko for lav produksjon",
-        "Prognose El Niño: Gunstig regn"
       ]
     }
   ]
