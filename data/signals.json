@@ -1,6 +1,6 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-04-28 02:02 UTC",
+  "generated": "2026-04-28 06:01 UTC",
   "cot_date": "2026-04-21",
   "global_state": {
     "geo_active": true,
@@ -135,23 +135,23 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 102.44,
+      "current": 103.95,
       "entry": 100.34,
-      "sl": 97.81536,
-      "t1": 106.18,
-      "t2": 106.3,
-      "rr_t1": 2.31,
-      "rr_t2": 2.36,
+      "sl": 98.02786,
+      "t1": 107.2322,
+      "t2": 108.23,
+      "rr_t1": 2.98,
+      "rr_t2": 3.41,
       "sl_type": "struktur",
       "cot_bias": "LONG",
       "cot_pct": 8.1,
       "correlation_group": "energy",
       "adr_utilization": {
-        "pct": 18.4,
+        "pct": 39.4,
         "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": 7.21857,
+      "atr_d1": 6.36857,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -301,7 +301,7 @@
       "dir_override_reason": null,
       "current": 27305.68,
       "entry": 26986.39062,
-      "sl": 26831.26674,
+      "sl": 26831.26696,
       "t1": 27314.21094,
       "t2": 27314.21094,
       "rr_t1": 2.11,
@@ -315,7 +315,7 @@
         "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": 387.80971,
+      "atr_d1": 387.80915,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -461,23 +461,23 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 159.54,
+      "current": 159.21,
       "entry": 157.612,
-      "sl": 157.38704,
+      "sl": 157.37943,
       "t1": 159.83701,
-      "t2": 159.95311,
-      "rr_t1": 9.89,
-      "rr_t2": 10.41,
+      "t2": 159.95149,
+      "rr_t1": 9.57,
+      "rr_t2": 10.06,
       "sl_type": "struktur",
       "cot_bias": "SHORT",
       "cot_pct": 19.5,
       "correlation_group": "usd_pairs",
       "adr_utilization": {
-        "pct": 33.3,
-        "ok_for_scalp": true,
+        "pct": 79.7,
+        "ok_for_scalp": false,
         "available": true
       },
-      "atr_d1": 0.74986,
+      "atr_d1": 0.77522,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -625,23 +625,185 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 75.12,
-      "entry": 74.23,
-      "sl": 73.21821,
-      "t1": 76.383,
-      "t2": 76.48686,
-      "rr_t1": 2.13,
-      "rr_t2": 2.23,
+      "current": 73.335,
+      "entry": 72.0,
+      "sl": 69.02275,
+      "t1": 75.955,
+      "t2": 75.955,
+      "rr_t1": 1.33,
+      "rr_t2": 1.33,
       "sl_type": "struktur",
       "cot_bias": "LONG",
       "cot_pct": 7.7,
       "correlation_group": "precious_metals",
       "adr_utilization": {
-        "pct": 43.7,
-        "ok_for_scalp": true,
+        "pct": 130.3,
+        "ok_for_scalp": false,
         "available": true
       },
-      "atr_d1": 2.50714,
+      "atr_d1": 2.349,
+      "horizon_config": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {
+          "fx": 3.0,
+          "gold": 4.0,
+          "silver": 4.0,
+          "oil": 3.5,
+          "index": 3.0
+        },
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
+      }
+    },
+    {
+      "key": "Gold",
+      "name": "Gull",
+      "action": "BUY",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "B",
+      "score": 2.6,
+      "max_score": 5.0,
+      "score_pct": 52,
+      "score_details": [
+        {
+          "kryss": "Trendbildet (SMA/momentum/align)",
+          "id": "group_trend",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0,
+          "drivers": [
+            "SMA200-align",
+            "Momentum 20d +",
+            "D1+4H kongruent"
+          ]
+        },
+        {
+          "kryss": "COT-posisjonering",
+          "id": "group_positioning",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0,
+          "drivers": [
+            "COT bias align (+25.4%)",
+            "MM percentile 10 (bunn — contra-bull)",
+            "MM/Comm divergens z=-2.2 (bunn-signal)"
+          ]
+        },
+        {
+          "kryss": "Makrobilde (DXY/VIX/renter)",
+          "id": "group_macro",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        },
+        {
+          "kryss": "Fundamentalt (asset-spesifikt)",
+          "id": "group_fundamental",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        },
+        {
+          "kryss": "Event-risiko (kalender/geo)",
+          "id": "group_risk",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        },
+        {
+          "kryss": "Teknisk struktur (HTF/SMC)",
+          "id": "group_structure",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.6,
+          "drivers": [
+            "HTF-nivå w3"
+          ]
+        }
+      ],
+      "driver_groups": {
+        "trend": {
+          "score": 1.0,
+          "weight": 1.0,
+          "drivers": [
+            "SMA200-align",
+            "Momentum 20d +",
+            "D1+4H kongruent"
+          ]
+        },
+        "positioning": {
+          "score": 1.0,
+          "weight": 1.0,
+          "drivers": [
+            "COT bias align (+25.4%)",
+            "MM percentile 10 (bunn — contra-bull)",
+            "MM/Comm divergens z=-2.2 (bunn-signal)"
+          ]
+        },
+        "macro": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "fundamental": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "risk": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "structure": {
+          "score": 0.6,
+          "weight": 1.0,
+          "drivers": [
+            "HTF-nivå w3"
+          ]
+        }
+      },
+      "active_driver_groups": 3,
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "dir_override_reason": null,
+      "current": 4645.1,
+      "entry": 4582.45515,
+      "sl": 4563.12667,
+      "t1": 4711.1001,
+      "t2": 4733.1001,
+      "rr_t1": 6.66,
+      "rr_t2": 7.79,
+      "sl_type": "zone",
+      "cot_bias": "LONG",
+      "cot_pct": 25.4,
+      "correlation_group": "precious_metals",
+      "adr_utilization": {
+        "pct": 113.6,
+        "ok_for_scalp": false,
+        "available": true
+      },
+      "atr_d1": 69.09291,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -1033,9 +1195,9 @@
     }
   ],
   "_meta": {
-    "generated_at": "2026-04-28T02:02:20Z",
+    "generated_at": "2026-04-28T06:01:52Z",
     "script": "push_signals.py",
-    "macro_date": "2026-04-28 02:01 UTC",
+    "macro_date": "2026-04-28 06:00 UTC",
     "cot_date": "2026-04-21"
   }
 }
