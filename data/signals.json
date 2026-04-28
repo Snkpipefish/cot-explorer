@@ -1,6 +1,6 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-04-28 17:58 UTC",
+  "generated": "2026-04-28 18:01 UTC",
   "cot_date": "2026-04-21",
   "global_state": {
     "geo_active": true,
@@ -135,10 +135,10 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 104.0,
+      "current": 103.98,
       "entry": 100.34,
       "sl": 98.02786,
-      "t1": 107.2463,
+      "t1": 107.24625,
       "t2": 108.23,
       "rr_t1": 2.99,
       "rr_t2": 3.41,
@@ -152,6 +152,170 @@
         "available": true
       },
       "atr_d1": 6.36857,
+      "horizon_config": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {
+          "fx": 3.0,
+          "gold": 4.0,
+          "silver": 4.0,
+          "oil": 3.5,
+          "index": 3.0
+        },
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
+      }
+    },
+    {
+      "key": "Silver",
+      "name": "Sølv",
+      "action": "BUY",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "A",
+      "score": 2.79,
+      "max_score": 5.0,
+      "score_pct": 56,
+      "score_details": [
+        {
+          "kryss": "Trendbildet (SMA/momentum/align)",
+          "id": "group_trend",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0,
+          "drivers": [
+            "SMA200-align",
+            "Momentum 20d +",
+            "D1+4H kongruent"
+          ]
+        },
+        {
+          "kryss": "COT-posisjonering",
+          "id": "group_positioning",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.88,
+          "drivers": [
+            "COT bias align (+7.7%)",
+            "MM percentile 2 (bunn — contra-bull)",
+            "MM/Comm divergens z=-1.7 (bunn-signal)"
+          ]
+        },
+        {
+          "kryss": "Makrobilde (DXY/VIX/renter)",
+          "id": "group_macro",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        },
+        {
+          "kryss": "Fundamentalt (asset-spesifikt)",
+          "id": "group_fundamental",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.91,
+          "drivers": [
+            "COMEX stress 66",
+            "Registered oz -777,165"
+          ]
+        },
+        {
+          "kryss": "Event-risiko (kalender/geo)",
+          "id": "group_risk",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        },
+        {
+          "kryss": "Teknisk struktur (HTF/SMC)",
+          "id": "group_structure",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        }
+      ],
+      "driver_groups": {
+        "trend": {
+          "score": 1.0,
+          "weight": 1.0,
+          "drivers": [
+            "SMA200-align",
+            "Momentum 20d +",
+            "D1+4H kongruent"
+          ]
+        },
+        "positioning": {
+          "score": 0.88,
+          "weight": 1.0,
+          "drivers": [
+            "COT bias align (+7.7%)",
+            "MM percentile 2 (bunn — contra-bull)",
+            "MM/Comm divergens z=-1.7 (bunn-signal)"
+          ]
+        },
+        "macro": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "fundamental": {
+          "score": 0.91,
+          "weight": 1.0,
+          "drivers": [
+            "COMEX stress 66",
+            "Registered oz -777,165"
+          ]
+        },
+        "risk": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "structure": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        }
+      },
+      "active_driver_groups": 3,
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "dir_override_reason": null,
+      "current": 73.83,
+      "entry": 72.0,
+      "sl": 70.78211,
+      "t1": 75.335,
+      "t2": 75.335,
+      "rr_t1": 2.74,
+      "rr_t2": 2.74,
+      "sl_type": "struktur",
+      "cot_bias": "LONG",
+      "cot_pct": 7.7,
+      "correlation_group": "precious_metals",
+      "adr_utilization": {
+        "pct": 71.0,
+        "ok_for_scalp": false,
+        "available": true
+      },
+      "atr_d1": 2.43579,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -645,9 +809,9 @@
     }
   ],
   "_meta": {
-    "generated_at": "2026-04-28T17:58:24Z",
+    "generated_at": "2026-04-28T18:01:46Z",
     "script": "push_signals.py",
-    "macro_date": "2026-04-28 17:57 UTC",
+    "macro_date": "2026-04-28 18:00 UTC",
     "cot_date": "2026-04-21"
   }
 }
