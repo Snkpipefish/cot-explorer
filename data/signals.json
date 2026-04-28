@@ -1,6 +1,6 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-04-28 18:57 UTC",
+  "generated": "2026-04-28 22:01 UTC",
   "cot_date": "2026-04-21",
   "global_state": {
     "geo_active": true,
@@ -18,8 +18,8 @@
   },
   "signals": [
     {
-      "key": "Brent",
-      "name": "Brent",
+      "key": "WTI",
+      "name": "WTI",
       "action": "BUY",
       "timeframe": "SWING",
       "horizon": "SWING",
@@ -46,6 +46,7 @@
           "vekt": 1.0,
           "poeng": 1.0,
           "drivers": [
+            "COT momentum +",
             "MM/Comm divergens z=-1.8 (bunn-signal)"
           ]
         },
@@ -101,6 +102,7 @@
           "score": 1.0,
           "weight": 1.0,
           "drivers": [
+            "COT momentum +",
             "MM/Comm divergens z=-1.8 (bunn-signal)"
           ]
         },
@@ -135,23 +137,23 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 104.54,
-      "entry": 100.34,
-      "sl": 98.02786,
-      "t1": 108.23,
-      "t2": 108.23,
-      "rr_t1": 3.41,
-      "rr_t2": 3.41,
+      "current": 99.62,
+      "entry": 96.37,
+      "sl": 92.94357,
+      "t1": 117.63,
+      "t2": 119.16623,
+      "rr_t1": 6.2,
+      "rr_t2": 6.65,
       "sl_type": "struktur",
-      "cot_bias": "LONG",
-      "cot_pct": 8.1,
+      "cot_bias": "SHORT",
+      "cot_pct": 4.9,
       "correlation_group": "energy",
       "adr_utilization": {
-        "pct": 26.5,
+        "pct": 21.2,
         "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": 6.36857,
+      "atr_d1": 6.85286,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -299,185 +301,23 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 73.795,
-      "entry": 72.0,
-      "sl": 70.78211,
-      "t1": 75.003,
-      "t2": 75.003,
-      "rr_t1": 2.47,
-      "rr_t2": 2.47,
-      "sl_type": "struktur",
+      "current": 73.55,
+      "entry": 73.10011,
+      "sl": 72.31605,
+      "t1": 74.8,
+      "t2": 74.8,
+      "rr_t1": 2.17,
+      "rr_t2": 2.17,
+      "sl_type": "zone",
       "cot_bias": "LONG",
       "cot_pct": 7.7,
       "correlation_group": "precious_metals",
       "adr_utilization": {
-        "pct": 61.4,
+        "pct": 44.1,
         "ok_for_scalp": true,
         "available": true
       },
       "atr_d1": 2.43579,
-      "horizon_config": {
-        "confirmation_tf": "15min",
-        "confirmation_max_candles": 8,
-        "confirmation_escape_atr_factor": 0.7,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0025,
-        "entry_zone_margin_atr": 0.7,
-        "exit_t1_close_pct": 0.33,
-        "exit_t2_close_pct": 0.33,
-        "exit_trail_tf": "1H",
-        "exit_trail_atr_mult": {
-          "fx": 3.0,
-          "gold": 4.0,
-          "silver": 4.0,
-          "oil": 3.5,
-          "index": 3.0
-        },
-        "exit_ema_tf": "1H",
-        "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 96,
-        "exit_timeout_partial_pct": 0.5,
-        "exit_timeout_full_hours": 120,
-        "exit_be_timeout_hours": 48,
-        "exit_event_close_hours": 2,
-        "exit_geo_spike_atr_mult": 3.0,
-        "sizing_base_risk_usd": 40
-      }
-    },
-    {
-      "key": "USDJPY",
-      "name": "USD/JPY",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "horizon": "SWING",
-      "grade": "B",
-      "score": 2.57,
-      "max_score": 5.0,
-      "score_pct": 51,
-      "score_details": [
-        {
-          "kryss": "Trendbildet (SMA/momentum/align)",
-          "id": "group_trend",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.67,
-          "drivers": [
-            "SMA200-align",
-            "D1+4H kongruent"
-          ]
-        },
-        {
-          "kryss": "COT-posisjonering",
-          "id": "group_positioning",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.75,
-          "drivers": [
-            "MM percentile 10 (bunn — contra-bull)",
-            "OI stigende (bekrefter)"
-          ]
-        },
-        {
-          "kryss": "Makrobilde (DXY/VIX/renter)",
-          "id": "group_macro",
-          "verdi": false,
-          "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
-        },
-        {
-          "kryss": "Fundamentalt (asset-spesifikt)",
-          "id": "group_fundamental",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.56,
-          "drivers": [
-            "FRED fund +1.11"
-          ]
-        },
-        {
-          "kryss": "Event-risiko (kalender/geo)",
-          "id": "group_risk",
-          "verdi": false,
-          "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
-        },
-        {
-          "kryss": "Teknisk struktur (HTF/SMC)",
-          "id": "group_structure",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.6,
-          "drivers": [
-            "HTF-nivå w3"
-          ]
-        }
-      ],
-      "driver_groups": {
-        "trend": {
-          "score": 0.67,
-          "weight": 1.0,
-          "drivers": [
-            "SMA200-align",
-            "D1+4H kongruent"
-          ]
-        },
-        "positioning": {
-          "score": 0.75,
-          "weight": 1.0,
-          "drivers": [
-            "MM percentile 10 (bunn — contra-bull)",
-            "OI stigende (bekrefter)"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.56,
-          "weight": 1.0,
-          "drivers": [
-            "FRED fund +1.11"
-          ]
-        },
-        "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "structure": {
-          "score": 0.6,
-          "weight": 1.0,
-          "drivers": [
-            "HTF-nivå w3"
-          ]
-        }
-      },
-      "active_driver_groups": 4,
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "dir_override_reason": null,
-      "current": 159.61,
-      "entry": 159.09,
-      "sl": 158.82946,
-      "t1": 159.83701,
-      "t2": 160.00907,
-      "rr_t1": 2.87,
-      "rr_t2": 3.53,
-      "sl_type": "struktur",
-      "cot_bias": "SHORT",
-      "cot_pct": 19.5,
-      "correlation_group": "usd_pairs",
-      "adr_utilization": {
-        "pct": 43.3,
-        "ok_for_scalp": true,
-        "available": true
-      },
-      "atr_d1": 0.79029,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -514,7 +354,7 @@
       "timeframe": "MAKRO",
       "horizon": "MAKRO",
       "grade": "A",
-      "score": 9.0,
+      "score": 11.0,
       "max_score": 18,
       "current": 79.02,
       "entry": 78.95,
@@ -559,12 +399,12 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "yield_score": 0,
-      "weather_outlook": "vått",
+      "weather_outlook": "tørke",
       "drivers": [
         "Krysssjekk: yield_score 0 + Conab YoY -5.8% → supply-stress bekreftet",
-        "Værstress i USA Delta – Bomull & Ris (vått)",
-        "COT: bull FALLER (net +10%)",
-        "Yield kritisk — risiko for lav produksjon"
+        "Værstress i Brazil – Mato Grosso (tørke)",
+        "2 risiko-regioner",
+        "COT: bull FALLER (net +10%)"
       ]
     },
     {
@@ -574,7 +414,7 @@
       "timeframe": "MAKRO",
       "horizon": "MAKRO",
       "grade": "A",
-      "score": 7.3,
+      "score": 7.7,
       "max_score": 18,
       "current": 462.83,
       "entry": 462.54,
@@ -619,22 +459,22 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "yield_score": 10,
-      "weather_outlook": "tørt",
+      "weather_outlook": "tørke",
       "drivers": [
-        "Værstress i Kina – Hebei / Henan (tørt)",
+        "Værstress i Brazil – Mato Grosso (tørke)",
+        "2 risiko-regioner",
         "COT: bull BLANDET (net +10%)",
-        "Yield kritisk — risiko for lav produksjon",
-        "Prognose El Niño: Gunstig regn"
+        "Yield kritisk — risiko for lav produksjon"
       ]
     },
     {
       "key": "Soybean",
       "name": "Soyabønner",
       "action": "BUY",
-      "timeframe": "SWING",
-      "horizon": "SWING",
-      "grade": "B",
-      "score": 6.8,
+      "timeframe": "MAKRO",
+      "horizon": "MAKRO",
+      "grade": "A",
+      "score": 7.5,
       "max_score": 18,
       "current": 1169.76,
       "entry": 1169.23,
@@ -649,42 +489,42 @@
       "source": "agri_fundamental",
       "correlation_group": "grains",
       "horizon_config": {
-        "confirmation_tf": "15min",
-        "confirmation_max_candles": 8,
-        "confirmation_escape_atr_factor": 0.7,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0025,
-        "entry_zone_margin_atr": 0.7,
-        "exit_t1_close_pct": 0.33,
-        "exit_t2_close_pct": 0.33,
-        "exit_trail_tf": "1H",
+        "confirmation_tf": "1H",
+        "confirmation_max_candles": 6,
+        "confirmation_escape_atr_factor": 1.0,
+        "confirmation_min_score": 1,
+        "confirmation_strict_score": 2,
+        "entry_zone_margin": 0.004,
+        "entry_zone_margin_atr": 1.2,
+        "exit_t1_close_pct": 0.25,
+        "exit_t2_close_pct": 0.25,
+        "exit_trail_tf": "D1",
         "exit_trail_atr_mult": {
-          "fx": 3.0,
-          "gold": 4.0,
-          "silver": 4.0,
-          "oil": 3.5,
-          "index": 3.0
+          "fx": 5.0,
+          "gold": 6.0,
+          "silver": 6.0,
+          "oil": 5.5,
+          "index": 5.0
         },
-        "exit_ema_tf": "1H",
+        "exit_ema_tf": "D1",
         "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_candles": 288,
         "exit_timeout_partial_pct": 0.5,
-        "exit_timeout_full_hours": 120,
-        "exit_be_timeout_hours": 48,
-        "exit_event_close_hours": 2,
+        "exit_timeout_full_hours": 360,
+        "exit_timeout_days": 15,
+        "exit_score_deterioration": 6.0,
         "exit_geo_spike_atr_mult": 3.0,
-        "sizing_base_risk_usd": 40
+        "sizing_base_risk_usd": 60
       },
       "data_quality": "fresh",
       "quality_notes": [],
       "yield_score": 30,
-      "weather_outlook": "tørt",
+      "weather_outlook": "tørke",
       "drivers": [
+        "Værstress i Brazil – Mato Grosso (tørke)",
         "COT: spekulanter øker long (net +19% av OI)",
         "Yield kritisk (tidlig) — risiko for lav produksjon",
-        "Prognose El Niño: Gunstig regn",
-        "ECMWF: El Niño sannsynlig — Gunstig regn forventet"
+        "Prognose El Niño: Gunstig regn"
       ]
     },
     {
@@ -806,12 +646,72 @@
         "Værstress i Kina – Hebei / Henan (tørt)",
         "2 risiko-regioner"
       ]
+    },
+    {
+      "key": "Sugar",
+      "name": "Sukker",
+      "action": "BUY",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "B",
+      "score": 5.8,
+      "max_score": 18,
+      "current": 13.83,
+      "entry": 13.81,
+      "sl": 13.73,
+      "t1": 14.1,
+      "t2": 14.5,
+      "rr_t1": 3.62,
+      "rr_t2": 8.62,
+      "sl_type": "atr_prosent",
+      "cot_bias": "bear",
+      "atr_d1": 0.05,
+      "source": "agri_fundamental",
+      "correlation_group": "softs",
+      "horizon_config": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {
+          "fx": 3.0,
+          "gold": 4.0,
+          "silver": 4.0,
+          "oil": 3.5,
+          "index": 3.0
+        },
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
+      },
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "yield_score": 0,
+      "weather_outlook": "tørke",
+      "drivers": [
+        "Værstress i Brazil – Mato Grosso (tørke)",
+        "COT: spekulanter øker short (net -18% av OI)",
+        "Yield kritisk — risiko for lav produksjon",
+        "Prognose El Niño: Gunstig regn"
+      ]
     }
   ],
   "_meta": {
-    "generated_at": "2026-04-28T18:57:00Z",
+    "generated_at": "2026-04-28T22:01:43Z",
     "script": "push_signals.py",
-    "macro_date": "2026-04-28 18:56 UTC",
+    "macro_date": "2026-04-28 22:00 UTC",
     "cot_date": "2026-04-21"
   }
 }
