@@ -154,12 +154,15 @@ def export_manual_csv(filename: str, source_label: str) -> dict:
     }
 
 
-def export_news_intel():    return export_manual_csv("news_intel.csv",    "Bedrock manual · curated news intel events")
-def export_disease_alerts(): return export_manual_csv("disease_alerts.csv","Bedrock manual · crop disease alerts")
-def export_export_events():  return export_manual_csv("export_events.csv", "Bedrock manual · ad-hoc export bans/incidents")
-def export_ism_pmi():         return export_manual_csv("ism_pmi.csv",      "ISM · manufacturing PMI (manual)")
-def export_iri_enso():        return export_manual_csv("iri_enso_forecast.csv","IRI Columbia · ENSO probability forecast")
-def export_crypto_sent():     return export_manual_csv("crypto_sentiment.csv","Crypto sentiment (manual aggregate)")
+def export_news_intel():     return export_manual_csv("news_intel.csv",      "Bedrock manual · curated news intel events")
+def export_disease_alerts(): return export_manual_csv("disease_alerts.csv",  "Bedrock manual · crop disease alerts")
+def export_export_events():  return export_manual_csv("export_events.csv",   "Bedrock manual · ad-hoc export bans/incidents")
+def export_ism_pmi():        return export_manual_csv("ism_pmi.csv",         "ISM · manufacturing PMI (manual)")
+def export_iri_enso():       return export_manual_csv("iri_enso_forecast.csv","IRI Columbia · ENSO probability forecast")
+def export_crypto_sent():    return export_manual_csv("crypto_sentiment.csv","Crypto sentiment (manual aggregate)")
+# Manual fallbacks for DB tables that aren't yet populated by bedrock fetchers
+def export_cot_ice_manual():       return export_manual_csv("cot_ice.csv",          "ICE COT (manual fallback — bedrock cot_ice table empty)")
+def export_shipping_manual():      return export_manual_csv("shipping_indices.csv", "Baltic indices (manual fallback — bedrock bdi table empty)")
 
 
 def export_seismic(con: sqlite3.Connection) -> dict:
@@ -487,6 +490,8 @@ MANUAL_EXPORTERS = {
     "ism_pmi.json":         export_ism_pmi,
     "iri_enso.json":        export_iri_enso,
     "crypto_sentiment.json": export_crypto_sent,
+    "ice_cot_manual.json":  export_cot_ice_manual,
+    "shipping_manual.json": export_shipping_manual,
 }
 
 

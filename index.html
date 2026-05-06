@@ -1119,9 +1119,16 @@ async function loadAll(){
     safeFetch('data/bedrock/iri_enso.json'),
     safeFetch('data/bedrock/crypto_sentiment.json'),
   ]);
+  // Manual fallbacks for sources whose bedrock fetcher tables are empty.
+  // Loaded separately to keep the main destructure stable.
+  const [bdrIceCotManual, bdrShipManual] = await Promise.all([
+    safeFetch('data/bedrock/ice_cot_manual.json'),
+    safeFetch('data/bedrock/shipping_manual.json'),
+  ]);
   Object.assign(D,{combined,cotAna,fund,oilgas,comex,agri,conab,unica,shipping,crypto,calendar,geo,signals,agriSig,ice,euronext,
                    bdrEia, bdrSeismic, bdrSignals, bdrIndex, bdrAgriSignals,
-                   bdrNews, bdrDisease, bdrExport, bdrPmi, bdrIriEnso, bdrCryptoSent});
+                   bdrNews, bdrDisease, bdrExport, bdrPmi, bdrIriEnso, bdrCryptoSent,
+                   bdrIceCotManual, bdrShipManual});
 
   renderStateStrip();
   renderControl();
@@ -1422,11 +1429,27 @@ function renderAgriSupply(){
 function renderShipping(){
   const s=D.shipping; if(!s){ $('#plate-shipping').innerHTML=plate('I·G','Shipping','no data','','<div class="skel">No shipping data.</div>'); return; }
   const idx=(s.indices||[]).reduce((m,x)=>(m[x.id]=x,m),{});
+  // Manual fallback (latest entry per index_code) for sub-indices the primary
+  // shipping fetcher doesn't yet populate (BCI/BPI/BSI). Sourced via bedrock CSV.
+  const manualBy = {};
+  const lbl = {BCI:'Baltic Capesize', BPI:'Baltic Panamax', BSI:'Baltic Supramax', BDI:'Baltic Dry Index'};
+  for(const r of (D.bdrShipManual?.data || [])){
+    const k = (r.index_code||'').toUpperCase();
+    const cur = manualBy[k];
+    if(!cur || (r.date||'') > (cur.date||'')) manualBy[k] = r;
+  }
   const cell=(id)=>{
-    const x=idx[id]; if(!x) return readout(id.toUpperCase(),'—','','');
-    const d=x.data||{};
-    const sigCls = d.signal==='bullish'?'pos':d.signal==='bearish'?'neg':'info';
-    return readout(x.label||id.toUpperCase(), fmt(d.value), sigCls, `Δ MA20 ${pct(d.dev_ma)} · ${d.trend||''}`);
+    const x=idx[id];
+    const m=manualBy[id.toUpperCase()];
+    if(x && x.data && x.data.value!=null){
+      const d=x.data; const sigCls = d.signal==='bullish'?'pos':d.signal==='bearish'?'neg':'info';
+      return readout(x.label||id.toUpperCase(), fmt(d.value), sigCls, `Δ MA20 ${pct(d.dev_ma)} · ${d.trend||''}`);
+    }
+    if(m){
+      return readout(lbl[id.toUpperCase()]||id.toUpperCase(), fmt(parseFloat(m.value)), '',
+        `manual · ${escapeHTML(m.date||'')} · ${escapeHTML(m.source||'')}`);
+    }
+    return readout(lbl[id.toUpperCase()]||id.toUpperCase(),'—','','');
   };
   const ros=[cell('bdi'),cell('bpi'),cell('bci'),cell('bsi')];
   const body = readouts(ros)
