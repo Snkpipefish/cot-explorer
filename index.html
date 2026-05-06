@@ -650,6 +650,19 @@ body{
   font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-mute);
 }
 .bedrock-empty strong{color:var(--brass);font-style:normal;}
+.bedrock-empty code{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(201,163,94,.08);padding:1px 5px;border:1px solid var(--brass-dim);}
+
+/* AGRI tag — used in setup row names + bedrock row names to flag agri-source signals */
+.setup-tag{
+  display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;
+  padding:1px 5px;margin-left:4px;border:1px solid;
+  vertical-align:middle;
+}
+.setup-tag.agri{
+  color:var(--sig-pos);border-color:var(--sig-pos-dim);
+  background:rgba(107,157,122,.1);
+}
+.setup-row.agri{background:linear-gradient(90deg, rgba(107,157,122,.025) 0%, transparent 60%);}
 
 /* MOBILE adjustments for control panel + bedrock */
 @media (max-width:780px){
@@ -874,6 +887,7 @@ body{
       <div id="plate-eia"></div>
       <div id="plate-seismic"></div>
     </div>
+    <div id="plate-events"></div>
     <div id="plate-calendar"></div>
     <div id="plate-geo"></div>
   </section>
@@ -919,13 +933,18 @@ body{
       <div class="plate-hd">
         <span class="num">V</span>
         <span class="ttl">Bedrock · Setup Engine</span>
-        <span class="sub">Live mirror of bedrock's signals.json — 96-driver scoring, asymmetric per direction × horizon</span>
+        <span class="sub">Live mirror of bedrock's signals — financial + agri scoring, asymmetric per direction × horizon</span>
         <span class="stamp" id="bedrockStamp">—</span>
       </div>
       <div class="plate-body">
         <div class="bedrock-controls">
+          <div class="hm-cat-toggles" id="bedrockClassTabs">
+            <button class="hm-cat on" data-c="all">All</button>
+            <button class="hm-cat" data-c="financial">Financial</button>
+            <button class="hm-cat" data-c="agri">Agri</button>
+          </div>
           <div class="hm-cat-toggles" id="bedrockHorizonTabs">
-            <button class="hm-cat on" data-h="all">All</button>
+            <button class="hm-cat on" data-h="all">All horizons</button>
             <button class="hm-cat" data-h="makro">Macro</button>
             <button class="hm-cat" data-h="swing">Swing</button>
             <button class="hm-cat" data-h="scalp">Scalp</button>
@@ -1074,7 +1093,7 @@ const D={};
 
 async function loadAll(){
   const [combined, cotAna, fund, oilgas, comex, agri, conab, unica, shipping, crypto, calendar, geo, signals, agriSig, ice, euronext,
-         bdrEia, bdrSeismic, bdrSignals, bdrIndex] = await Promise.all([
+         bdrEia, bdrSeismic, bdrSignals, bdrIndex, bdrAgriSignals] = await Promise.all([
     safeFetch('data/combined/latest.json'),
     safeFetch('data/cot_analytics/latest.json'),
     safeFetch('data/fundamentals/latest.json'),
@@ -1095,9 +1114,20 @@ async function loadAll(){
     safeFetch('data/bedrock/seismic.json'),
     safeFetch('data/bedrock/signals.json'),
     safeFetch('data/bedrock/index.json'),
+    safeFetch('data/bedrock/agri_signals.json'),
+  ]);
+  // Manual-CSV bedrock sources (small but populated)
+  const [bdrNews, bdrDisease, bdrExport, bdrPmi, bdrIriEnso, bdrCryptoSent] = await Promise.all([
+    safeFetch('data/bedrock/news_intel.json'),
+    safeFetch('data/bedrock/disease_alerts.json'),
+    safeFetch('data/bedrock/export_events.json'),
+    safeFetch('data/bedrock/ism_pmi.json'),
+    safeFetch('data/bedrock/iri_enso.json'),
+    safeFetch('data/bedrock/crypto_sentiment.json'),
   ]);
   Object.assign(D,{combined,cotAna,fund,oilgas,comex,agri,conab,unica,shipping,crypto,calendar,geo,signals,agriSig,ice,euronext,
-                   bdrEia, bdrSeismic, bdrSignals, bdrIndex});
+                   bdrEia, bdrSeismic, bdrSignals, bdrIndex, bdrAgriSignals,
+                   bdrNews, bdrDisease, bdrExport, bdrPmi, bdrIriEnso, bdrCryptoSent});
 
   renderStateStrip();
   renderControl();
@@ -1440,6 +1470,73 @@ function renderSeismic(){
   $('#plate-seismic').innerHTML = plate('II·L','USGS · Seismic','via bedrock · daily', s.rows+' events', body);
 }
 
+/* — BEDROCK · SENTIMENT & EVENTS — */
+function renderEvents(){
+  const news    = D.bdrNews?.data    || [];
+  const disease = D.bdrDisease?.data || [];
+  const exports = D.bdrExport?.data  || [];
+  const pmi     = D.bdrPmi?.data     || [];
+  const iri     = D.bdrIriEnso?.data || [];
+  const csent   = D.bdrCryptoSent?.data || [];
+  const total = news.length + disease.length + exports.length + pmi.length + iri.length + csent.length;
+  if(!total){
+    $('#plate-events').innerHTML = plate('II·M','Bedrock · Sentiment & Events','no manual data','via bedrock','<div class="skel">No manual feeds populated yet.</div>');
+    return;
+  }
+  // Recent news (max 4)
+  const newsRows = news.slice(0,4).map(n=>
+    `<div class="ind"><span class="ind-name italic">${escapeHTML((n.title||'').slice(0,80))}</span>
+      <span class="ind-trend flat">${escapeHTML((n.category||n.query_id||'').toUpperCase())}</span></div>`
+  ).join('');
+  // Disease alerts
+  const diseaseRows = disease.slice(0,4).map(d=>{
+    const sev = parseInt(d.severity||0,10);
+    const cls = sev>=3?'dn':sev>=2?'flat':'flat';
+    return `<div class="ind"><span class="ind-name">${escapeHTML(d.commodity||'')} · ${escapeHTML(d.region||'')} · ${escapeHTML(d.pathogen||'')}</span>
+      <span class="ind-trend ${cls}">sev ${escapeHTML(d.severity||'?')} · -${escapeHTML(d.yield_impact_pct||'?')}%</span></div>`;
+  }).join('');
+  // Export events
+  const exportRows = exports.slice(0,5).map(e=>{
+    const cls = e.bull_bear==='BULL'?'up':e.bull_bear==='BEAR'?'dn':'flat';
+    return `<div class="ind"><span class="ind-name">${escapeHTML(e.country||'')} · ${escapeHTML(e.commodity||'')} · ${escapeHTML(e.event_type||'')}</span>
+      <span class="ind-trend ${cls}">${escapeHTML(e.bull_bear||'')} · sev ${escapeHTML(e.severity||'?')}</span></div>`;
+  }).join('');
+  // ISM PMI (6 months trend)
+  const pmiNum = pmi.length;
+  const pmiLast = pmi[pmi.length-1] || {};
+  const pmiPrev = pmi[pmi.length-2] || {};
+  const pmiVal = parseFloat(pmiLast.headline_pmi)||0;
+  const pmiPrevVal = parseFloat(pmiPrev.headline_pmi)||0;
+  // IRI ENSO (latest forecast)
+  const iriLast = iri[iri.length-1] || {};
+  // Crypto sentiment latest — filter to fear/greed only (CSV has multiple indicators)
+  const csFng = csent.filter(c=>(c.indicator||'').toLowerCase().includes('fng')).slice(-1)[0]
+              || csent[csent.length-1] || {};
+  const csLast = csFng;
+  const ros = [
+    readout('ISM PMI', pmiNum?pmiVal.toFixed(1):'—',
+      pmiVal>=50?'pos':'neg',
+      pmiNum>1?`vs ${pmiPrevVal.toFixed(1)} prior`:''),
+    readout('Niño 3.4 SST', iri.length?(iriLast.nino34_mean_c||'—')+'°C':'—',
+      parseFloat(iriLast.nino34_mean_c||0)>0.5?'warn':parseFloat(iriLast.nino34_mean_c||0)<-0.5?'warn':'info',
+      iri.length?escapeHTML(iriLast.target_period||''):''),
+    readout('Crypto F&G', csent.length?csLast.value:'—',
+      parseInt(csLast.value||0,10)>=60?'pos':parseInt(csLast.value||0,10)<=40?'neg':'info',
+      csent.length?escapeHTML(csLast.indicator||''):''),
+    readout('Disease/Export Events', (disease.length+exports.length).toString(),
+      (disease.length+exports.length)>0?'warn':'info', 'active alerts'),
+  ];
+  let body = readouts(ros)
+    + descr(`Bedrock's <strong>manual-curation</strong> feeds: news intel, crop disease alerts, export bans/restrictions,
+       ISM PMI macro tracking, IRI ENSO forecasts, and aggregated crypto sentiment. Small datasets but high signal —
+       these represent <em>events</em>, not continuous time-series.`);
+  if(exportRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Export events</div><div class="ind-list">${exportRows}</div></div>`;
+  if(diseaseRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Disease alerts</div><div class="ind-list">${diseaseRows}</div></div>`;
+  if(newsRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">News intel</div><div class="ind-list">${newsRows}</div></div>`;
+  body += renderAffects('Cross-asset', ['Wheat','Corn','Soybeans','Sugar No. 11','Coffee C','Cotton No. 2','Gold','Bitcoin','S&P 500']);
+  $('#plate-events').innerHTML = plate('II·M','Bedrock · Sentiment & Events','via bedrock manual CSVs', total+' events', body);
+}
+
 function renderObservatory(){
   renderMacro();
   renderRates();
@@ -1451,6 +1548,7 @@ function renderObservatory(){
   renderCrypto();
   renderEia();
   renderSeismic();
+  renderEvents();
   renderCalendar();
   renderGeo();
 }
@@ -1680,17 +1778,39 @@ function f_fear_greed(direction=+1, weight=0.3){
   };
 }
 
+/* Map cot-explorer's SYNTH key → list of bedrock instrument names that match */
+const BDR_ALIAS = {
+  'EURUSD':['EURUSD'], 'GBPUSD':['GBPUSD'], 'USDJPY':['USDJPY'], 'AUDUSD':['AUDUSD'],
+  'NZDUSD':['NZDUSD'], 'USDCAD':['USDCAD'], 'DXY':['DXY'],
+  'GOLD':['Gold','XAUUSD'], 'SILVER':['Silver','XAGUSD'],
+  'COPPER':['Copper'], 'PLATINUM':['Platinum'], 'PALLADIUM':['Palladium'],
+  'WTI':['CrudeOil','XTIUSD'], 'BRENT':['Brent'], 'NATGAS':['NaturalGas'],
+  'SPX':['SP500','SPX500'], 'NDX':['Nasdaq'], 'RUT':['Russell2000'], 'VIX':['VIX'],
+  'CORN':['Corn'], 'SOY':['Soybean','Soybeans'], 'WHEAT':['Wheat'], 'COTTON':['Cotton'],
+  'SUGAR':['Sugar'], 'COFFEE':['Coffee'], 'COCOA':['Cocoa'],
+  'BTC':['BTC','BTCUSD'], 'ETH':['ETH','ETHUSD'],
+};
+const BDR_GRADE_ORDER = {'A+':0,'A':1,'A-':2,'B+':3,'B':4,'B-':5,'C':6,'D':7};
+
+function _allBedrockSignals(){
+  const a = Array.isArray(D.bdrSignals?.raw) ? D.bdrSignals.raw : [];
+  const b = Array.isArray(D.bdrAgriSignals?.raw) ? D.bdrAgriSignals.raw : [];
+  return a.concat(b);
+}
+function _bedrockBestFor(synthKey){
+  const aliases = BDR_ALIAS[synthKey] || [synthKey];
+  const aSet = new Set(aliases.map(x=>x.toUpperCase()));
+  const cand = _allBedrockSignals().filter(s=>aSet.has(String(s.instrument||'').toUpperCase()));
+  if(!cand.length) return null;
+  cand.sort((x,y)=>(BDR_GRADE_ORDER[x.grade]??9)-(BDR_GRADE_ORDER[y.grade]??9));
+  return cand[0];
+}
+
 /* factor: bedrock signal as overlay (if available for this instrument) */
-function f_bedrock(instrument){
+function f_bedrock(synthKey){
   return ()=>{
-    const sigs = D.bdrSignals?.raw;
-    if(!Array.isArray(sigs)) return null;
-    // pick highest-grade match for this instrument
-    const cand = sigs.filter(s=>String(s.instrument||'').toUpperCase()===instrument.toUpperCase());
-    if(!cand.length) return null;
-    const order = {'A+':0,'A':1,'A-':2,'B+':3,'B':4,'B-':5,'C':6};
-    cand.sort((a,b)=>(order[a.grade]??9)-(order[b.grade]??9));
-    const s = cand[0];
+    const s = _bedrockBestFor(synthKey);
+    if(!s) return null;
     const dir = String(s.direction||'').toLowerCase();
     const ratio = (s.score||0)/(s.max_score||5.8);
     const bias = (dir==='buy'?1:-1) * Math.min(1, ratio);
@@ -1872,13 +1992,10 @@ function drawControl(){
         <span class="val">${escapeHTML(f.value)}</span>
       </div>`;
     }).join('') || '<div class="ctrl-fact"><span class="arr eq">—</span><span class="why">no contributing data yet</span><span></span></div>';
-    // bedrock 2nd opinion (if present)
-    const bdr = (D.bdrSignals?.raw||[]).filter(x=>String(x.instrument||'').toUpperCase()===rules.key.toUpperCase());
-    const order = {'A+':0,'A':1,'A-':2,'B+':3,'B':4,'B-':5,'C':6};
-    bdr.sort((a,b)=>(order[a.grade]??9)-(order[b.grade]??9));
+    // bedrock 2nd opinion (if present) — uses BDR_ALIAS so WTI→CrudeOil, SOY→Soybean etc.
+    const b0 = _bedrockBestFor(rules.key);
     let bdrLine = '<span class="none">no bedrock signal</span>';
-    if(bdr.length){
-      const b0 = bdr[0];
+    if(b0){
       bdrLine = `<span class="grade">${escapeHTML(b0.grade||'?')}</span>${escapeHTML((b0.direction||'').toUpperCase())} · ${escapeHTML(b0.horizon||'')} · ${b0.published?'published':'below floor'}`;
     }
     return `<div class="ctrl-card ${cls}" data-symbol="${escapeHTML(rules.symbol||'')}" data-report="${escapeHTML(rules.report||'')}">
@@ -1915,74 +2032,95 @@ function drawControl(){
 /* ════════════════════════════════════════════════════════════════
    V · BEDROCK SETUPS — read bedrock's signals.json passthrough
    ════════════════════════════════════════════════════════════════ */
-const BDR_STATE = { horizon:'all', pubOnly:true };
+const BDR_STATE = { horizon:'all', pubOnly:true, klass:'all' };
+
+/* Asset class is explicit on agri signals (asset_class:'softs'/'grains');
+   financial signals don't carry it. We tag at merge-time. */
+function _bedrockMerged(){
+  const fin  = (Array.isArray(D.bdrSignals?.raw)     ? D.bdrSignals.raw     : []).map(s=>({...s, _class:'financial'}));
+  const agri = (Array.isArray(D.bdrAgriSignals?.raw) ? D.bdrAgriSignals.raw : []).map(s=>({...s, _class:'agri'}));
+  return fin.concat(agri);
+}
+
+/* Schema-flexible family bars: agri uses {outlook, yield, positioning, conab,
+   unica, enso, cross, analog} while financial uses {trend, positioning, macro,
+   fundamental, risk, structure}. We render whatever keys the signal carries. */
+function _bedrockFamBars(s){
+  const fams = s.families || {};
+  const keys = Object.keys(fams);
+  if(!keys.length) return '<div class="bedrock-fams"></div>';
+  return '<div class="bedrock-fams">' + keys.map(k=>{
+    const x = fams[k]; const score = x?.score ?? 0;
+    const cls = score>=0.66?'hi':score>=0.33?'mid':'lo';
+    const letter = k[0].toUpperCase();
+    return `<div class="bf ${cls}" title="${escapeHTML(k)}: ${score.toFixed(2)}">${letter}</div>`;
+  }).join('') + '</div>';
+}
 
 function renderBedrock(){
+  $('#bedrockClassTabs').onclick = (e)=>{ const b=e.target.closest('.hm-cat'); if(!b) return;
+    BDR_STATE.klass = b.dataset.c;
+    $$('#bedrockClassTabs .hm-cat').forEach(x=>x.classList.toggle('on', x===b));
+    drawBedrock(); };
   $('#bedrockHorizonTabs').onclick = (e)=>{ const b=e.target.closest('.hm-cat'); if(!b) return;
     BDR_STATE.horizon = b.dataset.h;
     $$('#bedrockHorizonTabs .hm-cat').forEach(x=>x.classList.toggle('on', x===b));
     drawBedrock(); };
   $('#bedrockPubOnly').onchange = (e)=>{ BDR_STATE.pubOnly=e.target.checked; drawBedrock(); };
   drawBedrock();
-  if(D.bdrSignals?.generated){
-    $('#bedrockStamp').textContent = ageStr(ageHours(D.bdrSignals.generated))+' ago';
-  }
+  const stamp = D.bdrSignals?.generated || D.bdrAgriSignals?.generated;
+  if(stamp) $('#bedrockStamp').textContent = ageStr(ageHours(stamp))+' ago';
 }
 
 function drawBedrock(){
-  const sigs = D.bdrSignals?.raw;
-  if(!Array.isArray(sigs) || !sigs.length){
+  const all = _bedrockMerged();
+  if(!all.length){
     $('#bedrockList').innerHTML = `<div class="bedrock-empty">
       <strong>Bedrock signals not yet wired.</strong><br>
-      Run <code>python3 scripts/import_from_bedrock.py</code> on the host that has access to <code>~/bedrock/bedrock.db</code>.
-      <br>This panel will populate automatically once <code>data/bedrock/signals.json</code> contains scored setups.
+      Run <code>python3 scripts/import_from_bedrock.py</code> on the host with access to <code>~/bedrock/bedrock.db</code>.
+      <br>This panel populates from <code>data/bedrock/signals.json</code> + <code>data/bedrock/agri_signals.json</code>.
     </div>`;
     $('#bedrockCount').textContent = '';
     return;
   }
-  let rows = [...sigs];
+  let rows = [...all];
+  if(BDR_STATE.klass!=='all')   rows = rows.filter(s=>s._class===BDR_STATE.klass);
   if(BDR_STATE.horizon!=='all') rows = rows.filter(s=>String(s.horizon||'').toLowerCase()===BDR_STATE.horizon);
-  if(BDR_STATE.pubOnly) rows = rows.filter(s=>s.published);
-  // sort by grade then score
-  const order = {'A+':0,'A':1,'A-':2,'B+':3,'B':4,'B-':5,'C':6};
+  if(BDR_STATE.pubOnly)         rows = rows.filter(s=>s.published);
   rows.sort((a,b)=>{
-    const o = (order[a.grade]??9) - (order[b.grade]??9);
+    const o = (BDR_GRADE_ORDER[a.grade]??9) - (BDR_GRADE_ORDER[b.grade]??9);
     if(o) return o;
     return (b.score||0) - (a.score||0);
   });
+  D._bdrRows = rows;
   const HTML = rows.map((s,i)=>{
     const dir = String(s.direction||'').toLowerCase()==='buy'?'bull':String(s.direction||'').toLowerCase()==='sell'?'bear':'';
-    const max = s.max_score || 5.8;
-    const floor = (s.min_score_publish || 0) / max * 100;
-    const fillW = Math.max(0, Math.min(100, (s.score || 0) / max * 100));
-    const fams = s.families || {};
-    const famHTML = ['trend','positioning','macro','fundamental','risk','structure'].map(g=>{
-      const x = fams[g];
-      const score = x?.score ?? 0;
-      const cls = score>=0.66?'hi':score>=0.33?'mid':'lo';
-      return `<div class="bf ${cls}" title="${escapeHTML(g)}: ${score.toFixed(2)}">${g[0].toUpperCase()}</div>`;
-    }).join('');
+    const max = s.max_score || (s._class==='agri'?9.0:5.8);
+    const floor = max ? (s.min_score_publish || 0) / max * 100 : 0;
+    const fillW = max ? Math.max(0, Math.min(100, (s.score || 0) / max * 100)) : 0;
     const setup = s.setup?.setup || s.setup || {};
     const setupMini = setup.entry!=null
       ? `entry ${fmt(setup.entry,4)} · sl ${fmt(setup.sl,4)}${setup.tp!=null?' · tp '+fmt(setup.tp,4):''}`
       : '';
+    const klassTag = s._class==='agri'?'<span class="setup-tag agri">AGRI</span>':'';
     return `<div class="bedrock-row ${dir} ${s.published?'':'unpub'}" data-idx="${i}">
       <div class="grade">${escapeHTML(s.grade||'?')}</div>
-      <div class="nm">${escapeHTML(s.instrument||'')}<span class="horiz">${escapeHTML(s.horizon||'')}</span></div>
+      <div class="nm">${escapeHTML(s.instrument||'')} ${klassTag}<span class="horiz">${escapeHTML(s.horizon||'')}${s.asset_class?' · '+escapeHTML(s.asset_class):''}</span></div>
       <div class="dir ${dir}">${escapeHTML(s.direction||'')}</div>
       <div class="pub-pill ${s.published?'yes':'no'}">${s.published?'PUB':'BELOW'}</div>
       <div class="score-bar">
         <span class="track"><span class="fill" style="width:${fillW}%"></span><span class="floor" style="left:${floor}%"></span></span>
         <span class="pct">${(s.score||0).toFixed(2)}</span>
       </div>
-      <div class="bedrock-fams">${famHTML}</div>
+      ${_bedrockFamBars(s)}
       <div class="setup-mini">${escapeHTML(setupMini)}</div>
     </div>`;
   }).join('');
-  $('#bedrockList').innerHTML = HTML || '<div class="bedrock-empty">No setups match the current filter.</div>';
-  $('#bedrockCount').textContent = `${rows.length} of ${sigs.length} signals shown`;
-  // wire row click → modal with full driver trace
-  D._bdrRows = rows;
+  $('#bedrockList').innerHTML = HTML || `<div class="bedrock-empty">
+    <strong>No setups match the current filter.</strong><br>
+    ${BDR_STATE.klass==='agri' && BDR_STATE.pubOnly ? 'Try unchecking "Published only" — bedrock\'s agri publish-floor is 6.0/9.0 which few currently clear.' : 'Try widening the filters.'}
+  </div>`;
+  $('#bedrockCount').textContent = `${rows.length} of ${all.length} signals shown`;
   $$('.bedrock-row').forEach(el=>el.onclick = ()=>openBedrockSetup(parseInt(el.dataset.idx,10)));
 }
 
@@ -2218,8 +2356,11 @@ function renderSetups(){
     const order={'A+':0,'A':1,'A-':2,'B+':3,'B':4,'B-':5};
     return (order[a.grade]||9) - (order[b.grade]||9);
   });
+  // grade → percentage fallback for signal types missing max_score (e.g. agri)
+  const gradePct = {'A+':95,'A':80,'A-':70,'B+':60,'B':50,'B-':40,'C':25,'D':10};
   const rows = ranked.map(s=>{
     const dir = (s.action||'').toUpperCase()==='BUY' ? 'bull' : (s.action||'').toUpperCase()==='SELL'?'bear':'';
+    const isAgri = s.source==='agri_fundamental' || s._src==='agri';
     const groups = s.driver_groups||{};
     const dbars = ['trend','positioning','macro','fundamental','risk','structure'].map(g=>{
       const x = groups[g]||{};
@@ -2228,14 +2369,40 @@ function renderSetups(){
       const letter = g[0].toUpperCase();
       return `<div class="dbar ${cls}" title="${g}: ${(x.score||0).toFixed(2)}/${(x.weight||0).toFixed(2)}">${letter}</div>`;
     }).join('');
-    const flavor = (s.group_drivers||[]).slice(0,2).join(' · ') || s.flavor || '';
-    const scorePct = s.max_score? Math.round(100*s.score/s.max_score) : (s.score_pct||0);
-    return `<div class="setup-row ${dir}" data-key="${escapeHTML(s.key||s.name)}">
+    // agri rows lead with crop-context flavor; tech rows use group_drivers
+    let flavor = '';
+    if(isAgri){
+      const bits = [];
+      if(s.weather_outlook) bits.push(`weather: <em>${escapeHTML(s.weather_outlook)}</em>`);
+      if(s.yield_quality)   bits.push(`yield: <em>${escapeHTML(s.yield_quality)}</em>`);
+      if(s.growth_stage)    bits.push(`stage: ${escapeHTML(s.growth_stage)}${s.season_pct?` · ${s.season_pct}%`:''}`);
+      if(s.cot_bias)        bits.push(`COT ${escapeHTML(s.cot_bias)}${s.cot_pct!=null?` ${pct(s.cot_pct)}`:''}`);
+      flavor = bits.join(' &nbsp;·&nbsp; ');
+      if(!flavor) flavor = (s.group_drivers||s.drivers||[]).slice(0,2).join(' · ');
+    } else {
+      flavor = (s.group_drivers||[]).slice(0,2).join(' · ') || s.flavor || '';
+    }
+    // score-bar fill: prefer max_score, else grade fallback so agri signals show meaningful bars
+    let scorePct;
+    if(s.max_score){
+      scorePct = Math.round(100*s.score/s.max_score);
+    } else if(s.score_pct){
+      scorePct = s.score_pct;
+    } else if(isAgri){
+      // map agri's 0..18 score onto 0..100% AND clamp by grade so a B never shows 90%
+      const fromScore = Math.min(100, Math.round((s.score||0) * (100/18)));
+      const fromGrade = gradePct[s.grade] ?? 0;
+      scorePct = Math.min(fromScore, fromGrade);
+    } else {
+      scorePct = gradePct[s.grade] ?? 0;
+    }
+    const tag = isAgri ? '<span class="setup-tag agri">AGRI</span>' : '';
+    return `<div class="setup-row ${dir}${isAgri?' agri':''}" data-key="${escapeHTML(s.key||s.name)}">
       <div class="setup-grade-letter">${escapeHTML(s.grade||'?')}</div>
-      <div class="setup-name">${escapeHTML(s.name||s.key)}<span class="horiz">${escapeHTML(s.horizon||s.timeframe||'')}</span></div>
+      <div class="setup-name">${escapeHTML(s.name||s.key)} ${tag}<span class="horiz">${escapeHTML(s.horizon||s.timeframe||'')}</span></div>
       <div class="setup-dir ${dir}">${escapeHTML(s.action||'')}</div>
       <div class="score-bar"><div class="track"><div class="fill" style="width:${scorePct}%"></div></div><span class="pct">${scorePct}%</span></div>
-      <div class="setup-flavor">${escapeHTML(flavor)}</div>
+      <div class="setup-flavor">${flavor}</div>
       <div class="driver-bars">${dbars}</div>
     </div>`;
   }).join('');
@@ -2246,6 +2413,7 @@ function openSetup(key){
   const all = [...(D.signals?.signals||[]), ...(D.agriSig?.signals||[])];
   const s = all.find(x=>(x.key||x.name)===key);
   if(!s) return;
+  const isAgri = s.source==='agri_fundamental';
   const groups = s.driver_groups||{};
   const grpHTML = ['trend','positioning','macro','fundamental','risk','structure'].map(g=>{
     const x = groups[g]||{};
@@ -2255,15 +2423,53 @@ function openSetup(key){
       <div class="grp-drivers">${drv}</div>
     </div>`;
   }).join('');
+  // agri-specific context — yield, weather, growth stage, ENSO outlook, COT bias
+  let agriHTML = '';
+  if(isAgri){
+    const ros = [];
+    if(s.yield_score!=null) ros.push(readout('Yield Score', s.yield_score+'/100',
+        s.yield_score<40?'neg':s.yield_score>70?'pos':'warn',
+        s.yield_quality?escapeHTML(s.yield_quality):''));
+    if(s.weather_outlook) ros.push(readout('Weather', escapeHTML(s.weather_outlook).toUpperCase(),
+        /tørke|drought|frost|flom|flood/i.test(s.weather_outlook)?'neg':'warn',''));
+    if(s.growth_stage) ros.push(readout('Growth Stage', escapeHTML(s.growth_stage),'',
+        s.season_pct?s.season_pct+'% through season':''));
+    if(s.cot_bias) ros.push(readout('COT Bias', escapeHTML(s.cot_bias).toUpperCase(),
+        s.cot_bias==='bull'?'pos':s.cot_bias==='bear'?'neg':'info',
+        s.cot_pct!=null?'percentile '+s.cot_pct.toFixed(1):''));
+    if(s.atr_est!=null && s.entry!=null){
+      ros.push(readout('Reference Levels', `entry ${fmt(s.entry,4)}`, '',
+        `sl ${fmt(s.sl,4)} · t1 ${fmt(s.t1,4)} · ATR ${fmt(s.atr_est,4)}`));
+    }
+    if(s.data_quality && s.data_quality!=='fresh'){
+      ros.push(readout('Data Quality', s.data_quality.toUpperCase(),'warn',
+        (s.quality_notes||[]).join('; ')));
+    }
+    while(ros.length<4) ros.push(readout('—','—','',''));
+    agriHTML = `<div style="margin-top:14px;">
+      <div class="grp-name" style="font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--brass);text-transform:uppercase;letter-spacing:.1em;font-weight:600;border-bottom:1px solid var(--brass-dim);padding-bottom:3px;margin-bottom:10px;">Agri context</div>
+      ${readouts(ros.slice(0,6))}
+    </div>`;
+  }
+  // top-level driver list (agri "drivers" or merged group_drivers)
+  const topDrivers = (s.drivers || s.group_drivers || []).slice(0,8);
+  const driversHTML = topDrivers.length
+    ? `<div style="margin-top:14px;"><div class="grp-name" style="font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--brass);text-transform:uppercase;letter-spacing:.1em;font-weight:600;border-bottom:1px solid var(--brass-dim);padding-bottom:3px;margin-bottom:6px;">Active drivers</div>
+       <ul style="list-style:none;padding:0;margin:0;">${topDrivers.map(d=>`<li style="padding:5px 0;border-bottom:1px dotted var(--ink-rule-soft);font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-bone);"><span style="color:var(--brass);margin-right:6px;">·</span>${escapeHTML(d)}</li>`).join('')}</ul></div>`
+    : '';
   $('#modalCard').innerHTML = `
     <div class="modal-hd">
-      <div class="nm">${escapeHTML(s.name||s.key)}</div>
-      <div class="sym">${escapeHTML(s.action||'')} · ${escapeHTML(s.grade||'')} · ${escapeHTML(s.horizon||s.timeframe||'')}</div>
+      <div class="nm">${escapeHTML(s.name||s.key)}${isAgri?' <span style="font-size:13px;color:var(--brass);font-style:italic;letter-spacing:.06em;">· agri</span>':''}</div>
+      <div class="sym">${escapeHTML(s.action||'')} · ${escapeHTML(s.grade||'')} · ${escapeHTML(s.horizon||s.timeframe||'')}${s.score!=null?` · score ${s.score}`:''}</div>
       <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="narrative">${escapeHTML((s.group_drivers||[]).join(' · ') || (s.flavor||''))}</div>
-      <div class="setup-detail" style="display:block;">${grpHTML}</div>
+      ${agriHTML}
+      ${driversHTML}
+      <div class="setup-detail" style="display:block;margin-top:14px;">
+        <div class="grp-name" style="font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--brass);text-transform:uppercase;letter-spacing:.1em;font-weight:600;border-bottom:1px solid var(--brass-dim);padding-bottom:3px;margin-bottom:10px;">Driver groups</div>
+        ${grpHTML}
+      </div>
     </div>`;
   $('#modal').classList.add('open');
 }
@@ -2332,6 +2538,13 @@ const PIPELINE_GROUPS = [
     {p:'data/bedrock/wasde.json',         d:'USDA WASDE reports (awaiting bedrock fetcher)'},
     {p:'data/bedrock/bdi.json',           d:'Baltic indices (awaiting bedrock fetcher)'},
     {p:'data/bedrock/analogs.json',       d:'K-NN analog outcomes (awaiting bedrock fetcher)'},
+    {p:'data/bedrock/agri_signals.json',  d:'Bedrock agri scoring (28 setups across 7 crops)'},
+    {p:'data/bedrock/news_intel.json',    d:'Bedrock manual · news intel events'},
+    {p:'data/bedrock/disease_alerts.json',d:'Bedrock manual · crop disease alerts'},
+    {p:'data/bedrock/export_events.json', d:'Bedrock manual · export bans/incidents'},
+    {p:'data/bedrock/ism_pmi.json',       d:'Bedrock manual · ISM PMI history'},
+    {p:'data/bedrock/iri_enso.json',      d:'Bedrock manual · IRI ENSO forecasts'},
+    {p:'data/bedrock/crypto_sentiment.json', d:'Bedrock manual · crypto sentiment'},
   ]},
 ];
 async function renderPipeline(){

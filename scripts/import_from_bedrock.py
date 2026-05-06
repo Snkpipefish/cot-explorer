@@ -59,6 +59,16 @@ def fetch_count(con: sqlite3.Connection, table: str) -> int:
 # Empty tables yield {rows: 0, data: null} so the UI can show "awaiting".
 # ─────────────────────────────────────────────────────────────────────
 
+# EIA series ID → human label (extend as bedrock adds more series)
+EIA_SERIES_LABELS = {
+    "NW2_EPG0_SWO_R48_BCF": ("Natural Gas Storage (L48)", "BCF"),
+    "WCESTUS1":             ("Crude Stocks (US)",         "Mb"),
+    "WGTSTUS1":             ("Gasoline Stocks (US)",      "Mb"),
+    "WDISTUS1":             ("Distillate Stocks (US)",    "Mb"),
+    "WCRSTUS1":             ("Crude excl. SPR (US)",      "Mb"),
+}
+
+
 def export_eia_storage(con: sqlite3.Connection) -> dict:
     """EIA petroleum + natural-gas storage. 5018 rows in current bedrock.
     Aggregates latest value per series_id and a short trend tail."""
@@ -76,15 +86,33 @@ def export_eia_storage(con: sqlite3.Connection) -> dict:
     latest = {}
     for sid, rs in by_series.items():
         head = rs[0]
-        tail = [{"date": x["date"], "value": x["value"]} for x in rs[:26]]  # 26w
+        tail = [{"date": x["date"], "value": x["value"]} for x in rs[:52]]  # 52w
         prev = rs[1] if len(rs) > 1 else None
-        chg = (head["value"] - prev["value"]) if prev and prev["value"] is not None else None
+        chg_1w = (head["value"] - prev["value"]) if prev and prev["value"] is not None else None
+        # YoY: same week one year back (~52 entries down)
+        yoy_idx = min(52, len(rs) - 1)
+        prev_yr = rs[yoy_idx] if yoy_idx > 0 else None
+        chg_yoy = (head["value"] - prev_yr["value"]) if prev_yr and prev_yr["value"] is not None else None
+        # Five-year average for the same week-of-year, if we have >5 years of data
+        five_yr_avg = None
+        if len(rs) >= 260:
+            same_week_vals = [
+                rs[k]["value"] for k in (52, 104, 156, 208, 260)
+                if k < len(rs) and rs[k]["value"] is not None
+            ]
+            if same_week_vals:
+                five_yr_avg = sum(same_week_vals) / len(same_week_vals)
+        label, unit_alt = EIA_SERIES_LABELS.get(sid, (sid.replace("_", " "), None))
         latest[sid] = {
-            "date":    head["date"],
-            "value":   head["value"],
-            "units":   head["units"],
-            "chg_1w": chg,
-            "history": list(reversed(tail)),
+            "label":    label,
+            "date":     head["date"],
+            "value":    head["value"],
+            "units":    unit_alt or head["units"],
+            "chg_1w":   chg_1w,
+            "chg_yoy":  chg_yoy,
+            "five_yr_avg": five_yr_avg,
+            "vs_5y_avg": (head["value"] - five_yr_avg) if five_yr_avg else None,
+            "history":  list(reversed(tail)),
         }
     return {
         "generated": now_iso(),
@@ -93,6 +121,45 @@ def export_eia_storage(con: sqlite3.Connection) -> dict:
         "series_count": len(by_series),
         "data":      latest if latest else None,
     }
+
+
+def export_manual_csv(filename: str, source_label: str) -> dict:
+    """Read a manual CSV from ~/bedrock/data/manual and return its rows."""
+    import csv
+    src = Path(os.path.expanduser(f"~/bedrock/data/manual/{filename}"))
+    if not src.exists():
+        return {
+            "generated": now_iso(),
+            "source":    source_label,
+            "rows":      0,
+            "data":      None,
+            "note":      f"{filename} not present in ~/bedrock/data/manual/",
+        }
+    try:
+        with open(src, newline="", encoding="utf-8") as fh:
+            rows = list(csv.DictReader(fh))
+    except Exception as exc:
+        return {
+            "generated": now_iso(),
+            "source":    source_label,
+            "rows":      0,
+            "data":      None,
+            "note":      f"Read error: {exc}",
+        }
+    return {
+        "generated": now_iso(),
+        "source":    source_label,
+        "rows":      len(rows),
+        "data":      rows if rows else None,
+    }
+
+
+def export_news_intel():    return export_manual_csv("news_intel.csv",    "Bedrock manual · curated news intel events")
+def export_disease_alerts(): return export_manual_csv("disease_alerts.csv","Bedrock manual · crop disease alerts")
+def export_export_events():  return export_manual_csv("export_events.csv", "Bedrock manual · ad-hoc export bans/incidents")
+def export_ism_pmi():         return export_manual_csv("ism_pmi.csv",      "ISM · manufacturing PMI (manual)")
+def export_iri_enso():        return export_manual_csv("iri_enso_forecast.csv","IRI Columbia · ENSO probability forecast")
+def export_crypto_sent():     return export_manual_csv("crypto_sentiment.csv","Crypto sentiment (manual aggregate)")
 
 
 def export_seismic(con: sqlite3.Connection) -> dict:
@@ -349,23 +416,22 @@ def export_analogs(con: sqlite3.Connection) -> dict:
     }
 
 
-def export_signals_passthrough() -> dict:
-    """Bedrock writes its own data/signals.json — copy it through if present."""
-    src = Path(os.path.expanduser("~/bedrock/data/signals.json"))
+def _passthrough(name: str, src_rel: str) -> dict:
+    src = Path(os.path.expanduser(f"~/bedrock/data/{src_rel}"))
     if not src.exists():
         return {
             "generated": now_iso(),
-            "source":    "Bedrock · signals.json",
+            "source":    f"Bedrock · {src_rel}",
             "rows":      0,
             "data":      None,
-            "note":      "Bedrock signals.json not yet present — system under development.",
+            "note":      f"Bedrock {src_rel} not yet present — system under development.",
         }
     try:
         payload = json.loads(src.read_text())
     except Exception as exc:
         return {
             "generated": now_iso(),
-            "source":    "Bedrock · signals.json",
+            "source":    f"Bedrock · {src_rel}",
             "rows":      0,
             "data":      None,
             "note":      f"Read error: {exc}",
@@ -378,14 +444,25 @@ def export_signals_passthrough() -> dict:
         sigs = []
     return {
         "generated": now_iso(),
-        "source":    "Bedrock · signals.json (mirrored)",
+        "source":    f"Bedrock · {src_rel} (mirrored)",
         "rows":      len(sigs) if isinstance(sigs, list) else 0,
         "raw":       payload,
     }
 
 
+def export_signals_passthrough() -> dict:
+    """Bedrock writes its own data/signals.json — financial scoring."""
+    return _passthrough("signals.json", "signals.json")
+
+
+def export_agri_signals_passthrough() -> dict:
+    """Bedrock writes its own data/agri_signals.json — agri scoring."""
+    return _passthrough("agri_signals.json", "agri_signals.json")
+
+
 # ─────────────────────────────────────────────────────────────────────
 EXPORTERS = {
+    # SQLite-backed
     "eia_storage.json":     export_eia_storage,
     "seismic.json":         export_seismic,
     "cot_euronext.json":    export_cot_euronext,
@@ -400,6 +477,16 @@ EXPORTERS = {
     "wasde.json":           export_wasde,
     "bdi.json":             export_bdi,
     "analogs.json":         export_analogs,
+}
+
+# Manual-CSV exporters take no DB connection
+MANUAL_EXPORTERS = {
+    "news_intel.json":      export_news_intel,
+    "disease_alerts.json":  export_disease_alerts,
+    "export_events.json":   export_export_events,
+    "ism_pmi.json":         export_ism_pmi,
+    "iri_enso.json":        export_iri_enso,
+    "crypto_sentiment.json": export_crypto_sent,
 }
 
 
@@ -417,22 +504,35 @@ def main() -> int:
             summary.append(f"  {fname:24s}  rows={payload.get('rows', 0)}")
         except Exception as exc:
             summary.append(f"  {fname:24s}  ERR {exc}")
-    # Bedrock signals.json passthrough (no DB read)
-    try:
-        write_atomic(OUT_DIR / "signals.json", export_signals_passthrough())
-        summary.append(f"  {'signals.json':24s}  passthrough")
-    except Exception as exc:
-        summary.append(f"  signals.json  ERR {exc}")
+    # Manual-CSV exporters (no DB connection needed)
+    for fname, fn in MANUAL_EXPORTERS.items():
+        try:
+            payload = fn()
+            write_atomic(OUT_DIR / fname, payload)
+            summary.append(f"  {fname:24s}  rows={payload.get('rows', 0)}")
+        except Exception as exc:
+            summary.append(f"  {fname:24s}  ERR {exc}")
+    # Bedrock signals passthrough (financial + agri — both are JSON arrays in bedrock)
+    for fname, fn in [
+        ("signals.json",      export_signals_passthrough),
+        ("agri_signals.json", export_agri_signals_passthrough),
+    ]:
+        try:
+            write_atomic(OUT_DIR / fname, fn())
+            summary.append(f"  {fname:24s}  passthrough")
+        except Exception as exc:
+            summary.append(f"  {fname}  ERR {exc}")
     # Index file: tells the UI which exports exist + their freshness
+    all_files = list(EXPORTERS.keys()) + list(MANUAL_EXPORTERS.keys()) + ["signals.json", "agri_signals.json"]
     write_atomic(
         OUT_DIR / "index.json",
         {
             "generated": now_iso(),
-            "exports":   list(EXPORTERS.keys()) + ["signals.json"],
+            "exports":   all_files,
             "bedrock_db": str(BEDROCK_DB),
         },
     )
-    print(f"[bedrock-import] wrote {len(EXPORTERS) + 1} files to {OUT_DIR}")
+    print(f"[bedrock-import] wrote {len(all_files)} files to {OUT_DIR}")
     for line in summary:
         print(line)
     con.close()
