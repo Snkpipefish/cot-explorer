@@ -888,6 +888,7 @@ body{
       <div id="plate-seismic"></div>
     </div>
     <div id="plate-events"></div>
+    <div id="plate-bedrock-coverage"></div>
     <div id="plate-calendar"></div>
     <div id="plate-geo"></div>
   </section>
@@ -1537,6 +1538,129 @@ function renderEvents(){
   $('#plate-events').innerHTML = plate('II·M','Bedrock · Sentiment & Events','via bedrock manual CSVs', total+' events', body);
 }
 
+/* — BEDROCK COVERAGE — every fetcher that bedrock has, populated and awaiting — */
+const BEDROCK_COVERAGE = [
+  // populated → use D.bdr* in render to read rows
+  {key:'eia_storage',     label:'EIA Storage',          src:'eia_inventory',     family:'energy',  uses:'eia_distillate_change · eia_propane_change · eia_refinery_utilization · refinery_z drivers', file:'eia_storage.json'},
+  {key:'seismic',         label:'USGS Seismic',         src:'seismic_events',    family:'geo',     uses:'seismic_m6_global_24h · seismic_chile_peru_copper drivers', file:'seismic.json'},
+  {key:'cot_euronext',    label:'Euronext COT',         src:'cot_euronext',      family:'positioning', uses:'cot_euronext_mm_pct driver', file:'cot_euronext.json'},
+  {key:'comex',           label:'COMEX Vault',          src:'comex_inventory',   family:'metals',  uses:'comex_stress driver', file:'comex.json'},
+  {key:'conab',           label:'Conab Brazil Crops',   src:'conab_estimates',   family:'agri',    uses:'conab_yoy driver', file:'conab.json'},
+  {key:'unica',           label:'UNICA Sugar',          src:'unica_reports',     family:'agri',    uses:'unica_change driver', file:'unica.json'},
+  {key:'news_intel',      label:'News Intel',           src:'manual CSV',        family:'risk',    uses:'news_intel_severity_veto driver', file:'news_intel.json'},
+  {key:'disease_alerts',  label:'Crop Disease Alerts',  src:'manual CSV',        family:'agri',    uses:'disease_pressure driver', file:'disease_alerts.json'},
+  {key:'export_events',   label:'Export Events',        src:'manual CSV',        family:'agri',    uses:'export_event_active driver', file:'export_events.json'},
+  {key:'ism_pmi',         label:'ISM PMI',              src:'manual CSV',        family:'macro',   uses:'ism_pmi_level driver', file:'ism_pmi.json'},
+  {key:'iri_enso',        label:'IRI ENSO Forecast',    src:'manual CSV',        family:'agri',    uses:'noaa_enso_forecast_3mo driver', file:'iri_enso.json'},
+  {key:'crypto_sentiment',label:'Crypto Sentiment',     src:'manual CSV',        family:'crypto',  uses:'crypto fear/greed input', file:'crypto_sentiment.json'},
+  // awaiting / roadmap
+  {key:'cot_legacy',      label:'CFTC COT Legacy',      src:'cot_legacy',        family:'positioning', uses:'cot_z_score · cot_oi_change · cot_concentration_top4 · 7 positioning drivers', file:'cot_legacy.json', awaiting:true},
+  {key:'cot_disagg',      label:'CFTC COT Disaggregated', src:'cot_disaggregated', family:'positioning', uses:'positioning_mm_pct · positioning_lev_funds_pct · cot_swap_dealer_skew', file:'cot_disagg.json', awaiting:true},
+  {key:'fundamentals',    label:'FRED Macro',           src:'fundamentals',      family:'macro',   uses:'real_yield · dxy_chg5d · t10y3m · credit_spread · 10+ macro drivers', file:'fundamentals.json', awaiting:true},
+  {key:'weather',         label:'NOAA Daily Weather',   src:'weather',           family:'agri',    uses:'weather_stress driver (per region)', file:'weather.json', awaiting:true},
+  {key:'crop_progress',   label:'NASS Crop Progress',   src:'crop_progress',     family:'agri',    uses:'crop_progress_stage · nass_yield_corn_yoy · nass_yield_soy_yoy', file:'crop_progress.json', awaiting:true},
+  {key:'wasde',           label:'USDA WASDE',           src:'wasde',             family:'agri',    uses:'wasde_s2u_change driver', file:'wasde.json', awaiting:true},
+  {key:'bdi',             label:'Baltic Dry Index',     src:'bdi',               family:'risk',    uses:'shipping_pressure driver', file:'bdi.json', awaiting:true},
+  {key:'analogs',         label:'K-NN Analog Outcomes', src:'analog_outcomes',   family:'analog',  uses:'analog_hit_rate · analog_avg_return drivers', file:'analogs.json', awaiting:true},
+  {key:'anp_ethanol',     label:'ANP Brazil Ethanol',   src:'anp_ethanol (planned)', family:'agri', uses:'ethanol_parity_brl driver — Sugar cross family', file:'anp_ethanol.json', awaiting:true, future:true},
+  {key:'usda_psd_india',  label:'USDA PSD India Sugar', src:'usda_psd (planned)', family:'agri', uses:'usda_psd_yoy driver — Sugar unica family', file:'usda_psd_india.json', awaiting:true, future:true},
+  {key:'comtrade_india',  label:'UN Comtrade India Sugar', src:'comtrade (planned)', family:'agri', uses:'comtrade_export_yoy driver — Sugar unica family', file:'comtrade_india.json', awaiting:true, future:true},
+  {key:'isma_india',      label:'ISMA India Sugar',     src:'isma (planned)', family:'agri', uses:'India sugar mill stats — Sugar', file:'isma_india.json', awaiting:true, future:true},
+  {key:'fas_esr',         label:'FAS Export Sales',     src:'fas (planned)', family:'agri', uses:'fas_exports driver', file:'fas_esr.json', awaiting:true, future:true},
+  {key:'cecafe',          label:'CECAFE Brazil Coffee Exports', src:'cecafe (planned)', family:'agri', uses:'cecafe_export_change driver — Coffee', file:'cecafe.json', awaiting:true, future:true},
+  {key:'usdm_drought',    label:'USDM Drought Monitor', src:'usdm (planned)', family:'agri', uses:'drought_monitor driver', file:'usdm_drought.json', awaiting:true, future:true},
+  {key:'agsi_alsi',       label:'EU Gas/Oil Storage (AGSI/ALSI)', src:'agsi/alsi (planned)', family:'energy', uses:'agsi_storage_pct · alsi_eu_pct + 4 EU storage drivers', file:'agsi.json', awaiting:true, future:true},
+  {key:'iip',             label:'Industrial Production',src:'iip (planned)', family:'macro', uses:'industrial_production_yoy · iip_supply_unavailability', file:'iip.json', awaiting:true, future:true},
+  {key:'treasury_auction',label:'Treasury Auctions',    src:'treasury (planned)', family:'macro', uses:'treasury_auction_demand driver', file:'treasury_auction.json', awaiting:true, future:true},
+];
+
+// driver-by-family inventory (from bedrock src/bedrock/engine/drivers/)
+const BEDROCK_DRIVER_COUNT = {
+  trend:        2,
+  positioning:  7,
+  macro:       60,   // core 15 + bunke3-8 contributions
+  risk:         3,
+  structure:    1,
+  event_surprise: 4,
+  // agri-side
+  outlook:      2,
+  yield:       16,
+  agri_analog:  2,
+  seasonal:     1,
+};
+const BEDROCK_DRIVER_TOTAL = Object.values(BEDROCK_DRIVER_COUNT).reduce((a,b)=>a+b,0);
+
+function renderBedrockCoverage(){
+  // Static row-counts for sources not loaded into D (exposed via the Pipeline-fetched JSON)
+  // These came directly from the import script summary; safe to cache here.
+  const dataMap = {
+    eia_storage:     D.bdrEia,
+    seismic:         D.bdrSeismic,
+    cot_euronext:    {rows: 174},
+    comex:           {rows: 3},
+    conab:           {rows: 7},
+    unica:           {rows: 1},
+    news_intel:      D.bdrNews,
+    disease_alerts:  D.bdrDisease,
+    export_events:   D.bdrExport,
+    ism_pmi:         D.bdrPmi,
+    iri_enso:        D.bdrIriEnso,
+    crypto_sentiment: D.bdrCryptoSent,
+  };
+  const live = BEDROCK_COVERAGE.filter(c=>!c.awaiting);
+  const awaiting = BEDROCK_COVERAGE.filter(c=>c.awaiting && !c.future);
+  const future = BEDROCK_COVERAGE.filter(c=>c.future);
+  const liveRows = live.map(c=>{
+    const d = dataMap[c.key];
+    const rows = d?.rows ?? '?';
+    const cls = (d && rows>0) ? 'fresh' : 'aging';
+    return `<tr>
+      <td class="path">${escapeHTML(c.label)}</td>
+      <td class="desc">${escapeHTML(c.uses)}</td>
+      <td class="age">${rows} rows</td>
+      <td class="status"><span class="pill ${cls}">${(d && rows>0)?'LIVE':'EMPTY'}</span></td>
+    </tr>`;
+  }).join('');
+  const awaitingRows = awaiting.map(c=>`<tr>
+      <td class="path">${escapeHTML(c.label)}</td>
+      <td class="desc">${escapeHTML(c.uses)}</td>
+      <td class="age">—</td>
+      <td class="status"><span class="pill aging">AWAITING</span></td>
+    </tr>`).join('');
+  const futureRows = future.map(c=>`<tr>
+      <td class="path">${escapeHTML(c.label)}</td>
+      <td class="desc">${escapeHTML(c.uses)}</td>
+      <td class="age">—</td>
+      <td class="status"><span class="pill miss">PLANNED</span></td>
+    </tr>`).join('');
+  const drvHTML = Object.entries(BEDROCK_DRIVER_COUNT).map(([k,v])=>
+    `<div class="ind"><span class="ind-name">${escapeHTML(k)}</span><span class="ind-val">${v} drivers</span><span class="ind-trend flat">family</span></div>`
+  ).join('');
+  const ros = [
+    readout('Live Sources',     live.filter(c=>{const d=dataMap[c.key];return d && (d.rows||0)>0;}).length+' / '+live.length, 'pos', 'have data'),
+    readout('Awaiting',          awaiting.length, 'warn', 'fetcher exists, empty'),
+    readout('Planned',           future.length, '', 'roadmap items'),
+    readout('Total Drivers',     BEDROCK_DRIVER_TOTAL, '', 'across '+Object.keys(BEDROCK_DRIVER_COUNT).length+' families'),
+  ];
+  const body = readouts(ros)
+    + descr(`Bedrock's <strong>full data + driver inventory</strong>. The dashboard will surface each new
+       source automatically as bedrock's fetchers begin populating their tables. Drivers fire only when
+       their input data is fresh; until then their rows in the <em>Bedrock</em> tab show 0.0 contribution.`)
+    + `<div style="margin-top:14px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Live data sources</div>
+        <table class="pipe-table"><thead><tr><th>Source</th><th>Drivers powered</th><th>Rows</th><th>Status</th></tr></thead><tbody>${liveRows}</tbody></table>
+       </div>`
+    + (awaitingRows?`<div style="margin-top:14px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Awaiting bedrock fetcher</div>
+        <table class="pipe-table"><thead><tr><th>Source</th><th>Drivers it will power</th><th>Rows</th><th>Status</th></tr></thead><tbody>${awaitingRows}</tbody></table>
+       </div>`:'')
+    + (futureRows?`<div style="margin-top:14px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Planned (bedrock roadmap)</div>
+        <table class="pipe-table"><thead><tr><th>Source</th><th>Drivers it will power</th><th>Rows</th><th>Status</th></tr></thead><tbody>${futureRows}</tbody></table>
+       </div>`:'')
+    + `<div style="margin-top:14px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Driver families (${BEDROCK_DRIVER_TOTAL} total)</div>
+        <div class="ind-list">${drvHTML}</div>
+       </div>`;
+  $('#plate-bedrock-coverage').innerHTML = plate('II·N','Bedrock · Coverage Map','every fetcher, populated and awaiting','bedrock src + roadmap', body);
+}
+
 function renderObservatory(){
   renderMacro();
   renderRates();
@@ -1549,6 +1673,7 @@ function renderObservatory(){
   renderEia();
   renderSeismic();
   renderEvents();
+  renderBedrockCoverage();
   renderCalendar();
   renderGeo();
 }
