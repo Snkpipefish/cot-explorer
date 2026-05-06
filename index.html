@@ -2451,12 +2451,28 @@ function openSetup(key){
   if(!s) return;
   const isAgri = s.source==='agri_fundamental';
   const groups = s.driver_groups||{};
+  // Agri scoring only populates drivers for fundamental + positioning.
+  // Other families get scored but no driver-text (trend), or aren't scored at all
+  // (macro/risk/structure) because the 6-family schema is inherited from tech.
+  const AGRI_NOT_SCORED = new Set(['macro','risk','structure']);
   const grpHTML = ['trend','positioning','macro','fundamental','risk','structure'].map(g=>{
     const x = groups[g]||{};
-    const drv = (x.drivers||[]).join(' · ') || '<span class="grp-empty">no signal</span>';
+    const score = x.score||0;
+    const weight = x.weight||0;
+    const drvList = x.drivers||[];
+    let drvHTML;
+    if(drvList.length){
+      drvHTML = drvList.join(' · ');
+    } else if(isAgri && AGRI_NOT_SCORED.has(g)){
+      drvHTML = '<span class="grp-empty">not scored for agri — only fundamental &amp; positioning are agri-relevant families</span>';
+    } else if(score>0){
+      drvHTML = `<span class="grp-empty">score ${score.toFixed(2)} recorded but no driver-text logged by the scoring engine</span>`;
+    } else {
+      drvHTML = '<span class="grp-empty">no signal</span>';
+    }
     return `<div class="grp">
-      <div class="grp-name">${g}<span>${(x.score||0).toFixed(2)} / ${(x.weight||0).toFixed(2)}</span></div>
-      <div class="grp-drivers">${drv}</div>
+      <div class="grp-name">${g}<span>${score.toFixed(2)} / ${weight.toFixed(2)}</span></div>
+      <div class="grp-drivers">${drvHTML}</div>
     </div>`;
   }).join('');
   // agri-specific context — yield, weather, growth stage, ENSO outlook, COT bias
