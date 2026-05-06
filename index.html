@@ -876,19 +876,11 @@ body{
       <div id="plate-metals"></div>
     </div>
     <div class="col-2">
-      <div id="plate-agri-crops"></div>
-      <div id="plate-agri-brazil"></div>
-    </div>
-    <div class="col-2">
+      <div id="plate-climate"></div>
       <div id="plate-shipping"></div>
-      <div id="plate-crypto"></div>
     </div>
-    <div class="col-2">
-      <div id="plate-eia"></div>
-      <div id="plate-seismic"></div>
-    </div>
-    <div id="plate-events"></div>
-    <div id="plate-bedrock-coverage"></div>
+    <div id="plate-agri-supply"></div>
+    <div id="plate-crypto"></div>
     <div id="plate-calendar"></div>
     <div id="plate-geo"></div>
   </section>
@@ -966,6 +958,7 @@ body{
 
   <!-- ═══════════════════════ VI · PIPELINE ═══════════════════════ -->
   <section class="panel" id="panel-pipeline">
+    <div id="pipeSummary"></div>
     <div id="pipeContainer"><div class="skel">Reading the wires…</div></div>
   </section>
 
@@ -1191,14 +1184,20 @@ function readout(lbl,val,cls,sub){
 function readouts(arr){return `<div class="readouts">${arr.join('')}</div>`;}
 function descr(t){return `<div class="descr">${t}</div>`;}
 
-/* — MACRO / USD FUNDAMENTAL (FRED) — */
+/* — MACRO PULSE — USD bias, category trends, ISM PMI overlay — */
 function renderMacro(){
   const f=D.fund;
-  if(!f){ $('#plate-macro').innerHTML=plate('I·A','Macro · USD Fundamental','FRED · economic indicators','no data','<div class="skel">No fundamentals data.</div>'); return; }
+  if(!f){ $('#plate-macro').innerHTML=plate('I·A','Macro Pulse','no data','','<div class="skel">No fundamentals data.</div>'); return; }
   const s=f.usd_fundamental||{};
   const cs=f.category_scores||{};
   const bias=(s.bias||'').toUpperCase();
   const biasCls=s.bias==='bullish'?'pos':s.bias==='bearish'?'neg':'info';
+  // ISM PMI overlay (manual CSV)
+  const pmiRows = D.bdrPmi?.data || [];
+  const pmiLast = pmiRows[pmiRows.length-1] || {};
+  const pmiPrev = pmiRows[pmiRows.length-2] || {};
+  const pmiVal = parseFloat(pmiLast.headline_pmi);
+  const pmiPrevVal = parseFloat(pmiPrev.headline_pmi);
   const indHTML = Object.entries(f.indicators||{}).map(([k,v])=>{
     const tCls=v.trend==='opp'?'up':v.trend==='ned'?'dn':'flat';
     const tArr=v.trend==='opp'?'▲':v.trend==='ned'?'▼':'·';
@@ -1212,18 +1211,22 @@ function renderMacro(){
       readout('Growth',   (cs.econ_growth?.bias||'—').toUpperCase(), cs.econ_growth?.bias==='bullish'?'pos':cs.econ_growth?.bias==='bearish'?'neg':'info', `avg ${(cs.econ_growth?.avg??0).toFixed(2)}`),
       readout('Inflation',(cs.inflation?.bias||'—').toUpperCase(), cs.inflation?.bias==='bullish'?'pos':cs.inflation?.bias==='bearish'?'neg':'info', `avg ${(cs.inflation?.avg??0).toFixed(2)}`),
       readout('Jobs',     (cs.jobs?.bias||'—').toUpperCase(), cs.jobs?.bias==='bullish'?'pos':cs.jobs?.bias==='bearish'?'neg':'info', `avg ${(cs.jobs?.avg??0).toFixed(2)}`),
+      readout('ISM PMI', isFinite(pmiVal)?pmiVal.toFixed(1):'—', pmiVal>=50?'pos':pmiVal<50?'neg':'info', isFinite(pmiPrevVal)?`prev ${pmiPrevVal.toFixed(1)}`:''),
     ])
-    + descr(`A composite read on the U.S. macro tape, scored from <strong>${(s.n||0)} FRED indicators</strong>
-       across growth, inflation, and labor. The bias is computed from latest-vs-previous prints; a bullish read
-       favours dollar strength, which mechanically pressures non-USD COT pairings.`)
+    + descr(`<strong>The dollar's macro tape.</strong> A composite of growth, inflation, jobs, and the ISM PMI
+       — the leading indicator for U.S. industrial activity. <strong>Why it matters for COT:</strong> a bullish dollar
+       headwinds gold, silver, oil and every non-USD currency pair; a bearish reading clears the runway for them.
+       <strong>How to read it:</strong> watch the four bias verdicts together — when three of four flip the same way,
+       the dollar trade has consensus and the COT shift in DXY usually follows within two prints.`)
     + `<div class="ind-list">${indHTML}</div>`
     + renderAffects('Macro', AFFECTS.usd_fundamental);
-  $('#plate-macro').innerHTML = plate('I·A','Macro · USD Fundamental','FRED · 14 indicators · semi-monthly cadence', f.updated?ageStr(ageHours(f.updated))+' ago':'', body);
+  $('#plate-macro').innerHTML = plate('I·A','Macro Pulse','U.S. macro composite · daily',
+    f.updated?ageStr(ageHours(f.updated))+' ago':'', body);
 }
 
 /* — RATES — */
 function renderRates(){
-  const f=D.fund; if(!f||!f.market_rates){ $('#plate-rates').innerHTML=plate('I·B','Rates · US Treasuries','FRED · DGS series','no data','<div class="skel">No rates data.</div>'); return; }
+  const f=D.fund; if(!f||!f.market_rates){ $('#plate-rates').innerHTML=plate('I·B','Rates','no data','','<div class="skel">No rates data.</div>'); return; }
   const r=f.market_rates;
   const ts=r.term_spread;
   const tsCls=ts==null?'':ts<0?'neg':ts<0.5?'warn':'pos';
@@ -1231,45 +1234,66 @@ function renderRates(){
     readout('10Y Yield', r.dgs10?.value!=null?r.dgs10.value.toFixed(2)+'%':'—', '', r.dgs10?.chg_5d!=null?`5d ${pct(r.dgs10.chg_5d,2)}`:''),
     readout('2Y Yield',  r.dgs2?.value!=null?r.dgs2.value.toFixed(2)+'%':'—', '', r.dgs2?.chg_5d!=null?`5d ${pct(r.dgs2.chg_5d,2)}`:''),
     readout('Real 10Y',  r.dfii10?.value!=null?r.dfii10.value.toFixed(2)+'%':'—', '', r.dfii10?.chg_5d!=null?`5d ${pct(r.dfii10.chg_5d,2)}`:''),
-    readout('Term Spread', ts!=null?(ts>0?'+':'')+ts.toFixed(2)+'pp':'—', tsCls, ts==null?'':ts<0?'inverted':ts<0.5?'flat':'positive'),
+    readout('Curve Slope', ts!=null?(ts>0?'+':'')+ts.toFixed(2)+'pp':'—', tsCls, ts==null?'':ts<0?'inverted':ts<0.5?'flat':'positive'),
   ];
   const body = readouts(ros)
-    + descr(`The slope of the U.S. yield curve and the level of <em>real</em> rates set the cost of carry for
-       speculative leverage. An inverted curve historically marks the late stage of a Fed cycle; widening
-       suggests easing or growth. Real yields are the primary headwind for non-yielding stores of value.`)
+    + descr(`<strong>The cost of capital across U.S. tenors.</strong> Real yields (10Y minus expected inflation)
+       set the carry hurdle for any non-yielding asset; the curve slope (10Y minus 2Y) reflects what the bond
+       market expects from the Fed. <strong>Why it matters:</strong> rising real yields are the single biggest
+       headwind for gold, silver and TIPS-linked positioning. <strong>How to read it:</strong> a steepening curve
+       with falling real yields is the classic backdrop for risk-on, equity-positive COT shifts.`)
     + renderAffects('Rates', AFFECTS.rates_term);
-  $('#plate-rates').innerHTML = plate('I·B','Rates · U.S. Treasuries','FRED · daily', r.dgs10?.date?'as of '+r.dgs10.date:'', body);
+  $('#plate-rates').innerHTML = plate('I·B','Rates','U.S. Treasuries · daily', r.dgs10?.date?'as of '+r.dgs10.date:'', body);
 }
 
-/* — ENERGY — */
+/* — ENERGY — combines CFTC + ICE COT + EIA storage + geo overlay — */
 function renderEnergy(){
-  const o=D.oilgas; const ice=D.ice;
-  if(!o){ $('#plate-energy').innerHTML=plate('I·C','Energy · Oil & Gas','no data','','<div class="skel">No oilgas data.</div>'); return; }
-  const ds=o.data_status||{};
+  const o=D.oilgas; const ice=D.ice; const eia=D.bdrEia;
+  if(!o){ $('#plate-energy').innerHTML=plate('I·C','Energy','no data','','<div class="skel">No oilgas data.</div>'); return; }
   const sigCls = o.overall_signal==='BULLISH'?'pos':o.overall_signal==='BEARISH'?'neg':'info';
   const riskCls= o.overall_risk==='HIGH'?'neg':o.overall_risk==='ELEVATED'?'warn':'info';
   const iceBrent = ice?.markets?.find(m=>/brent/i.test(m.market));
   const iceGasoil = ice?.markets?.find(m=>/gasoil/i.test(m.market));
+  // EIA storage — try to surface crude, gasoline, and natural-gas readings as bar-style
+  const eiaData = eia?.data || {};
+  const findSeries = (regex)=>{
+    const k = Object.keys(eiaData).find(x=>regex.test(x));
+    return k ? eiaData[k] : null;
+  };
+  const eiaCrude   = findSeries(/^WCESTUS|^WCRSTUS|crude/i);
+  const eiaGas     = findSeries(/^WGTSTUS|gasoline/i);
+  const eiaNatgas  = findSeries(/^NW2_EPG0|natural|gas storage/i);
+  const eiaCell = (s, label) => s
+    ? readout(label, fmt(s.value), s.chg_1w==null?'':s.chg_1w<0?'pos':'neg',
+       `${s.units} · Δ1w ${s.chg_1w!=null?(s.chg_1w>0?'+':'')+fmt(s.chg_1w):'—'}`)
+    : readout(label, '—', '', '');
   const ros = [
-    readout('Signal', o.overall_signal||'—', sigCls),
-    readout('Risk', o.overall_risk||'—', riskCls),
+    readout('Bias', o.overall_signal||'—', sigCls, ''),
+    readout('Geo Risk', o.overall_risk||'—', riskCls, o.oil_warning_reason?escapeHTML(o.oil_warning_reason).slice(0,30):''),
     readout('Brent–WTI', o.brent_wti_spread!=null?o.brent_wti_spread.toFixed(2):'—', '', 'spread, USD'),
-    iceBrent ? readout('ICE Brent MM-net', fmt(iceBrent.spekulanter?.net), sgn(iceBrent.change_spec_net), 'Δ '+fmt(iceBrent.change_spec_net))
+    iceBrent ? readout('ICE Brent net', fmt(iceBrent.spekulanter?.net), sgn(iceBrent.change_spec_net), 'Δ '+fmt(iceBrent.change_spec_net))
              : readout('ICE Brent', '—', '',''),
-    iceGasoil? readout('ICE Gasoil MM-net', fmt(iceGasoil.spekulanter?.net), sgn(iceGasoil.change_spec_net), 'Δ '+fmt(iceGasoil.change_spec_net))
+    eiaCell(eiaCrude,  'Crude Stocks'),
+    eiaCell(eiaGas,    'Gasoline Stocks'),
+    eiaCell(eiaNatgas, 'NatGas Storage'),
+    iceGasoil? readout('ICE Gasoil net', fmt(iceGasoil.spekulanter?.net), sgn(iceGasoil.change_spec_net), 'Δ '+fmt(iceGasoil.change_spec_net))
              : readout('ICE Gasoil', '—', '',''),
   ];
   const body = readouts(ros)
-    + descr(`A composite of CFTC Crude/WTI/NatGas COT, ICE Brent &amp; Gasoil positioning, and a
-       <strong>geopolitical-news</strong> overlay. <em>${o.overall_signal||'—'}</em> reflects the net positioning
-       across hedge funds. ${o.oil_warning_reason?('Oil warning: <strong>'+o.oil_warning_reason+'</strong>.'):''}`)
+    + descr(`<strong>The full energy stack: positioning, inventory, geopolitics.</strong> Speculative net longs
+       in WTI / Brent / Natural Gas, paired with weekly EIA storage prints and the ICE European COT for
+       Brent and Gasoil. <strong>Why it matters:</strong> energy is where positioning and physical-supply data
+       interact most directly — a stretched COT long with falling crude inventory often holds; with rising
+       inventory it cracks. <strong>How to read it:</strong> watch storage versus the seasonal norm — a draw
+       deeper than expected is the cleanest bullish surprise the market gives.`)
     + renderAffects('Energy', AFFECTS.oilgas);
-  $('#plate-energy').innerHTML = plate('I·C','Energy · Oil & Gas','CFTC · ICE · news geo-overlay', o.generated?ageStr(ageHours(o.generated))+' ago':'', body);
+  $('#plate-energy').innerHTML = plate('I·C','Energy','crude · gasoline · natgas — daily',
+    o.generated?ageStr(ageHours(o.generated))+' ago':'', body);
 }
 
-/* — METALS / COMEX — */
+/* — METALS — COMEX vault inventory + stress — */
 function renderMetals(){
-  const c=D.comex; if(!c){ $('#plate-metals').innerHTML=plate('I·D','Metals · COMEX Vault','no data','','<div class="skel">No COMEX data.</div>'); return; }
+  const c=D.comex; if(!c){ $('#plate-metals').innerHTML=plate('I·D','Metals','no data','','<div class="skel">No COMEX data.</div>'); return; }
   const g=c.gold||{}, s=c.silver||{}, cu=c.copper||{};
   const stress = c.stress_index||{};
   const ros = [
@@ -1280,62 +1304,123 @@ function renderMetals(){
     readout('Gold Stress',   stress.gold!=null?stress.gold.toFixed(0)+'/100':'—', stress.gold>60?'neg':stress.gold>40?'warn':'pos'),
   ];
   const body = readouts(ros)
-    + descr(`<strong>Registered</strong> ounces are bars eligible for delivery; eligible ounces are vaulted but
-       not pledged. A falling registered float against rising open interest is a classic <em>physical-squeeze</em>
-       signal — the COT spec position then needs reading against the size of available metal.`)
+    + descr(`<strong>How much physical metal sits in COMEX vaults backing the futures market.</strong>
+       <em>Registered</em> ounces are bars pledged for delivery; <em>eligible</em> ounces are stored but not
+       committed. <strong>Why it matters:</strong> a falling registered float against rising open interest is
+       the classic precursor to a delivery squeeze — large bull positioning that the COT shows hides much
+       sharper risk-reward when physical metal is scarce. <strong>How to read it:</strong> stress above 60
+       on either gold or silver flags a tight vault; pair it with the percentile reading on the Control Panel.`)
     + renderAffects('Metals', AFFECTS.comex_silver);
-  $('#plate-metals').innerHTML = plate('I·D','Metals · COMEX Vault','metalcharts.org · daily', c.report_date?'as of '+c.report_date:'', body);
+  $('#plate-metals').innerHTML = plate('I·D','Metals','COMEX vault · daily', c.report_date?'as of '+c.report_date:'', body);
 }
 
-/* — AGRI CROPS (ENSO + weather + yield) — */
-function renderAgriCrops(){
-  const a=D.agri; if(!a){ $('#plate-agri-crops').innerHTML=plate('I·E','Agri · Climate & Yield','no data','','<div class="skel">No agri data.</div>'); return; }
+/* — CLIMATE & WEATHER — unified ENSO + IRI forecast + future drought/regional weather — */
+function renderClimate(){
+  const a=D.agri||{};
   const enso=a.enso||{};
-  const fc=(a.enso_forecast?.iri_probabilities||[]).slice(0,3);
-  const fcStr=fc.map(p=>`${p.season}: La ${p.la_nina_pct}% / N ${p.neutral_pct}% / El ${p.el_nino_pct}%`).join(' · ');
+  const fc=(a.enso_forecast?.iri_probabilities||[])||[];
+  // IRI ENSO from bedrock manual CSV (Niño 3.4 SST forecast)
+  const iri = D.bdrIriEnso?.data || [];
+  const iriLatest = iri[iri.length-1] || {};
+  const sst = parseFloat(iriLatest.nino34_mean_c);
+  // Most-confident probability from forecast
+  const fc0 = fc[0] || null;
+  const lean = fc0 ? (fc0.el_nino_pct >= fc0.la_nina_pct ? 'El Niño' : 'La Niña') : null;
+  const leanPct = fc0 ? Math.max(fc0.el_nino_pct||0, fc0.la_nina_pct||0) : null;
   const ros=[
-    readout('ENSO Phase', (enso.phase||'—').toUpperCase(), enso.phase==='Nøytral'?'info':'warn', enso.period?`ONI ${enso.oni_value} · ${enso.period}`:''),
-    readout('Forecast Q+1', fc[0]?(`La ${fc[0].la_nina_pct}/N ${fc[0].neutral_pct}/El ${fc[0].el_nino_pct}`):'—', '', fc[0]?fc[0].season:''),
+    readout('Current ENSO', (enso.phase||'—').toUpperCase(),
+      /niño|niña/i.test(enso.phase||'')?'warn':'info',
+      enso.period?`ONI ${enso.oni_value} · ${enso.period}`:''),
+    readout('Niño 3.4 SST', isFinite(sst)?sst.toFixed(2)+'°C':'—',
+      sst>0.5?'warn':sst<-0.5?'warn':'info',
+      iriLatest.target_period?escapeHTML(iriLatest.target_period):''),
+    readout('3-mo Lean', lean||'—', '', leanPct?leanPct+'% probability':''),
+    readout('Drought Status', '—', '', 'awaiting USDM feed'),
   ];
+  // Forecast trajectory as compact table
+  const fcRows = fc.slice(0,6).map(p=>{
+    const winner = (p.el_nino_pct||0) >= (p.la_nina_pct||0) ? 'el' : 'la';
+    return `<tr>
+      <td class="path">${escapeHTML(p.season)}</td>
+      <td class="age">La ${p.la_nina_pct}%</td>
+      <td class="age">N ${p.neutral_pct}%</td>
+      <td class="age" style="color:${winner==='el'?'var(--sig-warn)':'var(--sig-info)'};">El ${p.el_nino_pct}%</td>
+    </tr>`;
+  }).join('');
   const body = readouts(ros)
-    + descr(`<strong>El Niño / La Niña</strong> drives the dominant rainfall regime across the global crop belt.
-       Forecast probabilities (IRI Columbia + ECMWF SEAS5) are the leading indicator for which crops face
-       <em>weather risk</em> over the next two seasons. Below: forecast trajectory. ${fcStr}`)
-    + renderAffects('Climate', AFFECTS.enso);
-  $('#plate-agri-crops').innerHTML = plate('I·E','Agri · Climate & Yield','NOAA ENSO · IRI · SEAS5', a.generated?ageStr(ageHours(a.generated))+' ago':'', body);
+    + descr(`<strong>The dominant climate pattern over the equatorial Pacific.</strong>
+       <em>El Niño</em> typically brings drought to Brazil and India and floods to Argentina;
+       <em>La Niña</em> reverses it. <strong>Why it matters:</strong> climate state is the
+       single biggest non-COT driver of agricultural supply expectations — soybean, sugar,
+       coffee and cotton COT positioning often leads the price by 4-8 weeks once the forecast
+       tilts past 70% one way. <strong>How to read it:</strong> watch the trajectory below;
+       a sustained move in the same direction across three quarters is the trade-able regime change.`)
+    + (fcRows ? `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Forecast probabilities (IRI · SEAS5)</div>
+        <table class="pipe-table"><thead><tr><th>Season</th><th>La Niña</th><th>Neutral</th><th>El Niño</th></tr></thead><tbody>${fcRows}</tbody></table></div>` : '')
+    + renderAffects('Crop belt', AFFECTS.enso);
+  $('#plate-climate').innerHTML = plate('I·E','Climate & Weather','ENSO · IRI · SEAS5 · daily',
+    a.generated?ageStr(ageHours(a.generated))+' ago':'', body);
 }
 
-/* — AGRI BRAZIL (Conab + UNICA + Euronext) — */
-function renderAgriBrazil(){
+/* — AGRI SUPPLY — unified Conab + UNICA + Euronext + crop progress + disease + export + WASDE — */
+function renderAgriSupply(){
   const c=D.conab||{}, u=D.unica||{}, e=D.euronext||{};
   const crops=c.crops||{};
-  const soja = crops.soja || crops.soybean || {};
-  const milho = crops.milho || crops.corn || {};
-  const cafe = crops.cafe_total || crops.cafe || crops.coffee || {};
-  const cotton = crops.algodao || {};
-  const wheat = crops.trigo || {};
-  const sojaYoY = soja.yoy_change_pct ?? soja.producao_yoy_pct ?? soja.yoy_pct;
-  const milhoYoY = milho.yoy_change_pct ?? milho.producao_yoy_pct ?? milho.yoy_pct;
-  const cafeYoY = cafe.yoy_change_pct ?? cafe.producao_yoy_pct ?? cafe.yoy_pct;
+  const soja  = crops.soja  || {}, milho = crops.milho || {};
+  const cafe  = crops.cafe_total || crops.cafe || {};
+  const cotton= crops.algodao || {}, wheat = crops.trigo || {};
+  const sojaYoY  = soja.yoy_change_pct;
+  const milhoYoY = milho.yoy_change_pct;
+  const cafeYoY  = cafe.yoy_change_pct;
   const cottonYoY = cotton.yoy_change_pct;
+  const wheatYoY = wheat.yoy_change_pct;
+  // Euronext: latest report dates per contract
+  const enrt = e?.markets || {};
+  const enKeys = Object.keys(enrt);
+  // Disease alerts + export events
+  const disease = D.bdrDisease?.data || [];
+  const exports = D.bdrExport?.data || [];
   const ros = [
-    readout('Conab Soy YoY', sojaYoY!=null?pct(sojaYoY):'—', sgn(sojaYoY), c.grains_levantamento?`L${c.grains_levantamento} · ${c.grains_safra}`:''),
-    readout('Conab Corn YoY', milhoYoY!=null?pct(milhoYoY):'—', sgn(milhoYoY), c.grains_safra||''),
-    readout('Conab Coffee YoY', cafeYoY!=null?pct(cafeYoY):'—', sgn(cafeYoY), c.cafe_safra?`safra ${c.cafe_safra}`:''),
-    readout('UNICA Sugar Mix', u.mix_sugar_pct!=null?u.mix_sugar_pct.toFixed(1)+'%':'—', '', u.mix_sugar_pct_prev_year?`vs ${u.mix_sugar_pct_prev_year.toFixed(1)}% prior`:''),
-    readout('UNICA Crush YoY', u.crush_accumulated_yoy_pct!=null?pct(u.crush_accumulated_yoy_pct):'—', sgn(u.crush_accumulated_yoy_pct), u.period||''),
+    readout('Soybean (Brazil)', sojaYoY!=null?pct(sojaYoY):'—', sgn(sojaYoY), c.grains_levantamento?`Conab L${c.grains_levantamento} · ${c.grains_safra}`:''),
+    readout('Corn (Brazil)',    milhoYoY!=null?pct(milhoYoY):'—', sgn(milhoYoY), c.grains_safra||''),
+    readout('Coffee (Brazil)',  cafeYoY!=null?pct(cafeYoY):'—', sgn(cafeYoY), c.cafe_safra?`safra ${c.cafe_safra}`:''),
+    readout('Cotton (Brazil)',  cottonYoY!=null?pct(cottonYoY):'—', sgn(cottonYoY), 'Conab YoY'),
+    readout('Wheat (Brazil)',   wheatYoY!=null?pct(wheatYoY):'—', sgn(wheatYoY), 'Conab YoY'),
+    readout('Sugar Mix',        u.mix_sugar_pct!=null?u.mix_sugar_pct.toFixed(1)+'%':'—', '',
+       u.mix_sugar_pct_prev_year?`vs ${u.mix_sugar_pct_prev_year.toFixed(1)}% prior · UNICA`:'UNICA'),
+    readout('Crush YoY',        u.crush_accumulated_yoy_pct!=null?pct(u.crush_accumulated_yoy_pct):'—',
+       sgn(u.crush_accumulated_yoy_pct), u.period||''),
+    readout('EU Crops',         enKeys.length?(enKeys.length+' contracts'):'—', '',
+       'Euronext MiFID II'),
   ];
-  const body = readouts(ros)
-    + descr(`<strong>Brazil</strong> is the marginal supplier in soy, sugar, coffee, and a swing factor in corn.
-       Conab is the official survey; UNICA tracks sugarcane crush in real time. The <em>sugar/ethanol mix</em>
-       shifts every fortnight — when ethanol margins beat sugar, the crush rotates and global sugar tightens.`)
-    + renderAffects('Brazil supply', AFFECTS.conab_grains.concat(AFFECTS.unica));
-  $('#plate-agri-brazil').innerHTML = plate('I·F','Agri · Brazil & Euronext','Conab · UNICA · Euronext MiFID II', '', body);
+  // Disease + export-event rows
+  const diseaseRows = disease.slice(0,4).map(d=>{
+    const sev = parseInt(d.severity||0,10);
+    const cls = sev>=3?'dn':'flat';
+    return `<div class="ind"><span class="ind-name">${escapeHTML(d.commodity||'')} · ${escapeHTML(d.region||'')} · ${escapeHTML(d.pathogen||'')}</span>
+      <span class="ind-trend ${cls}">sev ${escapeHTML(d.severity||'?')} · -${escapeHTML(d.yield_impact_pct||'?')}%</span></div>`;
+  }).join('');
+  const exportRows = exports.slice(0,5).map(ev=>{
+    const cls = ev.bull_bear==='BULL'?'up':ev.bull_bear==='BEAR'?'dn':'flat';
+    return `<div class="ind"><span class="ind-name">${escapeHTML(ev.country||'')} · ${escapeHTML(ev.commodity||'')} · ${escapeHTML(ev.event_type||'')}</span>
+      <span class="ind-trend ${cls}">${escapeHTML(ev.bull_bear||'')} · sev ${escapeHTML(ev.severity||'?')}</span></div>`;
+  }).join('');
+  let body = readouts(ros)
+    + descr(`<strong>Real-time crop conditions and trade-flow disruptions.</strong> Brazil's official surveys
+       (Conab grains + coffee, UNICA sugar-cane crush) plus EU positioning data, ad-hoc export bans, and
+       crop-disease alerts. <strong>Why it matters:</strong> agri COT moves on supply news, not demand —
+       a drought in Mato Grosso or an Indian rice export ban shifts speculative positioning the same week.
+       <strong>How to read it:</strong> a YoY drop in Conab combined with an active export event is the
+       classic two-factor confirmation of a tightening supply regime.`);
+  if(exportRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Export events &amp; bans</div><div class="ind-list">${exportRows}</div></div>`;
+  if(diseaseRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Crop disease alerts</div><div class="ind-list">${diseaseRows}</div></div>`;
+  body += renderAffects('Agri', AFFECTS.conab_grains.concat(AFFECTS.unica).concat(['Wheat (CFTC proxy)','Coffee C','Cotton No. 2']));
+  $('#plate-agri-supply').innerHTML = plate('I·F','Agri Supply','Brazil · EU · global trade flow', '', body);
 }
 
-/* — SHIPPING / BALTIC — */
+/* — SHIPPING — */
 function renderShipping(){
-  const s=D.shipping; if(!s){ $('#plate-shipping').innerHTML=plate('I·G','Shipping · Baltic','no data','','<div class="skel">No shipping data.</div>'); return; }
+  const s=D.shipping; if(!s){ $('#plate-shipping').innerHTML=plate('I·G','Shipping','no data','','<div class="skel">No shipping data.</div>'); return; }
   const idx=(s.indices||[]).reduce((m,x)=>(m[x.id]=x,m),{});
   const cell=(id)=>{
     const x=idx[id]; if(!x) return readout(id.toUpperCase(),'—','','');
@@ -1345,37 +1430,48 @@ function renderShipping(){
   };
   const ros=[cell('bdi'),cell('bpi'),cell('bci'),cell('bsi')];
   const body = readouts(ros)
-    + descr(`The <strong>Baltic indices</strong> measure the spot rate to charter dry-bulk vessels — capesize (iron
-       ore, coal), panamax (grains, coal), supramax (minor bulks). Rates are a leading indicator of physical
-       demand for the cargoes; they move before producer COT positioning rotates.`)
-    + renderAffects('Bulk demand', AFFECTS.bdi);
-  $('#plate-shipping').innerHTML = plate('I·G','Shipping · Baltic Indices','tradingeconomics · daily', s.bdi_date?'as of '+s.bdi_date:'', body);
+    + descr(`<strong>The spot rate to charter a dry-bulk vessel.</strong> Capesize hauls iron ore and coal,
+       Panamax handles grain and coal, Supramax does minor bulks. <strong>Why it matters:</strong> shipping
+       rates measure the actual demand for moving the cargoes — they move before producer COT positioning rotates,
+       so a sharp BDI spike often precedes a copper or grain rally by 2-4 weeks. <strong>How to read it:</strong>
+       a deviation greater than ±10% from the 20-day moving average flags a regime change.`)
+    + renderAffects('Bulk', AFFECTS.bdi);
+  $('#plate-shipping').innerHTML = plate('I·G','Shipping','Baltic indices · daily', s.bdi_date?'as of '+s.bdi_date:'', body);
 }
 
-/* — CRYPTO — */
+/* — CRYPTO — prices + dominance + sentiment overlay — */
 function renderCrypto(){
-  const c=D.crypto; if(!c){ $('#plate-crypto').innerHTML=plate('I·H','Crypto · Market','no data','','<div class="skel">No crypto data.</div>'); return; }
+  const c=D.crypto; if(!c){ $('#plate-crypto').innerHTML=plate('I·H','Crypto','no data','','<div class="skel">No crypto data.</div>'); return; }
   const p=c.prices||{};
   const m=c.market||{};
   const fg=c.fear_greed||{};
   const ros=[
-    readout('BTC', '$'+fmt(p.BTC?.price), sgn(p.BTC?.chg7d), `7d ${pct(p.BTC?.chg7d)}`),
-    readout('ETH', '$'+fmt(p.ETH?.price), sgn(p.ETH?.chg7d), `7d ${pct(p.ETH?.chg7d)}`),
-    readout('BTC Dom.', m.btc_dominance!=null?m.btc_dominance.toFixed(1)+'%':'—', '', m.eth_dominance!=null?'ETH '+m.eth_dominance.toFixed(1)+'%':''),
-    readout('Total Cap', m.total_mcap!=null?'$'+(m.total_mcap/1e12).toFixed(2)+'T':'—', sgn(m.total_mcap_chg24h), '24h '+pct(m.total_mcap_chg24h)),
-    readout('Fear & Greed', fg.score!=null?fg.score:(fg.value!=null?fg.value:'—'), (fg.score??fg.value)>=60?'pos':(fg.score??fg.value)<=40?'neg':'info', fg.label||fg.classification||''),
+    readout('BTC',         '$'+fmt(p.BTC?.price), sgn(p.BTC?.chg7d), `7d ${pct(p.BTC?.chg7d)}`),
+    readout('ETH',         '$'+fmt(p.ETH?.price), sgn(p.ETH?.chg7d), `7d ${pct(p.ETH?.chg7d)}`),
+    readout('SOL',         '$'+fmt(p.SOL?.price), sgn(p.SOL?.chg7d), `7d ${pct(p.SOL?.chg7d)}`),
+    readout('BTC Dom.',    m.btc_dominance!=null?m.btc_dominance.toFixed(1)+'%':'—', '',
+       m.eth_dominance!=null?'ETH '+m.eth_dominance.toFixed(1)+'%':''),
+    readout('Total Cap',   m.total_mcap!=null?'$'+(m.total_mcap/1e12).toFixed(2)+'T':'—',
+       sgn(m.total_mcap_chg24h), '24h '+pct(m.total_mcap_chg24h)),
+    readout('Fear & Greed', fg.score!=null?fg.score:(fg.value!=null?fg.value:'—'),
+       (fg.score??fg.value)>=60?'pos':(fg.score??fg.value)<=40?'neg':'info',
+       fg.label||fg.classification||''),
   ];
   const body = readouts(ros)
-    + descr(`Crypto positioning increasingly registers in CFTC reports as the regulated micro/perp products mature.
-       <strong>Dominance</strong> is the rotation tell — rising BTC dom against falling Total Cap is risk-off
-       within crypto; falling BTC dom in a rising tape is the alt-season precondition.`)
+    + descr(`<strong>Spot prices, market structure, and crowd sentiment.</strong> Crypto positioning now
+       registers in CFTC reports as the regulated micro and perpetual products mature. <strong>Why it matters:</strong>
+       <em>BTC dominance</em> is the within-crypto rotation tell — rising dom against a falling total cap is risk-off,
+       falling dom in a rising tape is the alt-season precondition. <strong>How to read it:</strong> Fear &amp; Greed
+       below 25 is a contrarian buy zone, above 75 a contrarian fade — pair with the COT percentile in the
+       Control Panel.`)
     + renderAffects('Crypto', AFFECTS.crypto_btc.concat(AFFECTS.crypto_eth));
-  $('#plate-crypto').innerHTML = plate('I·H','Crypto · Market & Sentiment','CoinGecko · alternative.me', c.updated?ageStr(ageHours(c.updated))+' ago':'', body);
+  $('#plate-crypto').innerHTML = plate('I·H','Crypto','prices · structure · sentiment',
+    c.updated?ageStr(ageHours(c.updated))+' ago':'', body);
 }
 
 /* — CALENDAR — */
 function renderCalendar(){
-  const c=D.calendar; if(!c){ $('#plate-calendar').innerHTML=plate('I·I','Calendar · Upcoming Events','no data','','<div class="skel">No calendar data.</div>'); return; }
+  const c=D.calendar; if(!c){ $('#plate-calendar').innerHTML=plate('I·I','Calendar','no data','','<div class="skel">No calendar data.</div>'); return; }
   const upcoming=(c.events||[]).filter(e=>e.hours_away>=-1 && e.hours_away<=168).slice(0,12);
   const rows = upcoming.map(e=>{
     const cls = e.impact==='High'?'neg':e.impact==='Medium'?'warn':'info';
@@ -1389,293 +1485,82 @@ function renderCalendar(){
     </tr>`;
   }).join('');
   const body =
-    descr(`<strong>Scheduled releases</strong> over the next 7 days. High-impact events bind the open positioning
-       — when the print breaks consensus, the COT is forced to chase or unwind. The <em>affects</em> column lists
-       the instruments most directly tied to each release.`)
+    descr(`<strong>Scheduled high-impact releases over the next seven days.</strong>
+       FOMC, NFP, CPI, USDA WASDE, OPEC and other binding events that the open positioning is forced
+       to react to. <strong>Why it matters:</strong> when the print breaks consensus, the next-week COT
+       shows the chasers; when it confirms, positioning extends. <strong>How to read it:</strong> the
+       <em>directly affects</em> column names the instruments whose option-vol is already pricing the event —
+       look there first for the post-print COT shift.`)
     + `<table class="pipe-table"><thead><tr>
         <th>When (CET)</th><th>Region</th><th>Event</th><th>Impact</th><th>Directly affects</th>
       </tr></thead><tbody>${rows||'<tr><td colspan="5" class="skel">No upcoming events.</td></tr>'}</tbody></table>`;
-  $('#plate-calendar').innerHTML = plate('I·I','Calendar · Next 7 Days','MQL · curated','events', body);
+  $('#plate-calendar').innerHTML = plate('I·I','Calendar','next 7 days · scheduled releases','', body);
 }
 
-/* — GEO — */
+/* — GEOPOLITICAL — physical-world risk + USGS seismic + curated news intel — */
 function renderGeo(){
-  const g=D.geo; const news=(g?.articles||[]).slice(0,5);
+  const g=D.geo;
+  const news=(g?.articles||[]).slice(0,4);
+  const seismic = D.bdrSeismic?.data || [];
+  const intelEvents = D.bdrNews?.data || [];
+  const top5quakes = seismic.slice(0,5);
+  const maxQuake = seismic.length ? Math.max(...seismic.map(e=>e.magnitude||0)) : null;
   const ros = [
-    readout('Chokepoints',  '5', '', 'Hormuz · Suez · Bab-el-Mandeb · Malacca · Bosporus'),
-    readout('Pipelines',    'tracked', '', 'Druzhba · Nord Stream · TurkStream · BTC · TAP'),
-    readout('Mines',        'tracked', '', 'Au · Ag · Cu · Pt · Pd'),
-    readout('Seismic',      'live', '', 'USGS feed'),
+    readout('Chokepoints', '5 watched', '',
+      'Hormuz · Suez · Bab-el-Mandeb · Malacca · Bosporus'),
+    readout('Largest Quake', maxQuake!=null?maxQuake.toFixed(1)+'M':'—',
+      maxQuake>=6?'neg':maxQuake>=5?'warn':'info',
+      seismic.length?seismic.length+' events ≥M4 (rolling 30d)':'awaiting'),
+    readout('News Intel', intelEvents.length+' events', intelEvents.length?'warn':'info',
+      'curated geopolitics'),
+    readout('Pipelines / Mines', 'tracked', '', 'Au · Ag · Cu · Pt · Pd · gas pipelines'),
   ];
-  const newsHTML = news.map(a=>`
-    <div class="ind"><span class="ind-name italic">${escapeHTML((a.title||'').slice(0,90))}</span>
-      <span class="ind-trend flat">${escapeHTML((a.source||'').slice(0,20))}</span></div>`).join('');
-  const body = readouts(ros)
-    + descr(`A live overlay of <strong>physical-world risk</strong>: maritime chokepoints, energy pipelines,
-       major mines, and seismic events. Intent is to flag when the geographic risk-premium changes —
-       a Hormuz incident, a copper-mine strike — and which COT instruments price it first.`)
-    + (newsHTML?`<div class="ind-list">${newsHTML}</div>`:'')
-    + renderAffects('Geo', AFFECTS.chokepoints.concat(AFFECTS.mines));
-  $('#plate-geo').innerHTML = plate('I·J','Geopolitical · Intel','curated · news RSS', g?.updated?ageStr(ageHours(g.updated))+' ago':'', body);
-}
-
-/* — EIA STORAGE (bedrock) — */
-function renderEia(){
-  const e = D.bdrEia;
-  if(!e || !e.data){
-    $('#plate-eia').innerHTML = plate('II·K','EIA · Petroleum & Natural Gas Storage','no data','via bedrock','<div class="skel">Awaiting bedrock import (run scripts/import_from_bedrock.py).</div>');
-    return;
-  }
-  const d = e.data;
-  const items = Object.entries(d).slice(0,5).map(([sid,v])=>{
-    const cls = v.chg_1w==null?'':v.chg_1w<0?'pos':v.chg_1w>0?'neg':'';
-    return readout(sid.replace(/_/g,' ').slice(0,18), fmt(v.value), cls, `${v.units} · Δ1w ${v.chg_1w!=null?(v.chg_1w>0?'+':'')+fmt(v.chg_1w):'—'}`);
-  });
-  while(items.length<4) items.push(readout('—','—','',''));
-  const body = readouts(items.slice(0,4))
-    + descr(`EIA's <strong>weekly storage</strong> reports are the dominant fundamental for natural-gas pricing
-       and a strong secondary signal for crude. <em>Falling storage</em> against a 5-year average is supply-tight
-       and supports the energy COT longs.`)
-    + renderAffects('Energy', ['WTI','Brent Last Day','Crude Oil, Light Sweet','Natural Gas Index']);
-  $('#plate-eia').innerHTML = plate('II·K','EIA · Storage','via bedrock · weekly','('+e.rows+' rows · '+e.series_count+' series)', body);
-}
-
-/* — SEISMIC EVENTS (bedrock) — */
-function renderSeismic(){
-  const s = D.bdrSeismic;
-  if(!s || !s.data){
-    $('#plate-seismic').innerHTML = plate('II·L','USGS · Seismic Events','no data','via bedrock','<div class="skel">Awaiting bedrock import.</div>');
-    return;
-  }
-  const top5 = s.data.slice(0,5);
-  const rows = top5.map(e=>{
-    const m = e.magnitude || 0;
-    const cls = m>=6?'neg':m>=5?'warn':'info';
+  // Quake list (top 5 by magnitude)
+  const quakeRows = top5quakes.map(q=>{
+    const m = q.magnitude||0;
+    const cls = m>=6?'dn':m>=5?'flat':'flat';
     return `<div class="ind">
-      <span class="ind-name">M${m.toFixed(1)} · ${escapeHTML((e.place||'').slice(0,40))}</span>
-      <span class="ind-trend ${cls==='neg'?'dn':cls==='warn'?'flat':'flat'}">${escapeHTML((e.event_ts||'').slice(0,10))}</span>
+      <span class="ind-name">M${m.toFixed(1)} · ${escapeHTML((q.place||'').slice(0,55))}</span>
+      <span class="ind-trend ${cls}">${escapeHTML((q.event_ts||'').slice(0,10))}</span>
     </div>`;
   }).join('');
-  const max = Math.max(...s.data.map(e=>e.magnitude||0));
-  const body = readouts([
-    readout('Events ≥M4', s.rows, '',''),
-    readout('Largest', max.toFixed(1)+'M', max>=6?'neg':max>=5?'warn':'info',''),
-    readout('Window', '~30 days', '',''),
-    readout('Source', 'USGS', '',''),
-  ])
-    + descr(`Major seismic events near <strong>energy infrastructure</strong> (Strait of Hormuz, Sakhalin, Gulf of Mexico)
-       or <strong>mining regions</strong> (Chile copper, South Africa gold) shift physical-supply premia.
-       Bedrock keeps a rolling list filtered to magnitude ≥4.0.`)
-    + (rows?`<div class="ind-list">${rows}</div>`:'')
-    + renderAffects('Geo', AFFECTS.seismic);
-  $('#plate-seismic').innerHTML = plate('II·L','USGS · Seismic','via bedrock · daily', s.rows+' events', body);
-}
-
-/* — BEDROCK · SENTIMENT & EVENTS — */
-function renderEvents(){
-  const news    = D.bdrNews?.data    || [];
-  const disease = D.bdrDisease?.data || [];
-  const exports = D.bdrExport?.data  || [];
-  const pmi     = D.bdrPmi?.data     || [];
-  const iri     = D.bdrIriEnso?.data || [];
-  const csent   = D.bdrCryptoSent?.data || [];
-  const total = news.length + disease.length + exports.length + pmi.length + iri.length + csent.length;
-  if(!total){
-    $('#plate-events').innerHTML = plate('II·M','Bedrock · Sentiment & Events','no manual data','via bedrock','<div class="skel">No manual feeds populated yet.</div>');
-    return;
-  }
-  // Recent news (max 4)
-  const newsRows = news.slice(0,4).map(n=>
-    `<div class="ind"><span class="ind-name italic">${escapeHTML((n.title||'').slice(0,80))}</span>
-      <span class="ind-trend flat">${escapeHTML((n.category||n.query_id||'').toUpperCase())}</span></div>`
+  // News intel events (curated CSV)
+  const intelRows = intelEvents.slice(0,4).map(n=>
+    `<div class="ind">
+      <span class="ind-name italic">${escapeHTML((n.title||'').slice(0,80))}</span>
+      <span class="ind-trend flat">${escapeHTML((n.category||n.query_id||'').toUpperCase())}</span>
+    </div>`
   ).join('');
-  // Disease alerts
-  const diseaseRows = disease.slice(0,4).map(d=>{
-    const sev = parseInt(d.severity||0,10);
-    const cls = sev>=3?'dn':sev>=2?'flat':'flat';
-    return `<div class="ind"><span class="ind-name">${escapeHTML(d.commodity||'')} · ${escapeHTML(d.region||'')} · ${escapeHTML(d.pathogen||'')}</span>
-      <span class="ind-trend ${cls}">sev ${escapeHTML(d.severity||'?')} · -${escapeHTML(d.yield_impact_pct||'?')}%</span></div>`;
-  }).join('');
-  // Export events
-  const exportRows = exports.slice(0,5).map(e=>{
-    const cls = e.bull_bear==='BULL'?'up':e.bull_bear==='BEAR'?'dn':'flat';
-    return `<div class="ind"><span class="ind-name">${escapeHTML(e.country||'')} · ${escapeHTML(e.commodity||'')} · ${escapeHTML(e.event_type||'')}</span>
-      <span class="ind-trend ${cls}">${escapeHTML(e.bull_bear||'')} · sev ${escapeHTML(e.severity||'?')}</span></div>`;
-  }).join('');
-  // ISM PMI (6 months trend)
-  const pmiNum = pmi.length;
-  const pmiLast = pmi[pmi.length-1] || {};
-  const pmiPrev = pmi[pmi.length-2] || {};
-  const pmiVal = parseFloat(pmiLast.headline_pmi)||0;
-  const pmiPrevVal = parseFloat(pmiPrev.headline_pmi)||0;
-  // IRI ENSO (latest forecast)
-  const iriLast = iri[iri.length-1] || {};
-  // Crypto sentiment latest — filter to fear/greed only (CSV has multiple indicators)
-  const csFng = csent.filter(c=>(c.indicator||'').toLowerCase().includes('fng')).slice(-1)[0]
-              || csent[csent.length-1] || {};
-  const csLast = csFng;
-  const ros = [
-    readout('ISM PMI', pmiNum?pmiVal.toFixed(1):'—',
-      pmiVal>=50?'pos':'neg',
-      pmiNum>1?`vs ${pmiPrevVal.toFixed(1)} prior`:''),
-    readout('Niño 3.4 SST', iri.length?(iriLast.nino34_mean_c||'—')+'°C':'—',
-      parseFloat(iriLast.nino34_mean_c||0)>0.5?'warn':parseFloat(iriLast.nino34_mean_c||0)<-0.5?'warn':'info',
-      iri.length?escapeHTML(iriLast.target_period||''):''),
-    readout('Crypto F&G', csent.length?csLast.value:'—',
-      parseInt(csLast.value||0,10)>=60?'pos':parseInt(csLast.value||0,10)<=40?'neg':'info',
-      csent.length?escapeHTML(csLast.indicator||''):''),
-    readout('Disease/Export Events', (disease.length+exports.length).toString(),
-      (disease.length+exports.length)>0?'warn':'info', 'active alerts'),
-  ];
+  // RSS news fallback
+  const newsHTML = news.map(a=>`
+    <div class="ind"><span class="ind-name italic">${escapeHTML((a.title||'').slice(0,80))}</span>
+      <span class="ind-trend flat">${escapeHTML((a.source||'').slice(0,20))}</span></div>`).join('');
   let body = readouts(ros)
-    + descr(`Bedrock's <strong>manual-curation</strong> feeds: news intel, crop disease alerts, export bans/restrictions,
-       ISM PMI macro tracking, IRI ENSO forecasts, and aggregated crypto sentiment. Small datasets but high signal —
-       these represent <em>events</em>, not continuous time-series.`);
-  if(exportRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Export events</div><div class="ind-list">${exportRows}</div></div>`;
-  if(diseaseRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Disease alerts</div><div class="ind-list">${diseaseRows}</div></div>`;
-  if(newsRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">News intel</div><div class="ind-list">${newsRows}</div></div>`;
-  body += renderAffects('Cross-asset', ['Wheat','Corn','Soybeans','Sugar No. 11','Coffee C','Cotton No. 2','Gold','Bitcoin','S&P 500']);
-  $('#plate-events').innerHTML = plate('II·M','Bedrock · Sentiment & Events','via bedrock manual CSVs', total+' events', body);
+    + descr(`<strong>Physical-world risk that the price absorbs first.</strong> Maritime chokepoints, energy
+       pipelines, major mines, real-time seismic events, and curated news. <strong>Why it matters:</strong> a
+       Strait of Hormuz incident shows up in Brent option vol within minutes; a Chilean copper-mine strike or
+       a Sakhalin earthquake reprices the metals stack before any COT does. <strong>How to read it:</strong>
+       any quake ≥M6 near energy or mining infrastructure is the cleanest catalyst the dashboard surfaces.`);
+  if(quakeRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">USGS seismic — recent ≥M4</div><div class="ind-list">${quakeRows}</div></div>`;
+  if(intelRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Curated news intel</div><div class="ind-list">${intelRows}</div></div>`;
+  if(!intelRows && newsHTML) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">News headlines</div><div class="ind-list">${newsHTML}</div></div>`;
+  body += renderAffects('Geo', AFFECTS.chokepoints.concat(AFFECTS.mines));
+  $('#plate-geo').innerHTML = plate('I·J','Geopolitical','chokepoints · seismic · curated intel',
+    g?.updated?ageStr(ageHours(g.updated))+' ago':'', body);
 }
 
-/* — BEDROCK COVERAGE — every fetcher that bedrock has, populated and awaiting — */
-const BEDROCK_COVERAGE = [
-  // populated → use D.bdr* in render to read rows
-  {key:'eia_storage',     label:'EIA Storage',          src:'eia_inventory',     family:'energy',  uses:'eia_distillate_change · eia_propane_change · eia_refinery_utilization · refinery_z drivers', file:'eia_storage.json'},
-  {key:'seismic',         label:'USGS Seismic',         src:'seismic_events',    family:'geo',     uses:'seismic_m6_global_24h · seismic_chile_peru_copper drivers', file:'seismic.json'},
-  {key:'cot_euronext',    label:'Euronext COT',         src:'cot_euronext',      family:'positioning', uses:'cot_euronext_mm_pct driver', file:'cot_euronext.json'},
-  {key:'comex',           label:'COMEX Vault',          src:'comex_inventory',   family:'metals',  uses:'comex_stress driver', file:'comex.json'},
-  {key:'conab',           label:'Conab Brazil Crops',   src:'conab_estimates',   family:'agri',    uses:'conab_yoy driver', file:'conab.json'},
-  {key:'unica',           label:'UNICA Sugar',          src:'unica_reports',     family:'agri',    uses:'unica_change driver', file:'unica.json'},
-  {key:'news_intel',      label:'News Intel',           src:'manual CSV',        family:'risk',    uses:'news_intel_severity_veto driver', file:'news_intel.json'},
-  {key:'disease_alerts',  label:'Crop Disease Alerts',  src:'manual CSV',        family:'agri',    uses:'disease_pressure driver', file:'disease_alerts.json'},
-  {key:'export_events',   label:'Export Events',        src:'manual CSV',        family:'agri',    uses:'export_event_active driver', file:'export_events.json'},
-  {key:'ism_pmi',         label:'ISM PMI',              src:'manual CSV',        family:'macro',   uses:'ism_pmi_level driver', file:'ism_pmi.json'},
-  {key:'iri_enso',        label:'IRI ENSO Forecast',    src:'manual CSV',        family:'agri',    uses:'noaa_enso_forecast_3mo driver', file:'iri_enso.json'},
-  {key:'crypto_sentiment',label:'Crypto Sentiment',     src:'manual CSV',        family:'crypto',  uses:'crypto fear/greed input', file:'crypto_sentiment.json'},
-  // awaiting / roadmap
-  {key:'cot_legacy',      label:'CFTC COT Legacy',      src:'cot_legacy',        family:'positioning', uses:'cot_z_score · cot_oi_change · cot_concentration_top4 · 7 positioning drivers', file:'cot_legacy.json', awaiting:true},
-  {key:'cot_disagg',      label:'CFTC COT Disaggregated', src:'cot_disaggregated', family:'positioning', uses:'positioning_mm_pct · positioning_lev_funds_pct · cot_swap_dealer_skew', file:'cot_disagg.json', awaiting:true},
-  {key:'fundamentals',    label:'FRED Macro',           src:'fundamentals',      family:'macro',   uses:'real_yield · dxy_chg5d · t10y3m · credit_spread · 10+ macro drivers', file:'fundamentals.json', awaiting:true},
-  {key:'weather',         label:'NOAA Daily Weather',   src:'weather',           family:'agri',    uses:'weather_stress driver (per region)', file:'weather.json', awaiting:true},
-  {key:'crop_progress',   label:'NASS Crop Progress',   src:'crop_progress',     family:'agri',    uses:'crop_progress_stage · nass_yield_corn_yoy · nass_yield_soy_yoy', file:'crop_progress.json', awaiting:true},
-  {key:'wasde',           label:'USDA WASDE',           src:'wasde',             family:'agri',    uses:'wasde_s2u_change driver', file:'wasde.json', awaiting:true},
-  {key:'bdi',             label:'Baltic Dry Index',     src:'bdi',               family:'risk',    uses:'shipping_pressure driver', file:'bdi.json', awaiting:true},
-  {key:'analogs',         label:'K-NN Analog Outcomes', src:'analog_outcomes',   family:'analog',  uses:'analog_hit_rate · analog_avg_return drivers', file:'analogs.json', awaiting:true},
-  {key:'anp_ethanol',     label:'ANP Brazil Ethanol',   src:'anp_ethanol (planned)', family:'agri', uses:'ethanol_parity_brl driver — Sugar cross family', file:'anp_ethanol.json', awaiting:true, future:true},
-  {key:'usda_psd_india',  label:'USDA PSD India Sugar', src:'usda_psd (planned)', family:'agri', uses:'usda_psd_yoy driver — Sugar unica family', file:'usda_psd_india.json', awaiting:true, future:true},
-  {key:'comtrade_india',  label:'UN Comtrade India Sugar', src:'comtrade (planned)', family:'agri', uses:'comtrade_export_yoy driver — Sugar unica family', file:'comtrade_india.json', awaiting:true, future:true},
-  {key:'isma_india',      label:'ISMA India Sugar',     src:'isma (planned)', family:'agri', uses:'India sugar mill stats — Sugar', file:'isma_india.json', awaiting:true, future:true},
-  {key:'fas_esr',         label:'FAS Export Sales',     src:'fas (planned)', family:'agri', uses:'fas_exports driver', file:'fas_esr.json', awaiting:true, future:true},
-  {key:'cecafe',          label:'CECAFE Brazil Coffee Exports', src:'cecafe (planned)', family:'agri', uses:'cecafe_export_change driver — Coffee', file:'cecafe.json', awaiting:true, future:true},
-  {key:'usdm_drought',    label:'USDM Drought Monitor', src:'usdm (planned)', family:'agri', uses:'drought_monitor driver', file:'usdm_drought.json', awaiting:true, future:true},
-  {key:'agsi_alsi',       label:'EU Gas/Oil Storage (AGSI/ALSI)', src:'agsi/alsi (planned)', family:'energy', uses:'agsi_storage_pct · alsi_eu_pct + 4 EU storage drivers', file:'agsi.json', awaiting:true, future:true},
-  {key:'iip',             label:'Industrial Production',src:'iip (planned)', family:'macro', uses:'industrial_production_yoy · iip_supply_unavailability', file:'iip.json', awaiting:true, future:true},
-  {key:'treasury_auction',label:'Treasury Auctions',    src:'treasury (planned)', family:'macro', uses:'treasury_auction_demand driver', file:'treasury_auction.json', awaiting:true, future:true},
-];
-
-// driver-by-family inventory (from bedrock src/bedrock/engine/drivers/)
-const BEDROCK_DRIVER_COUNT = {
-  trend:        2,
-  positioning:  7,
-  macro:       60,   // core 15 + bunke3-8 contributions
-  risk:         3,
-  structure:    1,
-  event_surprise: 4,
-  // agri-side
-  outlook:      2,
-  yield:       16,
-  agri_analog:  2,
-  seasonal:     1,
-};
-const BEDROCK_DRIVER_TOTAL = Object.values(BEDROCK_DRIVER_COUNT).reduce((a,b)=>a+b,0);
-
-function renderBedrockCoverage(){
-  // Static row-counts for sources not loaded into D (exposed via the Pipeline-fetched JSON)
-  // These came directly from the import script summary; safe to cache here.
-  const dataMap = {
-    eia_storage:     D.bdrEia,
-    seismic:         D.bdrSeismic,
-    cot_euronext:    {rows: 174},
-    comex:           {rows: 3},
-    conab:           {rows: 7},
-    unica:           {rows: 1},
-    news_intel:      D.bdrNews,
-    disease_alerts:  D.bdrDisease,
-    export_events:   D.bdrExport,
-    ism_pmi:         D.bdrPmi,
-    iri_enso:        D.bdrIriEnso,
-    crypto_sentiment: D.bdrCryptoSent,
-  };
-  const live = BEDROCK_COVERAGE.filter(c=>!c.awaiting);
-  const awaiting = BEDROCK_COVERAGE.filter(c=>c.awaiting && !c.future);
-  const future = BEDROCK_COVERAGE.filter(c=>c.future);
-  const liveRows = live.map(c=>{
-    const d = dataMap[c.key];
-    const rows = d?.rows ?? '?';
-    const cls = (d && rows>0) ? 'fresh' : 'aging';
-    return `<tr>
-      <td class="path">${escapeHTML(c.label)}</td>
-      <td class="desc">${escapeHTML(c.uses)}</td>
-      <td class="age">${rows} rows</td>
-      <td class="status"><span class="pill ${cls}">${(d && rows>0)?'LIVE':'EMPTY'}</span></td>
-    </tr>`;
-  }).join('');
-  const awaitingRows = awaiting.map(c=>`<tr>
-      <td class="path">${escapeHTML(c.label)}</td>
-      <td class="desc">${escapeHTML(c.uses)}</td>
-      <td class="age">—</td>
-      <td class="status"><span class="pill aging">AWAITING</span></td>
-    </tr>`).join('');
-  const futureRows = future.map(c=>`<tr>
-      <td class="path">${escapeHTML(c.label)}</td>
-      <td class="desc">${escapeHTML(c.uses)}</td>
-      <td class="age">—</td>
-      <td class="status"><span class="pill miss">PLANNED</span></td>
-    </tr>`).join('');
-  const drvHTML = Object.entries(BEDROCK_DRIVER_COUNT).map(([k,v])=>
-    `<div class="ind"><span class="ind-name">${escapeHTML(k)}</span><span class="ind-val">${v} drivers</span><span class="ind-trend flat">family</span></div>`
-  ).join('');
-  const ros = [
-    readout('Live Sources',     live.filter(c=>{const d=dataMap[c.key];return d && (d.rows||0)>0;}).length+' / '+live.length, 'pos', 'have data'),
-    readout('Awaiting',          awaiting.length, 'warn', 'fetcher exists, empty'),
-    readout('Planned',           future.length, '', 'roadmap items'),
-    readout('Total Drivers',     BEDROCK_DRIVER_TOTAL, '', 'across '+Object.keys(BEDROCK_DRIVER_COUNT).length+' families'),
-  ];
-  const body = readouts(ros)
-    + descr(`Bedrock's <strong>full data + driver inventory</strong>. The dashboard will surface each new
-       source automatically as bedrock's fetchers begin populating their tables. Drivers fire only when
-       their input data is fresh; until then their rows in the <em>Bedrock</em> tab show 0.0 contribution.`)
-    + `<div style="margin-top:14px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Live data sources</div>
-        <table class="pipe-table"><thead><tr><th>Source</th><th>Drivers powered</th><th>Rows</th><th>Status</th></tr></thead><tbody>${liveRows}</tbody></table>
-       </div>`
-    + (awaitingRows?`<div style="margin-top:14px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Awaiting bedrock fetcher</div>
-        <table class="pipe-table"><thead><tr><th>Source</th><th>Drivers it will power</th><th>Rows</th><th>Status</th></tr></thead><tbody>${awaitingRows}</tbody></table>
-       </div>`:'')
-    + (futureRows?`<div style="margin-top:14px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Planned (bedrock roadmap)</div>
-        <table class="pipe-table"><thead><tr><th>Source</th><th>Drivers it will power</th><th>Rows</th><th>Status</th></tr></thead><tbody>${futureRows}</tbody></table>
-       </div>`:'')
-    + `<div style="margin-top:14px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Driver families (${BEDROCK_DRIVER_TOTAL} total)</div>
-        <div class="ind-list">${drvHTML}</div>
-       </div>`;
-  $('#plate-bedrock-coverage').innerHTML = plate('II·N','Bedrock · Coverage Map','every fetcher, populated and awaiting','bedrock src + roadmap', body);
-}
 
 function renderObservatory(){
-  renderMacro();
-  renderRates();
-  renderEnergy();
-  renderMetals();
-  renderAgriCrops();
-  renderAgriBrazil();
-  renderShipping();
-  renderCrypto();
-  renderEia();
-  renderSeismic();
-  renderEvents();
-  renderBedrockCoverage();
-  renderCalendar();
-  renderGeo();
+  renderMacro();        // I·A — USD bias + ISM PMI
+  renderRates();        // I·B — yields + curve
+  renderEnergy();       // I·C — oilgas + EIA storage + ICE COT
+  renderMetals();       // I·D — COMEX vault + COT positioning
+  renderClimate();      // I·E — ENSO + IRI forecast
+  renderShipping();     // I·G — Baltic indices
+  renderAgriSupply();   // I·F — Conab + UNICA + disease + export events
+  renderCrypto();       // I·H — prices + dominance + sentiment
+  renderCalendar();     // I·I — next 7 days
+  renderGeo();          // I·J — chokepoints + seismic + news intel
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -2672,7 +2557,74 @@ const PIPELINE_GROUPS = [
     {p:'data/bedrock/crypto_sentiment.json', d:'Bedrock manual · crypto sentiment'},
   ]},
 ];
+/* compact roadmap of bedrock sources — replaces the old Coverage Map plate */
+const BEDROCK_ROADMAP = [
+  // populated → live
+  {label:'EIA Storage', file:'eia_storage.json', status:'live'},
+  {label:'USGS Seismic', file:'seismic.json', status:'live'},
+  {label:'Euronext COT', file:'cot_euronext.json', status:'live'},
+  {label:'COMEX Vault', file:'comex.json', status:'live'},
+  {label:'Conab Brazil', file:'conab.json', status:'live'},
+  {label:'UNICA Sugar', file:'unica.json', status:'live'},
+  {label:'News Intel', file:'news_intel.json', status:'live'},
+  {label:'Disease Alerts', file:'disease_alerts.json', status:'live'},
+  {label:'Export Events', file:'export_events.json', status:'live'},
+  {label:'ISM PMI', file:'ism_pmi.json', status:'live'},
+  {label:'IRI ENSO Forecast', file:'iri_enso.json', status:'live'},
+  {label:'Crypto Sentiment', file:'crypto_sentiment.json', status:'live'},
+  // awaiting fetcher run
+  {label:'CFTC COT Legacy', file:'cot_legacy.json', status:'awaiting'},
+  {label:'CFTC COT Disaggregated', file:'cot_disagg.json', status:'awaiting'},
+  {label:'FRED Macro (bedrock)', file:'fundamentals.json', status:'awaiting'},
+  {label:'NOAA Daily Weather', file:'weather.json', status:'awaiting'},
+  {label:'NASS Crop Progress', file:'crop_progress.json', status:'awaiting'},
+  {label:'USDA WASDE', file:'wasde.json', status:'awaiting'},
+  {label:'Baltic Dry Index', file:'bdi.json', status:'awaiting'},
+  {label:'K-NN Analog Outcomes', file:'analogs.json', status:'awaiting'},
+  // planned roadmap
+  {label:'ANP Brazil Ethanol', status:'planned'},
+  {label:'USDA PSD India Sugar', status:'planned'},
+  {label:'UN Comtrade India Sugar', status:'planned'},
+  {label:'ISMA India Sugar', status:'planned'},
+  {label:'FAS Export Sales', status:'planned'},
+  {label:'CECAFE Coffee Exports', status:'planned'},
+  {label:'USDM Drought Monitor', status:'planned'},
+  {label:'EU AGSI / ALSI Storage', status:'planned'},
+  {label:'Industrial Production', status:'planned'},
+  {label:'Treasury Auctions', status:'planned'},
+];
+
+function renderPipeSummary(){
+  const live  = BEDROCK_ROADMAP.filter(r=>r.status==='live').length;
+  const awaiting = BEDROCK_ROADMAP.filter(r=>r.status==='awaiting').length;
+  const planned = BEDROCK_ROADMAP.filter(r=>r.status==='planned').length;
+  const summary = `<div class="plate" style="margin-bottom:18px;">
+    <div class="plate-hd">
+      <span class="num">VI·A</span>
+      <span class="ttl">Sources at a glance</span>
+      <span class="sub">${live} live · ${awaiting} awaiting · ${planned} planned</span>
+    </div>
+    <div class="plate-body">
+      <p class="descr" style="border:0;padding:0 0 10px;">
+        <em>Every external feed the dashboard consumes — broken down by current status. Live sources have data
+        flowing; awaiting sources have a fetcher in place but have not run successfully yet; planned sources
+        are on the roadmap but not yet wired.</em>
+      </p>
+      <table class="pipe-table">
+        <thead><tr><th>Source</th><th>Status</th></tr></thead>
+        <tbody>${BEDROCK_ROADMAP.map(r=>{
+          const pillCls = r.status==='live'?'fresh':r.status==='awaiting'?'aging':'miss';
+          return `<tr><td class="path">${escapeHTML(r.label)}</td>
+            <td class="status"><span class="pill ${pillCls}">${r.status.toUpperCase()}</span></td></tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+  $('#pipeSummary').innerHTML = summary;
+}
+
 async function renderPipeline(){
+  renderPipeSummary();
   const out = await Promise.all(PIPELINE_GROUPS.map(async g=>{
     const rows = await Promise.all(g.files.map(async f=>{
       let stat='miss', ageH=null, sz=null, count=null, when=null;
