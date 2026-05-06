@@ -433,7 +433,98 @@ body{
 .hm-cell.p-3{--cell-bg:rgba(107,157,122,.25);}
 .hm-cell.p-4{--cell-bg:rgba(107,157,122,.5);}
 
-/* ─────── SETUPS ─────── */
+/* ─────── SETUPS — card grid (replaces row layout) ─────── */
+.setups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;}
+.scard{
+  background:linear-gradient(180deg,#141a2c 0%,#10162a 100%);
+  border:1px solid var(--ink-rule);padding:13px 16px 12px;
+  cursor:pointer;position:relative;
+  transition:border-color .12s,transform .1s;
+}
+.scard:hover{border-color:var(--brass);transform:translateY(-1px);}
+.scard.bull{border-left:3px solid var(--sig-pos);}
+.scard.bear{border-left:3px solid var(--sig-neg);}
+.scard.bull.strong{border-left:4px solid var(--sig-pos);box-shadow:inset 4px 0 12px rgba(107,157,122,.10);}
+.scard.bear.strong{border-left:4px solid var(--sig-neg);box-shadow:inset 4px 0 12px rgba(194,92,92,.10);}
+.scard-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;}
+.scard-hd .nm{
+  font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;
+  color:var(--ink-paper);letter-spacing:.02em;
+}
+.scard-hd .cat{
+  margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-bone-dim);padding:2px 6px;
+  border:1px solid var(--ink-rule);
+}
+.scard-bias{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  padding:5px 0;border-top:1px dashed var(--ink-rule-soft);border-bottom:1px dashed var(--ink-rule-soft);
+  margin-bottom:8px;
+}
+.scard-bias .label{color:var(--ink-bone-dim);}
+.scard-bias .verdict{font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+.scard-bias .verdict.bull{color:var(--sig-pos);}
+.scard-bias .verdict.bear{color:var(--sig-neg);}
+.scard-bias .score{font-weight:600;color:var(--ink-paper);}
+.scard-bias .score.bull{color:var(--sig-pos);}
+.scard-bias .score.bear{color:var(--sig-neg);}
+
+/* Pressure bar — 10 blocks, filled by |score|/3 */
+.pbar-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.pbar{
+  flex:1;font-family:'JetBrains Mono',monospace;font-size:14px;
+  letter-spacing:1px;line-height:1;
+}
+.pbar.bull{color:var(--sig-pos);}
+.pbar.bear{color:var(--sig-neg);}
+.pbar.neutral{color:var(--ink-bone-dim);}
+.pbar-lbl{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;
+  color:var(--ink-bone-dim);
+}
+
+/* Main drivers list */
+.scard-drv-hd{
+  font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-bone-dim);
+  font-style:italic;margin-bottom:4px;
+}
+.scard-drv{
+  display:grid;grid-template-columns:auto 1fr auto;gap:8px;
+  padding:3px 0;border-bottom:1px dotted var(--ink-rule-soft);
+  font-family:'Cormorant Garamond',serif;font-size:13.5px;color:var(--ink-bone);
+  align-items:baseline;
+}
+.scard-drv:last-child{border-bottom:none;}
+.scard-drv .fn{font-weight:600;color:var(--ink-paper);min-width:80px;}
+.scard-drv .dt{color:var(--ink-bone-dim);font-style:italic;font-size:13px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.scard-drv .vl{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
+  text-align:right;}
+.scard-drv .vl.up{color:var(--sig-pos);}
+.scard-drv .vl.dn{color:var(--sig-neg);}
+.scard-drv .vl.eq{color:var(--ink-mute);}
+
+.scard-foot{
+  display:flex;justify-content:space-between;align-items:baseline;
+  margin-top:10px;padding-top:8px;border-top:1px dotted var(--ink-rule-soft);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-bone-dim);
+}
+.scard-foot .meta{display:flex;gap:10px;flex-wrap:wrap;}
+.scard-foot .meta b{color:var(--ink-paper);font-weight:500;}
+.scard-foot .open{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;
+  color:var(--brass);text-decoration:underline;text-underline-offset:3px;
+}
+.scard-foot .fresh.fresh{color:var(--sig-pos);}
+.scard-foot .fresh.aging{color:var(--sig-warn);}
+.scard-foot .fresh.stale{color:var(--sig-neg);}
+
+@media (max-width:780px){
+  .setups-grid{grid-template-columns:1fr;}
+}
+
+/* old row layout — keep classes so legacy refs don't error, but unused */
 .setup-row{
   display:grid;grid-template-columns:30px 180px 60px 90px 1fr 200px;gap:14px;
   align-items:center;padding:12px 16px;
@@ -1010,7 +1101,7 @@ body{
         <span class="ttl">Published Setups</span>
         <span class="sub">A and B grades only · cot-explorer scoring</span>
       </div>
-      <div class="plate-body" style="padding:0;">
+      <div class="plate-body">
         <div id="setupsList"><div class="skel">Loading setup candidates…</div></div>
       </div>
     </div>
@@ -2647,91 +2738,188 @@ function renderSparkline(rows, key='spec_net'){
 /* ════════════════════════════════════════════════════════════════
    III · SETUPS — read-only scored signals
    ════════════════════════════════════════════════════════════════ */
+/* Friendly category label for a setup, derived from the Control Panel SYNTH
+   table where possible (key match), with a fallback to the underlying COT
+   row's "kategori" if available. */
+function _setupCategory(s){
+  const key = (s.key || s.name || '').toUpperCase();
+  const synth = SYNTH.find(x => x.key.toUpperCase() === key);
+  if(synth) return CTRL_GROUP_LABEL[synth.group] || synth.group;
+  // Fall back to combined-row kategori
+  const r = (D.combined||[]).find(x =>
+    (x.market||'').toLowerCase() === (s.key||'').toLowerCase()
+    || (x.navn_no||'').toLowerCase() === (s.name||'').toLowerCase());
+  if(r && r.kategori){
+    const map = {valuta:'FX', renter:'Rates', aksjer:'Equities',
+                 råvarer:'Commodities', landbruk:'Agriculture', krypto:'Crypto'};
+    return map[r.kategori] || r.kategori;
+  }
+  if(s.source === 'agri_fundamental' || s._src === 'agri') return 'Agriculture';
+  return 'Cross-asset';
+}
+
+/* Display name for a driver family, switched between financial / agri schemas. */
+const FAMILY_LABEL = {
+  // financial
+  trend:'Trend', positioning:'Positioning', macro:'Macro', fundamental:'Fundamental',
+  risk:'Event risk', structure:'Structure',
+  // agri
+  outlook:'Outlook', yield:'Yield', conab:'Conab', unica:'UNICA',
+  enso:'ENSO', cross:'Cross', analog:'Analog',
+};
+
+/* For a setup, gather (familyLabel, snippet, contribution) tuples sorted by
+   |contribution| desc. Contribution is signed by direction so a BUY's
+   bullish family contributions show as positive. Scaled to roughly ±3 to
+   match the Control Panel gauge convention. */
+function _setupTopDrivers(s, dirSign, n=4){
+  const groups = s.driver_groups || {};
+  const max    = s.max_score || 5.8;
+  const out = [];
+  for(const [fname, fd] of Object.entries(groups)){
+    const score = fd.score || 0;
+    const weight = fd.weight || 0;
+    const drvList = fd.drivers || [];
+    // Contribution scaled to -3..+3 axis: (signed score) / max_score * 3
+    // Bull setup with score 1.0 in trend (max 5.8) ≈ +0.52
+    const contrib = dirSign * score / max * 3;
+    const drvText = drvList.length
+      ? (typeof drvList[0]==='string' ? drvList[0] : (drvList[0].name||''))
+      : (score>0 ? 'score recorded · no driver text' : 'no signal');
+    out.push({
+      family: FAMILY_LABEL[fname] || fname,
+      text: drvText,
+      contribution: contrib,
+      hasDrivers: drvList.length>0,
+    });
+  }
+  out.sort((a,b) => Math.abs(b.contribution) - Math.abs(a.contribution));
+  return out.slice(0, n);
+}
+
+/* Pressure bar — N filled blocks out of 10, scaled to |score|/3 */
+function _pressureBar(score, dirCls){
+  const filled = Math.max(0, Math.min(10, Math.round(Math.abs(score) / 3 * 10)));
+  const blocks = '█'.repeat(filled) + '░'.repeat(10 - filled);
+  let label = 'Neutral';
+  if(score >= 2) label = 'Strong bull pressure';
+  else if(score >= 0.7) label = 'Bull pressure';
+  else if(score >= 0.25) label = 'Mild bull lean';
+  else if(score > -0.25) label = 'Neutral';
+  else if(score > -0.7) label = 'Mild bear lean';
+  else if(score > -2) label = 'Bear pressure';
+  else label = 'Strong bear pressure';
+  return `<div class="pbar-wrap">
+    <div class="pbar ${dirCls}">${blocks}</div>
+    <div class="pbar-lbl">${label}</div>
+  </div>`;
+}
+
 function renderSetups(){
   const tech = D.signals?.signals||[];
   const agri = D.agriSig?.signals||[];
-  // Merge: agri-source wins when present.
-  // push_signals.py copies agri entries into signals.json but strips driver_groups
-  // to a stub {} — the rich version lives only in agri_signals.json. So we index
-  // the agri side first, and only fall back to tech for keys agri doesn't carry.
+  // Merge: agri-source wins when present (push_signals.py strips driver_groups
+  // to a stub {} on tech-side; rich version lives in agri_signals.json).
   const agriByKey = new Map();
   for(const s of agri){ agriByKey.set(s.key||s.name, s); }
   const all = [];
   for(const s of tech){
     const k = s.key||s.name;
     if(s.source === 'agri_fundamental' && agriByKey.has(k)){
-      // tech-side has only a stub; use the agri-side full record
       all.push({...agriByKey.get(k), _src:'agri'});
       agriByKey.delete(k);
     } else {
       all.push({...s, _src:'tech'});
     }
   }
-  // Any agri entries not represented in tech (rare, but possible)
   for(const [k,s] of agriByKey){ all.push({...s, _src:'agri'}); }
-  // filter A/B grades only
+  // Keep A/B grades only and order strongest first
   const ranked = all.filter(s=>['A+','A','A-','B+','B','B-'].includes(s.grade)).sort((a,b)=>{
     const order={'A+':0,'A':1,'A-':2,'B+':3,'B':4,'B-':5};
     return (order[a.grade]||9) - (order[b.grade]||9);
   });
-  // grade → percentage fallback for signal types missing max_score (e.g. agri)
   const gradePct = {'A+':95,'A':80,'A-':70,'B+':60,'B':50,'B-':40,'C':25,'D':10};
-  const rows = ranked.map(s=>{
-    const dir = (s.action||'').toUpperCase()==='BUY' ? 'bull' : (s.action||'').toUpperCase()==='SELL'?'bear':'';
+
+  // Reference for freshness: COT date carried on tech side, or agri.cot_date
+  const cotDate = D.signals?.cot_date || D.agriSig?.cot_date || null;
+  const cotAgeDays = cotDate ? Math.max(0, (Date.now() - new Date(cotDate).getTime())/86400000) : null;
+  const freshCls = cotAgeDays==null ? '' : (cotAgeDays<11?'fresh':cotAgeDays<18?'aging':'stale');
+  const freshStr = cotAgeDays==null ? '—' : cotAgeDays.toFixed(0)+'d';
+
+  const cards = ranked.map(s=>{
+    const action = (s.action||'').toUpperCase();
+    const dir = action==='BUY'?'bull':action==='SELL'?'bear':'';
+    const dirSign = action==='BUY'?1:action==='SELL'?-1:0;
     const isAgri = s.source==='agri_fundamental' || s._src==='agri';
-    const groups = s.driver_groups||{};
-    const dbars = ['trend','positioning','macro','fundamental','risk','structure'].map(g=>{
-      const x = groups[g]||{};
-      const ratio = (x.score||0)/((x.weight||1)||1);
-      const drvCount = (x.drivers||[]).length;
-      // Classify on score-ratio first; bump up to at least 'mid' when drivers fired
-      let cls;
-      if(ratio>0.7) cls='hi';
-      else if(ratio>0.3 || drvCount>=2) cls='mid';
-      else if(drvCount>=1) cls='mid';
-      else cls='lo';
-      const letter = g[0].toUpperCase();
-      return `<div class="dbar ${cls}" title="${g}: ${(x.score||0).toFixed(2)}/${(x.weight||0).toFixed(2)} · ${drvCount} drivers">${letter}</div>`;
-    }).join('');
-    // agri rows lead with crop-context flavor; tech rows use group_drivers
-    let flavor = '';
-    if(isAgri){
-      const bits = [];
-      if(s.weather_outlook) bits.push(`weather: <em>${escapeHTML(s.weather_outlook)}</em>`);
-      if(s.yield_quality)   bits.push(`yield: <em>${escapeHTML(s.yield_quality)}</em>`);
-      if(s.growth_stage)    bits.push(`stage: ${escapeHTML(s.growth_stage)}${s.season_pct?` · ${s.season_pct}%`:''}`);
-      if(s.cot_bias)        bits.push(`COT ${escapeHTML(s.cot_bias)}${s.cot_pct!=null?` ${pct(s.cot_pct)}`:''}`);
-      flavor = bits.join(' &nbsp;·&nbsp; ');
-      if(!flavor) flavor = (s.group_drivers||s.drivers||[]).slice(0,2).join(' · ');
+    const cat = _setupCategory(s);
+
+    // Score on -3..+3 axis: prefer real score/max_score, else grade-mapped
+    let scoreNorm;
+    if(s.max_score && s.score!=null){
+      scoreNorm = dirSign * (s.score / s.max_score) * 3;
     } else {
-      flavor = (s.group_drivers||[]).slice(0,2).join(' · ') || s.flavor || '';
+      const pctMag = (gradePct[s.grade] ?? 50) / 100;
+      scoreNorm = dirSign * pctMag * 3;
     }
-    // score-bar fill: prefer max_score, else grade fallback so agri signals show meaningful bars
-    let scorePct;
-    if(s.max_score){
-      scorePct = Math.round(100*s.score/s.max_score);
-    } else if(s.score_pct){
-      scorePct = s.score_pct;
-    } else if(isAgri){
-      // map agri's 0..18 score onto 0..100% AND clamp by grade so a B never shows 90%
-      const fromScore = Math.min(100, Math.round((s.score||0) * (100/18)));
-      const fromGrade = gradePct[s.grade] ?? 0;
-      scorePct = Math.min(fromScore, fromGrade);
-    } else {
-      scorePct = gradePct[s.grade] ?? 0;
-    }
-    const tag = isAgri ? '<span class="setup-tag agri">AGRI</span>' : '';
-    return `<div class="setup-row ${dir}${isAgri?' agri':''}" data-key="${escapeHTML(s.key||s.name)}">
-      <div class="setup-grade-letter">${escapeHTML(s.grade||'?')}</div>
-      <div class="setup-name">${escapeHTML(s.name||s.key)} ${tag}<span class="horiz">${escapeHTML(s.horizon||s.timeframe||'')}</span></div>
-      <div class="setup-dir ${dir}">${escapeHTML(s.action||'')}</div>
-      <div class="score-bar"><div class="track"><div class="fill" style="width:${scorePct}%"></div></div><span class="pct">${scorePct}%</span></div>
-      <div class="setup-flavor">${flavor}</div>
-      <div class="driver-bars">${dbars}</div>
+    scoreNorm = Math.max(-3, Math.min(3, scoreNorm));
+
+    let cardCls = dir;
+    if(Math.abs(scoreNorm) >= 2) cardCls += ' strong';
+
+    const verdict = action==='BUY' ? 'Bullish' : action==='SELL' ? 'Bearish' : 'Neutral';
+
+    // Confidence = number of families with score>0 / total families
+    const groups = s.driver_groups || {};
+    const totalFams = Object.keys(groups).length || 6;
+    const activeFams = Object.values(groups).filter(g=>(g.score||0)>0).length;
+    const confRatio = totalFams ? activeFams / totalFams : 0;
+    const confLabel = confRatio>=0.6 ? 'High' : confRatio>=0.35 ? 'Medium' : 'Low';
+
+    // Top driver list
+    const topDrivers = _setupTopDrivers(s, dirSign, 4);
+    const driverHTML = topDrivers.length
+      ? topDrivers.map(d=>{
+          const arr = d.contribution>0.05?'up':d.contribution<-0.05?'dn':'eq';
+          const v = (d.contribution>0?'+':'') + d.contribution.toFixed(2);
+          // Normalise driver text: lowercase first char of long sentences feels better
+          const txt = d.text.length>40 ? d.text.slice(0,40)+'…' : d.text;
+          return `<div class="scard-drv">
+            <span class="fn">${escapeHTML(d.family)}:</span>
+            <span class="dt">${escapeHTML(txt)}</span>
+            <span class="vl ${arr}">${v}</span>
+          </div>`;
+        }).join('')
+      : '<div class="scard-drv"><span class="fn">—</span><span class="dt">No driver detail recorded</span><span class="vl eq">·</span></div>';
+
+    const horiz = s.horizon || s.timeframe || '';
+
+    return `<div class="scard ${cardCls}" data-key="${escapeHTML(s.key||s.name)}">
+      <div class="scard-hd">
+        <span class="nm">${escapeHTML(s.name||s.key)}</span>
+        <span class="cat">${escapeHTML(cat)}${horiz?' · '+escapeHTML(horiz.toLowerCase()):''}</span>
+      </div>
+      <div class="scard-bias">
+        <span><span class="label">Bias:</span> <span class="verdict ${dir}">${verdict}</span></span>
+        <span class="score ${dir}">${scoreNorm>0?'+':''}${scoreNorm.toFixed(1)}</span>
+      </div>
+      ${_pressureBar(scoreNorm, dir||'neutral')}
+      <div class="scard-drv-hd">Main drivers</div>
+      ${driverHTML}
+      <div class="scard-foot">
+        <div class="meta">
+          <span>Confidence: <b>${confLabel}</b></span>
+          <span>Grade: <b>${escapeHTML(s.grade||'?')}</b></span>
+          <span class="fresh ${freshCls}">Fresh: ${freshStr}</span>
+        </div>
+        <span class="open">Open detail →</span>
+      </div>
     </div>`;
   }).join('');
-  $('#setupsList').innerHTML = rows || '<div class="skel">No A/B-grade setups currently active.</div>';
-  $$('.setup-row').forEach(el=>el.onclick = ()=>openSetup(el.dataset.key));
+
+  $('#setupsList').innerHTML = cards
+    ? `<div class="setups-grid">${cards}</div>`
+    : '<div class="skel">No A/B-grade setups currently active.</div>';
+  $$('.scard').forEach(el=>el.onclick = ()=>openSetup(el.dataset.key));
 }
 function openSetup(key){
   // Same merge precedence as renderSetups: agri_signals.json carries the full
