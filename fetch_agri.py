@@ -161,7 +161,12 @@ STAGE_ICONS = {
 # Aktive stadier (de som teller som "i sesong" for arkiv-henting)
 ACTIVE_STAGES = {"pre-plant", "sowing", "planting", "emergence", "early-growth",
                  "growing", "flowering", "heading", "ripening", "harvest",
-                 "low-prod", "recovering", "moderate", "peak"}
+                 "low-prod", "recovering", "moderate", "peak",
+                 # Crop-specific intermediate phases that count as in-season:
+                 "boll-dev",       # cotton: post-flowering boll development (US Delta Aug)
+                 "mid-crop",       # cocoa: between main harvests, beans still developing
+                 "main-harvest",   # cocoa: primary harvest window (West Africa Oct–Mar)
+                 "dormancy-end"}   # winter wheat: reactivation phase (Feb in N. hemisphere)
 
 # ── ENSO-impakt per region ─────────────────────────────────────
 ENSO_IMPACTS = {
@@ -318,8 +323,14 @@ def detect_growth_stage(stages_array, month):
     }
 
 
-def calculate_season_metrics(archive_data, crop_key):
-    """Beregner sesong-metrikker fra arkivdata: GDD, nedbør, stressdager."""
+def calculate_season_metrics(archive_data, crop_key, season_start_date=None):
+    """Beregner sesong-metrikker fra arkivdata: GDD, nedbør, stressdager.
+
+    Hvis ``season_start_date`` (YYYY-MM-DD) er gitt, klippes arkivet til kun
+    dager fra og med den datoen. Dette beskytter mot stale cacher som kan
+    inneholde data fra forrige sesong, og holder yield-scoren forankret i
+    *gjeldende* vekstsesong.
+    """
     pheno = CROP_PHENOLOGY.get(crop_key, {})
     tbase = pheno.get("tbase", 10)
     gdd_maturity = pheno.get("gdd_maturity")
@@ -332,14 +343,26 @@ def calculate_season_metrics(archive_data, crop_key):
     tmax_arr = daily.get("temperature_2m_max", [])
     tmin_arr = daily.get("temperature_2m_min", [])
     precip_arr = daily.get("precipitation_sum", [])
+    time_arr = daily.get("time", [])
     n = min(len(tmax_arr), len(tmin_arr), len(precip_arr))
     if n == 0:
         return None
 
+    # Defensive clip to current-season window when caller supplies the start
+    start_idx = 0
+    if season_start_date and time_arr:
+        for i, t in enumerate(time_arr[:n]):
+            if t >= season_start_date:
+                start_idx = i
+                break
+        else:
+            # No day matched — start of season is in the future; nothing to score
+            return None
+
     gdd_total = 0
     precip_total = 0
     stress_days = 0
-    for i in range(n):
+    for i in range(start_idx, n):
         tx = tmax_arr[i] if tmax_arr[i] is not None else 20
         tn = tmin_arr[i] if tmin_arr[i] is not None else 10
         pr = precip_arr[i] if precip_arr[i] is not None else 0
@@ -347,6 +370,7 @@ def calculate_season_metrics(archive_data, crop_key):
         precip_total += pr
         if tx > 35 or tn < (tbase - 5) or pr > 50:
             stress_days += 1
+    n = max(0, n - start_idx)
 
     gdd_pct = round(gdd_total / gdd_maturity * 100, 1) if gdd_maturity else None
     precip_pct = round(precip_total / ideal_precip * 100, 1) if ideal_precip else None
@@ -1061,18 +1085,19 @@ for region in regions:
     # Hent arkivvær for sesongen (kun hvis aktiv sesong)
     # Bruker cache hvis tilgjengelig fra i dag
     archive_data = None
+    season_start_date = None  # forwarded into calculate_season_metrics for defensive clipping
     if any_active and growth_info.get("season_start_month"):
+        start_m = growth_info["season_start_month"]
+        year = today.year
+        if start_m > MONTH:
+            year -= 1
+        season_start_date = f"{year}-{start_m:02d}-01"
         if cache_hit and rid in season_cache.get("archives", {}):
             archive_data = season_cache["archives"][rid]
         else:
-            start_m = growth_info["season_start_month"]
-            year = today.year
-            if start_m > MONTH:
-                year -= 1  # Sesongen startet forrige år
-            start_date = f"{year}-{start_m:02d}-01"
             end_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
-            if start_date < end_date:
-                archive_data = fetch_archive_weather(lat, lon, start_date, end_date)
+            if season_start_date < end_date:
+                archive_data = fetch_archive_weather(lat, lon, season_start_date, end_date)
                 time.sleep(0.3)  # Rate-limiting
         archive_cache[rid] = archive_data
 
@@ -1134,7 +1159,7 @@ for region in regions:
         yield_rating = None
         yield_hint = None
         if archive_data and growth_info["in_season"]:
-            season_metrics = calculate_season_metrics(archive_data, crop_key)
+            season_metrics = calculate_season_metrics(archive_data, crop_key, season_start_date)
             if season_metrics:
                 yield_score_val, yield_rating, yield_hint = estimate_yield_quality(
                     season_metrics, growth_info["season_pct"],
