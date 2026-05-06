@@ -252,6 +252,30 @@ body{
 .tag.neg{border-color:var(--sig-neg-dim);background:rgba(194,92,92,.12);}
 .tag.neg:hover{background:var(--sig-neg);}
 
+/* ─── Per-plate data-source inventory chips (Sources-at-a-glance footer) ─── */
+.src-row{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0 2px;border-top:1px dotted var(--ink-rule-soft);
+  margin-top:10px;flex-wrap:wrap;
+}
+.src-lbl{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  color:var(--ink-mute);font-size:12px;letter-spacing:.08em;
+  text-transform:uppercase;flex-shrink:0;padding-top:3px;
+}
+.src-chips{display:flex;flex-wrap:wrap;gap:4px;flex:1;}
+.src-chip{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.02em;
+  padding:2px 7px;border:1px solid;
+  display:inline-flex;align-items:center;
+}
+.src-chip.live    {color:var(--sig-pos);    border-color:var(--sig-pos-dim);    background:rgba(107,157,122,.08);}
+.src-chip.awaiting{color:var(--sig-warn);   border-color:rgba(212,164,74,.4);   background:rgba(212,164,74,.05);}
+.src-chip.planned {color:var(--ink-mute);   border-color:var(--ink-rule);       background:transparent;}
+.src-chip.live::before    {content:"●";margin-right:4px;font-size:8px;}
+.src-chip.awaiting::before{content:"◌";margin-right:4px;font-size:9px;}
+.src-chip.planned::before {content:"·";margin-right:4px;}
+
 /* ─────── GRID ─────── */
 .col-2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
 .col-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
@@ -899,6 +923,7 @@ body{
       <span class="mast-sub" id="hmCount" style="margin-left:auto;"></span>
     </div>
     <div id="hmContainer"><div class="skel">Charting the heavens…</div></div>
+    <div id="hmSources"></div>
   </section>
 
   <!-- ═══════════════════════ IV · SETUPS ═══════════════════════ -->
@@ -1074,6 +1099,64 @@ const safeFetch=async(p)=>{
   catch{ return null; }
 };
 
+/* ────── per-plate data-source inventory ──────
+   Maps every entry in BEDROCK_ROADMAP (the "Sources at a glance" list)
+   to the Observatory plate that consumes it. Each plate footer renders
+   the list with status pills (live / awaiting / planned), so the analyst
+   can see at a glance which feeds back the panel and which are coming.
+*/
+const PLATE_SOURCES = {
+  macro:    {live: ['FRED macro indicators', 'ISM PMI'],
+             awaiting: ['Bedrock FRED mirror', 'Industrial Production (IIP)'],
+             planned: []},
+  rates:    {live: ['FRED DGS yields (10Y, 2Y, real, term spread)'],
+             awaiting: [],
+             planned: ['Treasury Auctions']},
+  energy:   {live: ['CFTC Crude/WTI/NatGas COT', 'ICE Brent + Gasoil COT', 'ICE TTF gas (manual)', 'EIA weekly storage', 'Brent–WTI spread', 'Geopolitical news overlay'],
+             awaiting: [],
+             planned: ['EU AGSI / ALSI gas + oil storage']},
+  metals:   {live: ['CFTC Gold / Silver / Copper / Pt / Pd COT', 'COMEX vault inventory + stress'],
+             awaiting: [],
+             planned: []},
+  climate:  {live: ['NOAA ONI (current ENSO)', 'IRI Niño 3.4 SST forecast', 'ECMWF SEAS5 forecast'],
+             awaiting: ['Bedrock NOAA daily weather'],
+             planned: ['USDM drought monitor']},
+  agri:     {live: ['Conab Brazil grain + coffee', 'UNICA sugar-cane crush', 'Euronext MiFID II COT', 'Disease alerts', 'Export bans / events'],
+             awaiting: ['NASS weekly crop progress', 'USDA WASDE'],
+             planned: ['ANP Brazil ethanol parity', 'USDA PSD India sugar', 'UN Comtrade India sugar', 'ISMA India sugar', 'FAS Export Sales', 'CECAFE Brazil coffee exports']},
+  shipping: {live: ['Baltic Dry Index (BDI)', 'BCI / BPI / BSI manual fallback'],
+             awaiting: ['Bedrock BDI fetcher'],
+             planned: []},
+  crypto:   {live: ['CoinGecko prices', 'BTC / ETH dominance', 'Fear & Greed', 'Crypto sentiment'],
+             awaiting: [],
+             planned: []},
+  calendar: {live: ['Forex Factory · 7-day high-impact calendar'],
+             awaiting: [],
+             planned: []},
+  geo:      {live: ['USGS seismic events', 'Curated news intel', 'Chokepoints / pipelines / mines registry'],
+             awaiting: [],
+             planned: []},
+  positions:{live: ['CFTC combined (legacy + disagg + TFF + supplemental)', 'COT analytics (52w percentiles, OI regime)'],
+             awaiting: ['Bedrock CFTC legacy', 'Bedrock CFTC disaggregated'],
+             planned: ['K-NN analog outcomes']},
+};
+
+function renderSources(domainKey){
+  const s = PLATE_SOURCES[domainKey] || {};
+  const live    = s.live    || [];
+  const awaiting= s.awaiting|| [];
+  const planned = s.planned || [];
+  if(!live.length && !awaiting.length && !planned.length) return '';
+  const chip = (label, cls)=>`<span class="src-chip ${cls}">${escapeHTML(label)}</span>`;
+  const liveChips = live.map(x=>chip(x,'live')).join('');
+  const awaitChips= awaiting.map(x=>chip(x,'awaiting')).join('');
+  const planChips = planned.map(x=>chip(x,'planned')).join('');
+  return `<div class="src-row">
+    <span class="src-lbl">Data inputs</span>
+    <div class="src-chips">${liveChips}${awaitChips}${planChips}</div>
+  </div>`;
+}
+
 /* ────── tag rendering ────── */
 function renderAffects(label, keys){
   if(!keys||!keys.length) return '';
@@ -1226,7 +1309,8 @@ function renderMacro(){
        <strong>How to read it:</strong> watch the four bias verdicts together — when three of four flip the same way,
        the dollar trade has consensus and the COT shift in DXY usually follows within two prints.`)
     + `<div class="ind-list">${indHTML}</div>`
-    + renderAffects('Macro', AFFECTS.usd_fundamental);
+    + renderAffects('Macro', AFFECTS.usd_fundamental)
+    + renderSources('macro');
   $('#plate-macro').innerHTML = plate('I·A','Macro Pulse','U.S. macro composite · daily',
     f.updated?ageStr(ageHours(f.updated))+' ago':'', body);
 }
@@ -1249,7 +1333,8 @@ function renderRates(){
        market expects from the Fed. <strong>Why it matters:</strong> rising real yields are the single biggest
        headwind for gold, silver and TIPS-linked positioning. <strong>How to read it:</strong> a steepening curve
        with falling real yields is the classic backdrop for risk-on, equity-positive COT shifts.`)
-    + renderAffects('Rates', AFFECTS.rates_term);
+    + renderAffects('Rates', AFFECTS.rates_term)
+    + renderSources('rates');
   $('#plate-rates').innerHTML = plate('I·B','Rates','U.S. Treasuries · daily', r.dgs10?.date?'as of '+r.dgs10.date:'', body);
 }
 
@@ -1293,7 +1378,8 @@ function renderEnergy(){
        interact most directly — a stretched COT long with falling crude inventory often holds; with rising
        inventory it cracks. <strong>How to read it:</strong> watch storage versus the seasonal norm — a draw
        deeper than expected is the cleanest bullish surprise the market gives.`)
-    + renderAffects('Energy', AFFECTS.oilgas);
+    + renderAffects('Energy', AFFECTS.oilgas)
+    + renderSources('energy');
   $('#plate-energy').innerHTML = plate('I·C','Energy','crude · gasoline · natgas — daily',
     o.generated?ageStr(ageHours(o.generated))+' ago':'', body);
 }
@@ -1317,7 +1403,8 @@ function renderMetals(){
        the classic precursor to a delivery squeeze — large bull positioning that the COT shows hides much
        sharper risk-reward when physical metal is scarce. <strong>How to read it:</strong> stress above 60
        on either gold or silver flags a tight vault; pair it with the percentile reading on the Control Panel.`)
-    + renderAffects('Metals', AFFECTS.comex_silver);
+    + renderAffects('Metals', AFFECTS.comex_silver)
+    + renderSources('metals');
   $('#plate-metals').innerHTML = plate('I·D','Metals','COMEX vault · daily', c.report_date?'as of '+c.report_date:'', body);
 }
 
@@ -1364,7 +1451,8 @@ function renderClimate(){
        a sustained move in the same direction across three quarters is the trade-able regime change.`)
     + (fcRows ? `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Forecast probabilities (IRI · SEAS5)</div>
         <table class="pipe-table"><thead><tr><th>Season</th><th>La Niña</th><th>Neutral</th><th>El Niño</th></tr></thead><tbody>${fcRows}</tbody></table></div>` : '')
-    + renderAffects('Crop belt', AFFECTS.enso);
+    + renderAffects('Crop belt', AFFECTS.enso)
+    + renderSources('climate');
   $('#plate-climate').innerHTML = plate('I·E','Climate & Weather','ENSO · IRI · SEAS5 · daily',
     a.generated?ageStr(ageHours(a.generated))+' ago':'', body);
 }
@@ -1422,6 +1510,7 @@ function renderAgriSupply(){
   if(exportRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Export events &amp; bans</div><div class="ind-list">${exportRows}</div></div>`;
   if(diseaseRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Crop disease alerts</div><div class="ind-list">${diseaseRows}</div></div>`;
   body += renderAffects('Agri', AFFECTS.conab_grains.concat(AFFECTS.unica).concat(['Wheat (CFTC proxy)','Coffee C','Cotton No. 2']));
+  body += renderSources('agri');
   $('#plate-agri-supply').innerHTML = plate('I·F','Agri Supply','Brazil · EU · global trade flow', '', body);
 }
 
@@ -1458,7 +1547,8 @@ function renderShipping(){
        rates measure the actual demand for moving the cargoes — they move before producer COT positioning rotates,
        so a sharp BDI spike often precedes a copper or grain rally by 2-4 weeks. <strong>How to read it:</strong>
        a deviation greater than ±10% from the 20-day moving average flags a regime change.`)
-    + renderAffects('Bulk', AFFECTS.bdi);
+    + renderAffects('Bulk', AFFECTS.bdi)
+    + renderSources('shipping');
   $('#plate-shipping').innerHTML = plate('I·G','Shipping','Baltic indices · daily', s.bdi_date?'as of '+s.bdi_date:'', body);
 }
 
@@ -1487,7 +1577,8 @@ function renderCrypto(){
        falling dom in a rising tape is the alt-season precondition. <strong>How to read it:</strong> Fear &amp; Greed
        below 25 is a contrarian buy zone, above 75 a contrarian fade — pair with the COT percentile in the
        Control Panel.`)
-    + renderAffects('Crypto', AFFECTS.crypto_btc.concat(AFFECTS.crypto_eth));
+    + renderAffects('Crypto', AFFECTS.crypto_btc.concat(AFFECTS.crypto_eth))
+    + renderSources('crypto');
   $('#plate-crypto').innerHTML = plate('I·H','Crypto','prices · structure · sentiment',
     c.updated?ageStr(ageHours(c.updated))+' ago':'', body);
 }
@@ -1516,7 +1607,8 @@ function renderCalendar(){
        look there first for the post-print COT shift.`)
     + `<table class="pipe-table"><thead><tr>
         <th>When (CET)</th><th>Region</th><th>Event</th><th>Impact</th><th>Directly affects</th>
-      </tr></thead><tbody>${rows||'<tr><td colspan="5" class="skel">No upcoming events.</td></tr>'}</tbody></table>`;
+      </tr></thead><tbody>${rows||'<tr><td colspan="5" class="skel">No upcoming events.</td></tr>'}</tbody></table>`
+    + renderSources('calendar');
   $('#plate-calendar').innerHTML = plate('I·I','Calendar','next 7 days · scheduled releases','', body);
 }
 
@@ -1568,6 +1660,7 @@ function renderGeo(){
   if(intelRows) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">Curated news intel</div><div class="ind-list">${intelRows}</div></div>`;
   if(!intelRows && newsHTML) body += `<div style="margin-top:10px;"><div class="affects-lbl" style="display:block;margin-bottom:4px;">News headlines</div><div class="ind-list">${newsHTML}</div></div>`;
   body += renderAffects('Geo', AFFECTS.chokepoints.concat(AFFECTS.mines));
+  body += renderSources('geo');
   $('#plate-geo').innerHTML = plate('I·J','Geopolitical','chokepoints · seismic · curated intel',
     g?.updated?ageStr(ageHours(g.updated))+' ago':'', body);
 }
@@ -2276,6 +2369,7 @@ function drawHeatmap(){
   }).join('');
   $('#hmContainer').innerHTML = out || '<div class="skel">No markets match the current filter.</div>';
   $('#hmCount').textContent = `${sorted.length} of ${rows.length} markets shown`;
+  $('#hmSources').innerHTML = renderSources('positions');
   // wire clicks
   $$('.hm-cell').forEach(el=>el.onclick = ()=>openMarket(el.dataset.symbol, el.dataset.report));
 }
