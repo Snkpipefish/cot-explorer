@@ -2441,8 +2441,13 @@ function renderSetups(){
   $$('.setup-row').forEach(el=>el.onclick = ()=>openSetup(el.dataset.key));
 }
 function openSetup(key){
-  const all = [...(D.signals?.signals||[]), ...(D.agriSig?.signals||[])];
-  const s = all.find(x=>(x.key||x.name)===key);
+  // Same merge precedence as renderSetups: agri_signals.json carries the full
+  // driver_groups; signals.json keeps only a stub for agri_fundamental sources.
+  // Always prefer agri_signals.json when an entry exists there.
+  const agri = (D.agriSig?.signals||[]).find(x=>(x.key||x.name)===key);
+  const tech = (D.signals?.signals||[]).find(x=>(x.key||x.name)===key);
+  const s = (tech && tech.source==='agri_fundamental' && agri) ? agri
+          : (tech || agri);
   if(!s) return;
   const isAgri = s.source==='agri_fundamental';
   const groups = s.driver_groups||{};
