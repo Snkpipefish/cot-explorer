@@ -36,12 +36,9 @@ HOUR=$(date +%H)  # 00–23
 
 python3 fetch_calendar.py >> "$LOG" 2>&1 && echo "  kalender OK" >> "$LOG"
 
-# ── Bedrock import: read-only snapshots from ~/bedrock/bedrock.db ────
-# Cot-explorer treats bedrock as upstream producer for new data sources
-# (EIA storage, seismic, etc.) plus passes bedrock's signals.json through.
-python3 scripts/import_from_bedrock.py >> "$LOG" 2>&1 \
-    && echo "  bedrock import OK" >> "$LOG" \
-    || echo "  bedrock import FEIL (sjekk ~/bedrock/bedrock.db)" >> "$LOG"
+# Bedrock import runs on its own systemd timer (cot-bedrock-import.timer) every
+# 6 hours with Persistent=true. update.sh just commits whatever data/bedrock/*.json
+# files happen to be present when this script runs, so no in-line invocation here.
 
 # ── ICE COT: fredag 20:00 (tidlig forsøk) + lørdag 00:00 (garantert ute) ────
 if [ "$DOW" -eq 5 ] && [ "$HOUR" -ge 20 ]; then
