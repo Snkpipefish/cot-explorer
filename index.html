@@ -487,6 +487,194 @@ body{
 /* loading skeleton */
 .skel{color:var(--ink-mute);font-family:'Cormorant Garamond',serif;font-style:italic;padding:14px;}
 
+/* ═════════════════════════════════════════════════════════════
+   CONTROL PANEL — per-instrument synthesis cards
+   ═════════════════════════════════════════════════════════════ */
+.ctrl-controls{
+  display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+  padding:6px 0 12px;border-bottom:1px solid var(--ink-rule);margin-bottom:14px;
+}
+.ctrl-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;
+}
+.ctrl-card{
+  background:linear-gradient(180deg,#161d31 0%,#10162a 100%);
+  border:1px solid var(--ink-rule);
+  padding:13px 16px;cursor:pointer;
+  transition:border-color .12s,transform .1s;
+  position:relative;
+}
+.ctrl-card:hover{border-color:var(--brass);transform:translateY(-1px);}
+.ctrl-card.bull{border-left:3px solid var(--sig-pos);}
+.ctrl-card.bear{border-left:3px solid var(--sig-neg);}
+.ctrl-card.neutral{border-left:3px solid var(--ink-rule);}
+.ctrl-card.strong-bull{border-left:4px solid var(--sig-pos);box-shadow:inset 4px 0 12px rgba(107,157,122,.12);}
+.ctrl-card.strong-bear{border-left:4px solid var(--sig-neg);box-shadow:inset 4px 0 12px rgba(194,92,92,.12);}
+
+.ctrl-card-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
+.ctrl-card-hd .nm{
+  font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;
+  color:var(--ink-paper);letter-spacing:.02em;
+}
+.ctrl-card-hd .sym{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);margin-left:auto;}
+
+.ctrl-gauge{
+  position:relative;height:22px;
+  background:linear-gradient(90deg,
+    rgba(194,92,92,.18) 0%,
+    rgba(194,92,92,.08) 33%,
+    rgba(108,117,137,.08) 50%,
+    rgba(107,157,122,.08) 67%,
+    rgba(107,157,122,.18) 100%);
+  border:1px solid var(--ink-rule);
+  margin-bottom:5px;
+}
+.ctrl-gauge .axis-mark{
+  position:absolute;top:0;bottom:0;width:1px;background:var(--ink-rule);
+}
+.ctrl-gauge .axis-mark.zero{background:var(--ink-mute);}
+.ctrl-gauge .needle{
+  position:absolute;top:-3px;bottom:-3px;width:3px;
+  background:var(--brass);box-shadow:0 0 6px var(--brass-soft);
+  transition:left .25s ease;
+}
+.ctrl-gauge .needle.bull{background:var(--sig-pos);}
+.ctrl-gauge .needle.bear{background:var(--sig-neg);}
+.ctrl-gauge-labels{
+  display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink-mute);
+  letter-spacing:.04em;margin-bottom:8px;
+}
+
+.ctrl-verdict{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:'JetBrains Mono',monospace;
+  padding:5px 0;border-top:1px dashed var(--ink-rule-soft);border-bottom:1px dashed var(--ink-rule-soft);
+  margin-bottom:8px;
+}
+.ctrl-verdict .v{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+.ctrl-verdict .v.bull{color:var(--sig-pos);}
+.ctrl-verdict .v.bear{color:var(--sig-neg);}
+.ctrl-verdict .v.neutral{color:var(--ink-bone-dim);}
+.ctrl-verdict .score{font-size:13px;color:var(--ink-paper);}
+
+.ctrl-factors{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.ctrl-fact{
+  display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:center;
+  font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-bone);
+}
+.ctrl-fact .arr{font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;}
+.ctrl-fact .arr.up{color:var(--sig-pos);}
+.ctrl-fact .arr.dn{color:var(--sig-neg);}
+.ctrl-fact .arr.eq{color:var(--ink-mute);}
+.ctrl-fact .why{color:var(--ink-bone-dim);font-style:italic;}
+.ctrl-fact .val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-paper);}
+
+.ctrl-bedrock{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:12px;color:var(--ink-bone-dim);
+  padding-top:6px;border-top:1px dotted var(--ink-rule-soft);
+}
+.ctrl-bedrock .grade{
+  font-family:'JetBrains Mono',monospace;font-style:normal;
+  font-size:11px;font-weight:600;
+  padding:1px 5px;border:1px solid var(--brass-dim);color:var(--brass);
+  margin-right:4px;
+}
+.ctrl-bedrock .none{color:var(--ink-mute);}
+
+/* ═════════════════════════════════════════════════════════════
+   BEDROCK SETUPS LIST
+   ═════════════════════════════════════════════════════════════ */
+.bedrock-controls{
+  display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+  padding:6px 0 12px;border-bottom:1px solid var(--ink-rule);margin-bottom:14px;
+}
+.bedrock-row{
+  display:grid;grid-template-columns:30px 200px 70px 60px 100px 1fr 60px;gap:14px;
+  align-items:center;padding:11px 16px;
+  border-bottom:1px dotted var(--ink-rule-soft);
+  cursor:pointer;
+  transition:background .12s;
+}
+.bedrock-row:hover{background:rgba(201,163,94,.04);}
+.bedrock-row.unpub{opacity:.55;}
+.bedrock-row .grade{
+  font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;
+  color:var(--brass);text-align:center;line-height:1;
+}
+.bedrock-row.bull .grade{color:var(--sig-pos);}
+.bedrock-row.bear .grade{color:var(--sig-neg);}
+.bedrock-row .nm{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--ink-paper);}
+.bedrock-row .nm .horiz{font-style:italic;color:var(--ink-bone-dim);font-size:12px;display:block;}
+.bedrock-row .dir{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;
+  text-align:center;padding:3px 0;border:1px solid;text-transform:uppercase;
+}
+.bedrock-row .dir.bull{color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.1);}
+.bedrock-row .dir.bear{color:var(--sig-neg);border-color:var(--sig-neg-dim);background:rgba(194,92,92,.1);}
+.bedrock-row .pub-pill{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;
+  text-align:center;padding:2px 0;border:1px solid;text-transform:uppercase;
+}
+.bedrock-row .pub-pill.yes{color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.1);}
+.bedrock-row .pub-pill.no {color:var(--ink-mute);border-color:var(--ink-rule);}
+.bedrock-row .score-bar{display:flex;align-items:center;gap:6px;}
+.bedrock-row .score-bar .track{
+  flex:1;height:5px;background:var(--ink-rule);position:relative;border:1px solid var(--ink-rule);
+}
+.bedrock-row .score-bar .fill{position:absolute;left:0;top:0;bottom:0;background:var(--brass);}
+.bedrock-row .score-bar .floor{
+  position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--ink-paper);
+  box-shadow:0 0 0 1px var(--ink-bg);
+}
+.bedrock-row .score-bar .pct{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-bone-dim);min-width:36px;text-align:right;
+}
+.bedrock-fams{display:flex;gap:3px;}
+.bedrock-fams .bf{
+  flex:1;text-align:center;padding:3px 1px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;
+  border:1px solid var(--ink-rule);color:var(--ink-mute);
+}
+.bedrock-fams .bf.hi{background:var(--brass-soft);color:var(--brass);border-color:var(--brass-dim);}
+.bedrock-fams .bf.mid{background:rgba(212,164,74,.1);color:var(--sig-warn);border-color:rgba(212,164,74,.3);}
+.bedrock-fams .bf.lo{color:var(--ink-mute);}
+.bedrock-row .setup-mini{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-bone-dim);
+  text-align:right;
+}
+
+.bedrock-empty{
+  padding:40px 20px;text-align:center;
+  font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-mute);
+}
+.bedrock-empty strong{color:var(--brass);font-style:normal;}
+
+/* MOBILE adjustments for control panel + bedrock */
+@media (max-width:780px){
+  .ctrl-grid{grid-template-columns:1fr;gap:10px;}
+  .ctrl-card{padding:11px 13px;}
+
+  .bedrock-row{
+    grid-template-columns:36px 1fr 70px;
+    grid-template-areas:
+      "grade name dir"
+      "grade pub  pub"
+      "grade score score"
+      "grade fams fams"
+      "grade setup setup";
+    gap:5px 10px;padding:10px 12px;
+  }
+  .bedrock-row .grade{grid-area:grade;align-self:start;}
+  .bedrock-row .nm{grid-area:name;font-size:15px;}
+  .bedrock-row .dir{grid-area:dir;font-size:9px;align-self:start;}
+  .bedrock-row .pub-pill{grid-area:pub;justify-self:start;padding:2px 6px;}
+  .bedrock-row .score-bar{grid-area:score;}
+  .bedrock-fams{grid-area:fams;}
+  .bedrock-row .setup-mini{grid-area:setup;text-align:left;}
+}
+
 /* ═════════════════════════════════════════════════════════
    MOBILE — collapse density, tighten typography, stack rows.
    The almanac aesthetic survives because it relies on
@@ -620,10 +808,12 @@ body{
 </header>
 
 <nav class="tabs">
-  <button class="tab active" data-tab="observatory"><span>Observatory</span><span class="num">I</span></button>
-  <button class="tab" data-tab="positions"><span>Positions</span><span class="num">II</span></button>
-  <button class="tab" data-tab="setups"><span>Setups</span><span class="num">III</span></button>
-  <button class="tab" data-tab="pipeline"><span>Pipeline</span><span class="num">IV</span></button>
+  <button class="tab active" data-tab="control"><span>Control Panel</span><span class="num">I</span></button>
+  <button class="tab" data-tab="observatory"><span>Observatory</span><span class="num">II</span></button>
+  <button class="tab" data-tab="positions"><span>Positions</span><span class="num">III</span></button>
+  <button class="tab" data-tab="setups"><span>Setups</span><span class="num">IV</span></button>
+  <button class="tab" data-tab="bedrock"><span>Bedrock</span><span class="num">V</span></button>
+  <button class="tab" data-tab="pipeline"><span>Pipeline</span><span class="num">VI</span></button>
 </nav>
 
 <div class="state-strip" id="stateStrip">
@@ -639,8 +829,31 @@ body{
 
 <main class="deck">
 
-  <!-- ═══════════════════════ I · OBSERVATORY ═══════════════════════ -->
-  <section class="panel active" id="panel-observatory">
+  <!-- ═══════════════════════ I · CONTROL PANEL ═══════════════════════ -->
+  <section class="panel active" id="panel-control">
+    <div class="plate">
+      <div class="plate-hd">
+        <span class="num">I</span>
+        <span class="ttl">Control Panel</span>
+        <span class="sub">A synthesis of every data source into a single bull / bear gauge per instrument</span>
+      </div>
+      <div class="plate-body">
+        <div class="ctrl-controls">
+          <div class="hm-cat-toggles" id="ctrlGroupToggles"></div>
+          <span class="mast-sub" id="ctrlSummary" style="margin-left:auto;"></span>
+        </div>
+        <p class="descr" style="border:0;padding:6px 0 12px;">
+          <em>Each card aggregates COT positioning, macro fundamentals, sector data (COMEX, EIA, ENSO, weather, shipping) and event-risk into one signal.
+          The gauge runs <strong>−3 (bearish) to +3 (bullish)</strong>; the bars below name the contributing factors.
+          Click a card to drill into the underlying market in <strong>Positions</strong>.</em>
+        </p>
+        <div class="ctrl-grid" id="ctrlGrid"><div class="skel">Reading the constellations…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ II · OBSERVATORY ═══════════════════════ -->
+  <section class="panel" id="panel-observatory">
     <div class="col-2">
       <div id="plate-macro"></div>
       <div id="plate-rates"></div>
@@ -657,11 +870,15 @@ body{
       <div id="plate-shipping"></div>
       <div id="plate-crypto"></div>
     </div>
+    <div class="col-2">
+      <div id="plate-eia"></div>
+      <div id="plate-seismic"></div>
+    </div>
     <div id="plate-calendar"></div>
     <div id="plate-geo"></div>
   </section>
 
-  <!-- ═══════════════════════ II · POSITIONS ═══════════════════════ -->
+  <!-- ═══════════════════════ III · POSITIONS ═══════════════════════ -->
   <section class="panel" id="panel-positions">
     <div class="hm-controls" id="hmControls">
       <div class="hm-cat-toggles" id="hmCatToggles"></div>
@@ -677,7 +894,7 @@ body{
     <div id="hmContainer"><div class="skel">Charting the heavens…</div></div>
   </section>
 
-  <!-- ═══════════════════════ III · SETUPS ═══════════════════════ -->
+  <!-- ═══════════════════════ IV · SETUPS ═══════════════════════ -->
   <section class="panel" id="panel-setups">
     <div class="plate">
       <div class="plate-hd">
@@ -696,7 +913,38 @@ body{
     </p>
   </section>
 
-  <!-- ═══════════════════════ IV · PIPELINE ═══════════════════════ -->
+  <!-- ═══════════════════════ V · BEDROCK ═══════════════════════ -->
+  <section class="panel" id="panel-bedrock">
+    <div class="plate">
+      <div class="plate-hd">
+        <span class="num">V</span>
+        <span class="ttl">Bedrock · Setup Engine</span>
+        <span class="sub">Live mirror of bedrock's signals.json — 96-driver scoring, asymmetric per direction × horizon</span>
+        <span class="stamp" id="bedrockStamp">—</span>
+      </div>
+      <div class="plate-body">
+        <div class="bedrock-controls">
+          <div class="hm-cat-toggles" id="bedrockHorizonTabs">
+            <button class="hm-cat on" data-h="all">All</button>
+            <button class="hm-cat" data-h="makro">Macro</button>
+            <button class="hm-cat" data-h="swing">Swing</button>
+            <button class="hm-cat" data-h="scalp">Scalp</button>
+          </div>
+          <label class="hm-extreme"><input type="checkbox" id="bedrockPubOnly" checked> Published only</label>
+          <span class="mast-sub" id="bedrockCount" style="margin-left:auto;"></span>
+        </div>
+        <p class="descr" style="border:0;padding:6px 0 10px;">
+          <em>Bedrock evaluates each instrument across <strong>six driver families</strong> (trend, positioning, macro,
+          fundamental, risk, structure) using ~96 individual drivers configured per instrument. A signal is
+          <em>published</em> only when its score clears that instrument's <strong>min_score_publish</strong> threshold.
+          Click a row to inspect every driver that fired.</em>
+        </p>
+        <div id="bedrockList"><div class="skel">Reading the bedrock cipher…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ VI · PIPELINE ═══════════════════════ -->
   <section class="panel" id="panel-pipeline">
     <div id="pipeContainer"><div class="skel">Reading the wires…</div></div>
   </section>
@@ -825,7 +1073,8 @@ function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;',
 const D={};
 
 async function loadAll(){
-  const [combined, cotAna, fund, oilgas, comex, agri, conab, unica, shipping, crypto, calendar, geo, signals, agriSig, ice, euronext] = await Promise.all([
+  const [combined, cotAna, fund, oilgas, comex, agri, conab, unica, shipping, crypto, calendar, geo, signals, agriSig, ice, euronext,
+         bdrEia, bdrSeismic, bdrSignals, bdrIndex] = await Promise.all([
     safeFetch('data/combined/latest.json'),
     safeFetch('data/cot_analytics/latest.json'),
     safeFetch('data/fundamentals/latest.json'),
@@ -842,13 +1091,20 @@ async function loadAll(){
     safeFetch('data/agri_signals.json'),
     safeFetch('data/ice_cot/latest.json'),
     safeFetch('data/euronext_cot/latest.json'),
+    safeFetch('data/bedrock/eia_storage.json'),
+    safeFetch('data/bedrock/seismic.json'),
+    safeFetch('data/bedrock/signals.json'),
+    safeFetch('data/bedrock/index.json'),
   ]);
-  Object.assign(D,{combined,cotAna,fund,oilgas,comex,agri,conab,unica,shipping,crypto,calendar,geo,signals,agriSig,ice,euronext});
+  Object.assign(D,{combined,cotAna,fund,oilgas,comex,agri,conab,unica,shipping,crypto,calendar,geo,signals,agriSig,ice,euronext,
+                   bdrEia, bdrSeismic, bdrSignals, bdrIndex});
 
   renderStateStrip();
+  renderControl();
   renderObservatory();
   renderPositions();
   renderSetups();
+  renderBedrock();
   renderPipeline();
   renderColophon();
 }
@@ -1132,6 +1388,58 @@ function renderGeo(){
   $('#plate-geo').innerHTML = plate('I·J','Geopolitical · Intel','curated · news RSS', g?.updated?ageStr(ageHours(g.updated))+' ago':'', body);
 }
 
+/* — EIA STORAGE (bedrock) — */
+function renderEia(){
+  const e = D.bdrEia;
+  if(!e || !e.data){
+    $('#plate-eia').innerHTML = plate('II·K','EIA · Petroleum & Natural Gas Storage','no data','via bedrock','<div class="skel">Awaiting bedrock import (run scripts/import_from_bedrock.py).</div>');
+    return;
+  }
+  const d = e.data;
+  const items = Object.entries(d).slice(0,5).map(([sid,v])=>{
+    const cls = v.chg_1w==null?'':v.chg_1w<0?'pos':v.chg_1w>0?'neg':'';
+    return readout(sid.replace(/_/g,' ').slice(0,18), fmt(v.value), cls, `${v.units} · Δ1w ${v.chg_1w!=null?(v.chg_1w>0?'+':'')+fmt(v.chg_1w):'—'}`);
+  });
+  while(items.length<4) items.push(readout('—','—','',''));
+  const body = readouts(items.slice(0,4))
+    + descr(`EIA's <strong>weekly storage</strong> reports are the dominant fundamental for natural-gas pricing
+       and a strong secondary signal for crude. <em>Falling storage</em> against a 5-year average is supply-tight
+       and supports the energy COT longs.`)
+    + renderAffects('Energy', ['WTI','Brent Last Day','Crude Oil, Light Sweet','Natural Gas Index']);
+  $('#plate-eia').innerHTML = plate('II·K','EIA · Storage','via bedrock · weekly','('+e.rows+' rows · '+e.series_count+' series)', body);
+}
+
+/* — SEISMIC EVENTS (bedrock) — */
+function renderSeismic(){
+  const s = D.bdrSeismic;
+  if(!s || !s.data){
+    $('#plate-seismic').innerHTML = plate('II·L','USGS · Seismic Events','no data','via bedrock','<div class="skel">Awaiting bedrock import.</div>');
+    return;
+  }
+  const top5 = s.data.slice(0,5);
+  const rows = top5.map(e=>{
+    const m = e.magnitude || 0;
+    const cls = m>=6?'neg':m>=5?'warn':'info';
+    return `<div class="ind">
+      <span class="ind-name">M${m.toFixed(1)} · ${escapeHTML((e.place||'').slice(0,40))}</span>
+      <span class="ind-trend ${cls==='neg'?'dn':cls==='warn'?'flat':'flat'}">${escapeHTML((e.event_ts||'').slice(0,10))}</span>
+    </div>`;
+  }).join('');
+  const max = Math.max(...s.data.map(e=>e.magnitude||0));
+  const body = readouts([
+    readout('Events ≥M4', s.rows, '',''),
+    readout('Largest', max.toFixed(1)+'M', max>=6?'neg':max>=5?'warn':'info',''),
+    readout('Window', '~30 days', '',''),
+    readout('Source', 'USGS', '',''),
+  ])
+    + descr(`Major seismic events near <strong>energy infrastructure</strong> (Strait of Hormuz, Sakhalin, Gulf of Mexico)
+       or <strong>mining regions</strong> (Chile copper, South Africa gold) shift physical-supply premia.
+       Bedrock keeps a rolling list filtered to magnitude ≥4.0.`)
+    + (rows?`<div class="ind-list">${rows}</div>`:'')
+    + renderAffects('Geo', AFFECTS.seismic);
+  $('#plate-seismic').innerHTML = plate('II·L','USGS · Seismic','via bedrock · daily', s.rows+' events', body);
+}
+
 function renderObservatory(){
   renderMacro();
   renderRates();
@@ -1141,8 +1449,590 @@ function renderObservatory(){
   renderAgriBrazil();
   renderShipping();
   renderCrypto();
+  renderEia();
+  renderSeismic();
   renderCalendar();
   renderGeo();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   I · CONTROL PANEL
+   Per-instrument synthesis. Rules call factor functions which return
+   {bias: -1..+1, weight, label, value, why}. The card sums weighted
+   bias, paints a -3..+3 gauge, and lists the contributing factors.
+   ════════════════════════════════════════════════════════════════ */
+
+/* helpers used by factor functions */
+function _cot(symbol, report){
+  // find combined row
+  return (D.combined||[]).find(r=>r.symbol===symbol && (!report||r.report===report));
+}
+function _ana(name){
+  const ana = D.cotAna?.assets || {};
+  const k = name.replace(/[^A-Z0-9]/gi,'').toUpperCase();
+  return ana[k] || null;
+}
+
+/* factor: COT positioning percentile (52w). Below 25 = contra-bull, above 75 = contra-bear */
+function f_cot(name, weight=1.0){
+  return ()=>{
+    const a = _ana(name);
+    if(!a || a.mm_net_pctile_52w==null) return null;
+    const p = a.mm_net_pctile_52w;
+    let bias = 0;
+    if(p<=10) bias = +1.0;
+    else if(p<=25) bias = +0.5;
+    else if(p<35) bias = +0.2;
+    else if(p<65) bias = 0;
+    else if(p<75) bias = -0.2;
+    else if(p<=90) bias = -0.5;
+    else bias = -1.0;
+    return {bias, weight, label:'COT positioning', value: p.toFixed(0)+' pct',
+            why: p<25?'historic low — contra-bull':p>75?'historic high — contra-bear':'neutral'};
+  };
+}
+
+/* factor: weekly COT change (momentum) */
+function f_cot_momentum(symbol, report, weight=0.5){
+  return ()=>{
+    const r = _cot(symbol, report);
+    if(!r || r.change_spec_net==null || !r.open_interest) return null;
+    const ratio = r.change_spec_net / r.open_interest;
+    let bias = Math.max(-1, Math.min(1, ratio*30));   // ~3% of OI = full bias
+    return {bias, weight, label:'Spec flow (1w)',
+            value: (r.change_spec_net>0?'+':'')+fmt(r.change_spec_net),
+            why: r.change_spec_net>0?'specs adding longs':'specs cutting longs / adding shorts'};
+  };
+}
+
+/* factor: USD fundamental (FRED). Direction (+1 = bullish for USD-quoted, -1 = inverse for non-USD) */
+function f_usd(direction=1, weight=0.7){
+  return ()=>{
+    const f = D.fund?.usd_fundamental;
+    if(!f || f.score==null) return null;
+    const bias = Math.max(-1, Math.min(1, f.score)) * direction;
+    return {bias, weight, label:direction>0?'USD fundamental':'USD inverse',
+            value: (f.score>0?'+':'')+f.score.toFixed(2),
+            why: (f.bias||'').toUpperCase()+(direction>0?'':' (inverted for non-USD)')};
+  };
+}
+
+/* factor: real 10Y rates (negative for non-yielding stores of value) */
+function f_real_rates(direction=-1, weight=0.6){
+  return ()=>{
+    const r = D.fund?.market_rates?.dfii10;
+    if(!r || r.value==null) return null;
+    // anchor: 0% real = neutral; +2% = bearish gold; -1% = bullish gold
+    const bias = Math.max(-1, Math.min(1, -r.value/2)) * direction;
+    return {bias, weight, label:'Real 10Y',
+            value: r.value.toFixed(2)+'%',
+            why: r.value>1.5?'high carry — headwind':r.value<0?'negative — tailwind':'neutral'};
+  };
+}
+
+/* factor: COMEX physical stress (gold/silver) */
+function f_comex(metal, weight=0.6){
+  return ()=>{
+    const m = D.comex?.[metal]; const s = D.comex?.stress_index?.[metal];
+    if(!m && s==null) return null;
+    if(s==null) return null;
+    // stress 0 = ample, 100 = squeeze
+    const bias = (s-50)/50;   // -1..+1
+    return {bias, weight, label:`${metal} stress`,
+            value: s.toFixed(0)+'/100',
+            why: s>60?'physical-tight — supportive':s<40?'ample inventory':'neutral'};
+  };
+}
+
+/* factor: oil geo warning */
+function f_oil_geo(weight=0.6){
+  return ()=>{
+    const gs = D.signals?.global_state;
+    if(!gs) return null;
+    const on = !!gs.oil_geo_warning;
+    return {bias: on?+0.6:0, weight, label:'Oil geo-warning',
+            value: on?'ACTIVE':'CLEAR',
+            why: on?(gs.oil_warning_reason||'active'):'no active geo risk'};
+  };
+}
+
+/* factor: Brent–WTI spread (wide spread = WTI structural weak) */
+function f_brent_wti(direction=+1, weight=0.4){
+  return ()=>{
+    const s = D.oilgas?.brent_wti_spread;
+    if(s==null) return null;
+    // 5 = normal, 10+ = wide. wide spread is bullish brent / bearish wti
+    const bias = Math.max(-1, Math.min(1, (s-7)/5)) * direction;
+    return {bias, weight, label:'Brent–WTI spread',
+            value: s.toFixed(2),
+            why: s>9?'wide — Brent premium':s<5?'narrow':'normal'};
+  };
+}
+
+/* factor: ENSO phase (impact varies by crop) */
+function f_enso(crop_la_bias=+0.6, crop_el_bias=-0.4, weight=0.5){
+  return ()=>{
+    const e = D.agri?.enso;
+    const fc = D.agri?.enso_forecast?.iri_probabilities?.[1];   // 2-quarter ahead
+    if(!e && !fc) return null;
+    // current phase
+    const phase = (e?.phase||'').toLowerCase();
+    let bias = 0;
+    if(phase.includes('niña')||phase.includes('nina')||phase.includes('la niña')) bias = crop_la_bias;
+    else if(phase.includes('niño')||phase.includes('nino')||phase.includes('el niño')) bias = crop_el_bias;
+    // forecast nudge (if forecast leans heavily one way)
+    if(fc){
+      const lean = (fc.la_nina_pct - fc.el_nino_pct)/100;
+      bias = bias*0.7 + (lean>0?crop_la_bias:crop_el_bias)*0.3*Math.abs(lean);
+    }
+    return {bias: Math.max(-1, Math.min(1, bias)), weight, label:'ENSO',
+            value: (e?.phase||'—'),
+            why: phase.includes('niña')?'La Niña conditions':phase.includes('niño')?'El Niño conditions':'neutral phase'};
+  };
+}
+
+/* factor: Conab YoY for a given crop */
+function f_conab(crop, direction=-1, weight=0.5){
+  return ()=>{
+    const c = D.conab?.crops?.[crop];
+    if(!c || c.yoy_change_pct==null) return null;
+    // big YoY drop in production = supply tight = bullish
+    const bias = Math.max(-1, Math.min(1, -c.yoy_change_pct/15)) * direction;
+    return {bias, weight, label:`Conab ${crop} YoY`,
+            value: pct(c.yoy_change_pct),
+            why: c.yoy_change_pct<-3?'crop loss → tighter supply':c.yoy_change_pct>3?'larger crop → supply pressure':'flat YoY'};
+  };
+}
+
+/* factor: UNICA sugar mix + crush */
+function f_unica(weight=0.5){
+  return ()=>{
+    const u = D.unica;
+    if(!u || u.mix_sugar_pct==null) return null;
+    // higher sugar mix = more sugar produced = bearish prices
+    const ref = u.mix_sugar_pct_prev_year ?? 48;
+    const delta = u.mix_sugar_pct - ref;
+    const yoy = u.crush_accumulated_yoy_pct || 0;
+    let bias = -delta/10;            // +5pp mix = more sugar = bearish
+    bias += -yoy/10;                 // higher crush = bearish
+    bias = Math.max(-1, Math.min(1, bias));
+    return {bias, weight, label:'UNICA sugar mix',
+            value: u.mix_sugar_pct.toFixed(1)+'%',
+            why: delta>1?'mix shifting to sugar':delta<-1?'mix shifting to ethanol — bullish sugar':'flat'};
+  };
+}
+
+/* factor: BDI proxy for bulk-commodity demand */
+function f_bdi(weight=0.4){
+  return ()=>{
+    const b = D.shipping?.indices?.find(x=>x.id==='bdi');
+    if(!b || !b.data) return null;
+    const dev = b.data.dev_ma; if(dev==null) return null;
+    const bias = Math.max(-1, Math.min(1, dev/15));
+    return {bias, weight, label:'Baltic Dry',
+            value: fmt(b.data.value),
+            why: dev>10?'rates well above MA20 — physical-strong':dev<-10?'rates below MA20':'neutral'};
+  };
+}
+
+/* factor: VIX regime */
+function f_vix(direction=-1, weight=0.4){
+  // direction = +1 for risk-on assets, -1 for safe-havens
+  return ()=>{
+    const r = D.signals?.global_state?.vix_regime;
+    if(!r) return null;
+    let bias = 0;
+    if(r==='spike') bias = -1;
+    else if(r==='elevated') bias = -0.5;
+    else if(r==='normal') bias = +0.2;
+    else if(r==='depressed') bias = +0.5;
+    return {bias: bias*direction, weight, label:'VIX regime',
+            value: r.toUpperCase(),
+            why: r==='spike'?'fear spike':'tape calm/normal'};
+  };
+}
+
+/* factor: BTC dominance trend (for crypto) */
+function f_btc_dom(direction=+1, weight=0.5){
+  return ()=>{
+    const d = D.crypto?.market?.btc_dominance;
+    if(d==null) return null;
+    // > 60 = risk-off within crypto, supports BTC, hurts alts
+    const bias = Math.max(-1, Math.min(1, (d-55)/10)) * direction;
+    return {bias, weight, label:'BTC dominance',
+            value: d.toFixed(1)+'%',
+            why: d>60?'BTC accumulating share':d<50?'alt rotation':'balanced'};
+  };
+}
+
+/* factor: fear & greed */
+function f_fear_greed(direction=+1, weight=0.3){
+  return ()=>{
+    const f = D.crypto?.fear_greed;
+    if(!f) return null;
+    const v = f.score ?? f.value;
+    if(v==null) return null;
+    // contrarian: extreme fear = +bullish, extreme greed = -bullish
+    const bias = -((v-50)/50) * direction;
+    return {bias: Math.max(-1, Math.min(1, bias)), weight, label:'Fear & Greed',
+            value: v+' ('+(f.label||f.classification||'')+')',
+            why: v<25?'extreme fear — contra-bull':v>75?'extreme greed — contra-bear':'neutral'};
+  };
+}
+
+/* factor: bedrock signal as overlay (if available for this instrument) */
+function f_bedrock(instrument){
+  return ()=>{
+    const sigs = D.bdrSignals?.raw;
+    if(!Array.isArray(sigs)) return null;
+    // pick highest-grade match for this instrument
+    const cand = sigs.filter(s=>String(s.instrument||'').toUpperCase()===instrument.toUpperCase());
+    if(!cand.length) return null;
+    const order = {'A+':0,'A':1,'A-':2,'B+':3,'B':4,'B-':5,'C':6};
+    cand.sort((a,b)=>(order[a.grade]??9)-(order[b.grade]??9));
+    const s = cand[0];
+    const dir = String(s.direction||'').toLowerCase();
+    const ratio = (s.score||0)/(s.max_score||5.8);
+    const bias = (dir==='buy'?1:-1) * Math.min(1, ratio);
+    return {bias: bias*0.8, weight: 0.6, label:'Bedrock setup',
+            value: s.grade+' · '+(s.score||0).toFixed(2),
+            why: `${dir.toUpperCase()} ${s.horizon||''} · ${s.published?'published':'below floor'}`};
+  };
+}
+
+/* The instrument catalog. Keys map to combined-row symbols where possible. */
+const SYNTH = [
+  // ─── Foreign exchange
+  {key:'EURUSD', name:'EUR / USD', symbol:'099741', report:'tff', group:'fx', factors:[
+    f_cot('EURUSD',1.2), f_cot_momentum('099741','tff'), f_usd(-1,0.8), f_bedrock('EURUSD'),
+  ]},
+  {key:'GBPUSD', name:'GBP / USD', symbol:'096742', report:'tff', group:'fx', factors:[
+    f_cot('GBPUSD',1.2), f_cot_momentum('096742','tff'), f_usd(-1,0.8), f_bedrock('GBPUSD'),
+  ]},
+  {key:'USDJPY', name:'USD / JPY', symbol:'097741', report:'tff', group:'fx', factors:[
+    f_cot('USDJPY',1.2), f_cot_momentum('097741','tff'), f_usd(+1,0.8), f_bedrock('USDJPY'),
+  ]},
+  {key:'AUDUSD', name:'AUD / USD', symbol:'232741', report:'tff', group:'fx', factors:[
+    f_cot('AUDUSD',1.2), f_cot_momentum('232741','tff'), f_usd(-1,0.6), f_bedrock('AUDUSD'),
+  ]},
+  {key:'NZDUSD', name:'NZD / USD', symbol:'112741', report:'tff', group:'fx', factors:[
+    f_cot('NZDUSD',1.2), f_cot_momentum('112741','tff'), f_usd(-1,0.6),
+  ]},
+  {key:'USDCAD', name:'USD / CAD', symbol:'090741', report:'tff', group:'fx', factors:[
+    f_cot('USDCAD',1.2), f_cot_momentum('090741','tff'), f_usd(+1,0.7),
+  ]},
+  {key:'DXY', name:'Dollar Index (DXY)', symbol:'098662', report:'disaggregated', group:'fx', factors:[
+    f_usd(+1,1.2), f_real_rates(+1,0.6), f_vix(+1,0.3), f_bedrock('DXY'),
+  ]},
+
+  // ─── Metals
+  {key:'GOLD', name:'Gold', symbol:'088691', report:'disaggregated', group:'metals', factors:[
+    f_cot('Gold',1.2), f_cot_momentum('088691','disaggregated'),
+    f_real_rates(-1,0.8), f_usd(-1,0.6), f_comex('gold',0.5), f_oil_geo(0.4), f_bedrock('XAUUSD'),
+  ]},
+  {key:'SILVER', name:'Silver', symbol:'084691', report:'disaggregated', group:'metals', factors:[
+    f_cot('Silver',1.2), f_cot_momentum('084691','disaggregated'),
+    f_real_rates(-1,0.7), f_comex('silver',0.8), f_bedrock('XAGUSD'),
+  ]},
+  {key:'COPPER', name:'Copper', symbol:'085692', report:'disaggregated', group:'metals', factors:[
+    f_cot('Copper',1.2), f_cot_momentum('085692','disaggregated'),
+    f_bdi(0.5), f_comex('copper',0.4),
+  ]},
+  {key:'PLATINUM', name:'Platinum', symbol:'076651', report:'disaggregated', group:'metals', factors:[
+    f_cot('Platinum',1.2), f_cot_momentum('076651','disaggregated'),
+  ]},
+  {key:'PALLADIUM', name:'Palladium', symbol:'075651', report:'disaggregated', group:'metals', factors:[
+    f_cot('Palladium',1.2), f_cot_momentum('075651','disaggregated'),
+  ]},
+
+  // ─── Energy
+  {key:'WTI', name:'WTI Crude', symbol:'067651', report:'disaggregated', group:'energy', factors:[
+    f_cot('WTI',1.2), f_cot_momentum('067651','disaggregated'),
+    f_oil_geo(0.7), f_brent_wti(-1,0.5), f_bedrock('XTIUSD'),
+  ]},
+  {key:'BRENT', name:'Brent Crude', symbol:'06765T', report:'disaggregated', group:'energy', factors:[
+    f_cot('BrentLastDay',1.2), f_cot_momentum('06765T','disaggregated'),
+    f_oil_geo(0.7), f_brent_wti(+1,0.5),
+  ]},
+  {key:'NATGAS', name:'Natural Gas', symbol:'023391', report:'disaggregated', group:'energy', factors:[
+    f_cot('NatGas',1.0), f_cot_momentum('023391','disaggregated'),
+  ]},
+
+  // ─── Equities
+  {key:'SPX', name:'S&P 500', symbol:'13874+', report:'tff', group:'equity', factors:[
+    f_cot('SP500',1.0), f_cot_momentum('13874+','tff'),
+    f_vix(+1,0.7), f_real_rates(-1,0.4), f_bedrock('SPX500'),
+  ]},
+  {key:'NDX', name:'Nasdaq 100', symbol:'20974+', report:'tff', group:'equity', factors:[
+    f_cot('Nasdaq',1.0), f_cot_momentum('20974+','tff'),
+    f_vix(+1,0.7), f_real_rates(-1,0.5),
+  ]},
+  {key:'RUT', name:'Russell 2000', symbol:'239742', report:'tff', group:'equity', factors:[
+    f_cot('Russell2000',1.0), f_cot_momentum('239742','tff'), f_vix(+1,0.6),
+  ]},
+  {key:'VIX', name:'VIX Futures', symbol:'1170E1', report:'tff', group:'equity', factors:[
+    f_cot('VIX',1.0), f_cot_momentum('1170E1','tff'), f_vix(-1,0.7),
+  ]},
+
+  // ─── Agri
+  {key:'CORN', name:'Corn', symbol:'002602', report:'disaggregated', group:'agri', factors:[
+    f_cot('Corn',1.2), f_cot_momentum('002602','disaggregated'),
+    f_enso(+0.6,-0.5,0.6), f_conab('milho',-1,0.5),
+  ]},
+  {key:'SOY', name:'Soybeans', symbol:'005602', report:'disaggregated', group:'agri', factors:[
+    f_cot('Soybeans',1.2), f_cot_momentum('005602','disaggregated'),
+    f_enso(+0.5,-0.4,0.6), f_conab('soja',-1,0.6),
+  ]},
+  {key:'WHEAT', name:'Wheat', symbol:'001602', report:'disaggregated', group:'agri', factors:[
+    f_cot('Wheat',1.2), f_cot_momentum('001602','disaggregated'),
+    f_enso(+0.4,-0.3,0.5),
+  ]},
+  {key:'COTTON', name:'Cotton', symbol:'033661', report:'disaggregated', group:'agri', factors:[
+    f_cot('Cotton',1.2), f_cot_momentum('033661','disaggregated'),
+    f_conab('algodao',-1,0.5),
+  ]},
+  {key:'SUGAR', name:'Sugar No. 11', symbol:'080732', report:'disaggregated', group:'agri', factors:[
+    f_cot('Sugar',1.2), f_cot_momentum('080732','disaggregated'),
+    f_unica(0.7),
+  ]},
+  {key:'COFFEE', name:'Coffee (Arabica)', symbol:'083731', report:'disaggregated', group:'agri', factors:[
+    f_cot('Coffee',1.2), f_cot_momentum('083731','disaggregated'),
+    f_conab('cafe_total',-1,0.6), f_enso(+0.3,-0.5,0.4),
+  ]},
+  {key:'COCOA', name:'Cocoa', symbol:'073732', report:'disaggregated', group:'agri', factors:[
+    f_cot('Cocoa',1.2), f_cot_momentum('073732','disaggregated'),
+  ]},
+
+  // ─── Crypto
+  {key:'BTC', name:'Bitcoin', symbol:'133741', report:'disaggregated', group:'crypto', factors:[
+    f_cot('Bitcoin',1.0), f_cot_momentum('133741','disaggregated'),
+    f_btc_dom(+1,0.4), f_fear_greed(+1,0.4), f_bedrock('BTCUSD'),
+  ]},
+  {key:'ETH', name:'Ether', symbol:'146021', report:'disaggregated', group:'crypto', factors:[
+    f_cot('Ether',1.0), f_cot_momentum('146021','disaggregated'),
+    f_btc_dom(-1,0.4), f_fear_greed(+1,0.4),
+  ]},
+];
+
+const CTRL_GROUP_LABEL = {fx:'FX', metals:'Metals', energy:'Energy', equity:'Equities', agri:'Agriculture', crypto:'Crypto'};
+const CTRL_GROUPS = ['fx','metals','energy','equity','agri','crypto'];
+const CTRL_STATE = { groups: new Set(CTRL_GROUPS) };
+
+function synthesize(rules){
+  const factors = [];
+  for(const fn of rules.factors){
+    try{ const r = fn(); if(r) factors.push(r); }
+    catch{ /* skip on missing data */ }
+  }
+  if(!factors.length) return {score:0, label:'no data', factors:[], confidence:0};
+  // weighted bias
+  let num=0, den=0;
+  for(const f of factors){ num += f.bias * f.weight; den += f.weight; }
+  const norm = den ? num/den : 0;     // -1..+1
+  const score = +(norm*3).toFixed(2);   // -3..+3
+  const conf = Math.min(1, factors.length/5);
+  let label = 'neutral';
+  if(score>=2) label = 'strong bull';
+  else if(score>=0.7) label = 'bull';
+  else if(score>=0.25) label = 'lean bull';
+  else if(score>-0.25) label = 'neutral';
+  else if(score>-0.7) label = 'lean bear';
+  else if(score>-2) label = 'bear';
+  else label = 'strong bear';
+  return {score, label, factors, confidence:conf};
+}
+
+function renderControl(){
+  const tg = $('#ctrlGroupToggles');
+  tg.innerHTML = CTRL_GROUPS.map(g=>`<button class="hm-cat on" data-grp="${g}">${CTRL_GROUP_LABEL[g]}</button>`).join('');
+  tg.onclick = (e)=>{ const b=e.target.closest('.hm-cat'); if(!b) return;
+    const g=b.dataset.grp;
+    if(CTRL_STATE.groups.has(g)) CTRL_STATE.groups.delete(g); else CTRL_STATE.groups.add(g);
+    b.classList.toggle('on'); drawControl(); };
+  drawControl();
+}
+
+function drawControl(){
+  const items = SYNTH.filter(r=>CTRL_STATE.groups.has(r.group));
+  const cards = items.map(rules=>{
+    const s = synthesize(rules);
+    let cls = 'neutral';
+    if(s.score>=2) cls = 'strong-bull';
+    else if(s.score>=0.7) cls = 'bull';
+    else if(s.score>-0.7) cls = s.score>-0.25?'neutral':'bear';
+    else if(s.score>=-2) cls = 'bear';
+    else cls = 'strong-bear';
+    const verdictCls = s.score>0.25?'bull':s.score<-0.25?'bear':'neutral';
+    // needle position 0..100% on -3..+3 axis
+    const needleLeft = ((s.score + 3) / 6 * 100).toFixed(1);
+    const factorsHTML = s.factors.slice(0,5).map(f=>{
+      const arr = f.bias>0.1?'<span class="arr up">▲</span>':f.bias<-0.1?'<span class="arr dn">▼</span>':'<span class="arr eq">·</span>';
+      return `<div class="ctrl-fact">${arr}
+        <span><strong>${escapeHTML(f.label)}</strong> <span class="why">— ${escapeHTML(f.why)}</span></span>
+        <span class="val">${escapeHTML(f.value)}</span>
+      </div>`;
+    }).join('') || '<div class="ctrl-fact"><span class="arr eq">—</span><span class="why">no contributing data yet</span><span></span></div>';
+    // bedrock 2nd opinion (if present)
+    const bdr = (D.bdrSignals?.raw||[]).filter(x=>String(x.instrument||'').toUpperCase()===rules.key.toUpperCase());
+    const order = {'A+':0,'A':1,'A-':2,'B+':3,'B':4,'B-':5,'C':6};
+    bdr.sort((a,b)=>(order[a.grade]??9)-(order[b.grade]??9));
+    let bdrLine = '<span class="none">no bedrock signal</span>';
+    if(bdr.length){
+      const b0 = bdr[0];
+      bdrLine = `<span class="grade">${escapeHTML(b0.grade||'?')}</span>${escapeHTML((b0.direction||'').toUpperCase())} · ${escapeHTML(b0.horizon||'')} · ${b0.published?'published':'below floor'}`;
+    }
+    return `<div class="ctrl-card ${cls}" data-symbol="${escapeHTML(rules.symbol||'')}" data-report="${escapeHTML(rules.report||'')}">
+      <div class="ctrl-card-hd">
+        <span class="nm">${escapeHTML(rules.name)}</span>
+        <span class="sym">${escapeHTML(rules.key)}</span>
+      </div>
+      <div class="ctrl-gauge">
+        <div class="axis-mark" style="left:33.3%;"></div>
+        <div class="axis-mark zero" style="left:50%;"></div>
+        <div class="axis-mark" style="left:66.7%;"></div>
+        <div class="needle ${verdictCls}" style="left:${needleLeft}%;"></div>
+      </div>
+      <div class="ctrl-gauge-labels"><span>BEAR −3</span><span>0</span><span>+3 BULL</span></div>
+      <div class="ctrl-verdict">
+        <span class="v ${verdictCls}">${escapeHTML(s.label)}</span>
+        <span class="score">${s.score>0?'+':''}${s.score}</span>
+      </div>
+      <div class="ctrl-factors">${factorsHTML}</div>
+      <div class="ctrl-bedrock">${bdrLine}</div>
+    </div>`;
+  }).join('');
+  $('#ctrlGrid').innerHTML = cards || '<div class="skel">No instruments selected.</div>';
+  // counts
+  const bulls = items.filter(r=>synthesize(r).score>=0.25).length;
+  const bears = items.filter(r=>synthesize(r).score<=-0.25).length;
+  $('#ctrlSummary').textContent = `${items.length} instruments · ${bulls} bull · ${bears} bear · ${items.length-bulls-bears} neutral`;
+  // wire clicks → drill into Positions
+  $$('.ctrl-card').forEach(el=>el.onclick = ()=>{
+    if(el.dataset.symbol) openMarket(el.dataset.symbol, el.dataset.report);
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   V · BEDROCK SETUPS — read bedrock's signals.json passthrough
+   ════════════════════════════════════════════════════════════════ */
+const BDR_STATE = { horizon:'all', pubOnly:true };
+
+function renderBedrock(){
+  $('#bedrockHorizonTabs').onclick = (e)=>{ const b=e.target.closest('.hm-cat'); if(!b) return;
+    BDR_STATE.horizon = b.dataset.h;
+    $$('#bedrockHorizonTabs .hm-cat').forEach(x=>x.classList.toggle('on', x===b));
+    drawBedrock(); };
+  $('#bedrockPubOnly').onchange = (e)=>{ BDR_STATE.pubOnly=e.target.checked; drawBedrock(); };
+  drawBedrock();
+  if(D.bdrSignals?.generated){
+    $('#bedrockStamp').textContent = ageStr(ageHours(D.bdrSignals.generated))+' ago';
+  }
+}
+
+function drawBedrock(){
+  const sigs = D.bdrSignals?.raw;
+  if(!Array.isArray(sigs) || !sigs.length){
+    $('#bedrockList').innerHTML = `<div class="bedrock-empty">
+      <strong>Bedrock signals not yet wired.</strong><br>
+      Run <code>python3 scripts/import_from_bedrock.py</code> on the host that has access to <code>~/bedrock/bedrock.db</code>.
+      <br>This panel will populate automatically once <code>data/bedrock/signals.json</code> contains scored setups.
+    </div>`;
+    $('#bedrockCount').textContent = '';
+    return;
+  }
+  let rows = [...sigs];
+  if(BDR_STATE.horizon!=='all') rows = rows.filter(s=>String(s.horizon||'').toLowerCase()===BDR_STATE.horizon);
+  if(BDR_STATE.pubOnly) rows = rows.filter(s=>s.published);
+  // sort by grade then score
+  const order = {'A+':0,'A':1,'A-':2,'B+':3,'B':4,'B-':5,'C':6};
+  rows.sort((a,b)=>{
+    const o = (order[a.grade]??9) - (order[b.grade]??9);
+    if(o) return o;
+    return (b.score||0) - (a.score||0);
+  });
+  const HTML = rows.map((s,i)=>{
+    const dir = String(s.direction||'').toLowerCase()==='buy'?'bull':String(s.direction||'').toLowerCase()==='sell'?'bear':'';
+    const max = s.max_score || 5.8;
+    const floor = (s.min_score_publish || 0) / max * 100;
+    const fillW = Math.max(0, Math.min(100, (s.score || 0) / max * 100));
+    const fams = s.families || {};
+    const famHTML = ['trend','positioning','macro','fundamental','risk','structure'].map(g=>{
+      const x = fams[g];
+      const score = x?.score ?? 0;
+      const cls = score>=0.66?'hi':score>=0.33?'mid':'lo';
+      return `<div class="bf ${cls}" title="${escapeHTML(g)}: ${score.toFixed(2)}">${g[0].toUpperCase()}</div>`;
+    }).join('');
+    const setup = s.setup?.setup || s.setup || {};
+    const setupMini = setup.entry!=null
+      ? `entry ${fmt(setup.entry,4)} · sl ${fmt(setup.sl,4)}${setup.tp!=null?' · tp '+fmt(setup.tp,4):''}`
+      : '';
+    return `<div class="bedrock-row ${dir} ${s.published?'':'unpub'}" data-idx="${i}">
+      <div class="grade">${escapeHTML(s.grade||'?')}</div>
+      <div class="nm">${escapeHTML(s.instrument||'')}<span class="horiz">${escapeHTML(s.horizon||'')}</span></div>
+      <div class="dir ${dir}">${escapeHTML(s.direction||'')}</div>
+      <div class="pub-pill ${s.published?'yes':'no'}">${s.published?'PUB':'BELOW'}</div>
+      <div class="score-bar">
+        <span class="track"><span class="fill" style="width:${fillW}%"></span><span class="floor" style="left:${floor}%"></span></span>
+        <span class="pct">${(s.score||0).toFixed(2)}</span>
+      </div>
+      <div class="bedrock-fams">${famHTML}</div>
+      <div class="setup-mini">${escapeHTML(setupMini)}</div>
+    </div>`;
+  }).join('');
+  $('#bedrockList').innerHTML = HTML || '<div class="bedrock-empty">No setups match the current filter.</div>';
+  $('#bedrockCount').textContent = `${rows.length} of ${sigs.length} signals shown`;
+  // wire row click → modal with full driver trace
+  D._bdrRows = rows;
+  $$('.bedrock-row').forEach(el=>el.onclick = ()=>openBedrockSetup(parseInt(el.dataset.idx,10)));
+}
+
+function openBedrockSetup(i){
+  const s = (D._bdrRows||[])[i]; if(!s) return;
+  const fams = s.families || {};
+  const famsHTML = Object.entries(fams).map(([fname, fdata])=>{
+    const drivers = (fdata.drivers||[]).map(d=>{
+      const contrib = d.contribution ?? (d.value||0)*(d.weight||0);
+      const cls = contrib>0.2?'up':contrib<-0.05?'dn':'flat';
+      return `<div class="ind">
+        <span class="ind-name">${escapeHTML(d.name)}</span>
+        <span class="ind-val">${(d.value??0).toFixed(2)} × ${(d.weight??0).toFixed(2)}</span>
+        <span class="ind-trend ${cls}">${(contrib).toFixed(3)}</span>
+      </div>`;
+    }).join('') || '<div class="skel">no drivers fired</div>';
+    return `<div style="margin-bottom:12px;">
+      <div class="grp-name" style="font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--brass);text-transform:uppercase;letter-spacing:.1em;font-weight:600;display:flex;justify-content:space-between;border-bottom:1px solid var(--brass-dim);padding-bottom:3px;margin-bottom:4px;">
+        <span>${escapeHTML(fname)}</span><span>${(fdata.score||0).toFixed(2)}</span>
+      </div>
+      <div class="ind-list" style="grid-template-columns:1fr;">${drivers}</div>
+    </div>`;
+  }).join('');
+  const setup = s.setup?.setup || s.setup || {};
+  const setupHTML = setup.entry!=null
+    ? `<div class="readouts" style="margin-top:10px;">
+        ${readout('Entry', fmt(setup.entry,5), '', '')}
+        ${readout('Stop loss', fmt(setup.sl,5), 'neg', '')}
+        ${setup.tp!=null?readout('Take profit', fmt(setup.tp,5), 'pos', ''):readout('Take profit','—','','')}
+        ${setup.atr!=null?readout('ATR', fmt(setup.atr,5), '', ''):readout('ATR','—','','')}
+      </div>`
+    : '';
+  $('#modalCard').innerHTML = `
+    <div class="modal-hd">
+      <div class="nm">${escapeHTML(s.instrument||'')}</div>
+      <div class="sym">${escapeHTML(String(s.direction||'').toUpperCase())} · ${escapeHTML(s.horizon||'')} · grade ${escapeHTML(s.grade||'?')}</div>
+      <button class="x" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="readouts">
+        ${readout('Score', (s.score||0).toFixed(2)+' / '+(s.max_score||0).toFixed(1), s.published?'pos':'', 'floor: '+(s.min_score_publish||0).toFixed(2))}
+        ${readout('Published', s.published?'YES':'NO', s.published?'pos':'', '')}
+        ${readout('Setup ID', escapeHTML((s.setup?.setup_id||'—').slice(0,12)), '', '')}
+        ${readout('Gates', (s.gates_triggered||[]).join(', ')||'—', (s.gates_triggered||[]).length?'warn':'', '')}
+      </div>
+      ${setupHTML}
+      <div class="narrative">Bedrock evaluated ${Object.keys(fams).length} families. ${s.skip_reason?'<strong>Skip:</strong> '+escapeHTML(s.skip_reason):''}</div>
+      ${famsHTML}
+    </div>`;
+  $('#modal').classList.add('open');
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -1424,6 +2314,24 @@ const PIPELINE_GROUPS = [
   { name:'Setups (read-only)', files:[
     {p:'data/signals.json',       d:'Scored cross-asset setups (A/B grades surfaced)'},
     {p:'data/agri_signals.json',  d:'Scored fundamental agri setups'},
+  ]},
+  { name:'Bedrock · imported from ~/bedrock/bedrock.db', files:[
+    {p:'data/bedrock/index.json',         d:'Index of all bedrock exports + freshness'},
+    {p:'data/bedrock/signals.json',       d:'Live mirror of bedrock’s signals.json'},
+    {p:'data/bedrock/eia_storage.json',   d:'EIA petroleum + natural-gas storage (weekly)'},
+    {p:'data/bedrock/seismic.json',       d:'USGS earthquakes ≥ M4.0 (rolling 50)'},
+    {p:'data/bedrock/cot_euronext.json',  d:'Euronext MiFID II COT mirror'},
+    {p:'data/bedrock/comex.json',         d:'COMEX vault (Au / Ag / Cu) mirror'},
+    {p:'data/bedrock/conab.json',         d:'Conab Brazil grain & coffee mirror'},
+    {p:'data/bedrock/unica.json',         d:'UNICA sugar-cane crush mirror'},
+    {p:'data/bedrock/cot_legacy.json',    d:'CFTC COT legacy (awaiting bedrock fetcher)'},
+    {p:'data/bedrock/cot_disagg.json',    d:'CFTC COT disaggregated (awaiting bedrock fetcher)'},
+    {p:'data/bedrock/fundamentals.json',  d:'FRED macro mirror (awaiting bedrock fetcher)'},
+    {p:'data/bedrock/weather.json',       d:'NOAA daily weather (awaiting bedrock fetcher)'},
+    {p:'data/bedrock/crop_progress.json', d:'NASS crop progress (awaiting bedrock fetcher)'},
+    {p:'data/bedrock/wasde.json',         d:'USDA WASDE reports (awaiting bedrock fetcher)'},
+    {p:'data/bedrock/bdi.json',           d:'Baltic indices (awaiting bedrock fetcher)'},
+    {p:'data/bedrock/analogs.json',       d:'K-NN analog outcomes (awaiting bedrock fetcher)'},
   ]},
 ];
 async function renderPipeline(){
