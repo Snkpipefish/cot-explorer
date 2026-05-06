@@ -2357,10 +2357,25 @@ function renderSparkline(rows, key='spec_net'){
 function renderSetups(){
   const tech = D.signals?.signals||[];
   const agri = D.agriSig?.signals||[];
-  // merge by key
-  const seen = new Set(); const all=[];
-  for(const s of tech){ const k=s.key||s.name; seen.add(k); all.push({...s, _src:'tech'}); }
-  for(const s of agri){ const k=s.key||s.name; if(!seen.has(k)) all.push({...s, _src:'agri'}); }
+  // Merge: agri-source wins when present.
+  // push_signals.py copies agri entries into signals.json but strips driver_groups
+  // to a stub {} — the rich version lives only in agri_signals.json. So we index
+  // the agri side first, and only fall back to tech for keys agri doesn't carry.
+  const agriByKey = new Map();
+  for(const s of agri){ agriByKey.set(s.key||s.name, s); }
+  const all = [];
+  for(const s of tech){
+    const k = s.key||s.name;
+    if(s.source === 'agri_fundamental' && agriByKey.has(k)){
+      // tech-side has only a stub; use the agri-side full record
+      all.push({...agriByKey.get(k), _src:'agri'});
+      agriByKey.delete(k);
+    } else {
+      all.push({...s, _src:'tech'});
+    }
+  }
+  // Any agri entries not represented in tech (rare, but possible)
+  for(const [k,s] of agriByKey){ all.push({...s, _src:'agri'}); }
   // filter A/B grades only
   const ranked = all.filter(s=>['A+','A','A-','B+','B','B-'].includes(s.grade)).sort((a,b)=>{
     const order={'A+':0,'A':1,'A-':2,'B+':3,'B':4,'B-':5};
@@ -2375,9 +2390,15 @@ function renderSetups(){
     const dbars = ['trend','positioning','macro','fundamental','risk','structure'].map(g=>{
       const x = groups[g]||{};
       const ratio = (x.score||0)/((x.weight||1)||1);
-      const cls = ratio>0.7?'hi':ratio>0.3?'mid':'lo';
+      const drvCount = (x.drivers||[]).length;
+      // Classify on score-ratio first; bump up to at least 'mid' when drivers fired
+      let cls;
+      if(ratio>0.7) cls='hi';
+      else if(ratio>0.3 || drvCount>=2) cls='mid';
+      else if(drvCount>=1) cls='mid';
+      else cls='lo';
       const letter = g[0].toUpperCase();
-      return `<div class="dbar ${cls}" title="${g}: ${(x.score||0).toFixed(2)}/${(x.weight||0).toFixed(2)}">${letter}</div>`;
+      return `<div class="dbar ${cls}" title="${g}: ${(x.score||0).toFixed(2)}/${(x.weight||0).toFixed(2)} · ${drvCount} drivers">${letter}</div>`;
     }).join('');
     // agri rows lead with crop-context flavor; tech rows use group_drivers
     let flavor = '';
