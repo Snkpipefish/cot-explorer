@@ -252,6 +252,72 @@ body{
 .tag.neg{border-color:var(--sig-neg-dim);background:rgba(194,92,92,.12);}
 .tag.neg:hover{background:var(--sig-neg);}
 
+/* ─── Tab-level explainer banner ─── */
+.explainer{
+  background:linear-gradient(180deg,#13192a 0%,#10162a 100%);
+  border:1px solid var(--ink-rule);
+  border-left:3px solid var(--brass);
+  padding:14px 18px;margin-bottom:18px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px;line-height:1.55;color:var(--ink-bone);
+}
+.explainer strong{color:var(--ink-paper);font-weight:600;}
+.explainer strong.hi{color:var(--brass);}
+.explainer code{font-family:'JetBrains Mono',monospace;font-size:12px;
+  background:rgba(201,163,94,.08);padding:1px 5px;border:1px solid var(--brass-dim);}
+
+/* ─── Today's Conclusion strip — top of Control Panel ─── */
+.conclusion{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;
+}
+.conclusion-card{
+  background:linear-gradient(180deg,#141a2c 0%,#10162a 100%);
+  border:1px solid var(--ink-rule);
+  padding:13px 16px;
+}
+.conclusion-card.bull{border-left:3px solid var(--sig-pos);}
+.conclusion-card.bear{border-left:3px solid var(--sig-neg);}
+.conclusion-card .ch{
+  font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-paper);margin-bottom:6px;display:flex;align-items:baseline;gap:6px;
+}
+.conclusion-card.bull .ch{color:var(--sig-pos);}
+.conclusion-card.bear .ch{color:var(--sig-neg);}
+.conclusion-card .ch .ct{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);font-weight:400;letter-spacing:0;text-transform:none;}
+.conclusion-row{
+  display:grid;grid-template-columns:18px 1fr 60px;gap:8px;
+  font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-bone);
+  padding:4px 0;border-bottom:1px dotted var(--ink-rule-soft);
+  align-items:baseline;cursor:pointer;
+}
+.conclusion-row:hover{color:var(--ink-paper);}
+.conclusion-row:last-child{border-bottom:none;}
+.conclusion-row .rk{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);}
+.conclusion-row .nm{}
+.conclusion-row .sc{font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right;font-weight:500;}
+.conclusion-row.bull .sc{color:var(--sig-pos);}
+.conclusion-row.bear .sc{color:var(--sig-neg);}
+.conclusion-meta{
+  display:flex;gap:14px;flex-wrap:wrap;
+  margin-top:10px;padding-top:10px;border-top:1px dotted var(--ink-rule-soft);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-bone-dim);
+}
+.conclusion-meta .pill{font-size:10px;}
+@media (max-width:780px){
+  .conclusion{grid-template-columns:1fr;}
+}
+
+/* ─── Freshness pill on Control-Panel cards ─── */
+.ctrl-fresh{
+  position:absolute;top:8px;right:10px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.04em;
+  padding:1px 6px;border:1px solid;
+}
+.ctrl-fresh.fresh{color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.08);}
+.ctrl-fresh.aging{color:var(--sig-warn);border-color:rgba(212,164,74,.4);background:rgba(212,164,74,.05);}
+.ctrl-fresh.stale{color:var(--sig-neg);border-color:var(--sig-neg-dim);background:rgba(194,92,92,.08);}
+
 /* ─── Per-plate data-source inventory chips (Sources-at-a-glance footer) ─── */
 .src-row{
   display:flex;align-items:flex-start;gap:10px;
@@ -846,7 +912,7 @@ body{
 
 <nav class="tabs">
   <button class="tab active" data-tab="control"><span>Control Panel</span><span class="num">I</span></button>
-  <button class="tab" data-tab="observatory"><span>Observatory</span><span class="num">II</span></button>
+  <button class="tab" data-tab="observatory"><span>Market Regime</span><span class="num">II</span></button>
   <button class="tab" data-tab="positions"><span>Positions</span><span class="num">III</span></button>
   <button class="tab" data-tab="setups"><span>Setups</span><span class="num">IV</span></button>
   <button class="tab" data-tab="bedrock"><span>Bedrock</span><span class="num">V</span></button>
@@ -868,6 +934,8 @@ body{
 
   <!-- ═══════════════════════ I · CONTROL PANEL ═══════════════════════ -->
   <section class="panel active" id="panel-control">
+    <!-- Today's Conclusion strip — strongest bull / bear / extremes / freshness -->
+    <div id="ctrlConclusion"></div>
     <div class="plate">
       <div class="plate-hd">
         <span class="num">I</span>
@@ -884,7 +952,7 @@ body{
           The gauge runs <strong>−3 (bearish) to +3 (bullish)</strong>; the bars below name the contributing factors.
           Click a card to drill into the underlying market in <strong>Positions</strong>.</em>
         </p>
-        <div class="ctrl-grid" id="ctrlGrid"><div class="skel">Reading the constellations…</div></div>
+        <div class="ctrl-grid" id="ctrlGrid"><div class="skel">Loading market signals…</div></div>
       </div>
     </div>
   </section>
@@ -922,24 +990,32 @@ body{
       </select>
       <span class="mast-sub" id="hmCount" style="margin-left:auto;"></span>
     </div>
-    <div id="hmContainer"><div class="skel">Charting the heavens…</div></div>
+    <div id="hmContainer"><div class="skel">Loading positioning data…</div></div>
     <div id="hmSources"></div>
   </section>
 
   <!-- ═══════════════════════ IV · SETUPS ═══════════════════════ -->
   <section class="panel" id="panel-setups">
+    <p class="explainer">
+      <strong>Setups vs Bedrock — what's the difference?</strong><br>
+      <strong class="hi">Setups (this tab)</strong> shows only the <em>published, A/B-grade observations</em> from cot-explorer's
+      own scorer — filtered, conviction-checked, ready to read. <strong class="hi">Bedrock (tab V)</strong> exposes the
+      <em>full scoring engine</em>: every instrument, every driver, every horizon, including <em>unpublished
+      candidates</em> that didn't clear the publish threshold. Use Setups for "what looks tradable today,"
+      Bedrock for "why" and "what's nearly there."
+    </p>
     <div class="plate">
       <div class="plate-hd">
-        <span class="num">III · A</span>
-        <span class="ttl">Scored Setups</span>
-        <span class="sub">Cross-data score by 6 driver groups · A and B grades only</span>
+        <span class="num">IV · A</span>
+        <span class="ttl">Published Setups</span>
+        <span class="sub">A and B grades only · cot-explorer scoring</span>
       </div>
       <div class="plate-body" style="padding:0;">
-        <div id="setupsList"><div class="skel">Awaiting the dispatch…</div></div>
+        <div id="setupsList"><div class="skel">Loading setup candidates…</div></div>
       </div>
     </div>
     <p class="descr" style="border:0;padding:14px 6px;">
-      <em>Setups are read-only. The score combines trend, positioning, macro, fundamentals, event-risk, and structure.
+      <em>Read-only observations. The score combines trend, positioning, macro, fundamentals, event-risk, and structure.
       Each row links back to the underlying market in <strong>Positions</strong>. No price targets are given —
       this is observation, not orders.</em>
     </p>
@@ -947,6 +1023,13 @@ body{
 
   <!-- ═══════════════════════ V · BEDROCK ═══════════════════════ -->
   <section class="panel" id="panel-bedrock">
+    <p class="explainer">
+      <strong>Bedrock — the full scoring engine.</strong>
+      Every instrument scored across 6 driver families (financial) or 8 (agri), with each individual driver visible
+      on click. Includes <em>unpublished candidates</em> — signals that don't yet clear their <code>min_score_publish</code>
+      threshold. Toggle "Published only" off to see what's nearly tradable. Use the Asset-Class filter to switch
+      between financial (FX/metals/energy/equities/crypto) and agri (grains/softs).
+    </p>
     <div class="plate">
       <div class="plate-hd">
         <span class="num">V</span>
@@ -976,14 +1059,14 @@ body{
           <em>published</em> only when its score clears that instrument's <strong>min_score_publish</strong> threshold.
           Click a row to inspect every driver that fired.</em>
         </p>
-        <div id="bedrockList"><div class="skel">Reading the bedrock cipher…</div></div>
+        <div id="bedrockList"><div class="skel">Loading driver scores…</div></div>
       </div>
     </div>
   </section>
 
   <!-- ═══════════════════════ VI · PIPELINE ═══════════════════════ -->
   <section class="panel" id="panel-pipeline">
-    <div id="pipeContainer"><div class="skel">Reading the wires…</div></div>
+    <div id="pipeContainer"><div class="skel">Loading source health…</div></div>
   </section>
 
 </main>
@@ -2097,8 +2180,96 @@ function renderControl(){
   drawControl();
 }
 
+/* Freshness for a Control Panel card — based on the underlying COT date in
+   D.combined plus signals.generated. Returns {label, cls, ageH}. */
+function _ctrlFreshness(rules){
+  const r = _cot(rules.symbol, rules.report);
+  if(!r || !r.date) return null;
+  const ageDays = (Date.now() - new Date(r.date).getTime()) / 86400000;
+  // CFTC publishes weekly with a 3-day reporting lag. So a fresh weekly cycle
+  // can show data 7–10 days old as "current". One missed cycle = aging,
+  // two missed = stale.
+  if(ageDays < 11) return {label: ageDays.toFixed(0)+'d', cls:'fresh', ageH:ageDays*24};
+  if(ageDays < 18) return {label: ageDays.toFixed(0)+'d', cls:'aging', ageH:ageDays*24};
+  return                  {label: ageDays.toFixed(0)+'d', cls:'stale', ageH:ageDays*24};
+}
+
+/* "Today's Conclusion" strip — strongest signals + freshness + extremes */
+function renderConclusion(items){
+  const scored = items.map(r => ({rules:r, s: synthesize(r)}))
+                      .filter(x => x.s.factors.length > 0);
+  const bull = [...scored].filter(x=>x.s.score>=0.25).sort((a,b)=>b.s.score-a.s.score).slice(0,3);
+  const bear = [...scored].filter(x=>x.s.score<=-0.25).sort((a,b)=>a.s.score-b.s.score).slice(0,3);
+  // Largest COT extremes (percentile ≤10 or ≥90)
+  const extremes = scored.map(x=>{
+    const a = _ana(x.rules.key);
+    return a && a.mm_net_pctile_52w!=null ? {...x, pct: a.mm_net_pctile_52w} : null;
+  }).filter(x=>x && (x.pct<=10 || x.pct>=90))
+    .sort((a,b)=>Math.abs(50-b.pct) - Math.abs(50-a.pct))
+    .slice(0,3);
+  // Stale-data warnings
+  const stale = scored.map(x=>({...x, fresh: _ctrlFreshness(x.rules)}))
+                       .filter(x=>x.fresh && x.fresh.cls!=='fresh')
+                       .slice(0,4);
+  const row = (rk, x, cls)=>{
+    const score = x.s.score;
+    const sgn = score>0?'+':'';
+    return `<div class="conclusion-row ${cls}" data-symbol="${escapeHTML(x.rules.symbol||'')}" data-report="${escapeHTML(x.rules.report||'')}">
+      <span class="rk">${rk}</span>
+      <span class="nm">${escapeHTML(x.rules.name)}</span>
+      <span class="sc">${sgn}${score.toFixed(1)}</span>
+    </div>`;
+  };
+  const bullHTML = bull.length
+    ? bull.map((x,i)=>row(i+1,x,'bull')).join('')
+    : '<div class="conclusion-row"><span class="rk">·</span><span class="nm" style="color:var(--ink-mute);font-style:italic;">No bull signals above +0.25</span><span class="sc"></span></div>';
+  const bearHTML = bear.length
+    ? bear.map((x,i)=>row(i+1,x,'bear')).join('')
+    : '<div class="conclusion-row"><span class="rk">·</span><span class="nm" style="color:var(--ink-mute);font-style:italic;">No bear signals below -0.25</span><span class="sc"></span></div>';
+  const extHTML = extremes.length
+    ? extremes.map(x=>{
+        const tag = x.pct<=10?'crowded short — squeeze risk':'crowded long — reversal risk';
+        return `<div class="conclusion-row" data-symbol="${escapeHTML(x.rules.symbol||'')}" data-report="${escapeHTML(x.rules.report||'')}">
+          <span class="rk">${x.pct.toFixed(0)}p</span>
+          <span class="nm">${escapeHTML(x.rules.name)} <em style="color:var(--ink-bone-dim);font-size:12px;">— ${tag}</em></span>
+          <span class="sc">${x.s.score>0?'+':''}${x.s.score.toFixed(1)}</span>
+        </div>`;
+      }).join('')
+    : '<div class="conclusion-row"><span class="rk">·</span><span class="nm" style="color:var(--ink-mute);font-style:italic;">No 52-week percentile extremes right now</span><span class="sc"></span></div>';
+  const staleHTML = stale.length
+    ? stale.map(x=>`<span class="pill ${x.fresh.cls==='aging'?'aging':'stale'}">${escapeHTML(x.rules.name)} · ${x.fresh.label}</span>`).join(' ')
+    : `<span class="pill fresh">All COT data within current weekly cycle</span>`;
+  $('#ctrlConclusion').innerHTML = `<div class="conclusion">
+    <div class="conclusion-card bull">
+      <div class="ch">Top Bullish <span class="ct">${bull.length} above +0.25</span></div>
+      ${bullHTML}
+    </div>
+    <div class="conclusion-card bear">
+      <div class="ch">Top Bearish <span class="ct">${bear.length} below -0.25</span></div>
+      ${bearHTML}
+    </div>
+  </div>
+  <div class="plate" style="margin-bottom:18px;">
+    <div class="plate-hd">
+      <span class="num">I · 0</span>
+      <span class="ttl">COT Extremes &amp; Data Freshness</span>
+      <span class="sub">Where positioning is stretched and which feeds need attention</span>
+    </div>
+    <div class="plate-body">
+      ${extHTML}
+      <div class="conclusion-meta">${staleHTML}</div>
+    </div>
+  </div>`;
+  // Wire clicks
+  $$('#ctrlConclusion .conclusion-row[data-symbol]').forEach(el=>{
+    el.onclick = ()=> openMarket(el.dataset.symbol, el.dataset.report);
+  });
+}
+
 function drawControl(){
   const items = SYNTH.filter(r=>CTRL_STATE.groups.has(r.group));
+  // Today's Conclusion at top — same filter as the grid below
+  renderConclusion(items);
   const cards = items.map(rules=>{
     const s = synthesize(rules);
     let cls = 'neutral';
@@ -2108,6 +2279,11 @@ function drawControl(){
     else if(s.score>=-2) cls = 'bear';
     else cls = 'strong-bear';
     const verdictCls = s.score>0.25?'bull':s.score<-0.25?'bear':'neutral';
+    // confidence — based on number of contributing factors
+    const confidence = s.confidence>=0.8?'High' : s.confidence>=0.5?'Medium' : 'Low';
+    // freshness pill
+    const fresh = _ctrlFreshness(rules);
+    const freshTag = fresh ? `<span class="ctrl-fresh ${fresh.cls}" title="COT data age">${escapeHTML(fresh.label)}</span>` : '';
     // needle position 0..100% on -3..+3 axis
     const needleLeft = ((s.score + 3) / 6 * 100).toFixed(1);
     const factorsHTML = s.factors.slice(0,5).map(f=>{
@@ -2119,11 +2295,12 @@ function drawControl(){
     }).join('') || '<div class="ctrl-fact"><span class="arr eq">—</span><span class="why">no contributing data yet</span><span></span></div>';
     // bedrock 2nd opinion (if present) — uses BDR_ALIAS so WTI→CrudeOil, SOY→Soybean etc.
     const b0 = _bedrockBestFor(rules.key);
-    let bdrLine = '<span class="none">no bedrock signal</span>';
+    let bdrLine = `Confidence: <strong>${confidence}</strong> · <span class="none">no bedrock signal</span>`;
     if(b0){
-      bdrLine = `<span class="grade">${escapeHTML(b0.grade||'?')}</span>${escapeHTML((b0.direction||'').toUpperCase())} · ${escapeHTML(b0.horizon||'')} · ${b0.published?'published':'below floor'}`;
+      bdrLine = `Confidence: <strong>${confidence}</strong> · <span class="grade">${escapeHTML(b0.grade||'?')}</span>${escapeHTML((b0.direction||'').toUpperCase())} · ${escapeHTML(b0.horizon||'')} · ${b0.published?'published':'below floor'}`;
     }
     return `<div class="ctrl-card ${cls}" data-symbol="${escapeHTML(rules.symbol||'')}" data-report="${escapeHTML(rules.report||'')}">
+      ${freshTag}
       <div class="ctrl-card-hd">
         <span class="nm">${escapeHTML(rules.name)}</span>
         <span class="sym">${escapeHTML(rules.key)}</span>
