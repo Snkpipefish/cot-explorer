@@ -983,7 +983,6 @@ body{
 
   <!-- ═══════════════════════ VI · PIPELINE ═══════════════════════ -->
   <section class="panel" id="panel-pipeline">
-    <div id="pipeSummary"></div>
     <div id="pipeContainer"><div class="skel">Reading the wires…</div></div>
   </section>
 
@@ -2717,73 +2716,11 @@ const PIPELINE_GROUPS = [
   ]},
 ];
 /* compact roadmap of bedrock sources — replaces the old Coverage Map plate */
-const BEDROCK_ROADMAP = [
-  // populated → live
-  {label:'EIA Storage', file:'eia_storage.json', status:'live'},
-  {label:'USGS Seismic', file:'seismic.json', status:'live'},
-  {label:'Euronext COT', file:'cot_euronext.json', status:'live'},
-  {label:'COMEX Vault', file:'comex.json', status:'live'},
-  {label:'Conab Brazil', file:'conab.json', status:'live'},
-  {label:'UNICA Sugar', file:'unica.json', status:'live'},
-  {label:'News Intel', file:'news_intel.json', status:'live'},
-  {label:'Disease Alerts', file:'disease_alerts.json', status:'live'},
-  {label:'Export Events', file:'export_events.json', status:'live'},
-  {label:'ISM PMI', file:'ism_pmi.json', status:'live'},
-  {label:'IRI ENSO Forecast', file:'iri_enso.json', status:'live'},
-  {label:'Crypto Sentiment', file:'crypto_sentiment.json', status:'live'},
-  // awaiting fetcher run
-  {label:'CFTC COT Legacy', file:'cot_legacy.json', status:'awaiting'},
-  {label:'CFTC COT Disaggregated', file:'cot_disagg.json', status:'awaiting'},
-  {label:'FRED Macro (bedrock)', file:'fundamentals.json', status:'awaiting'},
-  {label:'NOAA Daily Weather', file:'weather.json', status:'awaiting'},
-  {label:'NASS Crop Progress', file:'crop_progress.json', status:'awaiting'},
-  {label:'USDA WASDE', file:'wasde.json', status:'awaiting'},
-  {label:'Baltic Dry Index', file:'bdi.json', status:'awaiting'},
-  {label:'K-NN Analog Outcomes', file:'analogs.json', status:'awaiting'},
-  // planned roadmap
-  {label:'ANP Brazil Ethanol', status:'planned'},
-  {label:'USDA PSD India Sugar', status:'planned'},
-  {label:'UN Comtrade India Sugar', status:'planned'},
-  {label:'ISMA India Sugar', status:'planned'},
-  {label:'FAS Export Sales', status:'planned'},
-  {label:'CECAFE Coffee Exports', status:'planned'},
-  {label:'USDM Drought Monitor', status:'planned'},
-  {label:'EU AGSI / ALSI Storage', status:'planned'},
-  {label:'Industrial Production', status:'planned'},
-  {label:'Treasury Auctions', status:'planned'},
-];
-
-function renderPipeSummary(){
-  const live  = BEDROCK_ROADMAP.filter(r=>r.status==='live').length;
-  const awaiting = BEDROCK_ROADMAP.filter(r=>r.status==='awaiting').length;
-  const planned = BEDROCK_ROADMAP.filter(r=>r.status==='planned').length;
-  const summary = `<div class="plate" style="margin-bottom:18px;">
-    <div class="plate-hd">
-      <span class="num">VI·A</span>
-      <span class="ttl">Sources at a glance</span>
-      <span class="sub">${live} live · ${awaiting} awaiting · ${planned} planned</span>
-    </div>
-    <div class="plate-body">
-      <p class="descr" style="border:0;padding:0 0 10px;">
-        <em>Every external feed the dashboard consumes — broken down by current status. Live sources have data
-        flowing; awaiting sources have a fetcher in place but have not run successfully yet; planned sources
-        are on the roadmap but not yet wired.</em>
-      </p>
-      <table class="pipe-table">
-        <thead><tr><th>Source</th><th>Status</th></tr></thead>
-        <tbody>${BEDROCK_ROADMAP.map(r=>{
-          const pillCls = r.status==='live'?'fresh':r.status==='awaiting'?'aging':'miss';
-          return `<tr><td class="path">${escapeHTML(r.label)}</td>
-            <td class="status"><span class="pill ${pillCls}">${r.status.toUpperCase()}</span></td></tr>`;
-        }).join('')}</tbody>
-      </table>
-    </div>
-  </div>`;
-  $('#pipeSummary').innerHTML = summary;
-}
+/* The "Sources at a glance" summary table that used to live at the top of the
+   Pipeline tab has been removed — every entry from that list is now shown
+   inline in its consumer plate as a status-coloured chip (PLATE_SOURCES). */
 
 async function renderPipeline(){
-  renderPipeSummary();
   const out = await Promise.all(PIPELINE_GROUPS.map(async g=>{
     const rows = await Promise.all(g.files.map(async f=>{
       let stat='miss', ageH=null, sz=null, count=null, when=null;
