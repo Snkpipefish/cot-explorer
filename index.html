@@ -2324,23 +2324,27 @@ function f_bedrock(synthKey){
   };
 }
 
-/* Cross-asset: absolute Brent level. Higher oil → ethanol becomes more
-   competitive vs sugar/corn-based fuel, mills shift mix away from sugar
-   and ethanol mandates support corn demand. Returns ±1 bias scaled to
-   how far Brent is from a $70 anchor (rough decade-mid-range). The
-   `direction` lets us reuse this for inverse-coupled commodities. */
-function f_oil(direction=+1, weight=0.5){
+/* Cross-asset: absolute Brent level. Used three ways:
+   - mode='ethanol' (sugar, corn): high oil → biofuel competitive → bullish
+   - mode='energy' (natgas): high oil → energy complex correlated → bullish
+   - mode='oil_inverse' (USDCAD): high oil → oil-exporter currency strong → USDCAD weak
+   Returns ±1 bias scaled to how far Brent is from a $70 anchor. */
+function f_oil(direction=+1, weight=0.5, mode='ethanol'){
   return ()=>{
     const inst = D.oilgas?.instruments;
     if(!Array.isArray(inst)) return null;
     const brent = inst.find(x => x?.id === 'brent');
     const v = brent?.price?.value;
     if(v == null) return null;
-    // Anchor $70: $50 → -1, $90+ → +1, with ±20 range
     const bias = Math.max(-1, Math.min(1, (v - 70) / 20)) * direction;
-    return {bias: bias * 0.9, weight, label: direction > 0 ? 'Brent (ethanol-parity)' : 'Brent inverse',
-            value: '$' + v.toFixed(1),
-            why: v >= 90 ? 'høy → favoriserer etanol/biofuel' : v <= 60 ? 'lav → favoriserer sukker/mat' : 'mid-range'};
+    const label = mode === 'energy' ? 'Brent (energy complex)'
+                : mode === 'oil_inverse' ? 'Brent (oil-currency)'
+                : 'Brent (ethanol-parity)';
+    const why = mode === 'oil_inverse'
+      ? (v >= 90 ? 'høy → CAD-styrke, USDCAD bearish' : v <= 60 ? 'lav → CAD-svakhet' : 'mid-range')
+      : (v >= 90 ? (mode === 'energy' ? 'høy → energy-complex bullish' : 'høy → favoriserer etanol/biofuel')
+                 : v <= 60 ? 'lav' : 'mid-range');
+    return {bias: bias * 0.9, weight, label, value: '$' + v.toFixed(1), why};
   };
 }
 
@@ -2384,7 +2388,7 @@ const SYNTH = [
   ]},
   {key:'USDCAD', name:'USD / CAD', symbol:'090741', report:'tff', group:'fx', factors:[
     f_cot('USDCAD',1.2,'090741','tff'), f_cot_momentum('090741','tff'),
-    f_usd(+1,0.7), f_oil(-1,0.3),
+    f_usd(+1,0.7), f_oil(-1,0.3,'oil_inverse'),
   ]},
   {key:'DXY', name:'Dollar Index (DXY)', symbol:'098662', report:'disaggregated', group:'fx', factors:[
     f_usd(+1,1.2), f_real_rates(+1,0.6), f_vix(+1,0.3), f_bedrock('DXY'),
@@ -2423,7 +2427,7 @@ const SYNTH = [
   ]},
   {key:'NATGAS', name:'Natural Gas', symbol:'023391', report:'disaggregated', group:'energy', factors:[
     f_cot('NatGas',1.0,'023391','disaggregated'), f_cot_momentum('023391','disaggregated'),
-    f_oil(+1,0.4), f_oil_geo(0.4),
+    f_oil(+1,0.4,'energy'), f_oil_geo(0.4),
   ]},
 
   // ─── Equities
