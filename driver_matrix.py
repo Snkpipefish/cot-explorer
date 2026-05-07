@@ -166,9 +166,6 @@ def compute_positioning_v2(cot_bias_aligns: bool,
                            mm_comm_divergence_z: Optional[float] = None,
                            oi_regime_label:      Optional[str]   = None,
                            index_investor_bias:  Optional[str]   = None,
-                           # Runde 4: olje supply-disruption som POSITIONING-bias
-                           # (erstatter hard dir_color-flip i fetch_all/rescore)
-                           oil_supply_disruption: bool           = False,
                            # net_pct = mm_net / open_interest * 100. Brukes til
                            # å skille "ekte crowded" fra "covering / shaken-out"
                            # når pctile er ekstrem men absolutt-positionen er
@@ -277,16 +274,6 @@ def compute_positioning_v2(cot_bias_aligns: bool,
     elif index_investor_bias == "structural_short" and is_bear:
         subs.append((0.3, "Indeksfond strukturelt short"))
 
-    # ─── Supply disruption bias (kun olje fra context for energy) ────
-    # Asymmetrisk design: kun BEAR får penalty (-0.4). BULL er allerede
-    # dekket av FUNDAMENTAL_energy +0.8 — å legge en bull-bonus i POSITIONING
-    # ville (a) dobbel-telle samme driver, og (b) faktisk *redusere* score
-    # når andre POSITIONING-snitt > 0.4 (snitt-aggregering trekker ned ved
-    # lavt bidrag). Magnitude -0.4 > -0.3 (OI-warning) fordi supply-disruption
-    # er primær risiko. Hard SHORT-blokk gjøres i push_signals som safety-gate.
-    if oil_supply_disruption and is_bear:
-        subs.append((-0.4, "Supply disruption (advarer SHORT)"))
-
     # Aggregering: snitt av ikke-null bidrag, clamp til [0, 1]
     active = [(s, d) for s, d in subs if s != 0.0]
     if not active:
@@ -325,7 +312,6 @@ def compute_macro(asset_class: str,
                   real_yield_chg: Optional[float] = None,
                   term_spread: Optional[float] = None,
                   fear_greed: Optional[int] = None,
-                  fund_instrument_score: Optional[float] = None,
                   news_confirms_dir: bool = False,
                   news_sentiment_label: str = "neutral",
                   news_sentiment_score: float = 0.0) -> GroupScore:
@@ -372,22 +358,15 @@ def compute_macro(asset_class: str,
                 components.append((min(abs(real_yield_chg) * 3, 1.0),
                                   f"Real yields faller ({real_yield_chg:+.2f}%)"))
 
-    # Yield curve (for FX carry og indekser)
+    # Yield curve (kun indekser — inversjon = resesjonrisk = bear indekser).
+    # FX-carry-bidrag basert på term_spread fjernet 2026-05: per-par
+    # USD-bias hører hjemme i FUNDAMENTAL_fx (compute_fundamental_fx leser
+    # fund_instrument_score). Ingen cross-family fallback når FRED er nede.
     if term_spread is not None:
         if asset_class == "indices":
-            # Inversjon = resesjonrisk = bear indekser
             if term_spread < -0.3 and is_bear:
                 components.append((min(abs(term_spread) / 1.0, 1.0),
                                   f"Yield curve invertert ({term_spread:+.2f}%)"))
-        if asset_class == "fx" and fund_instrument_score is None:
-            # Uten per-par-data, bruk term-spread som generisk USD-styrke-proxy
-            if term_spread > 0.5 and is_bull:
-                components.append((0.3, f"USD carry positiv ({term_spread:+.2f}%)"))
-
-    # Fase 1: fund_instrument_score er FLYTTET til FUNDAMENTAL (per-asset-USD-
-    # bias er asset-spesifikk, ikke global makro). Se compute_fundamental_fx og
-    # compute_fundamental_indices. Ved å holde den utenfor MACRO unngår vi at
-    # én FRED-score lyser opp to "uavhengige" familier (C1-prinsipp).
 
     # Fear & Greed som risk-regime-proxy (Fase 1: utvidet til metaller og indekser,
     # ikke bare crypto). Logikk: extreme fear → flight-to-safety (bull gold/silver,
@@ -491,13 +470,15 @@ def compute_fundamental_energy(direction: str,
     is_bull = direction in ("buy", "bull", "long")
     is_bear = direction in ("sell", "bear", "short")
 
-    # Supply disruption = tight supply = bull olje
+    # Supply disruption = tight supply = bull olje. Asymmetrisk SHORT-warning:
+    # samme hendelse som driver +0.8 BULL gir -0.4 BEAR-penalty her i
+    # FUNDAMENTAL — tidligere lå penaltyen i POSITIONING (se kommentar i
+    # compute_positioning_v2 før 2026-05). Å holde begge effekter i samme
+    # familie respekterer C1: én driver, én familie.
     if oil_supply_disruption and is_bull:
         components.append((0.8, "Supply disruption aktiv"))
     elif oil_supply_disruption and is_bear:
-        # Supply disruption blokkerer short — gir negativ bidrag, men
-        # vi returnerer bare 0 her og lar signal-pipeline-gate blokkere
-        pass
+        components.append((-0.4, "Supply disruption (advarer SHORT)"))
 
     if shipping_risk == "HIGH" and is_bull:
         components.append((0.6, "Shipping risiko HIGH"))
@@ -521,11 +502,17 @@ def compute_fundamental_energy(direction: str,
             components.append((min(abs(brent_wti_spread - 1) / 4.0, 1.0),
                               f"Brent-WTI spread {brent_wti_spread:+.1f} (contango/oversupply)"))
 
-    filtered = [(s, d) for s, d in components if s >= 0.3]
-    if not filtered:
+    # Aggregering: positive bidrag må krysse 0.3-terskel (matcher andre
+    # fundamental-familier); negative penalties tas alltid med (de FINNES
+    # bare når safety-relevant og er målt nøye).
+    positive = [(s, d) for s, d in components if s >= 0.3]
+    negative = [(s, d) for s, d in components if s < 0]
+    combined = positive + negative
+    if not combined:
         return GroupScore(score=0.0, drivers=[])
-    total = min(sum(s for s, _ in filtered) / max(len(filtered), 1), 1.0)
-    return GroupScore(score=total, drivers=[d for _, d in filtered][:3])
+    avg = sum(s for s, _ in combined) / len(combined)
+    score = max(0.0, min(avg, 1.0))
+    return GroupScore(score=score, drivers=[d for _, d in combined][:3])
 
 
 def compute_fundamental_grains(direction: str,
@@ -959,7 +946,6 @@ def score_asset(
         mm_comm_divergence_z=context.get("mm_comm_divergence_z"),
         oi_regime_label=context.get("oi_regime_label"),
         index_investor_bias=context.get("index_investor_bias"),
-        oil_supply_disruption=context.get("oil_supply_disruption", False),
         mm_net_pct=context.get("mm_net_pct"),
     )
 
@@ -973,7 +959,6 @@ def score_asset(
         real_yield_chg=context.get("real_yield_chg"),
         term_spread=context.get("term_spread"),
         fear_greed=context.get("fear_greed"),
-        fund_instrument_score=context.get("fund_instrument_score"),
         news_confirms_dir=context.get("news_confirms_dir", False),
         news_sentiment_label=context.get("news_sentiment_label", "neutral"),
         news_sentiment_score=context.get("news_sentiment_score", 0.0),
