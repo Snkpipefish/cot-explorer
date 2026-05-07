@@ -656,6 +656,33 @@ body{
   line-height:1.6;color:var(--ink-bone);
   border-left:2px solid var(--brass);padding:8px 0 8px 14px;margin:14px 0;
 }
+.invalidation{
+  margin-top:18px;
+  background:rgba(194,92,92,.04);
+  border:1px solid var(--ink-rule);
+  border-left:3px solid var(--sig-neg);
+  padding:12px 16px;
+}
+.invalidation-hd{
+  font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;
+  color:var(--sig-neg);text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:6px;
+}
+.invalidation ul{
+  margin:0;padding:0;list-style:none;
+}
+.invalidation li{
+  font-family:'Cormorant Garamond',serif;font-size:14px;line-height:1.5;
+  color:var(--ink-bone);padding:4px 0 4px 14px;position:relative;
+  border-bottom:1px dotted var(--ink-rule-soft);
+}
+.invalidation li:last-child{border-bottom:none;}
+.invalidation li::before{
+  content:"↘";position:absolute;left:0;top:4px;
+  color:var(--sig-neg);font-size:12px;
+}
+.invalidation li em{color:var(--sig-warn);font-style:normal;}
+.invalidation li strong{color:var(--ink-paper);}
 .spark{display:block;width:100%;height:120px;}
 .spark-axis{stroke:var(--ink-rule);stroke-width:1;}
 .spark-line{fill:none;stroke:var(--brass);stroke-width:1.5;}
@@ -2819,6 +2846,10 @@ async function openMarket(symbol, report){
         ${readout((pr.label||'Producers')+' Net', fmt(pr.net), sgn(pr.net), '')}
         ${readout((sm.label||'Small')+' Net', fmt(sm.net), sgn(sm.net), '')}
       </div>`:''}
+      <div class="invalidation">
+        <div class="invalidation-hd">Invalidation watch</div>
+        <ul>${_invalidationTriggers(r, a).map(t=>`<li>${t}</li>`).join('')}</ul>
+      </div>
       <div class="affects-row" style="margin-top:14px;">
         <span class="affects-lbl">Date</span>
         <div class="affects-tags"><span class="tag">${escapeHTML(r.date)}</span></div>
@@ -2827,6 +2858,68 @@ async function openMarket(symbol, report){
   $('#modal').classList.add('open');
 }
 function closeModal(){ $('#modal').classList.remove('open'); }
+
+/* What would invalidate the current positioning thesis?
+   Combines positioning state + asset class to produce 3-5 watch points
+   the analyst should look out for over the next refresh cycle. */
+function _invalidationTriggers(r, a){
+  const out = [];
+  const p = a.mm_net_pctile_52w ?? r.pct52;
+  const chg = r.change_spec_net || 0;
+  const cat = (r.kategori || '').toLowerCase();
+  const adding = chg > 0;
+  const cutting = chg < 0;
+  // ── Positioning-state-driven (always relevant)
+  if(p != null){
+    if(p >= 90){
+      out.push(adding
+        ? 'Specs flip from adding to cutting net long (peak-positioning unwind)'
+        : 'Acceleration in the unwind — change_spec_net more negative than the 4w average');
+      out.push('52-week percentile drops below 75 (positioning normalises)');
+    } else if(p <= 10){
+      out.push(cutting
+        ? 'Short-cover spike: specs flip from adding shorts to cutting them'
+        : 'Stretched short turns into a momentum chase (specs add longs)');
+      out.push('Open interest surges with positioning rotation (capitulation pattern)');
+    } else if(p >= 70){
+      out.push('Spec net flips to cutting longs while price stalls');
+      out.push('Percentile decays below 50 over two consecutive prints');
+    } else if(p <= 30){
+      out.push('Spec net flips to adding longs while price holds');
+      out.push('Percentile climbs above 50 — bear thesis losing its pulse');
+    } else {
+      out.push('Position swings to the opposite extreme (≤10 or ≥90 pct)');
+    }
+  }
+  // ── Asset-class-specific
+  if(cat === 'råvarer' || cat === 'commodities'){
+    out.push('Real 10Y yields rise above 1.5 % (carry headwind for non-yielding metals/energy)');
+    out.push('DXY breaks decisively higher (commodity headwind)');
+  } else if(cat === 'valuta' || cat === 'fx'){
+    out.push('USD fundamental bias flips on next FRED print');
+    out.push('Term-spread inverts further or shrinks below current 0.5 pp');
+  } else if(cat === 'aksjer' || cat === 'equities'){
+    out.push('VIX regime escalates from normal → elevated');
+    out.push('Real yields rise sharply (rate-shock for valuations)');
+  } else if(cat === 'landbruk' || cat === 'agriculture'){
+    out.push('WASDE upgrades production / lowers stocks-to-use');
+    out.push('ENSO forecast tilts strongly neutral (climate risk fades)');
+    out.push('Conab YoY estimate revises higher');
+  } else if(cat === 'krypto' || cat === 'crypto'){
+    out.push('BTC dominance flips (alt-rotation reverses)');
+    out.push('Fear & Greed crosses 75 (extreme greed contrarian fade)');
+  } else if(cat === 'renter' || cat === 'rates'){
+    out.push('CPI surprise reshapes the Fed-cut path');
+    out.push('Auction tail signals weak demand');
+  }
+  // ── Always include data-freshness watch
+  if(a.data_quality === 'fresh'){
+    out.push('Data quality drops to <em>aging</em> — one missed weekly cycle (≥11 days old)');
+  } else {
+    out.push('Refresh cycle resumes — current reading is already <em>'+ (a.data_quality||r.qual||'aging') +'</em>');
+  }
+  return out.slice(0, 5);
+}
 
 function buildMarketNarrative(r,a){
   const sp=r.spekulanter||{};
