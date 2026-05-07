@@ -904,6 +904,71 @@ body{
   text-align:right;
 }
 
+/* By-instrument view: one row per instrument with macro/swing/scalp cells. */
+.bedrock-inst-row{
+  display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:14px;
+  align-items:stretch;padding:11px 16px;
+  border-bottom:1px dotted var(--ink-rule-soft);
+}
+.bedrock-inst-row .nm{
+  font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--ink-paper);
+  display:flex;flex-direction:column;justify-content:center;
+}
+.bedrock-inst-row .nm .sub{
+  font-style:italic;color:var(--ink-bone-dim);font-size:12px;
+}
+.bedrock-inst-cell{
+  border:1px solid var(--ink-rule);padding:8px 10px;
+  display:grid;grid-template-rows:auto auto auto;gap:5px;
+  cursor:pointer;transition:background .12s, border-color .12s;
+  position:relative;
+}
+.bedrock-inst-cell:hover{background:rgba(201,163,94,.04);border-color:var(--brass-dim);}
+.bedrock-inst-cell.empty{cursor:default;opacity:.4;background:none;}
+.bedrock-inst-cell.empty:hover{background:none;border-color:var(--ink-rule);}
+.bedrock-inst-cell.pub{border-left:2px solid var(--sig-pos);}
+.bedrock-inst-cell.near{border-left:2px solid var(--sig-warn);}
+.bedrock-inst-cell.bull .grade{color:var(--sig-pos);}
+.bedrock-inst-cell.bear .grade{color:var(--sig-neg);}
+.bedrock-inst-cell .top{
+  display:flex;justify-content:space-between;align-items:center;gap:6px;
+}
+.bedrock-inst-cell .horiz-lbl{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;
+  color:var(--ink-bone-dim);text-transform:uppercase;
+}
+.bedrock-inst-cell .pills{display:flex;gap:4px;align-items:center;}
+.bedrock-inst-cell .pill{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;
+  padding:1px 5px;border:1px solid;text-transform:uppercase;
+}
+.bedrock-inst-cell .pill.dir-bull{color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.1);}
+.bedrock-inst-cell .pill.dir-bear{color:var(--sig-neg);border-color:var(--sig-neg-dim);background:rgba(194,92,92,.1);}
+.bedrock-inst-cell .pill.pub-yes{color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.1);}
+.bedrock-inst-cell .pill.pub-near{color:var(--sig-warn);border-color:rgba(212,164,74,.4);background:rgba(212,164,74,.1);}
+.bedrock-inst-cell .pill.pub-no{color:var(--ink-mute);border-color:var(--ink-rule);}
+.bedrock-inst-cell .grade{
+  font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;
+  color:var(--brass);line-height:1;
+}
+.bedrock-inst-cell .scoreline{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-bone);
+}
+.bedrock-inst-cell .scoreline .ratio{color:var(--ink-bone-dim);font-size:10px;}
+.bedrock-inst-cell .track{
+  height:5px;background:var(--ink-rule);position:relative;border:1px solid var(--ink-rule);
+}
+.bedrock-inst-cell .track .fill{position:absolute;left:0;top:0;bottom:0;background:var(--brass);}
+.bedrock-inst-cell .track .floor{
+  position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--ink-paper);
+  box-shadow:0 0 0 1px var(--ink-bg);
+}
+.bedrock-inst-cell.empty .placeholder{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
+  color:var(--ink-mute);text-align:center;padding:14px 0;
+}
+
 .bedrock-empty{
   padding:40px 20px;text-align:center;
   font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-mute);
@@ -945,6 +1010,13 @@ body{
   .bedrock-row .score-bar{grid-area:score;}
   .bedrock-fams{grid-area:fams;}
   .bedrock-row .setup-mini{grid-area:setup;text-align:left;}
+
+  /* By-instrument view stacks horizon cells under the name on mobile. */
+  .bedrock-inst-row{
+    grid-template-columns:1fr;gap:8px;padding:10px 12px;
+  }
+  .bedrock-inst-row .nm{font-size:15px;}
+  .bedrock-inst-cell{padding:7px 9px;}
 }
 
 /* ═════════════════════════════════════════════════════════
@@ -1225,6 +1297,10 @@ body{
             <button class="hm-cat" data-st="all">All</button>
             <button class="hm-cat on" data-st="published">Published</button>
             <button class="hm-cat" data-st="near">Near publish</button>
+          </div>
+          <div class="hm-cat-toggles" id="bedrockViewTabs">
+            <button class="hm-cat on" data-v="signal">By signal</button>
+            <button class="hm-cat" data-v="instrument">By instrument</button>
           </div>
           <span class="mast-sub" id="bedrockCount" style="margin-left:auto;"></span>
         </div>
@@ -2517,7 +2593,11 @@ function drawControl(){
 /* ════════════════════════════════════════════════════════════════
    V · BEDROCK SETUPS — read bedrock's signals.json passthrough
    ════════════════════════════════════════════════════════════════ */
-const BDR_STATE = { horizon:'all', status:'published', klass:'all' };
+const BDR_STATE = { horizon:'all', status:'published', klass:'all', view:'signal' };
+/* The three horizons rendered side-by-side in the by-instrument view. The
+   bedrock signals carry `horizon` as one of these lowercase tokens. */
+const BDR_HORIZONS = ['makro', 'swing', 'scalp'];
+const BDR_HORIZON_LABEL = {makro:'Macro', swing:'Swing', scalp:'Scalp'};
 /* Near-publish threshold: signals at >=70% of their publish floor but not yet
    crossing it. Surfaces "almost tradable" candidates that the analyst should
    be watching for the next refresh. */
@@ -2566,6 +2646,10 @@ function renderBedrock(){
     BDR_STATE.status = b.dataset.st;
     $$('#bedrockStatusTabs .hm-cat').forEach(x=>x.classList.toggle('on', x===b));
     drawBedrock(); };
+  $('#bedrockViewTabs').onclick = (e)=>{ const b=e.target.closest('.hm-cat'); if(!b) return;
+    BDR_STATE.view = b.dataset.v;
+    $$('#bedrockViewTabs .hm-cat').forEach(x=>x.classList.toggle('on', x===b));
+    drawBedrock(); };
   drawBedrock();
   const stamp = D.bdrSignals?.generated || D.bdrAgriSignals?.generated;
   if(stamp) $('#bedrockStamp').textContent = ageStr(ageHours(stamp))+' ago';
@@ -2584,7 +2668,11 @@ function drawBedrock(){
   }
   let rows = [...all];
   if(BDR_STATE.klass!=='all')   rows = rows.filter(s=>s._class===BDR_STATE.klass);
-  if(BDR_STATE.horizon!=='all') rows = rows.filter(s=>String(s.horizon||'').toLowerCase()===BDR_STATE.horizon);
+  // Horizon filter applies only in by-signal view; the by-instrument view
+  // shows all three horizon cells regardless so the analyst can compare them.
+  if(BDR_STATE.view === 'signal' && BDR_STATE.horizon!=='all'){
+    rows = rows.filter(s=>String(s.horizon||'').toLowerCase()===BDR_STATE.horizon);
+  }
   if(BDR_STATE.status==='published') rows = rows.filter(s=>s.published);
   else if(BDR_STATE.status==='near')  rows = rows.filter(_bedrockIsNearPublish);
   rows.sort((a,b)=>{
@@ -2593,6 +2681,9 @@ function drawBedrock(){
     return (b.score||0) - (a.score||0);
   });
   D._bdrRows = rows;
+  if(BDR_STATE.view === 'instrument'){
+    return _drawBedrockByInstrument(rows, all);
+  }
   const HTML = rows.map((s,i)=>{
     const dir = String(s.direction||'').toLowerCase()==='buy'?'bull':String(s.direction||'').toLowerCase()==='sell'?'bear':'';
     const max = s.max_score || (s._class==='agri'?9.0:5.8);
@@ -2628,6 +2719,113 @@ function drawBedrock(){
   </div>`;
   $('#bedrockCount').textContent = `${rows.length} of ${all.length} signals shown`;
   $$('.bedrock-row').forEach(el=>el.onclick = ()=>openBedrockSetup(parseInt(el.dataset.idx,10)));
+}
+
+/* By-instrument view: groups the filtered signal list by `instrument` and
+   renders one row per instrument with three horizon cells (macro / swing /
+   scalp) side-by-side. Within each cell, the signal with the highest
+   score/floor ratio wins (so a B+ at the floor beats an A that hasn't
+   reached it). Rows are sorted by their best cell's ratio so the most
+   actionable instruments float to the top. */
+function _drawBedrockByInstrument(rows, all){
+  // Group: instrument -> { horizon -> [candidate signals] }
+  const byInst = new Map();
+  for(const s of rows){
+    const inst = s.instrument || '';
+    if(!inst) continue;
+    if(!byInst.has(inst)) byInst.set(inst, { _class: s._class, horizons: {} });
+    const horiz = String(s.horizon||'').toLowerCase();
+    if(!BDR_HORIZONS.includes(horiz)) continue;
+    (byInst.get(inst).horizons[horiz] = byInst.get(inst).horizons[horiz] || []).push(s);
+  }
+  // Pick the strongest signal per (instrument, horizon) and stamp a ratio.
+  // Ratio = score / floor. Floor==0 → fall back to score / max_score so
+  // the cell still has a comparable number.
+  const ratioOf = (s) => {
+    const floor = s.min_score_publish || 0;
+    if(floor > 0) return (s.score || 0) / floor;
+    const max = s.max_score || 1;
+    return (s.score || 0) / max;
+  };
+  const bestPer = (cands) => cands.slice().sort((a,b)=>ratioOf(b)-ratioOf(a))[0];
+  const insts = [];
+  byInst.forEach((entry, inst) => {
+    const cells = {};
+    let bestRatio = -Infinity;
+    for(const h of BDR_HORIZONS){
+      const cands = entry.horizons[h] || [];
+      const best = cands.length ? bestPer(cands) : null;
+      cells[h] = best;
+      if(best){
+        const r = ratioOf(best);
+        if(r > bestRatio) bestRatio = r;
+      }
+    }
+    insts.push({ instrument: inst, _class: entry._class, cells, bestRatio });
+  });
+  insts.sort((a,b) => b.bestRatio - a.bestRatio);
+
+  // Map signals back to D._bdrRows index so cell clicks open the right modal.
+  const idxOf = new Map();
+  rows.forEach((s,i)=>idxOf.set(s, i));
+
+  const cellHTML = (s) => {
+    if(!s) return `<div class="bedrock-inst-cell empty">
+      <div class="placeholder">—</div>
+    </div>`;
+    const dirCls = String(s.direction||'').toLowerCase()==='buy'?'bull'
+                 : String(s.direction||'').toLowerCase()==='sell'?'bear':'';
+    const max = s.max_score || (s._class==='agri'?9.0:5.8);
+    const floor = s.min_score_publish || 0;
+    const fillW = max ? Math.max(0, Math.min(100, (s.score || 0) / max * 100)) : 0;
+    const floorPct = max ? Math.max(0, Math.min(100, floor / max * 100)) : 0;
+    const isNear = !s.published && _bedrockIsNearPublish(s);
+    const stateCls = s.published ? 'pub' : isNear ? 'near' : '';
+    const pubPill = s.published
+      ? '<span class="pill pub-yes">PUB</span>'
+      : isNear ? '<span class="pill pub-near">NEAR</span>'
+               : '<span class="pill pub-no">BELOW</span>';
+    const dirPill = dirCls
+      ? `<span class="pill dir-${dirCls}">${escapeHTML(String(s.direction||'').toUpperCase())}</span>`
+      : '';
+    const idx = idxOf.get(s);
+    const idxAttr = (idx != null) ? ` data-idx="${idx}"` : '';
+    return `<div class="bedrock-inst-cell ${dirCls} ${stateCls}"${idxAttr}>
+      <div class="top">
+        <span class="horiz-lbl">${escapeHTML(BDR_HORIZON_LABEL[String(s.horizon||'').toLowerCase()] || s.horizon || '')}</span>
+        <div class="pills">${dirPill}${pubPill}</div>
+      </div>
+      <div class="scoreline">
+        <span class="grade">${escapeHTML(s.grade||'?')}</span>
+        <span><b>${(s.score||0).toFixed(2)}</b><span class="ratio"> / ${floor.toFixed(2)}</span></span>
+      </div>
+      <div class="track">
+        <span class="fill" style="width:${fillW}%"></span>
+        ${floor > 0 ? `<span class="floor" style="left:${floorPct}%"></span>` : ''}
+      </div>
+    </div>`;
+  };
+
+  const HTML = insts.map(o => {
+    const klassTag = o._class==='agri' ? '<span class="setup-tag agri">AGRI</span>' : '';
+    return `<div class="bedrock-inst-row">
+      <div class="nm">${escapeHTML(o.instrument)} ${klassTag}<span class="sub">across horizons</span></div>
+      ${cellHTML(o.cells.makro)}
+      ${cellHTML(o.cells.swing)}
+      ${cellHTML(o.cells.scalp)}
+    </div>`;
+  }).join('');
+
+  $('#bedrockList').innerHTML = HTML || `<div class="bedrock-empty">
+    <strong>No instruments match the current filter.</strong><br>
+    Try widening the status filter or switching asset class.
+  </div>`;
+  $('#bedrockCount').textContent = `${insts.length} instruments · ${rows.length} of ${all.length} signals`;
+
+  // Wire cell clicks → open the same setup modal as by-signal view.
+  $$('#bedrockList .bedrock-inst-cell[data-idx]').forEach(el =>
+    el.onclick = () => openBedrockSetup(parseInt(el.dataset.idx, 10))
+  );
 }
 
 function openBedrockSetup(i){
