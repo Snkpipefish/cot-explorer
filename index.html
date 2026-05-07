@@ -808,8 +808,10 @@ body{
   font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;
   text-align:center;padding:2px 0;border:1px solid;text-transform:uppercase;
 }
-.bedrock-row .pub-pill.yes{color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.1);}
-.bedrock-row .pub-pill.no {color:var(--ink-mute);border-color:var(--ink-rule);}
+.bedrock-row .pub-pill.yes  {color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.1);}
+.bedrock-row .pub-pill.near {color:var(--sig-warn);border-color:rgba(212,164,74,.4);background:rgba(212,164,74,.1);}
+.bedrock-row .pub-pill.no   {color:var(--ink-mute);border-color:var(--ink-rule);}
+.bedrock-row.near {opacity:.85;border-left:2px solid var(--sig-warn);}
 .bedrock-row .score-bar{display:flex;align-items:center;gap:6px;}
 .bedrock-row .score-bar .track{
   flex:1;height:5px;background:var(--ink-rule);position:relative;border:1px solid var(--ink-rule);
@@ -1127,9 +1129,11 @@ body{
     <p class="explainer">
       <strong>Bedrock — the full scoring engine.</strong>
       Every instrument scored across 6 driver families (financial) or 8 (agri), with each individual driver visible
-      on click. Includes <em>unpublished candidates</em> — signals that don't yet clear their <code>min_score_publish</code>
-      threshold. Toggle "Published only" off to see what's nearly tradable. Use the Asset-Class filter to switch
-      between financial (FX/metals/energy/equities/crypto) and agri (grains/softs).
+      on click. Three status views: <strong class="hi">Published</strong> = signals that cleared their
+      <code>min_score_publish</code> threshold (tradable). <strong class="hi">Near publish</strong> = signals at
+      70–99 % of their threshold — almost there, watch for the next refresh.
+      <strong class="hi">All</strong> = the full deck including unpublished candidates. Use the Asset-Class filter
+      to switch between financial (FX/metals/energy/equities/crypto) and agri (grains/softs).
     </p>
     <div class="plate">
       <div class="plate-hd">
@@ -1151,7 +1155,11 @@ body{
             <button class="hm-cat" data-h="swing">Swing</button>
             <button class="hm-cat" data-h="scalp">Scalp</button>
           </div>
-          <label class="hm-extreme"><input type="checkbox" id="bedrockPubOnly" checked> Published only</label>
+          <div class="hm-cat-toggles" id="bedrockStatusTabs">
+            <button class="hm-cat" data-st="all">All</button>
+            <button class="hm-cat on" data-st="published">Published</button>
+            <button class="hm-cat" data-st="near">Near publish</button>
+          </div>
           <span class="mast-sub" id="bedrockCount" style="margin-left:auto;"></span>
         </div>
         <p class="descr" style="border:0;padding:6px 0 10px;">
@@ -2442,7 +2450,18 @@ function drawControl(){
 /* ════════════════════════════════════════════════════════════════
    V · BEDROCK SETUPS — read bedrock's signals.json passthrough
    ════════════════════════════════════════════════════════════════ */
-const BDR_STATE = { horizon:'all', pubOnly:true, klass:'all' };
+const BDR_STATE = { horizon:'all', status:'published', klass:'all' };
+/* Near-publish threshold: signals at >=70% of their publish floor but not yet
+   crossing it. Surfaces "almost tradable" candidates that the analyst should
+   be watching for the next refresh. */
+const BDR_NEAR_RATIO = 0.70;
+function _bedrockIsNearPublish(s){
+  if(s.published) return false;
+  const floor = s.min_score_publish;
+  if(!floor) return false;
+  const score = s.score || 0;
+  return score >= floor * BDR_NEAR_RATIO && score < floor;
+}
 
 /* Asset class is explicit on agri signals (asset_class:'softs'/'grains');
    financial signals don't carry it. We tag at merge-time. */
@@ -2476,7 +2495,10 @@ function renderBedrock(){
     BDR_STATE.horizon = b.dataset.h;
     $$('#bedrockHorizonTabs .hm-cat').forEach(x=>x.classList.toggle('on', x===b));
     drawBedrock(); };
-  $('#bedrockPubOnly').onchange = (e)=>{ BDR_STATE.pubOnly=e.target.checked; drawBedrock(); };
+  $('#bedrockStatusTabs').onclick = (e)=>{ const b=e.target.closest('.hm-cat'); if(!b) return;
+    BDR_STATE.status = b.dataset.st;
+    $$('#bedrockStatusTabs .hm-cat').forEach(x=>x.classList.toggle('on', x===b));
+    drawBedrock(); };
   drawBedrock();
   const stamp = D.bdrSignals?.generated || D.bdrAgriSignals?.generated;
   if(stamp) $('#bedrockStamp').textContent = ageStr(ageHours(stamp))+' ago';
@@ -2496,7 +2518,8 @@ function drawBedrock(){
   let rows = [...all];
   if(BDR_STATE.klass!=='all')   rows = rows.filter(s=>s._class===BDR_STATE.klass);
   if(BDR_STATE.horizon!=='all') rows = rows.filter(s=>String(s.horizon||'').toLowerCase()===BDR_STATE.horizon);
-  if(BDR_STATE.pubOnly)         rows = rows.filter(s=>s.published);
+  if(BDR_STATE.status==='published') rows = rows.filter(s=>s.published);
+  else if(BDR_STATE.status==='near')  rows = rows.filter(_bedrockIsNearPublish);
   rows.sort((a,b)=>{
     const o = (BDR_GRADE_ORDER[a.grade]??9) - (BDR_GRADE_ORDER[b.grade]??9);
     if(o) return o;
@@ -2513,11 +2536,17 @@ function drawBedrock(){
       ? `entry ${fmt(setup.entry,4)} · sl ${fmt(setup.sl,4)}${setup.tp!=null?' · tp '+fmt(setup.tp,4):''}`
       : '';
     const klassTag = s._class==='agri'?'<span class="setup-tag agri">AGRI</span>':'';
-    return `<div class="bedrock-row ${dir} ${s.published?'':'unpub'}" data-idx="${i}">
+    const isNear = !s.published && _bedrockIsNearPublish(s);
+    const pubPill = s.published
+      ? '<div class="pub-pill yes">PUB</div>'
+      : isNear
+      ? '<div class="pub-pill near">NEAR</div>'
+      : '<div class="pub-pill no">BELOW</div>';
+    return `<div class="bedrock-row ${dir} ${s.published?'':isNear?'near':'unpub'}" data-idx="${i}">
       <div class="grade">${escapeHTML(s.grade||'?')}</div>
       <div class="nm">${escapeHTML(s.instrument||'')} ${klassTag}<span class="horiz">${escapeHTML(s.horizon||'')}${s.asset_class?' · '+escapeHTML(s.asset_class):''}</span></div>
       <div class="dir ${dir}">${escapeHTML(s.direction||'')}</div>
-      <div class="pub-pill ${s.published?'yes':'no'}">${s.published?'PUB':'BELOW'}</div>
+      ${pubPill}
       <div class="score-bar">
         <span class="track"><span class="fill" style="width:${fillW}%"></span><span class="floor" style="left:${floor}%"></span></span>
         <span class="pct">${(s.score||0).toFixed(2)}</span>
@@ -2528,7 +2557,7 @@ function drawBedrock(){
   }).join('');
   $('#bedrockList').innerHTML = HTML || `<div class="bedrock-empty">
     <strong>No setups match the current filter.</strong><br>
-    ${BDR_STATE.klass==='agri' && BDR_STATE.pubOnly ? 'Try unchecking "Published only" — bedrock\'s agri publish-floor is 6.0/9.0 which few currently clear.' : 'Try widening the filters.'}
+    ${BDR_STATE.status==='published' && BDR_STATE.klass==='agri' ? 'Few agri setups currently clear bedrock\'s 6.0/9.0 publish floor — try <em>Near publish</em> or <em>All</em>.' : BDR_STATE.status==='near' ? 'No setups are within 30% of their publish threshold right now — try <em>All</em>.' : 'Try widening the filters.'}
   </div>`;
   $('#bedrockCount').textContent = `${rows.length} of ${all.length} signals shown`;
   $$('.bedrock-row').forEach(el=>el.onclick = ()=>openBedrockSetup(parseInt(el.dataset.idx,10)));
