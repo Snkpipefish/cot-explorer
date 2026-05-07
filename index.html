@@ -2406,10 +2406,11 @@ const SYNTH = [
   {key:'COPPER', name:'Copper', symbol:'085692', report:'disaggregated', group:'metals', factors:[
     f_cot('Copper',1.2,'085692','disaggregated'), f_cot_momentum('085692','disaggregated'),
     f_bdi(0.5), f_comex('copper',0.4), f_usd(-1,0.5), f_real_rates(-1,0.4),
+    f_bedrock('COPPER'),
   ]},
   {key:'PLATINUM', name:'Platinum', symbol:'076651', report:'disaggregated', group:'metals', factors:[
     f_cot('Platinum',1.2,'076651','disaggregated'), f_cot_momentum('076651','disaggregated'),
-    f_real_rates(-1,0.4), f_usd(-1,0.4),
+    f_real_rates(-1,0.4), f_usd(-1,0.4), f_bedrock('PLATINUM'),
   ]},
   {key:'PALLADIUM', name:'Palladium', symbol:'075651', report:'disaggregated', group:'metals', factors:[
     f_cot('Palladium',1.2,'075651','disaggregated'), f_cot_momentum('075651','disaggregated'),
@@ -2423,11 +2424,11 @@ const SYNTH = [
   ]},
   {key:'BRENT', name:'Brent Crude', symbol:'06765T', report:'disaggregated', group:'energy', factors:[
     f_cot('Brent',1.2,'06765T','disaggregated'), f_cot_momentum('06765T','disaggregated'),
-    f_oil_geo(0.7), f_brent_wti(+1,0.5),
+    f_oil_geo(0.7), f_brent_wti(+1,0.5), f_bedrock('BRENT'),
   ]},
   {key:'NATGAS', name:'Natural Gas', symbol:'023391', report:'disaggregated', group:'energy', factors:[
     f_cot('NatGas',1.0,'023391','disaggregated'), f_cot_momentum('023391','disaggregated'),
-    f_oil(+1,0.4,'energy'), f_oil_geo(0.4),
+    f_oil(+1,0.4,'energy'), f_oil_geo(0.4), f_bedrock('NATGAS'),
   ]},
 
   // ─── Equities
@@ -2490,7 +2491,7 @@ const SYNTH = [
   {key:'ETH', name:'Ether', symbol:'146021', report:'disaggregated', group:'crypto', factors:[
     f_cot('Ether',1.0,'146021','disaggregated'), f_cot_momentum('146021','disaggregated'),
     f_btc_dom(-1,0.4), f_fear_greed(+1,0.4),
-    f_real_rates(-1,0.3), f_vix(-1,0.3),
+    f_real_rates(-1,0.3), f_vix(-1,0.3), f_bedrock('ETH'),
   ]},
 ];
 
