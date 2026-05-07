@@ -1426,10 +1426,11 @@ function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;',
 const D={};
 
 async function loadAll(){
-  const [combined, cotAna, fund, oilgas, comex, agri, conab, unica, shipping, crypto, calendar, geo, signals, agriSig, ice, euronext,
+  const [combined, cotAna, cotExt, fund, oilgas, comex, agri, conab, unica, shipping, crypto, calendar, geo, signals, agriSig, ice, euronext,
          bdrEia, bdrSeismic, bdrSignals, bdrIndex, bdrAgriSignals] = await Promise.all([
     safeFetch('data/combined/latest.json'),
     safeFetch('data/cot_analytics/latest.json'),
+    safeFetch('data/extremes/latest.json'),
     safeFetch('data/fundamentals/latest.json'),
     safeFetch('data/oilgas/latest.json'),
     safeFetch('data/comex/latest.json'),
@@ -1465,7 +1466,7 @@ async function loadAll(){
     safeFetch('data/bedrock/ice_cot_manual.json'),
     safeFetch('data/bedrock/shipping_manual.json'),
   ]);
-  Object.assign(D,{combined,cotAna,fund,oilgas,comex,agri,conab,unica,shipping,crypto,calendar,geo,signals,agriSig,ice,euronext,
+  Object.assign(D,{combined,cotAna,cotExt,fund,oilgas,comex,agri,conab,unica,shipping,crypto,calendar,geo,signals,agriSig,ice,euronext,
                    bdrEia, bdrSeismic, bdrSignals, bdrIndex, bdrAgriSignals,
                    bdrNews, bdrDisease, bdrExport, bdrPmi, bdrIriEnso, bdrCryptoSent,
                    bdrIceCotManual, bdrShipManual});
@@ -2722,13 +2723,35 @@ const POS_ALIAS = {
 };
 
 function _lookupAnalytics(r, aMap){
-  // 1) Try the explicit alias map (Norwegian + market-name fallbacks)
+  // 1) Curated cot_analytics — keyed by alias / display name. Carries the
+  //    richer fields (divergence-z, OI regime) for the 14 hand-picked names.
   const k1 = (r.navn_no||'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
   const k2 = (r.market||'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
   const aliasMatch = POS_ALIAS[k1] || POS_ALIAS[k2];
-  if(aliasMatch && aMap[aliasMatch.toUpperCase()]) return aMap[aliasMatch.toUpperCase()];
-  // 2) Direct uppercase match on either name
-  return aMap[k1] || aMap[k2] || null;
+  const curated = (aliasMatch && aMap[aliasMatch.toUpperCase()])
+                  || aMap[k1] || aMap[k2] || null;
+  // 2) Extremes snapshot — keyed by symbol_report, so it covers every market
+  //    the timeseries pipeline produced (~1100). Ships fewer fields than the
+  //    curated map. Used both as a fallback when nothing curated matches AND
+  //    as a backstop when a curated entry exists but is `data_quality:missing`
+  //    (some of the 14 carry only OI fields with no percentile).
+  let ext = null;
+  const extMap = D.cotExt?.assets;
+  if(extMap && r.symbol && r.report){
+    ext = extMap[`${r.symbol}_${r.report}`] || null;
+  }
+  if(!curated) return ext;
+  if(!ext) return curated;
+  // Merge: curated wins for any field it actually carries; extremes fills the
+  // gaps. data_quality 'missing' from curated is treated as absent so the
+  // extremes value (fresh / aging / stale based on timeseries date) takes over.
+  const merged = {...ext};
+  for(const [k,v] of Object.entries(curated)){
+    if(v == null) continue;
+    if(k === 'data_quality' && v === 'missing') continue;
+    merged[k] = v;
+  }
+  return merged;
 }
 
 function renderPositions(){

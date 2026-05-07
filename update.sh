@@ -54,6 +54,9 @@ if [ "$DOW" -eq 6 ] && [ "$HOUR" -le 4 ]; then
         && echo "  ICE COT OK (lørdag)" >> "$LOG" \
         || echo "  ICE COT FEIL" >> "$LOG"
     python3 build_combined.py >> "$LOG" 2>&1 && echo "  combined OK" >> "$LOG" || echo "  combined FEIL" >> "$LOG"
+    python3 scripts/build_extreme_percentiles.py >> "$LOG" 2>&1 \
+        && echo "  extremes OK" >> "$LOG" \
+        || echo "  extremes FEIL" >> "$LOG"
 else
     [ "$DOW" -ne 5 ] && echo "  COT/CFTC: hopper over (kun lør 00:00)" >> "$LOG"
 fi
@@ -64,6 +67,9 @@ if [ "$DOW" -eq 3 ] && [ "$HOUR" -ge 12 ]; then
         && echo "  Euronext COT OK" >> "$LOG" \
         || echo "  Euronext COT FEIL (faller tilbake på CFTC)" >> "$LOG"
     python3 build_combined.py >> "$LOG" 2>&1 && echo "  combined (Euronext) OK" >> "$LOG" || true
+    python3 scripts/build_extreme_percentiles.py >> "$LOG" 2>&1 \
+        && echo "  extremes (Euronext) OK" >> "$LOG" \
+        || true
 else
     echo "  Euronext COT: hopper over (kun onsdag etter kl. 12)" >> "$LOG"
 fi
