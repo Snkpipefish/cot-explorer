@@ -421,11 +421,18 @@ def compute_fundamental_metals(direction: str,
 
     if gold_silver_ratio_z is not None:
         # Z-score >2 = gold svært dyr vs silver → bull silver, bear gold
+        # Z-score <-2 = gold svært billig vs silver → bull gold, bear silver
+        # Tidligere manglet halve mønsteret, så bull-gold-fra-billig-GS og
+        # bear-silver-fra-billig-GS ble silently dropped.
         if abs(gold_silver_ratio_z) > 2:
             if asset == "Silver" and gold_silver_ratio_z > 2 and is_bull:
-                components.append((0.6, f"GS-ratio Z {gold_silver_ratio_z:+.1f}"))
+                components.append((0.6, f"GS-ratio Z {gold_silver_ratio_z:+.1f} (silver favoured)"))
             elif asset == "Gold" and gold_silver_ratio_z > 2 and is_bear:
-                components.append((0.4, f"GS-ratio Z {gold_silver_ratio_z:+.1f}"))
+                components.append((0.4, f"GS-ratio Z {gold_silver_ratio_z:+.1f} (gold expensive)"))
+            elif asset == "Gold" and gold_silver_ratio_z < -2 and is_bull:
+                components.append((0.6, f"GS-ratio Z {gold_silver_ratio_z:+.1f} (gold cheap)"))
+            elif asset == "Silver" and gold_silver_ratio_z < -2 and is_bear:
+                components.append((0.4, f"GS-ratio Z {gold_silver_ratio_z:+.1f} (silver expensive)"))
 
     filtered = [(s, d) for s, d in components if s >= 0.3]
     if not filtered:
@@ -462,10 +469,17 @@ def compute_fundamental_energy(direction: str,
     elif oilgas_signal and "bear" in oilgas_signal.lower() and is_bear:
         components.append((0.5, f"Oilgas: {oilgas_signal}"))
 
-    # Backwardation (Brent>WTI+2) = tight current supply = bull
-    if brent_wti_spread is not None and brent_wti_spread > 3 and is_bull:
-        components.append((min(brent_wti_spread / 6.0, 1.0),
-                          f"Brent-WTI spread {brent_wti_spread:+.1f}"))
+    # Brent-WTI spread: wide (>3) = tight current supply = bull oil.
+    # Narrow / negative (≤1) = oversupply / contango = bear oil. Symmetrisk
+    # støtte for begge retninger (tidligere kun is_bull, så SHORT-signaler
+    # mistet en helt reell fundamental driver når oljemarkedet var i contango).
+    if brent_wti_spread is not None:
+        if brent_wti_spread > 3 and is_bull:
+            components.append((min(brent_wti_spread / 6.0, 1.0),
+                              f"Brent-WTI spread {brent_wti_spread:+.1f} (tight)"))
+        elif brent_wti_spread <= 1 and is_bear:
+            components.append((min(abs(brent_wti_spread - 1) / 4.0, 1.0),
+                              f"Brent-WTI spread {brent_wti_spread:+.1f} (contango/oversupply)"))
 
     filtered = [(s, d) for s, d in components if s >= 0.3]
     if not filtered:
@@ -579,12 +593,18 @@ def compute_fundamental_softs(direction: str,
             # Svak BRL = eksportdumping = motvind for long
             components.append((-min(brl_chg5d / 10.0, 0.5), f"BRL svak +{brl_chg5d:.1f}%"))
 
-    # Yield-score fra Open-Meteo
+    # Yield-score fra Open-Meteo. Symmetrisk støtte for begge retninger
+    # (tidligere manglet is_bear-grenen — Coffee SELL fanget ikke høy yield
+    # som bekreftende fundamental, mens Grains-funksjonen gjorde det.)
     if yield_score is not None:
         if yield_score < 40 and is_bull:
             components.append((0.6, f"Yield kritisk ({yield_score})"))
         elif yield_score < 55 and is_bull:
             components.append((0.4, f"Yield svak ({yield_score})"))
+        elif yield_score > 85 and is_bear:
+            components.append((0.5, f"Yield utmerket ({yield_score}) — supply rikelig"))
+        elif yield_score > 70 and is_bear:
+            components.append((0.3, f"Yield god ({yield_score})"))
 
     # Filter negative bidrag — disse reduserer, men returneres ikke som "aktive"
     positive = [(s, d) for s, d in components if s >= 0.3]
