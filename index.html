@@ -2027,8 +2027,24 @@ function _cot(symbol, report){
 }
 function _ana(name){
   const ana = D.cotAna?.assets || {};
-  const k = name.replace(/[^A-Z0-9]/gi,'').toUpperCase();
-  return ana[k] || null;
+  if(!name) return null;
+  // The cot_analytics file mixes case ('Gold', 'Silver', 'Corn', 'EURUSD', ...).
+  // _ana(name) used to uppercase+strip and try a single key lookup, which
+  // silently missed any mixed-case asset (Gold, Silver, Brent, Corn, Wheat,
+  // Soybean, Cotton, Sugar, Coffee, Cocoa, NAS100). The result was that
+  // f_cot('Gold') returned null and gold's COT positioning factor never
+  // entered the synth — same for ~10 of the curated 14 markets.
+  const direct = ana[name];
+  if(direct) return direct;
+  const stripped = name.replace(/[^A-Z0-9]/gi,'');
+  if(ana[stripped]) return ana[stripped];
+  if(ana[stripped.toUpperCase()]) return ana[stripped.toUpperCase()];
+  // Final fallback — case-insensitive scan
+  const target = stripped.toUpperCase();
+  for(const k of Object.keys(ana)){
+    if(k.replace(/[^A-Z0-9]/gi,'').toUpperCase() === target) return ana[k];
+  }
+  return null;
 }
 
 /* Lookup by symbol_report into the extremes file. Used by f_cot when the
@@ -2351,16 +2367,16 @@ function f_agri(cropKey, weight=0.7){
 const SYNTH = [
   // ─── Foreign exchange
   {key:'EURUSD', name:'EUR / USD', symbol:'099741', report:'tff', group:'fx', factors:[
-    f_cot('EURUSD',1.2), f_cot_momentum('099741','tff'), f_usd(-1,0.8), f_bedrock('EURUSD'),
+    f_cot('EURUSD',1.2,'099741','tff'), f_cot_momentum('099741','tff'), f_usd(-1,0.8), f_bedrock('EURUSD'),
   ]},
   {key:'GBPUSD', name:'GBP / USD', symbol:'096742', report:'tff', group:'fx', factors:[
-    f_cot('GBPUSD',1.2), f_cot_momentum('096742','tff'), f_usd(-1,0.8), f_bedrock('GBPUSD'),
+    f_cot('GBPUSD',1.2,'096742','tff'), f_cot_momentum('096742','tff'), f_usd(-1,0.8), f_bedrock('GBPUSD'),
   ]},
   {key:'USDJPY', name:'USD / JPY', symbol:'097741', report:'tff', group:'fx', factors:[
-    f_cot('USDJPY',1.2), f_cot_momentum('097741','tff'), f_usd(+1,0.8), f_bedrock('USDJPY'),
+    f_cot('USDJPY',1.2,'097741','tff'), f_cot_momentum('097741','tff'), f_usd(+1,0.8), f_bedrock('USDJPY'),
   ]},
   {key:'AUDUSD', name:'AUD / USD', symbol:'232741', report:'tff', group:'fx', factors:[
-    f_cot('AUDUSD',1.2), f_cot_momentum('232741','tff'), f_usd(-1,0.6), f_bedrock('AUDUSD'),
+    f_cot('AUDUSD',1.2,'232741','tff'), f_cot_momentum('232741','tff'), f_usd(-1,0.6), f_bedrock('AUDUSD'),
   ]},
   {key:'NZDUSD', name:'NZD / USD', symbol:'112741', report:'tff', group:'fx', factors:[
     f_cot('NZDUSD',1.2,'112741','tff'), f_cot_momentum('112741','tff'),
@@ -2376,12 +2392,12 @@ const SYNTH = [
 
   // ─── Metals
   {key:'GOLD', name:'Gold', symbol:'088691', report:'disaggregated', group:'metals', factors:[
-    f_cot('Gold',1.2), f_cot_momentum('088691','disaggregated'),
-    f_real_rates(-1,0.8), f_usd(-1,0.6), f_comex('gold',0.5), f_oil_geo(0.4), f_bedrock('XAUUSD'),
+    f_cot('Gold',1.2,'088691','disaggregated'), f_cot_momentum('088691','disaggregated'),
+    f_real_rates(-1,0.8), f_usd(-1,0.6), f_comex('gold',0.5), f_oil_geo(0.4), f_bedrock('GOLD'),
   ]},
   {key:'SILVER', name:'Silver', symbol:'084691', report:'disaggregated', group:'metals', factors:[
-    f_cot('Silver',1.2), f_cot_momentum('084691','disaggregated'),
-    f_real_rates(-1,0.7), f_comex('silver',0.8), f_bedrock('XAGUSD'),
+    f_cot('Silver',1.2,'084691','disaggregated'), f_cot_momentum('084691','disaggregated'),
+    f_real_rates(-1,0.7), f_comex('silver',0.8), f_bedrock('SILVER'),
   ]},
   {key:'COPPER', name:'Copper', symbol:'085692', report:'disaggregated', group:'metals', factors:[
     f_cot('Copper',1.2,'085692','disaggregated'), f_cot_momentum('085692','disaggregated'),
@@ -2398,11 +2414,11 @@ const SYNTH = [
 
   // ─── Energy
   {key:'WTI', name:'WTI Crude', symbol:'067651', report:'disaggregated', group:'energy', factors:[
-    f_cot('WTI',1.2), f_cot_momentum('067651','disaggregated'),
-    f_oil_geo(0.7), f_brent_wti(-1,0.5), f_bedrock('XTIUSD'),
+    f_cot('WTI',1.2,'067651','disaggregated'), f_cot_momentum('067651','disaggregated'),
+    f_oil_geo(0.7), f_brent_wti(-1,0.5), f_bedrock('WTI'),
   ]},
   {key:'BRENT', name:'Brent Crude', symbol:'06765T', report:'disaggregated', group:'energy', factors:[
-    f_cot('BrentLastDay',1.2), f_cot_momentum('06765T','disaggregated'),
+    f_cot('Brent',1.2,'06765T','disaggregated'), f_cot_momentum('06765T','disaggregated'),
     f_oil_geo(0.7), f_brent_wti(+1,0.5),
   ]},
   {key:'NATGAS', name:'Natural Gas', symbol:'023391', report:'disaggregated', group:'energy', factors:[
@@ -2412,12 +2428,12 @@ const SYNTH = [
 
   // ─── Equities
   {key:'SPX', name:'S&P 500', symbol:'13874+', report:'tff', group:'equity', factors:[
-    f_cot('SP500',1.0), f_cot_momentum('13874+','tff'),
-    f_vix(+1,0.7), f_real_rates(-1,0.4), f_bedrock('SPX500'),
+    f_cot('SPX',1.0,'13874+','tff'), f_cot_momentum('13874+','tff'),
+    f_vix(+1,0.7), f_real_rates(-1,0.4), f_bedrock('SPX'),
   ]},
   {key:'NDX', name:'Nasdaq 100', symbol:'20974+', report:'tff', group:'equity', factors:[
-    f_cot('Nasdaq',1.0), f_cot_momentum('20974+','tff'),
-    f_vix(+1,0.7), f_real_rates(-1,0.5),
+    f_cot('NAS100',1.0,'20974+','tff'), f_cot_momentum('20974+','tff'),
+    f_vix(+1,0.7), f_real_rates(-1,0.5), f_bedrock('NDX'),
   ]},
   {key:'RUT', name:'Russell 2000', symbol:'239742', report:'tff', group:'equity', factors:[
     f_cot('Russell2000',1.0,'239742','tff'), f_cot_momentum('239742','tff'),
@@ -2430,41 +2446,41 @@ const SYNTH = [
 
   // ─── Agri
   {key:'CORN', name:'Corn', symbol:'002602', report:'disaggregated', group:'agri', factors:[
-    f_cot('Corn',1.2), f_cot_momentum('002602','disaggregated'),
+    f_cot('Corn',1.2,'002602','disaggregated'), f_cot_momentum('002602','disaggregated'),
     f_enso(+0.6,-0.5,0.6), f_conab('milho',-1,0.5),
     f_oil(+1,0.4), f_usd(-1,0.4), f_agri('corn'),
   ]},
   {key:'SOY', name:'Soybeans', symbol:'005602', report:'disaggregated', group:'agri', factors:[
-    f_cot('Soybeans',1.2), f_cot_momentum('005602','disaggregated'),
+    f_cot('Soybean',1.2,'005602','disaggregated'), f_cot_momentum('005602','disaggregated'),
     f_enso(+0.5,-0.4,0.6), f_conab('soja',-1,0.6),
     f_usd(-1,0.4), f_agri('soybeans'),
   ]},
   {key:'WHEAT', name:'Wheat', symbol:'001602', report:'disaggregated', group:'agri', factors:[
-    f_cot('Wheat',1.2), f_cot_momentum('001602','disaggregated'),
+    f_cot('Wheat',1.2,'001602','disaggregated'), f_cot_momentum('001602','disaggregated'),
     f_enso(+0.4,-0.3,0.5), f_usd(-1,0.4), f_agri('wheat'),
   ]},
   {key:'COTTON', name:'Cotton', symbol:'033661', report:'disaggregated', group:'agri', factors:[
-    f_cot('Cotton',1.2), f_cot_momentum('033661','disaggregated'),
+    f_cot('Cotton',1.2,'033661','disaggregated'), f_cot_momentum('033661','disaggregated'),
     f_conab('algodao',-1,0.5), f_usd(-1,0.4), f_agri('cotton'),
   ]},
   {key:'SUGAR', name:'Sugar No. 11', symbol:'080732', report:'disaggregated', group:'agri', factors:[
-    f_cot('Sugar',1.2), f_cot_momentum('080732','disaggregated'),
+    f_cot('Sugar',1.2,'080732','disaggregated'), f_cot_momentum('080732','disaggregated'),
     f_unica(0.7), f_oil(+1,0.5), f_usd(-1,0.4), f_agri('sugar'),
   ]},
   {key:'COFFEE', name:'Coffee (Arabica)', symbol:'083731', report:'disaggregated', group:'agri', factors:[
-    f_cot('Coffee',1.2), f_cot_momentum('083731','disaggregated'),
+    f_cot('Coffee',1.2,'083731','disaggregated'), f_cot_momentum('083731','disaggregated'),
     f_conab('cafe_total',-1,0.6), f_enso(+0.3,-0.5,0.4),
     f_usd(-1,0.4), f_agri('coffee'),
   ]},
   {key:'COCOA', name:'Cocoa', symbol:'073732', report:'disaggregated', group:'agri', factors:[
-    f_cot('Cocoa',1.2), f_cot_momentum('073732','disaggregated'),
+    f_cot('Cocoa',1.2,'073732','disaggregated'), f_cot_momentum('073732','disaggregated'),
     f_usd(-1,0.4), f_agri('cocoa'),
   ]},
 
   // ─── Crypto
   {key:'BTC', name:'Bitcoin', symbol:'133741', report:'disaggregated', group:'crypto', factors:[
     f_cot('Bitcoin',1.0,'133741','disaggregated'), f_cot_momentum('133741','disaggregated'),
-    f_btc_dom(+1,0.4), f_fear_greed(+1,0.4), f_bedrock('BTCUSD'),
+    f_btc_dom(+1,0.4), f_fear_greed(+1,0.4), f_bedrock('BTC'),
     f_real_rates(-1,0.4), f_vix(-1,0.3),
   ]},
   {key:'ETH', name:'Ether', symbol:'146021', report:'disaggregated', group:'crypto', factors:[
