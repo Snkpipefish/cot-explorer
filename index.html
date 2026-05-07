@@ -2280,6 +2280,26 @@ function f_bedrock(synthKey){
   };
 }
 
+/* Cross-asset: absolute Brent level. Higher oil → ethanol becomes more
+   competitive vs sugar/corn-based fuel, mills shift mix away from sugar
+   and ethanol mandates support corn demand. Returns ±1 bias scaled to
+   how far Brent is from a $70 anchor (rough decade-mid-range). The
+   `direction` lets us reuse this for inverse-coupled commodities. */
+function f_oil(direction=+1, weight=0.5){
+  return ()=>{
+    const inst = D.oilgas?.instruments;
+    if(!Array.isArray(inst)) return null;
+    const brent = inst.find(x => x?.id === 'brent');
+    const v = brent?.price?.value;
+    if(v == null) return null;
+    // Anchor $70: $50 → -1, $90+ → +1, with ±20 range
+    const bias = Math.max(-1, Math.min(1, (v - 70) / 20)) * direction;
+    return {bias: bias * 0.9, weight, label: direction > 0 ? 'Brent (ethanol-parity)' : 'Brent inverse',
+            value: '$' + v.toFixed(1),
+            why: v >= 90 ? 'høy → favoriserer etanol/biofuel' : v <= 60 ? 'lav → favoriserer sukker/mat' : 'mid-range'};
+  };
+}
+
 /* SYNTH-factor that pulls the agri model's outlook (data/agri/latest.json)
    so the Control Panel + Counterpoints surface the rich agri read (yield,
    ENSO, UNICA/CONAB fundamentals, bedrock 2nd-opinion) per crop. The
@@ -2376,30 +2396,34 @@ const SYNTH = [
   // ─── Agri
   {key:'CORN', name:'Corn', symbol:'002602', report:'disaggregated', group:'agri', factors:[
     f_cot('Corn',1.2), f_cot_momentum('002602','disaggregated'),
-    f_enso(+0.6,-0.5,0.6), f_conab('milho',-1,0.5), f_agri('corn'),
+    f_enso(+0.6,-0.5,0.6), f_conab('milho',-1,0.5),
+    f_oil(+1,0.4), f_usd(-1,0.4), f_agri('corn'),
   ]},
   {key:'SOY', name:'Soybeans', symbol:'005602', report:'disaggregated', group:'agri', factors:[
     f_cot('Soybeans',1.2), f_cot_momentum('005602','disaggregated'),
-    f_enso(+0.5,-0.4,0.6), f_conab('soja',-1,0.6), f_agri('soybeans'),
+    f_enso(+0.5,-0.4,0.6), f_conab('soja',-1,0.6),
+    f_usd(-1,0.4), f_agri('soybeans'),
   ]},
   {key:'WHEAT', name:'Wheat', symbol:'001602', report:'disaggregated', group:'agri', factors:[
     f_cot('Wheat',1.2), f_cot_momentum('001602','disaggregated'),
-    f_enso(+0.4,-0.3,0.5), f_agri('wheat'),
+    f_enso(+0.4,-0.3,0.5), f_usd(-1,0.4), f_agri('wheat'),
   ]},
   {key:'COTTON', name:'Cotton', symbol:'033661', report:'disaggregated', group:'agri', factors:[
     f_cot('Cotton',1.2), f_cot_momentum('033661','disaggregated'),
-    f_conab('algodao',-1,0.5), f_agri('cotton'),
+    f_conab('algodao',-1,0.5), f_usd(-1,0.4), f_agri('cotton'),
   ]},
   {key:'SUGAR', name:'Sugar No. 11', symbol:'080732', report:'disaggregated', group:'agri', factors:[
     f_cot('Sugar',1.2), f_cot_momentum('080732','disaggregated'),
-    f_unica(0.7), f_agri('sugar'),
+    f_unica(0.7), f_oil(+1,0.5), f_usd(-1,0.4), f_agri('sugar'),
   ]},
   {key:'COFFEE', name:'Coffee (Arabica)', symbol:'083731', report:'disaggregated', group:'agri', factors:[
     f_cot('Coffee',1.2), f_cot_momentum('083731','disaggregated'),
-    f_conab('cafe_total',-1,0.6), f_enso(+0.3,-0.5,0.4), f_agri('coffee'),
+    f_conab('cafe_total',-1,0.6), f_enso(+0.3,-0.5,0.4),
+    f_usd(-1,0.4), f_agri('coffee'),
   ]},
   {key:'COCOA', name:'Cocoa', symbol:'073732', report:'disaggregated', group:'agri', factors:[
-    f_cot('Cocoa',1.2), f_cot_momentum('073732','disaggregated'), f_agri('cocoa'),
+    f_cot('Cocoa',1.2), f_cot_momentum('073732','disaggregated'),
+    f_usd(-1,0.4), f_agri('cocoa'),
   ]},
 
   // ─── Crypto
