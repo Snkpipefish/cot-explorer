@@ -2057,12 +2057,20 @@ function _anaExt(symbol, report){
   return ext[`${symbol}_${report}`] || null;
 }
 
-/* factor: COT positioning percentile (52w). Below 25 = contra-bull, above 75 = contra-bear.
-   Optional symbol/report enables fallback to the extremes snapshot (covers
-   all 1100+ symbol_report combos) when curated cot_analytics doesn't have
-   the asset — previously PLATINUM, PALLADIUM, BTC, ETH, NATGAS, COPPER all
-   silently dropped the COT factor here, leaving them with single-channel
-   reads. */
+/* factor: COT positioning. Combines 52w pctile (where current sits in
+   recent history) with net_pct (absolute spec_net / OI) so the contrarian
+   read doesn't fire spuriously for one-sided markets.
+
+   Pctile alone misreads always-short / always-long markets:
+     • Palladium pctile=97 mm_net=-98 → "extreme long, contra-bear" but
+       reality is "least short in 52w, specs covering" (mild momentum
+       reversal, NOT crowded long).
+     • Gold pctile=1.9 mm_net=+24% → "extreme short, contra-bull" but
+       reality is "specs reduced longs from 40%+ to 24%" (shaken-out
+       longs, mild contra-bull).
+
+   Hybrid: full contra signal only when pctile + net_pct sign agree;
+   reduced bias when they disagree. */
 function f_cot(name, weight=1.0, symbol=null, report=null){
   return ()=>{
     let a = _ana(name);
@@ -2071,16 +2079,42 @@ function f_cot(name, weight=1.0, symbol=null, report=null){
     }
     if(!a || a.mm_net_pctile_52w==null) return null;
     const p = a.mm_net_pctile_52w;
+    const mm = a.mm_net;
+    const oi = a.oi_now;
+    const netPct = (mm != null && oi) ? (mm/oi)*100 : null;
     let bias = 0;
-    if(p<=10) bias = +1.0;
-    else if(p<=25) bias = +0.5;
-    else if(p<35) bias = +0.2;
-    else if(p<65) bias = 0;
-    else if(p<75) bias = -0.2;
-    else if(p<=90) bias = -0.5;
-    else bias = -1.0;
-    return {bias, weight, label:'COT positioning', value: p.toFixed(0)+' pct',
-            why: p<25?'historic low — contra-bull':p>75?'historic high — contra-bear':'neutral'};
+    let why = '';
+    if(p <= 10){
+      if(netPct == null || netPct < -5){
+        bias = +1.0; why = 'historic low + net short — crowded short, contra-bull';
+      } else if(netPct < 5){
+        bias = +0.3; why = 'historic low + flat positioning — mild';
+      } else {
+        bias = +0.5; why = 'historic low but still net long — shaken-out longs';
+      }
+    } else if(p <= 25){
+      bias = (netPct == null || netPct < -3) ? +0.5 : +0.2;
+      why = 'low percentile';
+    } else if(p < 35){
+      bias = +0.2; why = 'lower-mid';
+    } else if(p < 65){
+      bias = 0; why = 'neutral';
+    } else if(p < 75){
+      bias = -0.2; why = 'upper-mid';
+    } else if(p <= 90){
+      bias = (netPct == null || netPct > 3) ? -0.5 : -0.2;
+      why = 'high percentile';
+    } else {
+      if(netPct == null || netPct > 5){
+        bias = -1.0; why = 'historic high + net long — crowded long, contra-bear';
+      } else if(netPct > -5){
+        bias = -0.3; why = 'historic high + flat positioning — mild';
+      } else {
+        bias = -0.5; why = 'historic high but still net short — covering shorts';
+      }
+    }
+    const valStr = p.toFixed(0)+' pct'+(netPct!=null?` · net ${netPct.toFixed(0)}%`:'');
+    return {bias, weight, label:'COT positioning', value: valStr, why};
   };
 }
 
