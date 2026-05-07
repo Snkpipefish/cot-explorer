@@ -1527,14 +1527,15 @@ async function loadAll(){
     safeFetch('data/bedrock/index.json'),
     safeFetch('data/bedrock/agri_signals.json'),
   ]);
-  // Manual-CSV bedrock sources (small but populated)
-  const [bdrNews, bdrDisease, bdrExport, bdrPmi, bdrIriEnso, bdrCryptoSent] = await Promise.all([
+  // Manual-CSV bedrock sources (small but populated) + macro snapshot (sentiment lives here)
+  const [bdrNews, bdrDisease, bdrExport, bdrPmi, bdrIriEnso, bdrCryptoSent, macroSnap] = await Promise.all([
     safeFetch('data/bedrock/news_intel.json'),
     safeFetch('data/bedrock/disease_alerts.json'),
     safeFetch('data/bedrock/export_events.json'),
     safeFetch('data/bedrock/ism_pmi.json'),
     safeFetch('data/bedrock/iri_enso.json'),
     safeFetch('data/bedrock/crypto_sentiment.json'),
+    safeFetch('data/macro/latest.json'),
   ]);
   // Manual fallbacks for sources whose bedrock fetcher tables are empty.
   // Loaded separately to keep the main destructure stable.
@@ -1545,7 +1546,8 @@ async function loadAll(){
   Object.assign(D,{combined,cotAna,cotExt,fund,oilgas,comex,agri,conab,unica,shipping,crypto,calendar,geo,signals,agriSig,ice,euronext,
                    bdrEia, bdrSeismic, bdrSignals, bdrIndex, bdrAgriSignals,
                    bdrNews, bdrDisease, bdrExport, bdrPmi, bdrIriEnso, bdrCryptoSent,
-                   bdrIceCotManual, bdrShipManual});
+                   bdrIceCotManual, bdrShipManual,
+                   macroSnap});
 
   renderStateStrip();
   renderControl();
@@ -1629,6 +1631,18 @@ function renderMacro(){
       <span class="ind-val">${fmt(v.current)}</span>
       <span class="ind-trend ${tCls}">${tArr}${v.previous!=null?' '+fmt(v.previous):''}</span></div>`;
   }).join('');
+  // Risk-regime: news sentiment + Fear&Greed from data/macro/latest.json
+  const sent     = (D.macroSnap||{}).sentiment || {};
+  const news     = sent.news || {};
+  const fgM      = sent.fear_greed || {};
+  const nsLabel  = (news.label || 'neutral').toLowerCase();
+  const nsScore  = (typeof news.score === 'number') ? news.score : 0;
+  const nsHeads  = (news.headlines_n!=null) ? `${news.headlines_n} headlines · score ${nsScore>=0?'+':''}${nsScore.toFixed(2)}` : '';
+  const nsCls    = nsLabel==='risk_on'?'pos':nsLabel==='risk_off'?'neg':'info';
+  const nsLabelText = nsLabel==='risk_on'?'RISK-ON':nsLabel==='risk_off'?'RISK-OFF':'NEUTRAL';
+  const fgVal    = (typeof fgM.score === 'number') ? fgM.score : null;
+  const fgRating = (fgM.rating||'').toUpperCase();
+  const fgCls    = fgVal==null?'info':fgVal>=75?'neg':fgVal>=60?'warn':fgVal<=25?'pos':fgVal<=40?'warn':'info';
   const body =
     readouts([
       readout('USD Bias', bias||'—', biasCls, s.score!=null?`score ${s.score>0?'+':''}${s.score.toFixed(2)}`:''),
@@ -1636,6 +1650,8 @@ function renderMacro(){
       readout('Inflation',(cs.inflation?.bias||'—').toUpperCase(), cs.inflation?.bias==='bullish'?'pos':cs.inflation?.bias==='bearish'?'neg':'info', `avg ${(cs.inflation?.avg??0).toFixed(2)}`),
       readout('Jobs',     (cs.jobs?.bias||'—').toUpperCase(), cs.jobs?.bias==='bullish'?'pos':cs.jobs?.bias==='bearish'?'neg':'info', `avg ${(cs.jobs?.avg??0).toFixed(2)}`),
       readout('ISM PMI', isFinite(pmiVal)?pmiVal.toFixed(1):'—', pmiVal>=50?'pos':pmiVal<50?'neg':'info', isFinite(pmiPrevVal)?`prev ${pmiPrevVal.toFixed(1)}`:''),
+      readout('News Sentiment', nsLabelText, nsCls, nsHeads),
+      readout('Fear & Greed',   fgVal!=null?fgVal.toFixed(0):'—', fgCls, fgRating),
     ])
     + descr(`<strong>The dollar's macro tape.</strong> A composite of growth, inflation, jobs, and the ISM PMI
        — the leading indicator for U.S. industrial activity. <strong>Why it matters for COT:</strong> a bullish dollar
