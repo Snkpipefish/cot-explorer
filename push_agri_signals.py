@@ -415,7 +415,14 @@ def _unica_mix_driver(direction: str) -> tuple[int, list[str]]:
     score = 0
     drivers = []
     mix = unica_data.get("mix_sugar_pct")
-    mix_qoq = unica_data.get("mix_sugar_change_pct_qoq")
+    # `mix_sugar_change_pct_qoq` was being read but never set — neither the
+    # local cot-explorer UNICA fetcher nor the bedrock import populates it.
+    # Compute from the prev-period reference field that actually exists
+    # (mix_sugar_pct_prev_year for cot-explorer, mix_sugar_pct_prev for
+    # bedrock — both represent comparable prior-period mix).
+    prev_mix = (unica_data.get("mix_sugar_pct_prev_year")
+                or unica_data.get("mix_sugar_pct_prev"))
+    mix_qoq = (mix - prev_mix) if (mix is not None and prev_mix is not None) else None
     if mix is not None and mix_qoq is not None:
         if mix > 50 and mix_qoq >= 1.0 and direction == "SELL":
             score += 1
@@ -537,6 +544,37 @@ def _cross_confirm(crop: dict, crop_key: str, direction: str) -> tuple[int, list
                 drivers += analog_drivers
         except Exception:
             pass   # Graceful degradation
+
+    # E. BEDROCK-AGREEMENT — bedrock har egen flerårig modell med positioning,
+    #    analog matching, sykdom-/supply-skade-tracking. Når bedrock publiserer
+    #    A-grade i samme retning gir det sterk uavhengig bekreftelse — særlig
+    #    verdifull for crops der CONAB/UNICA-data ikke direkte støtter retningen.
+    bedrock_inst = {"corn":"Corn", "wheat":"Wheat", "soybeans":"Soybean",
+                    "cotton":"Cotton", "sugar":"Sugar", "coffee":"Coffee",
+                    "cocoa":"Cocoa"}.get(crop_key)
+    if bedrock_inst:
+        try:
+            with open(os.path.expanduser("~/cot-explorer/data/bedrock/agri_signals.json")) as f:
+                _bdr_raw = (json.load(f) or {}).get("raw") or []
+            # Find published makro-signal in matching direction
+            target_dir = "buy" if direction == "BUY" else "sell"
+            match = [s for s in _bdr_raw
+                     if s.get("instrument") == bedrock_inst
+                     and (s.get("horizon") or "").lower() == "makro"
+                     and (s.get("direction") or "").lower() == target_dir
+                     and s.get("published")]
+            if match:
+                # Sort by score desc, take strongest
+                match.sort(key=lambda s: s.get("score", 0), reverse=True)
+                best = match[0]
+                if (best.get("grade") or "").startswith("A"):
+                    score += 1
+                    drivers.append(
+                        f"Bedrock {best['grade']} {direction} bekrefter "
+                        f"(score {best.get('score',0):.1f})"
+                    )
+        except Exception:
+            pass   # Graceful — bedrock fil mangler eller bad format
 
     # Cap bonus til +2 slik at krysssjekk ikke dominerer over shock-drivere
     if score > 2:
