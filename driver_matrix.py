@@ -894,6 +894,16 @@ def score_asset(
     asset_class = context.get("asset_class", "fx")
     asset       = context.get("asset", "")
 
+    # Normaliser direction én gang her, så alle familie-funksjonene ser
+    # samme verdi. Tidligere godtok compute_fundamental_grains og _softs
+    # "BUY"/"SELL" (uppercase) mens andre familier bare aksepterte
+    # "buy"/"bull"/"long". En "BUY"-direction nådde compute_macro og
+    # compute_fundamental_metals som umatch — silently ingen scoring for
+    # dem. Alle nedstrøms is_bull/is_bear er nå likt-formet.
+    direction = (direction or "").lower()
+    if direction in ("buy", "long"):    direction = "bull"
+    elif direction in ("sell", "short"): direction = "bear"
+
     # Familie 1 — TREND
     trend = compute_trend(sma200_aligned, momentum_aligned, d1_4h_congruent)
 
