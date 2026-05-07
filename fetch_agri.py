@@ -22,6 +22,7 @@ EURONEXT_COT_FILE = os.path.join(BASE, "euronext_cot", "latest.json")
 MACRO_PRICES_FILE = os.path.join(BASE, "macro", "latest.json")
 BEDROCK_UNICA_FILE = os.path.join(BASE, "bedrock", "unica.json")
 BEDROCK_CONAB_FILE = os.path.join(BASE, "bedrock", "conab.json")
+BEDROCK_AGRI_SIGNALS_FILE = os.path.join(BASE, "bedrock", "agri_signals.json")
 
 # Mapping fra crop_key → nøkkel i macro/latest.json prices
 CROP_PRICE_MAP = {
@@ -1055,7 +1056,8 @@ PERENNIAL_CROPS = {"cocoa", "coffee", "palm"}
 
 def combine_outlook(weather_score, cot_score, crop_key, lat,
                     yield_score=None, enso_adj=0,
-                    price_chg_20d=None, fund_adj=0):
+                    price_chg_20d=None, fund_adj=0,
+                    bedrock_adj=0):
     """
     Kombinerer vær, COT, yield, ENSO og prisbevegelse til endelig
     prisretning.
@@ -1079,7 +1081,13 @@ def combine_outlook(weather_score, cot_score, crop_key, lat,
     # ±1.0 så ikke en enkelt rapport dominerer.
     fund_contrib = max(-1.0, min(1.0, fund_adj or 0))
 
-    total = wx_contrib + cot_contrib + enso_contrib + fund_contrib
+    # Bedrock 2nd opinion — ±0.5 ut fra bedrocks publiserte makro-signal.
+    # Bedrock har sin egen flerårige analog + sykdomsdata + langtidsskade-
+    # tracking som cot-explorer mangler; gi det en stemme uten å la det
+    # dominere.
+    bedrock_contrib = max(-0.5, min(0.5, bedrock_adj or 0))
+
+    total = wx_contrib + cot_contrib + enso_contrib + fund_contrib + bedrock_contrib
 
     # Perennials (kakao, kaffe, palmeolje) får SVAK yield-vekt fordi
     # weather-modellen er blind for flerårig akkumulert supply-skade
@@ -1115,6 +1123,32 @@ def combine_outlook(weather_score, cot_score, crop_key, lat,
         elif price_chg_20d >= 3:  total += 0.5 * scale
         elif price_chg_20d <= -8: total -= 1.0 * scale
         elif price_chg_20d <= -3: total -= 0.5 * scale
+
+    # Kontrære COT-justeringer: når specs står i en ytterposisjon (cot_score
+    # ±2, dvs. z-score ≥ 1.5 abs) men markedet/fundamentene IKKE bekrefter,
+    # er posisjonen uttømt og kan reverseres.
+    #
+    # Eksempler dette fanger:
+    #  • Sukker: specs short −18% mens vær + ENSO + olje peker bullish →
+    #    short-squeeze-setup, ikke bearish.
+    #  • Bomull: specs long +11% mens demand er svak og yield Utmerket →
+    #    posisjonen er momentum-resten, neppe lovende.
+    if cot_score is not None:
+        bullish_fund = (yield_score is not None and yield_score < 50) or fund_contrib > 0.3
+        bearish_fund = (yield_score is not None and yield_score >= 80) or fund_contrib < -0.3
+        no_price_follow_up = price_chg_20d is not None and price_chg_20d <= 0
+        no_price_follow_down = price_chg_20d is not None and price_chg_20d >= 0
+
+        if cot_score >= 2:    # specs crowded long
+            if no_price_follow_up:
+                total -= 0.5     # rally feiler å bekrefte → exhaustion
+            if bearish_fund:
+                total -= 0.5     # crowded long mot bearish fundamentaler
+        elif cot_score <= -2: # specs crowded short
+            if no_price_follow_down:
+                total += 0.5     # selg-trykk feiler → squeeze-risk
+            if bullish_fund:
+                total += 0.5     # crowded short mot bullish fundamentaler
 
     total = round(total, 1)
 
@@ -1375,6 +1409,49 @@ def _load_bedrock_conab():
 bedrock_unica = _load_bedrock_unica()
 bedrock_conab = _load_bedrock_conab()
 
+
+def _load_bedrock_agri_signals():
+    """Last bedrock's per-instrument agri-signaler. Bedrock kjører
+    flerårig modell med positioning, analog-matching, sykdomsdata —
+    fanger opp ting cot-explorers vær-baserte modell ikke ser
+    (kakao-CSSV, kaffe-frostskade fra 2024, etc.)."""
+    try:
+        with open(BEDROCK_AGRI_SIGNALS_FILE) as f:
+            d = json.load(f)
+        sigs = d.get("raw") or []
+        # For hver instrument, finn beste BUY og beste SELL (makro-horisont)
+        by_inst = {}
+        for s in sigs:
+            inst = s.get("instrument")
+            if not inst or s.get("horizon") != "makro":
+                continue
+            direction = s.get("direction")
+            score = s.get("score", 0)
+            entry = by_inst.setdefault(inst, {})
+            cur = entry.get(direction)
+            if cur is None or score > cur.get("score", 0):
+                entry[direction] = s
+        return by_inst
+    except Exception:
+        return {}
+
+
+bedrock_agri = _load_bedrock_agri_signals()
+
+# Mapping crop_key → bedrock-instrument-navn (engelsk, akkurat som
+# bedrock bruker dem internt). Ris og palm dekkes ikke av bedrocks
+# agri-tabell ennå.
+BEDROCK_INSTR_MAP = {
+    "corn":     "Corn",
+    "wheat":    "Wheat",
+    "soybeans": "Soybean",
+    "cotton":   "Cotton",
+    "sugar":    "Sugar",
+    "coffee":   "Coffee",
+    "cocoa":    "Cocoa",
+}
+
+
 # Mapping crop_key → CONAB-nøkkel (Brazilian crop name)
 CONAB_CROP_MAP = {
     "soybeans": "soja",
@@ -1382,6 +1459,41 @@ CONAB_CROP_MAP = {
     "cotton":   "algodao",
     "coffee":   "cafe_total",
 }
+
+
+def bedrock_signals_for_crop(crop_key):
+    """Returnerer (bedrock_adj, drivers_text) basert på bedrocks
+    publiserte makro-signal. Bidrar med ±0.5 til outlook-summen så
+    bedrock får en stemme uten å dominere — modellene ser ulike
+    ting (cot-explorer ser nåværende vær + COT, bedrock ser også
+    flerårig analog + sykdom + langtidsskade).
+    """
+    inst = BEDROCK_INSTR_MAP.get(crop_key)
+    if not inst:
+        return 0.0, []
+    entry = bedrock_agri.get(inst) or {}
+    buy = entry.get("buy")
+    sell = entry.get("sell")
+    buy_pub = buy and buy.get("published")
+    sell_pub = sell and sell.get("published")
+
+    adj = 0.0
+    txts = []
+    if buy_pub and not sell_pub:
+        adj = 0.5
+        txts.append(f"Bedrock: {buy.get('grade','?')} BUY makro publisert (score {buy.get('score',0):.1f})")
+    elif sell_pub and not buy_pub:
+        adj = -0.5
+        txts.append(f"Bedrock: {sell.get('grade','?')} SELL makro publisert (score {sell.get('score',0):.1f})")
+    elif buy_pub and sell_pub:
+        # Begge publisert — usikkert. Vekt etter score.
+        if buy.get("score", 0) > sell.get("score", 0):
+            adj = 0.2
+            txts.append(f"Bedrock: BUY foretrukket ({buy.get('grade')}), men SELL også publisert")
+        else:
+            adj = -0.2
+            txts.append(f"Bedrock: SELL foretrukket ({sell.get('grade')}), men BUY også publisert")
+    return adj, txts
 
 
 def fund_signals_for_crop(crop_key):
@@ -1497,10 +1609,14 @@ for crop_key, meta in CROP_META.items():
     # justering som vær-modellen ikke ser direkte.
     fund_adj, fund_drivers = fund_signals_for_crop(crop_key)
 
+    # Bedrock 2nd opinion fra deres publiserte makro-signal.
+    bedrock_adj, bedrock_drivers = bedrock_signals_for_crop(crop_key)
+
     outlook = combine_outlook(avg_wx_score, cot_score, crop_key, 45,
                               yield_score=avg_yield, enso_adj=avg_enso_adj,
                               price_chg_20d=price_chg_20d,
-                              fund_adj=fund_adj)
+                              fund_adj=fund_adj,
+                              bedrock_adj=bedrock_adj)
 
     # Yield-rating utledes direkte fra avg_yield (tallet vist i UI), så
     # etiketten og tallet alltid matcher samme bånd. Tidligere ble rating
@@ -1529,6 +1645,9 @@ for crop_key, meta in CROP_META.items():
     # Fundamentale (UNICA / CONAB) — direkte tilbud-side
     for fd in fund_drivers:
         drivers.append(fd)
+    # Bedrock 2nd opinion — flerårig modell med langtidsskade + analoger
+    for bd in bedrock_drivers:
+        drivers.append(bd)
     # ENSO-driver (nåværende fase)
     enso_impacts_crop = [r.get("enso_impact") for r in region_list if r.get("enso_impact")]
     if enso_impacts_crop:
