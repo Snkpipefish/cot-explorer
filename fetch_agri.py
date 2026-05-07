@@ -387,11 +387,41 @@ def calculate_season_metrics(archive_data, crop_key, season_start_date=None):
     }
 
 
-def estimate_yield_quality(metrics, season_pct, weather_7d=None, enso_adj=0):
+# Stress-dager veies etter vekstfase: en tørke-dag i blomstringsfasen rammer
+# yield mye hardere enn én under høsting (avlingen er allerede dannet/kuttet).
+# Post-harvest = 0 så kumulativ sesong-stress ikke fortsetter å belastes
+# avlingen som allerede er i bingen. Ukjent fase faller tilbake på 1.0.
+PHASE_STRESS_MULT = {
+    "dormancy": 0.0, "dormancy-end": 0.2,
+    "pre-plant": 0.3, "sowing": 0.7, "planting": 0.7,
+    "emergence": 1.0, "early-growth": 1.0,
+    "growing": 1.0,
+    "flowering": 2.0,        # mest sårbar — pollinering/blomstring
+    "heading": 1.5,
+    "ripening": 0.7,
+    "harvest": 0.4,          # avlingen kuttes — vær har liten effekt
+    "post-harvest": 0.0,     # safra ferdig — telles ikke
+    # Tropiske/perennial-stadier
+    "low-prod": 0.5, "recovering": 0.7,
+    "moderate": 1.0, "peak": 1.5,
+}
+# Maksimal stress-straff uansett antall stress-dager. Hindrer at en sen
+# kumulativ aggregering (f.eks. 94 dager × 2 = -188) tar yield-score til
+# bunnen mekanisk og overskygger alle andre drivere.
+STRESS_PENALTY_CAP = 40
+
+
+def estimate_yield_quality(metrics, season_pct, weather_7d=None, enso_adj=0,
+                           growth_phase=None):
     """
     Estimerer yield-kvalitet basert på sesongmetrikker,
     7-dagers værprognose og ENSO-forecast.
     Returnerer score (0-100) og norsk rating-tekst.
+
+    growth_phase er den engelske stage-tokenen (f.eks. "harvest",
+    "post-harvest", "flowering"). Brukes til å skalere stress-straffen
+    etter hvor sårbar avlingen er nå — uten denne ble en tørke under
+    høsting straffet like hardt som under blomstring, som er feil.
     """
     if not metrics:
         return None, None, None
@@ -431,8 +461,14 @@ def estimate_yield_quality(metrics, season_pct, weather_7d=None, enso_adj=0):
         elif precip_ratio > 1.8:
             score -= 8 if not early else 2
 
-    # Stress-faktor
-    score -= stress * (2 if not early else 1)
+    # Stress-faktor — fasevektet og cappet. Tidligere ble 94 stress-dager × 2
+    # = -188 påført rått, og clamp(0,100) tok scoren til 0. Det stemte ikke
+    # med markedet når stress-dager var akkumulert sent i en sesong der
+    # avlingen allerede var i bingen.
+    raw_stress_penalty = stress * (2 if not early else 1)
+    phase_mult = PHASE_STRESS_MULT.get(growth_phase, 1.0) if growth_phase else 1.0
+    stress_penalty = min(STRESS_PENALTY_CAP, raw_stress_penalty * phase_mult)
+    score -= stress_penalty
 
     # 7-dagers værprognose-justering
     if weather_7d and isinstance(weather_7d, dict):
@@ -1163,7 +1199,8 @@ for region in regions:
             if season_metrics:
                 yield_score_val, yield_rating, yield_hint = estimate_yield_quality(
                     season_metrics, growth_info["season_pct"],
-                    weather_7d=wx, enso_adj=enso_adj)
+                    weather_7d=wx, enso_adj=enso_adj,
+                    growth_phase=growth_info.get("stage"))
 
         cot_score = cot["cot_score"] if cot else 0
         outlook = combine_outlook(wx["score"], cot_score, crop_key, lat,
@@ -1234,11 +1271,17 @@ for crop_key, meta in CROP_META.items():
     if not region_list and not cot:
         continue
 
-    # Vekt-snitt av vær-score (sesongmultiplikator teller allerede)
+    # Vekt-snitt av vær-score (sesongmultiplikator teller allerede). Når vi
+    # velger "worst region" til dashbord-visning, prefer regioner som
+    # faktisk er i sesong — en post-harvest region med dårlig vær har null
+    # impakt på årets avling og skal ikke kapre den narrative.
     if region_list:
         avg_wx_score = round(sum(r["weather_score"] for r in region_list) / len(region_list), 1)
         risk_regions = [r for r in region_list if r["weather_score"] >= 2]
-        worst_region = max(region_list, key=lambda r: r["weather_score"]) if region_list else None
+        in_season_regions = [r for r in region_list
+                             if r.get("growth_stage", {}).get("in_season")]
+        worst_pool = in_season_regions if in_season_regions else region_list
+        worst_region = max(worst_pool, key=lambda r: r["weather_score"])
     else:
         avg_wx_score = 0
         risk_regions = []
@@ -1277,12 +1320,14 @@ for crop_key, meta in CROP_META.items():
         agg_wx = {"score": avg_wx_score, "outlook": worst_region["weather_outlook"]} if worst_region else None
         _, yield_rating, yield_hint = estimate_yield_quality(
             best_metrics, best_growth.get("season_pct", 0),
-            weather_7d=agg_wx, enso_adj=avg_enso_adj)
+            weather_7d=agg_wx, enso_adj=avg_enso_adj,
+            growth_phase=best_growth.get("stage"))
     elif avg_yield is not None:
         # Fallback hvis metrics mangler men score finnes fra regionene
         _, yield_rating, yield_hint = estimate_yield_quality(
             {"gdd_pct": avg_yield, "precip_pct": avg_yield, "stress_days": 0},
-            best_growth.get("season_pct", 50) if best_growth else 50)
+            best_growth.get("season_pct", 50) if best_growth else 50,
+            growth_phase=best_growth.get("stage") if best_growth else None)
 
     # Bygg prisdriver-tekst
     drivers = []
