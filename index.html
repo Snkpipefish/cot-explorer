@@ -3751,6 +3751,38 @@ function openSetup(key){
       ${readouts(ros.slice(0,6))}
     </div>`;
   }
+  // Macro context: vis live sentiment-/regime-readings selv når macro-familien
+  // ikke krysser scoring-tersklene (neutral news + normal VIX = score 0,
+  // men brukeren skal fortsatt se hva regimet ER).
+  let macroCtxHTML = '';
+  const ms = D.macroSnap || {};
+  if(ms.sentiment || ms.prices){
+    const mp   = ms.prices || {};
+    const sent = ms.sentiment || {};
+    const news = sent.news || {};
+    const fgM  = sent.fear_greed || {};
+    const vix  = mp.VIX || {};
+    const dxy  = mp.DXY || {};
+    const vixRegime = vix.price>=35?'extreme':vix.price>=25?'elevated':'normal';
+    const vixCls = vix.price>=25?'neg':vix.price<=15?'pos':'info';
+    const dxyCls = (dxy.chg5d||0) > 1 ? 'neg' : (dxy.chg5d||0) < -1 ? 'pos' : 'info';
+    const nsLabelText = news.label==='risk_on'?'RISK-ON':news.label==='risk_off'?'RISK-OFF':'NEUTRAL';
+    const nsCls = news.label==='risk_on'?'pos':news.label==='risk_off'?'neg':'info';
+    const fgVal = (typeof fgM.score==='number')?fgM.score:null;
+    const fgCls = fgVal==null?'info':fgVal>=75?'neg':fgVal>=60?'warn':fgVal<=25?'pos':fgVal<=40?'warn':'info';
+    const ctxRos = [
+      readout('News Sentiment', nsLabelText, nsCls,
+        news.score!=null?`score ${news.score>=0?'+':''}${news.score.toFixed(2)} · ${news.headlines_n||0} hl`:''),
+      readout('Fear & Greed', fgVal!=null?fgVal.toFixed(0):'—', fgCls, (fgM.rating||'').toUpperCase()),
+      readout('VIX', vix.price!=null?vix.price.toFixed(1):'—', vixCls, vixRegime),
+      readout('DXY 5d', dxy.chg5d!=null?(dxy.chg5d>=0?'+':'')+dxy.chg5d.toFixed(2)+'%':'—', dxyCls,
+        dxy.price!=null?dxy.price.toFixed(2):''),
+    ];
+    macroCtxHTML = `<div style="margin-top:14px;">
+      <div class="grp-name" style="font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--brass);text-transform:uppercase;letter-spacing:.1em;font-weight:600;border-bottom:1px solid var(--brass-dim);padding-bottom:3px;margin-bottom:10px;">Macro context</div>
+      ${readouts(ctxRos)}
+    </div>`;
+  }
   // top-level driver list (agri "drivers" or merged group_drivers)
   const topDrivers = (s.drivers || s.group_drivers || []).slice(0,8);
   const driversHTML = topDrivers.length
@@ -3765,6 +3797,7 @@ function openSetup(key){
     </div>
     <div class="modal-body">
       ${agriHTML}
+      ${macroCtxHTML}
       ${driversHTML}
       <div class="setup-detail" style="display:block;margin-top:14px;">
         <div class="grp-name" style="font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--brass);text-transform:uppercase;letter-spacing:.1em;font-weight:600;border-bottom:1px solid var(--brass-dim);padding-bottom:3px;margin-bottom:10px;">Driver groups</div>
