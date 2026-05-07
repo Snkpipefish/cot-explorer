@@ -3357,18 +3357,36 @@ function _invalidationTriggers(r, a){
   const cat = (r.kategori || '').toLowerCase();
   const adding = chg > 0;
   const cutting = chg < 0;
+  // Net positioning as % of OI — disambiguates pctile interpretation for
+  // markets with structural one-sided bias (palladium always-short, etc).
+  const netPct = (r.spekulanter?.net != null && r.open_interest)
+                  ? (r.spekulanter.net / r.open_interest) * 100 : null;
+  const trulyCrowdedLong  = netPct == null || netPct >  3;
+  const trulyCrowdedShort = netPct == null || netPct < -3;
   // ── Positioning-state-driven (always relevant)
   if(p != null){
     if(p >= 90){
-      out.push(adding
-        ? 'Specs flip from adding to cutting net long (peak-positioning unwind)'
-        : 'Acceleration in the unwind — change_spec_net more negative than the 4w average');
-      out.push('52-week percentile drops below 75 (positioning normalises)');
+      if(trulyCrowdedLong){
+        out.push(adding
+          ? 'Specs flip from adding to cutting net long (peak-positioning unwind)'
+          : 'Acceleration in the unwind — change_spec_net more negative than the 4w average');
+        out.push('52-week percentile drops below 75 (positioning normalises)');
+      } else {
+        // pctile high but specs aren't crowded long — recovering from short
+        out.push('Specs flip back to adding shorts (recovery stalls)');
+        out.push('Spec_net turns negative again (back to structural-short regime)');
+      }
     } else if(p <= 10){
-      out.push(cutting
-        ? 'Short-cover spike: specs flip from adding shorts to cutting them'
-        : 'Stretched short turns into a momentum chase (specs add longs)');
-      out.push('Open interest surges with positioning rotation (capitulation pattern)');
+      if(trulyCrowdedShort){
+        out.push(cutting
+          ? 'Short-cover spike: specs flip from adding shorts to cutting them'
+          : 'Stretched short turns into a momentum chase (specs add longs)');
+        out.push('Open interest surges with positioning rotation (capitulation pattern)');
+      } else {
+        // pctile low but specs aren't crowded short — shaken-out longs
+        out.push('Specs flip back to adding longs (re-entry begins)');
+        out.push('Spec_net climbs back above 4w average (positioning rebuild)');
+      }
     } else if(p >= 70){
       out.push('Spec net flips to cutting longs while price stalls');
       out.push('Percentile decays below 50 over two consecutive prints');
@@ -3414,12 +3432,29 @@ function buildMarketNarrative(r,a){
   const p=a.mm_net_pctile_52w;
   const dq=a.data_quality||r.qual;
   const parts=[];
+  // Disambiguate pctile with net_pct sign so one-sided markets don't get
+  // labelled "historical ceiling" when specs are actually flat or short.
+  const netPct = (sp.net != null && r.open_interest)
+                  ? (sp.net / r.open_interest) * 100
+                  : (a.mm_net != null && a.oi_now ? (a.mm_net / a.oi_now) * 100 : null);
   if(p!=null){
-    if(p<=10) parts.push(`Speculators sit at the <strong>${p.toFixed(0)}th percentile</strong> of the past year — a historical floor zone where positioning has often <em>contra-rallied</em>.`);
+    if(p<=10){
+      if(netPct == null || netPct < -3){
+        parts.push(`Speculators sit at the <strong>${p.toFixed(0)}th percentile</strong> of the past year — a historical floor zone where positioning has often <em>contra-rallied</em>.`);
+      } else {
+        parts.push(`Speculators are at the <strong>${p.toFixed(0)}th percentile</strong> but still net <em>${netPct>0?'long':'short'}</em> (${netPct.toFixed(0)}% of OI) — longs have been shaken out from a higher base, not a stretched-short setup.`);
+      }
+    }
     else if(p<=30) parts.push(`Speculators are in the <strong>lower third</strong> of the year (${p.toFixed(0)}th pct) — room above without crowding.`);
     else if(p<=70) parts.push(`Positioning is mid-range (${p.toFixed(0)}th pct) — neither stretched nor depressed.`);
     else if(p<=90) parts.push(`Speculators are in the <strong>upper third</strong> (${p.toFixed(0)}th pct) — late-cycle territory; further extension is possible but the asymmetry tilts.`);
-    else parts.push(`Speculators sit at the <strong>${p.toFixed(0)}th percentile</strong> — a historical ceiling. Reversals from this zone tend to be sharp.`);
+    else {
+      if(netPct == null || netPct > 3){
+        parts.push(`Speculators sit at the <strong>${p.toFixed(0)}th percentile</strong> — a historical ceiling. Reversals from this zone tend to be sharp.`);
+      } else {
+        parts.push(`Speculators are at the <strong>${p.toFixed(0)}th percentile</strong> but still net <em>${netPct<0?'short':'flat'}</em> (${netPct.toFixed(0)}% of OI) — recent action is shorts <em>covering</em> from a structurally-short base, not a crowded-long setup.`);
+      }
+    }
   }
   const dxC = r.change_spec_net;
   if(dxC!=null && Math.abs(dxC)>0){
