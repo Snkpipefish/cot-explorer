@@ -2280,6 +2280,25 @@ function f_bedrock(synthKey){
   };
 }
 
+/* SYNTH-factor that pulls the agri model's outlook (data/agri/latest.json)
+   so the Control Panel + Counterpoints surface the rich agri read (yield,
+   ENSO, UNICA/CONAB fundamentals, bedrock 2nd-opinion) per crop. The
+   model's total_score lives in -3..+3 by design; we normalise to ±1 with a
+   soft cap and use modest weight (0.7) to avoid double-counting f_cot. */
+function f_agri(cropKey, weight=0.7){
+  return ()=>{
+    const crops = D.agri?.crop_summary;
+    if(!Array.isArray(crops)) return null;
+    const c = crops.find(x => x.crop_key === cropKey);
+    if(!c || !c.outlook) return null;
+    const t = c.outlook.total_score || 0;
+    const bias = Math.max(-1, Math.min(1, t / 3));
+    return {bias, weight, label:'Agri model',
+            value: c.outlook.signal,
+            why: `yield ${c.yield_score ?? '?'} · ${(c.drivers||[]).slice(0,1)[0] || ''}`.slice(0, 60)};
+  };
+}
+
 /* The instrument catalog. Keys map to combined-row symbols where possible. */
 const SYNTH = [
   // ─── Foreign exchange
@@ -2357,30 +2376,30 @@ const SYNTH = [
   // ─── Agri
   {key:'CORN', name:'Corn', symbol:'002602', report:'disaggregated', group:'agri', factors:[
     f_cot('Corn',1.2), f_cot_momentum('002602','disaggregated'),
-    f_enso(+0.6,-0.5,0.6), f_conab('milho',-1,0.5),
+    f_enso(+0.6,-0.5,0.6), f_conab('milho',-1,0.5), f_agri('corn'),
   ]},
   {key:'SOY', name:'Soybeans', symbol:'005602', report:'disaggregated', group:'agri', factors:[
     f_cot('Soybeans',1.2), f_cot_momentum('005602','disaggregated'),
-    f_enso(+0.5,-0.4,0.6), f_conab('soja',-1,0.6),
+    f_enso(+0.5,-0.4,0.6), f_conab('soja',-1,0.6), f_agri('soybeans'),
   ]},
   {key:'WHEAT', name:'Wheat', symbol:'001602', report:'disaggregated', group:'agri', factors:[
     f_cot('Wheat',1.2), f_cot_momentum('001602','disaggregated'),
-    f_enso(+0.4,-0.3,0.5),
+    f_enso(+0.4,-0.3,0.5), f_agri('wheat'),
   ]},
   {key:'COTTON', name:'Cotton', symbol:'033661', report:'disaggregated', group:'agri', factors:[
     f_cot('Cotton',1.2), f_cot_momentum('033661','disaggregated'),
-    f_conab('algodao',-1,0.5),
+    f_conab('algodao',-1,0.5), f_agri('cotton'),
   ]},
   {key:'SUGAR', name:'Sugar No. 11', symbol:'080732', report:'disaggregated', group:'agri', factors:[
     f_cot('Sugar',1.2), f_cot_momentum('080732','disaggregated'),
-    f_unica(0.7),
+    f_unica(0.7), f_agri('sugar'),
   ]},
   {key:'COFFEE', name:'Coffee (Arabica)', symbol:'083731', report:'disaggregated', group:'agri', factors:[
     f_cot('Coffee',1.2), f_cot_momentum('083731','disaggregated'),
-    f_conab('cafe_total',-1,0.6), f_enso(+0.3,-0.5,0.4),
+    f_conab('cafe_total',-1,0.6), f_enso(+0.3,-0.5,0.4), f_agri('coffee'),
   ]},
   {key:'COCOA', name:'Cocoa', symbol:'073732', report:'disaggregated', group:'agri', factors:[
-    f_cot('Cocoa',1.2), f_cot_momentum('073732','disaggregated'),
+    f_cot('Cocoa',1.2), f_cot_momentum('073732','disaggregated'), f_agri('cocoa'),
   ]},
 
   // ─── Crypto
