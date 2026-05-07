@@ -199,7 +199,7 @@ REGION_CROPS = {
     "australia_wheat":   ["wheat", "canola"],
     "india_punjab":      ["wheat", "rice", "sugar"],
     "sea_palm":          ["palm"],
-    "west_africa_cocoa": ["cocoa", "coffee"],
+    "west_africa_cocoa": ["cocoa"],
     "brazil_coffee":     ["coffee"],
     "us_delta_cotton":   ["cotton", "rice"],
     "china_wheat":       ["wheat", "corn"],
@@ -411,6 +411,30 @@ PHASE_STRESS_MULT = {
 STRESS_PENALTY_CAP = 40
 
 
+def yield_rating_from_score(score, season_pct=None):
+    """Map en yield-score (0–100) til norsk rating-tekst + price-hint.
+    Brukes både fra estimate_yield_quality og fra aggregat-laget, slik
+    at avg_yield (tallet vist i UI) og yield_quality (etiketten) alltid
+    korresponderer mot samme bånd. Tidligere ble agg-rating beregnet med
+    et nytt kall til estimate_yield_quality, og tallet/etiketten kunne
+    bli off-by-one (f.eks. 77 → "Middels" mens 70+ er "God").
+    """
+    if score is None:
+        return None, None
+    early = season_pct is not None and season_pct < 40
+    early_suffix = " (tidlig)" if early else ""
+    if score >= 85:
+        return "Utmerket" + early_suffix, "Høy produksjon → stabilt prisnivå"
+    elif score >= 70:
+        return "God" + early_suffix, "Normal produksjon → moderate priser"
+    elif score >= 55:
+        return "Middels" + early_suffix, "Noen utfordringer → mulig prispress oppover"
+    elif score >= 40:
+        return "Svak" + early_suffix, "Dårlige forhold → potensielt høyere priser"
+    else:
+        return "Kritisk" + early_suffix, "Alvorlige problemer → forvent prisøkning"
+
+
 def estimate_yield_quality(metrics, season_pct, weather_7d=None, enso_adj=0,
                            growth_phase=None):
     """
@@ -425,6 +449,17 @@ def estimate_yield_quality(metrics, season_pct, weather_7d=None, enso_adj=0,
     """
     if not metrics:
         return None, None, None
+
+    # Ingen reell sesong-signal? Default til nøytral, ikke "Utmerket".
+    # Tidligere returnerte funksjonen 100 ("Utmerket") når det ikke var
+    # noen GDD/precip-historikk og null stress-dager — typisk for tropiske
+    # perennials i sesong-start (kakao, palmeolje). Det ga falskt "alt er
+    # fint"-signal selv når markedet skrek supply-krise (kakao 2024-25).
+    has_gdd = metrics.get("gdd_pct") is not None
+    has_precip = metrics.get("precip_pct") is not None
+    if not has_gdd and not has_precip and (metrics.get("stress_days") or 0) == 0:
+        rating, hint = yield_rating_from_score(60, season_pct)
+        return 60, rating, "Begrenset sesong-data — bruker nøytral default"
 
     score = 100
     gdd_pct = metrics.get("gdd_pct")
@@ -486,22 +521,9 @@ def estimate_yield_quality(metrics, season_pct, weather_7d=None, enso_adj=0,
         score -= enso_adj * 20 * remaining_pct
 
     score = max(0, min(100, round(score)))
-
-    if score >= 85:
-        rating, price_hint = "Utmerket", "H��y produksjon → stabilt prisnivå"
-    elif score >= 70:
-        rating, price_hint = "God", "Normal produksjon → moderate priser"
-    elif score >= 55:
-        rating, price_hint = "Middels", "Noen utfordringer → mulig prispress oppover"
-    elif score >= 40:
-        rating, price_hint = "Svak", "Dårlige forhold → potensielt høyere priser"
-    else:
-        rating, price_hint = "Kritisk", "Alvorlige problemer → forvent prisøkning"
-
-    if early:
-        rating = f"{rating} (tidlig)"
+    rating, price_hint = yield_rating_from_score(score, season_pct)
+    if early and price_hint:
         price_hint = f"Tidlig i sesongen — {price_hint.lower()}"
-
     return score, rating, price_hint
 
 
@@ -1000,40 +1022,80 @@ def get_cot_for_crop(crop_key, cot_data, euronext_data=None):
 
     return result
 
-def combine_outlook(weather_score, cot_score, crop_key, lat,
-                    yield_score=None, enso_adj=0):
-    """
-    Kombinerer vær, COT, yield og ENSO til endelig prisretning.
-    Vær: positivt score = forstyrrelser = bullish for prisen
-    COT: positivt score = spekulanter er long = bullish
-    Yield: lav yield = bullish for pris (knapphet)
-    ENSO: kjent negativ impakt = bullish for pris
-    """
-    total = weather_score + cot_score + enso_adj
+# Avlinger der vekstmodellen (GDD/precip/stress) ikke fanger den faktiske
+# tilbudssituasjonen — flerårig akkumulert skade (kakao-sykdom, kaffe-frost),
+# tre-aldersstruktur, eller kontinuerlig vekst over hele året. For disse
+# bruker vi markedet (COT + prisbevegelse) som overstyrende signal når
+# weather-modellen sier "alt er fint" mens prisen rallyer.
+PERENNIAL_CROPS = {"cocoa", "coffee", "palm"}
 
-    # Yield-justering: svak yield → bullish for pris
+
+def combine_outlook(weather_score, cot_score, crop_key, lat,
+                    yield_score=None, enso_adj=0,
+                    price_chg_20d=None):
+    """
+    Kombinerer vær, COT, yield, ENSO og prisbevegelse til endelig
+    prisretning.
+      Vær:   positivt = forstyrrelser = bullish (cappet ±1.5)
+      COT:   positivt = spekulanter long = bullish (cappet ±1.5)
+      ENSO:  positivt adj = tørke/forstyrrelse = bullish (cappet ±1.0)
+      Yield: lav yield = bullish for pris (vekt ±2.5 — viktigst)
+      Pris:  20d-endring som markeds-veto når modellen er blind for
+             flerårig supply-skade (perennials)
+
+    Tidligere ga modellen STERKT BULLISH for nesten alt fordi en enkelt
+    overdreven kanal (typisk en stretched COT z-score på +6) kunne
+    legge bullish-summen over terskelen alene. Cap-ene hindrer det.
+    """
+    # Cap hver input slik at ingen kanal alene kan drive til ekstrem.
+    wx_contrib = max(-1.5, min(1.5, weather_score))
+    cot_contrib = max(-1.5, min(1.5, cot_score))
+    enso_contrib = max(-1.0, min(1.0, enso_adj))
+
+    total = wx_contrib + cot_contrib + enso_contrib
+
+    # Perennials (kakao, kaffe, palmeolje) får SVAK yield-vekt fordi
+    # weather-modellen er blind for flerårig akkumulert supply-skade
+    # (kakao-sykdom 2023-24, kaffe-frost 2024, eldre trær). For disse er
+    # markedet (pris + COT) det eneste pålitelige signalet.
+    is_perennial = crop_key in PERENNIAL_CROPS
+    yield_weight = 0.3 if is_perennial else 1.0
+
     if yield_score is not None:
-        if yield_score < 40:
-            total += 1.5
-        elif yield_score < 55:
-            total += 1
-        elif yield_score < 70:
-            total += 0.5
-        elif yield_score >= 85:
-            total -= 0.5
+        # Lav yield = bullish for pris (knapphet); høy = bearish.
+        if yield_score < 30:    yield_adj = 2.5
+        elif yield_score < 45:  yield_adj = 1.5
+        elif yield_score < 60:  yield_adj = 0.5
+        elif yield_score < 75:  yield_adj = -0.5
+        elif yield_score < 90:  yield_adj = -1.5
+        else:                   yield_adj = -2.5
+        total += yield_adj * yield_weight
+
+        # Når yield er solid for en annual, dempes bullish vær-bidrag
+        # (én uke tørke skal ikke overstyre god sesong-yield).
+        if not is_perennial and yield_score >= 75 and wx_contrib > 0:
+            total -= wx_contrib * 0.4
+
+    # Markeds-veto via prisbevegelse — uunnværlig for perennials der
+    # weather-modellen ikke ser multi-årig supply-skade. For ikke-
+    # perennials gir det også informasjon om hvorvidt fundamentene
+    # faktisk presser prisen.
+    if price_chg_20d is not None:
+        # Større vekt for perennials siden de mangler andre fundamentale
+        # signaler i denne modellen (ingen UNICA/CONAB/USDA-justering).
+        scale = 1.7 if is_perennial else 1.0
+        if price_chg_20d >= 8:    total += 1.0 * scale
+        elif price_chg_20d >= 3:  total += 0.5 * scale
+        elif price_chg_20d <= -8: total -= 1.0 * scale
+        elif price_chg_20d <= -3: total -= 0.5 * scale
 
     total = round(total, 1)
 
-    if total >= 3:
-        signal, color = "STERKT BULLISH", "bull"
-    elif total >= 1:
-        signal, color = "BULLISH", "bull"
-    elif total <= -3:
-        signal, color = "STERKT BEARISH", "bear"
-    elif total <= -1:
-        signal, color = "BEARISH", "bear"
-    else:
-        signal, color = "NØYTRAL", "neutral"
+    if total >= 3:    signal, color = "STERKT BULLISH", "bull"
+    elif total >= 1:  signal, color = "BULLISH", "bull"
+    elif total <= -3: signal, color = "STERKT BEARISH", "bear"
+    elif total <= -1: signal, color = "BEARISH", "bear"
+    else:             signal, color = "NØYTRAL", "neutral"
 
     return {"signal": signal, "color": color, "total_score": total}
 
@@ -1310,24 +1372,22 @@ for crop_key, meta in CROP_META.items():
         # Alle i av-sesong — bruk første region sin growth_stage
         best_growth = region_list[0].get("growth_stage")
 
-    outlook = combine_outlook(avg_wx_score, cot_score, crop_key, 45,
-                              yield_score=avg_yield, enso_adj=avg_enso_adj)
+    # 20d prisendring brukes som markeds-veto i combine_outlook —
+    # særlig viktig for perennials der weather-modellen er blind for
+    # flerårig akkumulert supply-skade (kakao-sykdom, kaffe-frost).
+    crop_price_now = _get_crop_price(crop_key)
+    price_chg_20d = (crop_price_now or {}).get("chg20d")
 
-    # Yield-rating via estimate_yield_quality (konsistent med per-region)
-    yield_rating = None
-    yield_hint = None
-    if best_metrics and best_growth:
-        agg_wx = {"score": avg_wx_score, "outlook": worst_region["weather_outlook"]} if worst_region else None
-        _, yield_rating, yield_hint = estimate_yield_quality(
-            best_metrics, best_growth.get("season_pct", 0),
-            weather_7d=agg_wx, enso_adj=avg_enso_adj,
-            growth_phase=best_growth.get("stage"))
-    elif avg_yield is not None:
-        # Fallback hvis metrics mangler men score finnes fra regionene
-        _, yield_rating, yield_hint = estimate_yield_quality(
-            {"gdd_pct": avg_yield, "precip_pct": avg_yield, "stress_days": 0},
-            best_growth.get("season_pct", 50) if best_growth else 50,
-            growth_phase=best_growth.get("stage") if best_growth else None)
+    outlook = combine_outlook(avg_wx_score, cot_score, crop_key, 45,
+                              yield_score=avg_yield, enso_adj=avg_enso_adj,
+                              price_chg_20d=price_chg_20d)
+
+    # Yield-rating utledes direkte fra avg_yield (tallet vist i UI), så
+    # etiketten og tallet alltid matcher samme bånd. Tidligere ble rating
+    # beregnet via et nytt estimate_yield_quality-kall på best_metrics, og
+    # det kunne gi off-by-one (Hvete 77 → "Middels" når 70+ er "God").
+    season_pct_for_rating = (best_growth or {}).get("season_pct")
+    yield_rating, yield_hint = yield_rating_from_score(avg_yield, season_pct_for_rating)
 
     # Bygg prisdriver-tekst
     drivers = []
