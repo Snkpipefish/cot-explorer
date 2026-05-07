@@ -23,6 +23,7 @@ MACRO_PRICES_FILE = os.path.join(BASE, "macro", "latest.json")
 BEDROCK_UNICA_FILE = os.path.join(BASE, "bedrock", "unica.json")
 BEDROCK_CONAB_FILE = os.path.join(BASE, "bedrock", "conab.json")
 BEDROCK_AGRI_SIGNALS_FILE = os.path.join(BASE, "bedrock", "agri_signals.json")
+LOCAL_UNICA_FILE = os.path.join(BASE, "unica", "latest.json")
 
 # Mapping fra crop_key → nøkkel i macro/latest.json prices
 CROP_PRICE_MAP = {
@@ -1391,10 +1392,32 @@ def _get_crop_price(crop_key):
 # det som faktisk presser prisen mer enn én ukes vær eller en
 # spec-bevegelse.
 def _load_bedrock_unica():
+    """Prefer cot-explorer's local UNICA (fresher — fetch_unica runs daily,
+    bedrock import is on a separate 6h-cron and lags). Fall back to bedrock's
+    snapshot if the local file is missing. Both sources use the same field
+    names for the keys we care about (mix_sugar_pct, mix_sugar_pct_prev,
+    crush_yoy_pct), so consumers don't need to know which one fired.
+    """
+    try:
+        with open(LOCAL_UNICA_FILE) as f:
+            local = json.load(f)
+        # Local file is flat (no `data` wrapper). Map field names to what
+        # fund_signals_for_crop expects (matches bedrock's schema):
+        return {
+            "mix_sugar_pct":      local.get("mix_sugar_pct"),
+            "mix_sugar_pct_prev": local.get("mix_sugar_pct_prev_year"),
+            "crush_yoy_pct":      local.get("crush_accumulated_yoy_pct"),
+            "report_date":        local.get("position_date") or local.get("generated"),
+            "_source":            "cot-explorer/local",
+        }
+    except Exception:
+        pass
     try:
         with open(BEDROCK_UNICA_FILE) as f:
             d = json.load(f)
-        return d.get("data") or {}
+        out = (d.get("data") or {}).copy()
+        out["_source"] = "bedrock"
+        return out
     except Exception:
         return {}
 
