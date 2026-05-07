@@ -1026,6 +1026,20 @@ if fg: print(f"  → {fg['score']} ({fg['rating']})")
 print("Henter nyhetssentiment...")
 news_sentiment = fetch_news_sentiment()
 
+# ── Geo-active flagg (samme heuristikk som push_signals.py) ────
+# Tidligere ble `geo_active` hardkodet til False i _macro_ctx, så
+# compute_risk_event fyrte aldri på geopolitikk og risk-familien
+# var alltid 0 på alle setups. Nå deriverer vi flagget her, før
+# scoring-løkka, slik at score_asset() får riktig kontekst.
+_WAR_WORDS = ("iran", "israel", "attack", "war", "strike",
+              "sanction", "invasion", "escalat", "missile",
+              "drone", "houthi", "tanker", "blockade")
+_geo_headlines = " ".join(
+    (h.get("headline") or "").lower()
+    for h in (news_sentiment.get("key_drivers") or [])
+)
+_geo_news_active = any(w in _geo_headlines for w in _WAR_WORDS)
+
 # ── Hent VIX termstruktur (trengs i scoring-loop) ────────────
 print("Henter VIX term-struktur (^VIX9D, ^VIX3M)...")
 _vix9d_rows = fetch_yahoo("^VIX9D", "1d", "5d")
@@ -1601,11 +1615,16 @@ for inst in INSTRUMENTS:
         except Exception:
             pass
 
+    # Brent-spike triggers geo-active too (same heuristikk som push_signals).
+    # `prices` her er per-asset; vi tar Brent fra det dictionaryet hvis det
+    # finnes, ellers bruker vi bare nyhetssignalet.
+    _brent_20d = (prices.get("Brent") or {}).get("chg20d", 0) or 0
+    _geo_active = bool(_geo_news_active or _brent_20d > 15)
     _macro_ctx = {
         "dxy_chg5d": (prices.get("DXY") or {}).get("chg5d") if key != "DXY" else chg5,
         "vix_regime": "extreme" if _vix_now >= 35
                       else "elevated" if _vix_now >= 25 else "normal",
-        "geo_active": False,   # Settes av caller (push_signals) basert på nyheter
+        "geo_active": _geo_active,
         "brl_chg5d": ((prices.get("USDBRL") or {}).get("chg5d")
                       or (prices.get("BRL") or {}).get("chg5d")),
         "oil_supply_disruption": _oil_supply_disruption,

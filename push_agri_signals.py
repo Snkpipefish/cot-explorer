@@ -990,10 +990,27 @@ for crop in agri.get("crop_summary", []):
         "weight":  1.3,
         "drivers": scoring.get("drivers", [])[:3]
     }
+    # Risk-familien vurderer event/geopolitikk-press på samme måte som
+    # driver_matrix.compute_risk_event() — slik at agri-setupene får samme
+    # risk-bilde som tech-setupene i stedet for kun USDA-blackout-flagget.
+    _risk_factors = 0
+    _risk_drivers = []
+    if instrument in usda_blackout:
+        _risk_factors += 3
+        _risk_drivers.append(f"USDA {usda_blackout[instrument].get('report')}")
+    if geo_active:
+        _risk_factors += 2
+        _risk_drivers.append("Geo aktiv")
+    if vix_regime == "extreme":
+        _risk_factors += 2
+        _risk_drivers.append("VIX ekstrem")
+    elif vix_regime == "elevated":
+        _risk_factors += 1
+        _risk_drivers.append("VIX elevert")
     _g_risk = {
-        "score":   0.5 if instrument in usda_blackout else 0.0,
+        "score":   min(_risk_factors * 0.25, 1.0) if _risk_factors else 0.0,
         "weight":  1.0,
-        "drivers": [f"USDA {usda_blackout[instrument].get('report')}"] if instrument in usda_blackout else []
+        "drivers": _risk_drivers[:3],
     }
     _g_struct = {"score": 0.0, "weight": 0.5, "drivers": []}   # N/A for agri-fundamental
 

@@ -2917,10 +2917,11 @@ function openSetup(key){
   if(!s) return;
   const isAgri = s.source==='agri_fundamental';
   const groups = s.driver_groups||{};
-  // Agri scoring only populates drivers for fundamental + positioning.
-  // Other families get scored but no driver-text (trend), or aren't scored at all
-  // (macro/risk/structure) because the 6-family schema is inherited from tech.
-  const AGRI_NOT_SCORED = new Set(['macro','risk','structure']);
+  // Agri scoring populates trend, positioning, fundamental, macro and risk
+  // (the latter two via currency_penalty + USDA/geo/VIX) — though they may
+  // sit at 0 when no current condition fires. Structure is genuinely N/A
+  // for agri-fundamental setups and stays the only "not scored" family.
+  const AGRI_NOT_SCORED = new Set(['structure']);
   const grpHTML = ['trend','positioning','macro','fundamental','risk','structure'].map(g=>{
     const x = groups[g]||{};
     const score = x.score||0;
