@@ -2363,52 +2363,59 @@ function drawControl(){
   renderConclusion(items);
   const cards = items.map(rules=>{
     const s = synthesize(rules);
-    let cls = 'neutral';
-    if(s.score>=2) cls = 'strong-bull';
-    else if(s.score>=0.7) cls = 'bull';
-    else if(s.score>-0.7) cls = s.score>-0.25?'neutral':'bear';
-    else if(s.score>=-2) cls = 'bear';
-    else cls = 'strong-bear';
-    const verdictCls = s.score>0.25?'bull':s.score<-0.25?'bear':'neutral';
+    const verdict = s.score>=0.25?'Bullish' : s.score<=-0.25?'Bearish' : 'Neutral';
+    const dir = s.score>=0.25?'bull' : s.score<=-0.25?'bear' : '';
+    let cardCls = dir;
+    if(Math.abs(s.score) >= 2) cardCls += ' strong';
     // confidence — based on number of contributing factors
     const confidence = s.confidence>=0.8?'High' : s.confidence>=0.5?'Medium' : 'Low';
-    // freshness pill
+    // freshness from COT data
     const fresh = _ctrlFreshness(rules);
-    const freshTag = fresh ? `<span class="ctrl-fresh ${fresh.cls}" title="COT data age">${escapeHTML(fresh.label)}</span>` : '';
-    // needle position 0..100% on -3..+3 axis
-    const needleLeft = ((s.score + 3) / 6 * 100).toFixed(1);
-    const factorsHTML = s.factors.slice(0,5).map(f=>{
-      const arr = f.bias>0.1?'<span class="arr up">▲</span>':f.bias<-0.1?'<span class="arr dn">▼</span>':'<span class="arr eq">·</span>';
-      return `<div class="ctrl-fact">${arr}
-        <span><strong>${escapeHTML(f.label)}</strong> <span class="why">— ${escapeHTML(f.why)}</span></span>
-        <span class="val">${escapeHTML(f.value)}</span>
-      </div>`;
-    }).join('') || '<div class="ctrl-fact"><span class="arr eq">—</span><span class="why">no contributing data yet</span><span></span></div>';
+    const freshLine = fresh
+      ? `<span class="fresh ${fresh.cls}">Fresh: ${escapeHTML(fresh.label)}</span>`
+      : `<span class="fresh">Fresh: —</span>`;
     // bedrock 2nd opinion (if present) — uses BDR_ALIAS so WTI→CrudeOil, SOY→Soybean etc.
     const b0 = _bedrockBestFor(rules.key);
-    let bdrLine = `Confidence: <strong>${confidence}</strong> · <span class="none">no bedrock signal</span>`;
-    if(b0){
-      bdrLine = `Confidence: <strong>${confidence}</strong> · <span class="grade">${escapeHTML(b0.grade||'?')}</span>${escapeHTML((b0.direction||'').toUpperCase())} · ${escapeHTML(b0.horizon||'')} · ${b0.published?'published':'below floor'}`;
-    }
-    return `<div class="ctrl-card ${cls}" data-symbol="${escapeHTML(rules.symbol||'')}" data-report="${escapeHTML(rules.report||'')}">
-      ${freshTag}
-      <div class="ctrl-card-hd">
+    const bdrLine = b0
+      ? `Bedrock: <b>${escapeHTML(b0.grade||'?')} ${escapeHTML((b0.direction||'').toUpperCase())}</b> · ${b0.published?'pub':'below'}`
+      : `Bedrock: <span style="color:var(--ink-mute);">none</span>`;
+    // Main drivers: top 4 factors by |bias × weight|, signed by bias direction
+    const ranked = [...s.factors].sort((a,b)=>Math.abs(b.bias*b.weight)-Math.abs(a.bias*a.weight)).slice(0,4);
+    const driverHTML = ranked.length
+      ? ranked.map(f=>{
+          // Contribution scaled approximately to the -3..+3 axis (same convention as score)
+          const contrib = f.bias * f.weight * 3 / Math.max(1, s.factors.reduce((t,x)=>t+x.weight,0));
+          const arr = contrib>0.05?'up':contrib<-0.05?'dn':'eq';
+          const v = (contrib>0?'+':'') + contrib.toFixed(2);
+          const txt = (f.why || f.value || '').toString();
+          const trimmed = txt.length>42 ? txt.slice(0,42)+'…' : txt;
+          return `<div class="scard-drv">
+            <span class="fn">${escapeHTML(f.label)}:</span>
+            <span class="dt">${escapeHTML(trimmed)}</span>
+            <span class="vl ${arr}">${v}</span>
+          </div>`;
+        }).join('')
+      : '<div class="scard-drv"><span class="fn">—</span><span class="dt">no contributing data yet</span><span class="vl eq">·</span></div>';
+    return `<div class="scard ${cardCls}" data-symbol="${escapeHTML(rules.symbol||'')}" data-report="${escapeHTML(rules.report||'')}">
+      <div class="scard-hd">
         <span class="nm">${escapeHTML(rules.name)}</span>
-        <span class="sym">${escapeHTML(rules.key)}</span>
+        <span class="cat">${escapeHTML(CTRL_GROUP_LABEL[rules.group]||rules.group)}</span>
       </div>
-      <div class="ctrl-gauge">
-        <div class="axis-mark" style="left:33.3%;"></div>
-        <div class="axis-mark zero" style="left:50%;"></div>
-        <div class="axis-mark" style="left:66.7%;"></div>
-        <div class="needle ${verdictCls}" style="left:${needleLeft}%;"></div>
+      <div class="scard-bias">
+        <span><span class="label">Bias:</span> <span class="verdict ${dir||'neutral'}">${verdict}</span></span>
+        <span class="score ${dir}">${s.score>0?'+':''}${s.score.toFixed(1)}</span>
       </div>
-      <div class="ctrl-gauge-labels"><span>BEAR −3</span><span>0</span><span>+3 BULL</span></div>
-      <div class="ctrl-verdict">
-        <span class="v ${verdictCls}">${escapeHTML(s.label)}</span>
-        <span class="score">${s.score>0?'+':''}${s.score}</span>
+      ${_pressureBar(s.score, dir||'neutral')}
+      <div class="scard-drv-hd">Main drivers</div>
+      ${driverHTML}
+      <div class="scard-foot">
+        <div class="meta">
+          <span>Confidence: <b>${confidence}</b></span>
+          <span>${bdrLine}</span>
+          ${freshLine}
+        </div>
+        <span class="open">Open detail →</span>
       </div>
-      <div class="ctrl-factors">${factorsHTML}</div>
-      <div class="ctrl-bedrock">${bdrLine}</div>
     </div>`;
   }).join('');
   $('#ctrlGrid').innerHTML = cards || '<div class="skel">No instruments selected.</div>';
@@ -2417,7 +2424,7 @@ function drawControl(){
   const bears = items.filter(r=>synthesize(r).score<=-0.25).length;
   $('#ctrlSummary').textContent = `${items.length} instruments · ${bulls} bull · ${bears} bear · ${items.length-bulls-bears} neutral`;
   // wire clicks → drill into Positions
-  $$('.ctrl-card').forEach(el=>el.onclick = ()=>{
+  $$('#ctrlGrid .scard').forEach(el=>el.onclick = ()=>{
     if(el.dataset.symbol) openMarket(el.dataset.symbol, el.dataset.report);
   });
 }
@@ -2846,80 +2853,58 @@ function renderSetups(){
   const freshCls = cotAgeDays==null ? '' : (cotAgeDays<11?'fresh':cotAgeDays<18?'aging':'stale');
   const freshStr = cotAgeDays==null ? '—' : cotAgeDays.toFixed(0)+'d';
 
-  const cards = ranked.map(s=>{
-    const action = (s.action||'').toUpperCase();
-    const dir = action==='BUY'?'bull':action==='SELL'?'bear':'';
-    const dirSign = action==='BUY'?1:action==='SELL'?-1:0;
+  const rows = ranked.map(s=>{
+    const dir = (s.action||'').toUpperCase()==='BUY' ? 'bull' : (s.action||'').toUpperCase()==='SELL'?'bear':'';
     const isAgri = s.source==='agri_fundamental' || s._src==='agri';
-    const cat = _setupCategory(s);
-
-    // Score on -3..+3 axis: prefer real score/max_score, else grade-mapped
-    let scoreNorm;
-    if(s.max_score && s.score!=null){
-      scoreNorm = dirSign * (s.score / s.max_score) * 3;
+    const groups = s.driver_groups||{};
+    const dbars = ['trend','positioning','macro','fundamental','risk','structure'].map(g=>{
+      const x = groups[g]||{};
+      const ratio = (x.score||0)/((x.weight||1)||1);
+      const drvCount = (x.drivers||[]).length;
+      let cls;
+      if(ratio>0.7) cls='hi';
+      else if(ratio>0.3 || drvCount>=2) cls='mid';
+      else if(drvCount>=1) cls='mid';
+      else cls='lo';
+      const letter = g[0].toUpperCase();
+      return `<div class="dbar ${cls}" title="${g}: ${(x.score||0).toFixed(2)}/${(x.weight||0).toFixed(2)} · ${drvCount} drivers">${letter}</div>`;
+    }).join('');
+    let flavor = '';
+    if(isAgri){
+      const bits = [];
+      if(s.weather_outlook) bits.push(`weather: <em>${escapeHTML(s.weather_outlook)}</em>`);
+      if(s.yield_quality)   bits.push(`yield: <em>${escapeHTML(s.yield_quality)}</em>`);
+      if(s.growth_stage)    bits.push(`stage: ${escapeHTML(s.growth_stage)}${s.season_pct?` · ${s.season_pct}%`:''}`);
+      if(s.cot_bias)        bits.push(`COT ${escapeHTML(s.cot_bias)}${s.cot_pct!=null?` ${pct(s.cot_pct)}`:''}`);
+      flavor = bits.join(' &nbsp;·&nbsp; ');
+      if(!flavor) flavor = (s.group_drivers||s.drivers||[]).slice(0,2).join(' · ');
     } else {
-      const pctMag = (gradePct[s.grade] ?? 50) / 100;
-      scoreNorm = dirSign * pctMag * 3;
+      flavor = (s.group_drivers||[]).slice(0,2).join(' · ') || s.flavor || '';
     }
-    scoreNorm = Math.max(-3, Math.min(3, scoreNorm));
-
-    let cardCls = dir;
-    if(Math.abs(scoreNorm) >= 2) cardCls += ' strong';
-
-    const verdict = action==='BUY' ? 'Bullish' : action==='SELL' ? 'Bearish' : 'Neutral';
-
-    // Confidence = number of families with score>0 / total families
-    const groups = s.driver_groups || {};
-    const totalFams = Object.keys(groups).length || 6;
-    const activeFams = Object.values(groups).filter(g=>(g.score||0)>0).length;
-    const confRatio = totalFams ? activeFams / totalFams : 0;
-    const confLabel = confRatio>=0.6 ? 'High' : confRatio>=0.35 ? 'Medium' : 'Low';
-
-    // Top driver list
-    const topDrivers = _setupTopDrivers(s, dirSign, 4);
-    const driverHTML = topDrivers.length
-      ? topDrivers.map(d=>{
-          const arr = d.contribution>0.05?'up':d.contribution<-0.05?'dn':'eq';
-          const v = (d.contribution>0?'+':'') + d.contribution.toFixed(2);
-          // Normalise driver text: lowercase first char of long sentences feels better
-          const txt = d.text.length>40 ? d.text.slice(0,40)+'…' : d.text;
-          return `<div class="scard-drv">
-            <span class="fn">${escapeHTML(d.family)}:</span>
-            <span class="dt">${escapeHTML(txt)}</span>
-            <span class="vl ${arr}">${v}</span>
-          </div>`;
-        }).join('')
-      : '<div class="scard-drv"><span class="fn">—</span><span class="dt">No driver detail recorded</span><span class="vl eq">·</span></div>';
-
-    const horiz = s.horizon || s.timeframe || '';
-
-    return `<div class="scard ${cardCls}" data-key="${escapeHTML(s.key||s.name)}">
-      <div class="scard-hd">
-        <span class="nm">${escapeHTML(s.name||s.key)}</span>
-        <span class="cat">${escapeHTML(cat)}${horiz?' · '+escapeHTML(horiz.toLowerCase()):''}</span>
-      </div>
-      <div class="scard-bias">
-        <span><span class="label">Bias:</span> <span class="verdict ${dir}">${verdict}</span></span>
-        <span class="score ${dir}">${scoreNorm>0?'+':''}${scoreNorm.toFixed(1)}</span>
-      </div>
-      ${_pressureBar(scoreNorm, dir||'neutral')}
-      <div class="scard-drv-hd">Main drivers</div>
-      ${driverHTML}
-      <div class="scard-foot">
-        <div class="meta">
-          <span>Confidence: <b>${confLabel}</b></span>
-          <span>Grade: <b>${escapeHTML(s.grade||'?')}</b></span>
-          <span class="fresh ${freshCls}">Fresh: ${freshStr}</span>
-        </div>
-        <span class="open">Open detail →</span>
-      </div>
+    let scorePct;
+    if(s.max_score){
+      scorePct = Math.round(100*s.score/s.max_score);
+    } else if(s.score_pct){
+      scorePct = s.score_pct;
+    } else if(isAgri){
+      const fromScore = Math.min(100, Math.round((s.score||0) * (100/18)));
+      const fromGrade = gradePct[s.grade] ?? 0;
+      scorePct = Math.min(fromScore, fromGrade);
+    } else {
+      scorePct = gradePct[s.grade] ?? 0;
+    }
+    const tag = isAgri ? '<span class="setup-tag agri">AGRI</span>' : '';
+    return `<div class="setup-row ${dir}${isAgri?' agri':''}" data-key="${escapeHTML(s.key||s.name)}">
+      <div class="setup-grade-letter">${escapeHTML(s.grade||'?')}</div>
+      <div class="setup-name">${escapeHTML(s.name||s.key)} ${tag}<span class="horiz">${escapeHTML(s.horizon||s.timeframe||'')}</span></div>
+      <div class="setup-dir ${dir}">${escapeHTML(s.action||'')}</div>
+      <div class="score-bar"><div class="track"><div class="fill" style="width:${scorePct}%"></div></div><span class="pct">${scorePct}%</span></div>
+      <div class="setup-flavor">${flavor}</div>
+      <div class="driver-bars">${dbars}</div>
     </div>`;
   }).join('');
-
-  $('#setupsList').innerHTML = cards
-    ? `<div class="setups-grid">${cards}</div>`
-    : '<div class="skel">No A/B-grade setups currently active.</div>';
-  $$('.scard').forEach(el=>el.onclick = ()=>openSetup(el.dataset.key));
+  $('#setupsList').innerHTML = rows || '<div class="skel">No A/B-grade setups currently active.</div>';
+  $$('.setup-row').forEach(el=>el.onclick = ()=>openSetup(el.dataset.key));
 }
 function openSetup(key){
   // Same merge precedence as renderSetups: agri_signals.json carries the full
