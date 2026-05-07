@@ -44,6 +44,42 @@ ASSET_CLASS_MAP = {
 }
 
 
+# ─── Nyhetssentiment per instrument: (risk_on_dir, risk_off_dir) ─────────
+# Hvilken retning bekrefter risk_on/risk_off-nyheter for dette instrumentet.
+# None = nyheter er ikke retningsdiagnostisk for dette instrumentet (f.eks. olje
+# der geopolitikk kan dra begge veier).
+NEWS_CONFIRMS_MAP = {
+    "SPX":    ("bull", "bear"),
+    "NAS100": ("bull", "bear"),
+    "Gold":   ("bear", "bull"),
+    "Silver": ("bear", "bull"),
+    "EURUSD": ("bull", "bear"),
+    "GBPUSD": ("bull", "bear"),
+    "AUDUSD": ("bull", "bear"),
+    "USDJPY": ("bull", "bear"),
+    "DXY":    ("bear", "bull"),
+    "Brent":  (None,   None),
+    "WTI":    (None,   None),
+    "VIX":    ("bear", "bull"),
+    "BTC":    ("bull", "bear"),
+    "ETH":    ("bull", "bear"),
+}
+
+
+def news_confirms_direction(asset: str, ns_label: str, ns_score: float,
+                            direction: str) -> bool:
+    """True hvis nyhetssentiment med sterk konsensus (|score| ≥ 0.5) bekrefter
+    handelsretningen for dette instrumentet."""
+    if abs(ns_score or 0) < 0.5:
+        return False
+    nc = NEWS_CONFIRMS_MAP.get(asset, (None, None))
+    if ns_label == "risk_on" and nc[0]:
+        return nc[0] == direction
+    if ns_label == "risk_off" and nc[1]:
+        return nc[1] == direction
+    return False
+
+
 # ─── Helper: trygge json-lesere ──────────────────────────────────────────
 
 def _safe_json(path: Path) -> dict:
@@ -209,6 +245,14 @@ def build_context_for_asset(asset: str,
     # (contrarian), og crypto. Propager fra macro_context for ikke-crypto.
     if asset_class in ("metals", "indices") and "fear_greed" not in ctx:
         ctx["fear_greed"] = macro_context.get("fear_greed")
+
+    # Nyhetssentiment som risk-regime-signal i macro-familien. fetch_all/rescore
+    # beregner news_confirms_dir per instrument (NEWS_CONFIRMS_MAP); vi propager
+    # det hit slik at compute_macro kan vekte det inn. Universal — alle
+    # asset-klasser kan ha news-driven regime-tilt.
+    ctx["news_confirms_dir"]    = bool(macro_context.get("news_confirms_dir"))
+    ctx["news_sentiment_label"] = macro_context.get("news_sentiment_label", "neutral")
+    ctx["news_sentiment_score"] = macro_context.get("news_sentiment_score", 0.0)
 
     # ── Event-risk (universelle) ──
     upcoming = macro_context.get(f"upcoming_event_{asset}")

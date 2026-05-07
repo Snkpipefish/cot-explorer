@@ -154,22 +154,9 @@ FINNHUB_QUOTE_MAP = {
     "HG=F":      "HG1!",
 }
 
-# Nyhetssentiment: hvilken retning bekrefter risk_on / risk_off per instrument
-# (risk_on_dir, risk_off_dir) — None = ikke bruk nyheter for dette instrumentet
-NEWS_CONFIRMS_MAP = {
-    "SPX":    ("bull", "bear"),   # aksjer stiger ved risk-on
-    "NAS100": ("bull", "bear"),
-    "Gold":   ("bear", "bull"),   # gull faller ved risk-on, stiger ved risk-off
-    "Silver": ("bear", "bull"),
-    "EURUSD": ("bull", "bear"),   # risk-on = svak USD = EUR/USD opp
-    "GBPUSD": ("bull", "bear"),
-    "AUDUSD": ("bull", "bear"),   # AUD er risikovaluta
-    "USDJPY": ("bull", "bear"),   # risk-on = JPY svekkes = USD/JPY opp
-    "DXY":    ("bear", "bull"),   # risk-on = svak USD
-    "Brent":  (None,  None),      # olje: geopolitikk kompliserer retning
-    "WTI":    (None,  None),
-    "VIX":    ("bear", "bull"),
-}
+# Nyhetssentiment-mapping er nå sentralisert i driver_group_mapping.NEWS_CONFIRMS_MAP
+# slik at fetch_all, rescore og driver_matrix bruker samme kilde.
+from driver_group_mapping import NEWS_CONFIRMS_MAP, news_confirms_direction  # noqa: E402
 
 COT_MAP = {
     "EURUSD":"euro fx","USDJPY":"japanese yen","GBPUSD":"british pound",
@@ -1541,17 +1528,14 @@ for inst in INSTRUMENTS:
     )
 
     # Nyhetssentiment bekrefter retning?
-    # Krever sterk konsensus (|score| >= 0.5) for å gi poeng — reduserer støy
+    # Sterk konsensus (|score| ≥ 0.5) gir scoring-bidrag i macro-familien;
+    # logikken er sentralisert i dgm.news_confirms_direction.
     ns_label = (news_sentiment or {}).get("label", "neutral")
-    ns_score = abs((news_sentiment or {}).get("score", 0))
+    ns_score_signed = (news_sentiment or {}).get("score", 0)
+    ns_score = abs(ns_score_signed)
     nc_map   = NEWS_CONFIRMS_MAP.get(inst["key"], (None, None))
-    news_confirms_dir = False
-    if ns_score >= 0.5:  # Kun sterk konsensus teller
-        if ns_label == "risk_on" and nc_map[0]:
-            news_confirms_dir = (nc_map[0] == dir_color)
-        elif ns_label == "risk_off" and nc_map[1]:
-            news_confirms_dir = (nc_map[1] == dir_color)
-    # Nyhetsmotvindsvarsel: nyheter strider klart mot retning (sterk)
+    news_confirms_dir = news_confirms_direction(inst["key"], ns_label, ns_score_signed, dir_color)
+    # Nyhetsmotvindsvarsel: nyheter strider klart mot retning (svakere terskel)
     news_headwind = False
     if ns_score >= 0.4:
         if ns_label == "risk_on" and nc_map[0] and nc_map[0] != dir_color:
@@ -1634,6 +1618,10 @@ for inst in INSTRUMENTS:
         "real_yield_chg":      _dfii10.get("chg_5d"),
         "fear_greed":          fg["score"] if isinstance(fg, dict) and "score" in fg else None,
         "gold_silver_ratio_z": _gs_ratio_z,
+        # Nyhetssentiment som risk-regime-input til macro-familien
+        "news_confirms_dir":    news_confirms_dir,
+        "news_sentiment_label": ns_label,
+        "news_sentiment_score": (news_sentiment or {}).get("score", 0.0),
         # Fase 3: COT-alder for data-quality-gate (per-asset)
         "_cot_age_days":       _cot_age_days,
     }

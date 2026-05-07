@@ -325,7 +325,10 @@ def compute_macro(asset_class: str,
                   real_yield_chg: Optional[float] = None,
                   term_spread: Optional[float] = None,
                   fear_greed: Optional[int] = None,
-                  fund_instrument_score: Optional[float] = None) -> GroupScore:
+                  fund_instrument_score: Optional[float] = None,
+                  news_confirms_dir: bool = False,
+                  news_sentiment_label: str = "neutral",
+                  news_sentiment_score: float = 0.0) -> GroupScore:
     """Macro-composite. Asset-class-spesifikk tolkning av felles makrodata."""
     components: list[tuple[float, str]] = []   # (bidrag 0-1, driver-tekst)
 
@@ -407,6 +410,16 @@ def compute_macro(asset_class: str,
                 components.append((0.4, f"F&G {fear_greed} — extreme greed"))
             elif fear_greed <= 20 and is_bull:
                 components.append((0.4, f"F&G {fear_greed} — capitulation bull"))
+
+    # News sentiment som risk-regime-bekreftelse. Per-instrument-mappingen i
+    # driver_group_mapping.NEWS_CONFIRMS_MAP fastsetter allerede hvilken retning
+    # som passer (risk_on/risk_off → bull/bear). Vi får inn ferdig flagg
+    # `news_confirms_dir` + label/score for driver-tekst.
+    ns_abs = abs(news_sentiment_score or 0)
+    if news_confirms_dir and ns_abs >= 0.5:
+        components.append((0.5, f"News {news_sentiment_label} (|s|={ns_abs:.2f}) confirms"))
+    elif news_confirms_dir and ns_abs >= 0.3:
+        components.append((0.35, f"News {news_sentiment_label} (|s|={ns_abs:.2f}) tilts"))
 
     # Beregn composite: snitt av bidrag, med minimum 0.3 per bidrag
     filtered = [(s, d) for s, d in components if s >= 0.3]
@@ -961,6 +974,9 @@ def score_asset(
         term_spread=context.get("term_spread"),
         fear_greed=context.get("fear_greed"),
         fund_instrument_score=context.get("fund_instrument_score"),
+        news_confirms_dir=context.get("news_confirms_dir", False),
+        news_sentiment_label=context.get("news_sentiment_label", "neutral"),
+        news_sentiment_score=context.get("news_sentiment_score", 0.0),
     )
 
     # Familie 4 — FUNDAMENTAL (asset-class-dispatch)

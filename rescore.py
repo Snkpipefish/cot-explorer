@@ -132,6 +132,15 @@ def rescore():
     dxy_color = _compute_dxy_dir_color(tl)
     session_now = get_session_status()
 
+    # Sentiment fra forrige fetch_all (lever på disk, kan trygt gjenbrukes
+    # i hourly rescore — Fear&Greed og news-RSS endrer seg langsomt).
+    _sent       = macro.get("sentiment") or {}
+    _fg_obj     = _sent.get("fear_greed") or {}
+    _fg_score   = _fg_obj.get("score") if isinstance(_fg_obj, dict) else None
+    _news       = _sent.get("news") or {}
+    _ns_label   = _news.get("label", "neutral")
+    _ns_score   = _news.get("score", 0.0) if isinstance(_news, dict) else 0.0
+
     # Last delt kontekst (0 API-kall — alt er diskfiler)
     try:
         sources = dgm.load_all_sources(BASE_DIR)
@@ -233,12 +242,15 @@ def rescore():
             "term_spread":     market_rates.get("term_spread"),
             "real_yield_10y":  dfii10.get("value"),
             "real_yield_chg":  dfii10.get("chg_5d"),
-            # fear_greed og gold_silver_ratio_z ikke tilgjengelige i rescore
-            # (krever fetch_fear_greed + bot_history — for tungt for hver time).
-            # Sub-signalene deaktiveres stille når None.
-            "fear_greed":          None,
-            "gold_silver_ratio_z": None,
-            "_cot_age_days":       None,
+            # Sentiment gjenbrukes fra macro/latest.json (skrevet av fetch_all).
+            # Fear&Greed og news-RSS endrer seg sakte; safe å bruke i hourly rescore.
+            "fear_greed":           _fg_score,
+            "gold_silver_ratio_z":  None,
+            "news_confirms_dir":    dgm.news_confirms_direction(
+                                       key, _ns_label, _ns_score, dir_color),
+            "news_sentiment_label": _ns_label,
+            "news_sentiment_score": _ns_score,
+            "_cot_age_days":        None,
         }
 
         # Disaggregated COT sub-signaler fra analytics-cache
