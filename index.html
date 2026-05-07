@@ -663,6 +663,45 @@ body{
   border-left:3px solid var(--sig-neg);
   padding:12px 16px;
 }
+.counterpoints{
+  margin-top:18px;
+  background:rgba(190,150,80,.04);
+  border:1px solid var(--ink-rule);
+  border-left:3px solid var(--brass);
+  padding:12px 16px;
+}
+.counterpoints-hd{
+  font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;
+  color:var(--brass);text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:6px;
+}
+.counterpoints-hd .sub{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-weight:400;text-transform:none;letter-spacing:0;font-size:13px;
+  color:var(--ink-bone-dim);margin-left:8px;
+}
+.cp-row{
+  display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:baseline;
+  padding:4px 0;border-bottom:1px dotted var(--ink-rule-soft);
+  font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-bone);
+}
+.cp-row:last-child{border-bottom:none;}
+.cp-row .fn{font-weight:600;color:var(--ink-paper);min-width:90px;}
+.cp-row .tag{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.05em;
+  padding:1px 6px;border:1px solid currentColor;text-transform:uppercase;
+}
+.cp-row .tag.bull{color:var(--sig-pos);}
+.cp-row .tag.bear{color:var(--sig-neg);}
+.cp-row .dt{color:var(--ink-bone-dim);font-style:italic;font-size:13px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cp-row .vl{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
+  text-align:right;color:var(--brass);}
+.cp-aligned{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;
+  color:var(--ink-bone-dim);padding:4px 0;
+}
+.cp-aligned strong{color:var(--ink-paper);font-style:normal;}
 .invalidation-hd{
   font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;
   color:var(--sig-neg);text-transform:uppercase;letter-spacing:.1em;
@@ -2846,6 +2885,7 @@ async function openMarket(symbol, report){
         ${readout((pr.label||'Producers')+' Net', fmt(pr.net), sgn(pr.net), '')}
         ${readout((sm.label||'Small')+' Net', fmt(sm.net), sgn(sm.net), '')}
       </div>`:''}
+      ${_renderCounterpoints(r)}
       <div class="invalidation">
         <div class="invalidation-hd">Invalidation watch</div>
         <ul>${_invalidationTriggers(r, a).map(t=>`<li>${t}</li>`).join('')}</ul>
@@ -2858,6 +2898,61 @@ async function openMarket(symbol, report){
   $('#modal').classList.add('open');
 }
 function closeModal(){ $('#modal').classList.remove('open'); }
+
+/* Counterpoints — synthesise this market's drivers (Control Panel logic) and
+   surface the factors that point AGAINST the dominant bias. Helps the analyst
+   see what could be wrong with the current read before committing to it.
+   Returns '' when the market isn't in SYNTH or the bias is too neutral
+   to talk about "conflict" usefully. */
+function _renderCounterpoints(r){
+  if(!r) return '';
+  const rules = (typeof SYNTH !== 'undefined' ? SYNTH : []).find(rr =>
+    rr.symbol === r.symbol && rr.report === r.report);
+  if(!rules) return '';
+  const synth = synthesize(rules);
+  if(!synth || !synth.factors || !synth.factors.length) return '';
+  // Need a clear directional read; otherwise "conflict" isn't meaningful
+  if(Math.abs(synth.score) < 0.25) return '';
+  const dominant = synth.score > 0 ? +1 : -1;
+  const totalW = synth.factors.reduce((t,x)=>t+x.weight,0) || 1;
+  // Filter factors whose bias points opposite to the dominant synth direction
+  const conflicts = synth.factors
+    .filter(f => Math.sign(f.bias) && Math.sign(f.bias) !== dominant)
+    .map(f => {
+      const contrib = f.bias * f.weight * 3 / totalW;       // -3..+3 axis
+      return { f, contrib, mag: Math.abs(contrib) };
+    })
+    .sort((a,b) => b.mag - a.mag)
+    .slice(0, 4);
+  const dirLabel = dominant > 0 ? 'bullish' : 'bearish';
+  if(!conflicts.length){
+    return `<div class="counterpoints">
+      <div class="counterpoints-hd">Counterpoints
+        <span class="sub">drivers pointing against the ${dirLabel} read</span>
+      </div>
+      <div class="cp-aligned">All drivers align — <strong>high-conviction read</strong>.</div>
+    </div>`;
+  }
+  const rows = conflicts.map(({f, contrib}) => {
+    const biasLabel = f.bias > 0 ? 'BULLISH' : 'BEARISH';
+    const biasCls = f.bias > 0 ? 'bull' : 'bear';
+    const v = (contrib > 0 ? '+' : '') + contrib.toFixed(2);
+    const txt = (f.why || f.value || '').toString();
+    const trimmed = txt.length > 42 ? txt.slice(0,42)+'…' : txt;
+    return `<div class="cp-row">
+      <span class="fn">${escapeHTML(f.label)}</span>
+      <span class="tag ${biasCls}">${biasLabel}</span>
+      <span class="dt">${escapeHTML(trimmed)}</span>
+      <span class="vl">${v}</span>
+    </div>`;
+  }).join('');
+  return `<div class="counterpoints">
+    <div class="counterpoints-hd">Counterpoints
+      <span class="sub">drivers pointing against the ${dirLabel} read</span>
+    </div>
+    ${rows}
+  </div>`;
+}
 
 /* What would invalidate the current positioning thesis?
    Combines positioning state + asset class to produce 3-5 watch points
