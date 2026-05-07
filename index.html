@@ -72,8 +72,6 @@ body{
   border-bottom:1px solid var(--ink-rule);
   background:linear-gradient(180deg,#13192a 0%,#0e1320 100%);
   padding:16px 28px 12px;
-  position:sticky;top:0;z-index:50;
-  backdrop-filter:blur(6px);
 }
 .mast-row{display:flex;align-items:flex-end;gap:24px;}
 .mast-title{
@@ -96,7 +94,22 @@ body{
   border-bottom:1px solid var(--ink-rule);
   background:#0c111c;
   padding:0 28px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+  position:relative;
 }
+.tabs::-webkit-scrollbar{display:none;}
+.tabs-wrap{
+  position:relative;
+}
+/* Right-edge fade hints that more tabs are off-screen */
+.tabs-wrap::after{
+  content:'';position:absolute;top:0;right:0;bottom:1px;width:32px;
+  background:linear-gradient(90deg,#0c111c00,#0c111c);
+  pointer-events:none;opacity:0;transition:opacity .15s;
+}
+.tabs-wrap.has-overflow::after{opacity:1;}
 .tab{
   background:transparent;border:0;cursor:pointer;
   padding:14px 22px 12px;
@@ -128,6 +141,9 @@ body{
   border-bottom:1px solid var(--ink-rule);
   background:#0c111c;
   padding:0;
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(6px);
+  box-shadow:0 1px 0 var(--ink-rule);
 }
 .state-cell{
   flex:1;min-width:150px;
@@ -251,6 +267,11 @@ body{
 .tag.pos:hover{background:var(--sig-pos);}
 .tag.neg{border-color:var(--sig-neg-dim);background:rgba(194,92,92,.12);}
 .tag.neg:hover{background:var(--sig-neg);}
+.tag.unmapped{
+  opacity:.45;cursor:default;
+  background:transparent;border-style:dashed;color:var(--ink-mute);
+}
+.tag.unmapped:hover{background:transparent;color:var(--ink-mute);}
 
 /* ─── Tab-level explainer banner ─── */
 .explainer{
@@ -529,34 +550,14 @@ body{
 .scard-foot .fresh.fresh{color:var(--sig-pos);}
 .scard-foot .fresh.aging{color:var(--sig-warn);}
 .scard-foot .fresh.stale{color:var(--sig-neg);}
+.scard-foot .driver-bars{flex:0 0 auto;gap:3px;}
+.scard-foot .driver-bars .dbar{padding:2px 4px;font-size:9px;min-width:14px;}
 
 @media (max-width:780px){
   .setups-grid{grid-template-columns:1fr;}
 }
 
-/* old row layout — keep classes so legacy refs don't error, but unused */
-.setup-row{
-  display:grid;grid-template-columns:30px 180px 60px 90px 1fr 200px;gap:14px;
-  align-items:center;padding:12px 16px;
-  border-bottom:1px dotted var(--ink-rule-soft);
-  cursor:pointer;
-  transition:background .12s;
-}
-.setup-row:hover{background:rgba(201,163,94,.03);}
-.setup-row.bull .grade-badge{color:var(--sig-pos);border-color:var(--sig-pos-dim);}
-.setup-row.bear .grade-badge{color:var(--sig-neg);border-color:var(--sig-neg-dim);}
-.setup-grade-letter{
-  font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;
-  color:var(--brass);text-align:center;line-height:1;
-}
-.setup-name{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink-paper);}
-.setup-name .horiz{font-style:italic;color:var(--ink-bone-dim);font-size:13px;display:block;}
-.setup-dir{
-  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
-  text-align:center;padding:3px 0;border:1px solid;text-transform:uppercase;
-}
-.setup-dir.bull{color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.1);}
-.setup-dir.bear{color:var(--sig-neg);border-color:var(--sig-neg-dim);background:rgba(194,92,92,.1);}
+/* Score bar + driver-letter bars — shared by setup scards and bedrock rows */
 .score-bar{display:flex;align-items:center;gap:8px;}
 .score-bar .track{flex:1;height:5px;background:var(--ink-rule);position:relative;}
 .score-bar .fill{position:absolute;left:0;top:0;bottom:0;background:var(--brass);}
@@ -571,32 +572,18 @@ body{
 .dbar.hi{background:var(--brass-soft);color:var(--brass);border-color:var(--brass-dim);}
 .dbar.mid{background:rgba(212,164,74,.1);color:var(--sig-warn);border-color:rgba(212,164,74,.3);}
 .dbar.lo{color:var(--ink-mute);}
-.setup-flavor{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;
-  color:var(--ink-bone-dim);line-height:1.4;
+/* Tap-revealed tooltip for driver-bars (touch devices have no hover) */
+.dbar{position:relative;}
+.dbar.show-tip::after{
+  content:attr(title);
+  position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);
+  background:#10162a;border:1px solid var(--brass-dim);
+  color:var(--ink-bone);padding:4px 8px;
+  font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:400;
+  white-space:nowrap;letter-spacing:0;text-transform:none;
+  z-index:10;pointer-events:none;
+  box-shadow:0 4px 14px rgba(0,0,0,.5);
 }
-
-.setup-row .expanded-drivers{display:none;}
-.setup-row.expanded{
-  grid-template-columns:30px 180px 60px 90px 1fr 200px;
-  display:grid;
-}
-.setup-row.expanded ~ .setup-detail{display:block;}
-.setup-detail{
-  display:none;
-  background:rgba(201,163,94,.04);
-  padding:14px 20px;
-  border-bottom:1px solid var(--ink-rule);
-  border-top:1px dashed var(--brass-dim);
-  font-family:'Cormorant Garamond',serif;
-}
-.setup-detail .grp{margin-bottom:10px;}
-.setup-detail .grp-name{
-  font-size:13px;color:var(--brass);text-transform:uppercase;letter-spacing:.1em;
-  font-weight:600;display:flex;justify-content:space-between;
-}
-.setup-detail .grp-drivers{font-style:italic;color:var(--ink-bone);font-size:14px;margin-top:2px;}
-.setup-detail .grp-empty{color:var(--ink-mute);font-size:13px;font-style:italic;}
 
 /* ─────── PIPELINE ─────── */
 .pipe-grp{margin-bottom:24px;}
@@ -637,19 +624,33 @@ body{
 .modal-card{
   background:#10162a;border:1px solid var(--brass-dim);max-width:920px;width:100%;
   position:relative;
+  max-height:90vh;display:flex;flex-direction:column;
 }
 .modal-hd{
   padding:18px 24px 14px;border-bottom:2px solid var(--brass-dim);
   display:flex;align-items:baseline;gap:14px;
+  position:sticky;top:0;z-index:1;
+  background:#10162a;
+  flex-shrink:0;
+}
+.modal-card .modal-body{
+  overflow-y:auto;
+  flex:1 1 auto;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 calc(100% - 24px),transparent 100%);
+          mask-image:linear-gradient(180deg,#000 0,#000 calc(100% - 24px),transparent 100%);
 }
 .modal-hd .nm{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--ink-paper);letter-spacing:.02em;}
 .modal-hd .sym{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--brass);}
 .modal-hd .x{
   margin-left:auto;cursor:pointer;color:var(--ink-bone-dim);
   font-family:'Cormorant Garamond',serif;font-size:24px;line-height:1;
-  background:none;border:none;
+  background:none;border:1px solid transparent;
+  min-width:44px;min-height:44px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
 }
-.modal-hd .x:hover{color:var(--copper);}
+.modal-hd .x:hover{color:var(--copper);border-color:var(--brass-dim);}
+.modal-hd .x:active{background:var(--brass-soft);}
 .modal-body{padding:20px 24px 24px;}
 .modal-body .narrative{
   font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;
@@ -793,7 +794,6 @@ body{
 .ctrl-gauge .needle{
   position:absolute;top:-3px;bottom:-3px;width:3px;
   background:var(--brass);box-shadow:0 0 6px var(--brass-soft);
-  transition:left .25s ease;
 }
 .ctrl-gauge .needle.bull{background:var(--sig-pos);}
 .ctrl-gauge .needle.bear{background:var(--sig-neg);}
@@ -986,7 +986,7 @@ body{
   color:var(--sig-pos);border-color:var(--sig-pos-dim);
   background:rgba(107,157,122,.1);
 }
-.setup-row.agri{background:linear-gradient(90deg, rgba(107,157,122,.025) 0%, transparent 60%);}
+.scard.agri{background:linear-gradient(90deg, rgba(107,157,122,.025) 0%, #10162a 60%);}
 
 /* MOBILE adjustments for control panel + bedrock */
 @media (max-width:780px){
@@ -1072,6 +1072,31 @@ body{
   .affects-lbl{font-size:11px;}
   .tag{font-size:10px;padding:2px 6px;}
 
+  /* Observatory descr: collapse to 2 lines with a tap-to-expand affordance,
+     so the long italic explainer paragraphs don't dominate the small viewport.
+     Note: max-height transitions are flaky on Chromium when interpolating from
+     em to a large pixel target — snap instantly instead. */
+  .descr{
+    position:relative;
+    max-height:3em;overflow:hidden;
+    cursor:pointer;
+    -webkit-mask-image:linear-gradient(180deg,#000 60%,transparent);
+            mask-image:linear-gradient(180deg,#000 60%,transparent);
+  }
+  .descr.open{
+    max-height:none;
+    -webkit-mask-image:none;mask-image:none;
+  }
+  .descr::after{
+    content:'tap to read';
+    position:absolute;right:0;bottom:0;
+    font-family:'JetBrains Mono',monospace;font-size:9px;
+    color:var(--brass);background:#10162a;
+    padding:1px 6px;letter-spacing:.06em;
+    text-transform:uppercase;font-style:normal;
+  }
+  .descr.open::after{content:'tap to fold';}
+
   /* Heatmap: tighter grid + scrollable horizontal toolbar */
   .hm-controls{gap:8px;padding:8px 0 10px;}
   .hm-cat-toggles{flex-wrap:wrap;}
@@ -1083,23 +1108,8 @@ body{
   .hm-cell .chg{font-size:10px;}
   .hm-cat-hd .nm{font-size:14px;}
 
-  /* Setups: stack into a card layout — no more 6-column grid */
-  .setup-row{
-    grid-template-columns:48px 1fr 80px;
-    grid-template-areas:
-      "grade name dir"
-      "grade score score"
-      "grade flavor flavor"
-      "grade bars bars";
-    gap:6px 10px;padding:11px 12px;
-  }
-  .setup-grade-letter{grid-area:grade;font-size:32px;align-self:start;}
-  .setup-name{grid-area:name;font-size:16px;}
-  .setup-name .horiz{font-size:11px;}
-  .setup-dir{grid-area:dir;font-size:10px;align-self:start;}
-  .score-bar{grid-area:score;}
-  .setup-flavor{grid-area:flavor;font-size:13px;}
-  .driver-bars{grid-area:bars;}
+  /* Setups: scard grid already collapses to 1 column at 780px (.setups-grid),
+     so no extra mobile rules needed here. */
 
   /* Pipeline table: drop the description column on phone, keep path/age/status */
   .pipe-table th:nth-child(2),.pipe-table td:nth-child(2),
@@ -1126,15 +1136,6 @@ body{
   .readout{border-right:none;border-bottom:1px dashed var(--ink-rule-soft);}
   .readout:last-child{border-bottom:none;}
   .hm-grid{grid-template-columns:1fr 1fr;}
-  .setup-row{grid-template-columns:42px 1fr;
-    grid-template-areas:
-      "grade name"
-      "dir   dir"
-      "score score"
-      "flavor flavor"
-      "bars  bars";
-  }
-  .setup-grade-letter{font-size:28px;}
 }
 </style>
 </head>
@@ -1151,6 +1152,7 @@ body{
   </div>
 </header>
 
+<div class="tabs-wrap" id="tabsWrap">
 <nav class="tabs">
   <button class="tab active" data-tab="control"><span>Control Panel</span><span class="num">I</span></button>
   <button class="tab" data-tab="observatory"><span>Market Regime</span><span class="num">II</span></button>
@@ -1159,6 +1161,7 @@ body{
   <button class="tab" data-tab="bedrock"><span>Bedrock</span><span class="num">V</span></button>
   <button class="tab" data-tab="pipeline"><span>Pipeline</span><span class="num">VI</span></button>
 </nav>
+</div>
 
 <div class="state-strip" id="stateStrip">
   <div class="state-cell"><span class="lbl">COT Date</span><span class="val" id="ssCotDate">—</span></div>
@@ -1225,7 +1228,9 @@ body{
       <label class="hm-extreme"><input type="checkbox" id="hmExtreme"> Extremes only (≤10 / ≥90 pct)</label>
       <select class="hm-sort" id="hmSort">
         <option value="pct">Sort: percentile</option>
-        <option value="chg">Sort: weekly change</option>
+        <option value="chgAbs">Sort: largest move (abs)</option>
+        <option value="chgAdd">Sort: largest add</option>
+        <option value="chgCut">Sort: largest cut</option>
         <option value="oi">Sort: open interest</option>
         <option value="name">Sort: name</option>
       </select>
@@ -1278,7 +1283,7 @@ body{
         <span class="num">V</span>
         <span class="ttl">Bedrock · Setup Engine</span>
         <span class="sub">Live mirror of bedrock's signals — financial + agri scoring, asymmetric per direction × horizon</span>
-        <span class="stamp" id="bedrockStamp">—</span>
+        <span class="stamp" id="bedrockStamp"></span>
       </div>
       <div class="plate-body">
         <div class="bedrock-controls">
@@ -1557,6 +1562,7 @@ async function loadAll(){
   renderBedrock();
   renderPipeline();
   renderColophon();
+  _markUnmappedTags();
 }
 
 /* ════════════ STATE STRIP ════════════ */
@@ -1569,8 +1575,9 @@ function renderStateStrip(){
   $('#ssCotDate').textContent = sig.cot_date || (D.combined && D.combined[0] && D.combined[0].date) || '—';
   const usdBias=fund.usd_fundamental?.bias||'—';
   const usdEl=$('#ssUsd');
-  usdEl.textContent = usdBias.toUpperCase()+(fund.usd_fundamental?.score!=null?` (${fund.usd_fundamental.score>0?'+':''}${fund.usd_fundamental.score.toFixed(2)})`:'');
-  usdEl.className = 'val '+(usdBias==='bullish'?'pos':usdBias==='bearish'?'neg':'info');
+  const usdScore=fund.usd_fundamental?.score;
+  usdEl.textContent = _biasLabel(usdBias)+(usdScore!=null?` ${usdScore>0?'+':''}${usdScore.toFixed(2)}`:'');
+  usdEl.className = 'val '+(usdBias.startsWith('bull')||usdBias==='strong_bullish'?'pos':usdBias.startsWith('bear')||usdBias==='strong_bearish'?'neg':'info');
   const vix=gs.vix_regime||'—';
   $('#ssVix').textContent = vix.toUpperCase();
   $('#ssVix').className = 'val '+(vix==='normal'?'pos':vix==='elevated'?'warn':vix==='spike'?'neg':'');
@@ -1607,6 +1614,19 @@ function readout(lbl,val,cls,sub){
     ${sub?`<div class="ro-sub">${sub}</div>`:''}
   </div>`;
 }
+/* Map bias enums to short, single-word labels that fit in a 22px-monospace
+   readout cell (~135px usable). Underscore-joined enums never wrap and were
+   overflowing into the next cell. */
+function _biasLabel(b){
+  const map = {
+    strong_bullish: 'BULL+',
+    bullish:        'BULLISH',
+    neutral:        'NEUTRAL',
+    bearish:        'BEARISH',
+    strong_bearish: 'BEAR-',
+  };
+  return map[(b||'').toLowerCase()] || (b||'—').toString().toUpperCase().replace(/_/g,' ');
+}
 function readouts(arr){return `<div class="readouts">${arr.join('')}</div>`;}
 function descr(t){return `<div class="descr">${t}</div>`;}
 
@@ -1616,8 +1636,8 @@ function renderMacro(){
   if(!f){ $('#plate-macro').innerHTML=plate('I·A','Macro Pulse','no data','','<div class="skel">No fundamentals data.</div>'); return; }
   const s=f.usd_fundamental||{};
   const cs=f.category_scores||{};
-  const bias=(s.bias||'').toUpperCase();
-  const biasCls=s.bias==='bullish'?'pos':s.bias==='bearish'?'neg':'info';
+  const bias=_biasLabel(s.bias);
+  const biasCls=(s.bias||'').startsWith('bull')?'pos':(s.bias||'').startsWith('bear')?'neg':'info';
   // ISM PMI overlay (manual CSV)
   const pmiRows = D.bdrPmi?.data || [];
   const pmiLast = pmiRows[pmiRows.length-1] || {};
@@ -1646,9 +1666,9 @@ function renderMacro(){
   const body =
     readouts([
       readout('USD Bias', bias||'—', biasCls, s.score!=null?`score ${s.score>0?'+':''}${s.score.toFixed(2)}`:''),
-      readout('Growth',   (cs.econ_growth?.bias||'—').toUpperCase(), cs.econ_growth?.bias==='bullish'?'pos':cs.econ_growth?.bias==='bearish'?'neg':'info', `avg ${(cs.econ_growth?.avg??0).toFixed(2)}`),
-      readout('Inflation',(cs.inflation?.bias||'—').toUpperCase(), cs.inflation?.bias==='bullish'?'pos':cs.inflation?.bias==='bearish'?'neg':'info', `avg ${(cs.inflation?.avg??0).toFixed(2)}`),
-      readout('Jobs',     (cs.jobs?.bias||'—').toUpperCase(), cs.jobs?.bias==='bullish'?'pos':cs.jobs?.bias==='bearish'?'neg':'info', `avg ${(cs.jobs?.avg??0).toFixed(2)}`),
+      readout('Growth',   _biasLabel(cs.econ_growth?.bias), (cs.econ_growth?.bias||'').startsWith('bull')?'pos':(cs.econ_growth?.bias||'').startsWith('bear')?'neg':'info', `avg ${(cs.econ_growth?.avg??0).toFixed(2)}`),
+      readout('Inflation',_biasLabel(cs.inflation?.bias),  (cs.inflation?.bias||'').startsWith('bull')?'pos':(cs.inflation?.bias||'').startsWith('bear')?'neg':'info',   `avg ${(cs.inflation?.avg??0).toFixed(2)}`),
+      readout('Jobs',     _biasLabel(cs.jobs?.bias),       (cs.jobs?.bias||'').startsWith('bull')?'pos':(cs.jobs?.bias||'').startsWith('bear')?'neg':'info',           `avg ${(cs.jobs?.avg??0).toFixed(2)}`),
       readout('ISM PMI', isFinite(pmiVal)?pmiVal.toFixed(1):'—', pmiVal>=50?'pos':pmiVal<50?'neg':'info', isFinite(pmiPrevVal)?`prev ${pmiPrevVal.toFixed(1)}`:''),
       readout('News Sentiment', nsLabelText, nsCls, nsHeads),
       readout('Fear & Greed',   fgVal!=null?fgVal.toFixed(0):'—', fgCls, fgRating),
@@ -2155,7 +2175,7 @@ function f_usd(direction=1, weight=0.7){
     const bias = Math.max(-1, Math.min(1, f.score)) * direction;
     return {bias, weight, label:direction>0?'USD fundamental':'USD inverse',
             value: (f.score>0?'+':'')+f.score.toFixed(2),
-            why: (f.bias||'').toUpperCase()+(direction>0?'':' (inverted for non-USD)')};
+            why: _biasLabel(f.bias)+(direction>0?'':' (inverted for non-USD)')};
   };
 }
 
@@ -3129,7 +3149,9 @@ function _lookupAnalytics(r, aMap){
 }
 
 function renderPositions(){
-  const rows = (D.combined||[]).filter(r=>r.kategori && r.kategori!=='annet');
+  const all = (D.combined||[]);
+  const rows = all.filter(r=>r.kategori && r.kategori!=='annet');
+  D.posHiddenCount = all.length - rows.length;
   const ana = D.cotAna?.assets || {};
   const aMap = {};
   Object.entries(ana).forEach(([k,v])=>{ aMap[k.toUpperCase()] = v; });
@@ -3223,11 +3245,15 @@ function drawHeatmap(){
   const filt = rows.filter(r=>HM_STATE.cats.has(r.kategori));
   const filtExt = HM_STATE.extreme ? filt.filter(r=>r.pct52!=null && (r.pct52<=10 || r.pct52>=90)) : filt;
   const sortFn = {
-    pct: (a,b)=>(b.pct52??-1)-(a.pct52??-1),
-    chg: (a,b)=>Math.abs(b.change_spec_net||0)-Math.abs(a.change_spec_net||0),
-    oi:  (a,b)=>(b.open_interest||0)-(a.open_interest||0),
-    name:(a,b)=>(a.navn_no||a.market||'').localeCompare(b.navn_no||b.market||''),
-  }[HM_STATE.sort];
+    pct:    (a,b)=>(b.pct52??-1)-(a.pct52??-1),
+    chgAbs: (a,b)=>Math.abs(b.change_spec_net||0)-Math.abs(a.change_spec_net||0),
+    chgAdd: (a,b)=>(b.change_spec_net||0)-(a.change_spec_net||0),
+    chgCut: (a,b)=>(a.change_spec_net||0)-(b.change_spec_net||0),
+    oi:     (a,b)=>(b.open_interest||0)-(a.open_interest||0),
+    name:   (a,b)=>(a.navn_no||a.market||'').localeCompare(b.navn_no||b.market||''),
+    // Back-compat for any saved 'chg' state
+    chg:    (a,b)=>Math.abs(b.change_spec_net||0)-Math.abs(a.change_spec_net||0),
+  }[HM_STATE.sort] || ((a,b)=>(b.pct52??-1)-(a.pct52??-1));
   const sorted = [...filtExt].sort(sortFn);
   const byCat = {};
   sorted.forEach(r=>{ (byCat[r.kategori] ||= []).push(r); });
@@ -3256,7 +3282,10 @@ function drawHeatmap(){
     </div>`;
   }).join('');
   $('#hmContainer').innerHTML = out || '<div class="skel">No markets match the current filter.</div>';
-  $('#hmCount').textContent = `${sorted.length} of ${rows.length} markets shown`;
+  const hidden = D.posHiddenCount||0;
+  $('#hmCount').textContent = hidden
+    ? `${sorted.length} of ${rows.length} shown · ${hidden} utility/regional contracts hidden`
+    : `${sorted.length} of ${rows.length} markets shown`;
   $('#hmSources').innerHTML = renderSources('positions');
   // wire clicks
   $$('.hm-cell').forEach(el=>el.onclick = ()=>openMarket(el.dataset.symbol, el.dataset.report));
@@ -3321,7 +3350,15 @@ async function openMarket(symbol, report){
     </div>`;
   $('#modal').classList.add('open');
 }
-function closeModal(){ $('#modal').classList.remove('open'); }
+function closeModal(){
+  const m = $('#modal');
+  m.classList.remove('open');
+  const body = m.querySelector('.modal-body');
+  if(body) body.scrollTop = 0;
+}
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && $('#modal')?.classList.contains('open')) closeModal();
+});
 
 /* Counterpoints — synthesise this market's drivers (Control Panel logic) and
    surface the factors that point AGAINST the dominant bias. Helps the analyst
@@ -3505,7 +3542,13 @@ function renderSparkline(rows, key='spec_net'){
   const tail = rows.slice(-260); // last 5 years
   const vals = tail.map(r=>r[key]).filter(v=>v!=null);
   if(!vals.length) return '<div class="skel">No values.</div>';
-  const min=Math.min(...vals), max=Math.max(...vals);
+  const rawMin=Math.min(...vals), rawMax=Math.max(...vals);
+  // Pad min/max symmetrically with 10% of the range so a tiny relative move
+  // doesn't get stretched to fill the whole vertical span (sparkline must be
+  // honest about proportion). Also guards against min==max collapse.
+  const range = rawMax - rawMin;
+  const buf = range > 0 ? range * 0.1 : Math.max(1, Math.abs(rawMax) * 0.1);
+  const min = rawMin - buf, max = rawMax + buf;
   const w=860, h=120, pad=10;
   const xs = (i)=> pad+i*(w-2*pad)/(tail.length-1||1);
   const ys = (v)=> h-pad - ((v-min)/((max-min)||1))*(h-2*pad);
@@ -3514,12 +3557,12 @@ function renderSparkline(rows, key='spec_net'){
     const v=r[key];
     return (i?'L':'M')+xs(i).toFixed(1)+','+(v==null?ys(min):ys(v)).toFixed(1);
   }).join(' ');
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">
     <line class="spark-axis" x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}"/>
     ${(min<0&&max>0)?`<line class="spark-axis" stroke-dasharray="2 3" x1="${pad}" y1="${zeroY}" x2="${w-pad}" y2="${zeroY}"/>`:''}
     <path class="spark-line" d="${path}"/>
     <text x="${pad}" y="14" fill="#a89e85" font-family="JetBrains Mono" font-size="10">${tail[0].date} → ${tail[tail.length-1].date}</text>
-    <text x="${w-pad}" y="14" text-anchor="end" fill="#a89e85" font-family="JetBrains Mono" font-size="10">range ${fmt(min)} … ${fmt(max)}</text>
+    <text x="${w-pad}" y="14" text-anchor="end" fill="#a89e85" font-family="JetBrains Mono" font-size="10">range ${fmt(rawMin)} … ${fmt(rawMax)}</text>
   </svg>`;
 }
 
@@ -3634,7 +3677,7 @@ function renderSetups(){
   const freshCls = cotAgeDays==null ? '' : (cotAgeDays<11?'fresh':cotAgeDays<18?'aging':'stale');
   const freshStr = cotAgeDays==null ? '—' : cotAgeDays.toFixed(0)+'d';
 
-  const rows = ranked.map(s=>{
+  const cards = ranked.map(s=>{
     const dir = (s.action||'').toUpperCase()==='BUY' ? 'bull' : (s.action||'').toUpperCase()==='SELL'?'bear':'';
     const isAgri = s.source==='agri_fundamental' || s._src==='agri';
     const groups = s.driver_groups||{};
@@ -3650,18 +3693,27 @@ function renderSetups(){
       const letter = g[0].toUpperCase();
       return `<div class="dbar ${cls}" title="${g}: ${(x.score||0).toFixed(2)}/${(x.weight||0).toFixed(2)} · ${drvCount} drivers">${letter}</div>`;
     }).join('');
-    let flavor = '';
+    // Build driver list (3 lines): agri-flavored bits when present, else group_drivers
+    const driverLines = [];
     if(isAgri){
-      const bits = [];
-      if(s.weather_outlook) bits.push(`weather: <em>${escapeHTML(s.weather_outlook)}</em>`);
-      if(s.yield_quality)   bits.push(`yield: <em>${escapeHTML(s.yield_quality)}</em>`);
-      if(s.growth_stage)    bits.push(`stage: ${escapeHTML(s.growth_stage)}${s.season_pct?` · ${s.season_pct}%`:''}`);
-      if(s.cot_bias)        bits.push(`COT ${escapeHTML(s.cot_bias)}${s.cot_pct!=null?` ${pct(s.cot_pct)}`:''}`);
-      flavor = bits.join(' &nbsp;·&nbsp; ');
-      if(!flavor) flavor = (s.group_drivers||s.drivers||[]).slice(0,2).join(' · ');
-    } else {
-      flavor = (s.group_drivers||[]).slice(0,2).join(' · ') || s.flavor || '';
+      if(s.weather_outlook) driverLines.push(['Weather', s.weather_outlook]);
+      if(s.yield_quality)   driverLines.push(['Yield',   s.yield_quality]);
+      if(s.growth_stage)    driverLines.push(['Stage',   `${s.growth_stage}${s.season_pct?` · ${s.season_pct}%`:''}`]);
+      if(s.cot_bias)        driverLines.push(['COT',     `${s.cot_bias}${s.cot_pct!=null?' '+pct(s.cot_pct):''}`]);
     }
+    if(driverLines.length<3){
+      for(const d of (s.group_drivers||s.drivers||[])){
+        if(driverLines.length>=3) break;
+        driverLines.push(['·', d]);
+      }
+    }
+    const driverHTML = driverLines.length
+      ? driverLines.slice(0,3).map(([fn,dt])=>`<div class="scard-drv">
+          <span class="fn">${escapeHTML(fn)}</span>
+          <span class="dt">${escapeHTML(dt)}</span>
+          <span class="vl eq">·</span>
+        </div>`).join('')
+      : '<div class="scard-drv"><span class="fn">—</span><span class="dt">no driver detail</span><span class="vl eq">·</span></div>';
     let scorePct;
     if(s.max_score){
       scorePct = Math.round(100*s.score/s.max_score);
@@ -3674,18 +3726,37 @@ function renderSetups(){
     } else {
       scorePct = gradePct[s.grade] ?? 0;
     }
-    const tag = isAgri ? '<span class="setup-tag agri">AGRI</span>' : '';
-    return `<div class="setup-row ${dir}${isAgri?' agri':''}" data-key="${escapeHTML(s.key||s.name)}">
-      <div class="setup-grade-letter">${escapeHTML(s.grade||'?')}</div>
-      <div class="setup-name">${escapeHTML(s.name||s.key)} ${tag}<span class="horiz">${escapeHTML(s.horizon||s.timeframe||'')}</span></div>
-      <div class="setup-dir ${dir}">${escapeHTML(s.action||'')}</div>
-      <div class="score-bar"><div class="track"><div class="fill" style="width:${scorePct}%"></div></div><span class="pct">${scorePct}%</span></div>
-      <div class="setup-flavor">${flavor}</div>
-      <div class="driver-bars">${dbars}</div>
+    const grade = s.grade || '?';
+    const verdict = (s.action||'').toUpperCase() || (dir==='bull'?'BULL':dir==='bear'?'BEAR':'—');
+    const horiz = s.horizon||s.timeframe||'';
+    const tag = isAgri ? '<span class="cat" style="border-color:rgba(107,157,122,.4);color:var(--sig-pos);">AGRI</span>' : '';
+    let cardCls = dir;
+    if(['A+','A'].includes(grade)) cardCls += ' strong';
+    return `<div class="scard ${cardCls}" data-key="${escapeHTML(s.key||s.name)}">
+      <div class="scard-hd">
+        <span class="nm">${escapeHTML(s.name||s.key)}</span>
+        ${horiz?`<span class="cat">${escapeHTML(horiz)}</span>`:''}
+        ${tag}
+      </div>
+      <div class="scard-bias">
+        <span><span class="label">Action:</span> <span class="verdict ${dir||'neutral'}">${escapeHTML(verdict)}</span></span>
+        <span class="score ${dir}">${escapeHTML(grade)} · ${scorePct}%</span>
+      </div>
+      <div class="score-bar" style="margin-bottom:10px;">
+        <div class="track"><div class="fill" style="width:${scorePct}%"></div></div>
+      </div>
+      <div class="scard-drv-hd">Main drivers</div>
+      ${driverHTML}
+      <div class="scard-foot">
+        <div class="meta driver-bars">${dbars}</div>
+        <span class="open">Open detail →</span>
+      </div>
     </div>`;
   }).join('');
-  $('#setupsList').innerHTML = rows || '<div class="skel">No A/B-grade setups currently active.</div>';
-  $$('.setup-row').forEach(el=>el.onclick = ()=>openSetup(el.dataset.key));
+  $('#setupsList').innerHTML = cards
+    ? `<div class="setups-grid">${cards}</div>`
+    : '<div class="skel">No A/B-grade setups currently active.</div>';
+  $$('#setupsList .scard').forEach(el=>el.onclick = ()=>openSetup(el.dataset.key));
 }
 function openSetup(key){
   // Same merge precedence as renderSetups: agri_signals.json carries the full
@@ -3941,19 +4012,68 @@ $$('.tab').forEach(t=>t.addEventListener('click',()=>{
   t.classList.add('active');
   $('#panel-'+t.dataset.tab).classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
+  // Keep the active tab visible when the strip scrolls horizontally on mobile
+  t.scrollIntoView({inline:'nearest', block:'nearest', behavior:'smooth'});
 }));
+/* Show a fade on the right edge of the tab strip when more tabs are off-screen,
+   and hide it once the user has scrolled to the end. Updates on resize too. */
+function _updateTabsOverflow(){
+  const tabs = document.querySelector('.tabs');
+  const wrap = document.getElementById('tabsWrap');
+  if(!tabs || !wrap) return;
+  const more = tabs.scrollWidth - tabs.clientWidth - tabs.scrollLeft > 4;
+  wrap.classList.toggle('has-overflow', more);
+}
+document.querySelector('.tabs')?.addEventListener('scroll', _updateTabsOverflow, {passive:true});
+window.addEventListener('resize', _updateTabsOverflow);
+window.addEventListener('load', _updateTabsOverflow);
+requestAnimationFrame(_updateTabsOverflow);
+_updateTabsOverflow();
 
 /* ════════════ TAG → JUMP TO POSITION ════════════ */
+function _findTagMatch(target){
+  const rows = D.posRows||[];
+  const t = target.toLowerCase();
+  const head = t.split(' ')[0];
+  return rows.find(r=>(r.navn_no||'').toLowerCase().includes(head)
+                   || (r.market||'').toLowerCase().includes(head));
+}
+function _markUnmappedTags(){
+  document.querySelectorAll('.tag[data-jump]').forEach(el=>{
+    const m = _findTagMatch(el.dataset.jump);
+    el.classList.toggle('unmapped', !m);
+  });
+}
 document.addEventListener('click',(e)=>{
   const tag = e.target.closest('.tag[data-jump]');
-  if(!tag) return;
-  const target = tag.dataset.jump.toLowerCase();
-  // try to find a position cell matching by name
-  const rows = D.posRows||[];
-  const match = rows.find(r=>(r.navn_no||'').toLowerCase().includes(target.split(' ')[0].toLowerCase())
-                          || (r.market||'').toLowerCase().includes(target.split(' ')[0].toLowerCase()));
-  if(match){ openMarket(match.symbol, match.report); }
+  if(tag){
+    const match = _findTagMatch(tag.dataset.jump);
+    if(match){ openMarket(match.symbol, match.report); }
+    return;
+  }
+  // Mobile: tap on a clamped descr to expand it (matches @media(max-width:780px))
+  const dsc = e.target.closest('.descr');
+  if(dsc && window.matchMedia('(max-width:780px)').matches){
+    dsc.classList.toggle('open');
+    return;
+  }
+  // Tap on a driver-bar (T/P/M/F/R/S) reveals the title as an inline popover.
+  // Triggers on touch devices OR narrow viewports — both cases lack reliable
+  // hover tooltips. Stops propagation so the outer card-click doesn't fire.
+  const bar = e.target.closest('.dbar[title]');
+  if(bar && (window.matchMedia('(hover:none)').matches || window.matchMedia('(max-width:780px)').matches)){
+    e.stopPropagation();
+    document.querySelectorAll('.dbar.show-tip').forEach(x=>x!==bar && x.classList.remove('show-tip'));
+    bar.classList.toggle('show-tip');
+    return;
+  }
 });
+// Dismiss any open dbar tooltip on next tap anywhere
+document.addEventListener('click',(e)=>{
+  if(!e.target.closest('.dbar')){
+    document.querySelectorAll('.dbar.show-tip').forEach(x=>x.classList.remove('show-tip'));
+  }
+}, true);
 
 /* ════════════ INITIALISE ════════════ */
 loadAll().catch(err=>{
