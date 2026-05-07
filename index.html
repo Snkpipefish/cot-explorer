@@ -3123,15 +3123,30 @@ function renderPositions(){
 }
 
 /* Interpret a market's positioning into a plain-English label.
-   Combines 52-week percentile (where positioning sits relative to its
-   own history) with the weekly spec_net change (whether traders are
-   adding to or unwinding the position). Returns {label, cls} where cls
-   is one of: pos / neg / warn / info. */
-function _interpretPosition(pct, weekChg){
+   Combines 52-week percentile (where current sits in recent history)
+   with weekly spec_net change AND optional net_pct (mm_net / oi) to
+   distinguish "truly crowded" from "least-extreme-of-usually-one-sided".
+
+   Without the net_pct check, palladium at pctile=97 with mm_net=-1%
+   was labelled 'Stretched long · reversal risk' even though specs are
+   essentially flat — pctile is high only because palladium history is
+   heavily short. Same bug as f_cot's pctile-only contra read. */
+function _interpretPosition(pct, weekChg, netPct){
   if(pct == null) return {label:'', cls:''};
   const adding = (weekChg||0) > 0;
   const cutting = (weekChg||0) < 0;
+  // Real-positioning override: if net_pct doesn't match the pctile-implied
+  // direction, downgrade the labeled extreme to a softer "covering / shaken-out".
+  const trulyCrowdedLong  = netPct == null || netPct >  3;
+  const trulyCrowdedShort = netPct == null || netPct < -3;
   if(pct >= 90){
+    if(!trulyCrowdedLong){
+      // pctile says high but specs aren't actually long — it's
+      // a momentum recovery from a heavily-short structural bias
+      return cutting
+        ? {label:'Covering shorts',          cls:'info'}
+        : {label:'Recovering from short',    cls:'info'};
+    }
     return adding
       ? {label:'Stretched long · reversal risk', cls:'warn'}
       : cutting
@@ -3139,6 +3154,13 @@ function _interpretPosition(pct, weekChg){
       : {label:'Crowded long',                   cls:'warn'};
   }
   if(pct <= 10){
+    if(!trulyCrowdedShort){
+      // pctile says low but specs aren't actually short — it's
+      // shaken-out longs from an usually-long structural bias
+      return adding
+        ? {label:'Re-entering longs',         cls:'info'}
+        : {label:'Shaken-out longs',          cls:'info'};
+    }
     return cutting
       ? {label:'Stretched short · squeeze risk', cls:'warn'}
       : adding
@@ -3184,7 +3206,9 @@ function drawHeatmap(){
       const fillW = p!=null?Math.max(2,Math.min(100,p)):0;
       const pCls = p==null?'p-mid' : p<10?'p-0' : p<30?'p-1' : p<70?'p-2' : p<90?'p-3' : 'p-4';
       const chgCls = r.change_spec_net>0?'up':r.change_spec_net<0?'dn':'';
-      const interp = _interpretPosition(p, r.change_spec_net);
+      const _netPct = (r.spekulanter?.net != null && r.open_interest)
+                       ? (r.spekulanter.net / r.open_interest) * 100 : null;
+      const interp = _interpretPosition(p, r.change_spec_net, _netPct);
       return `<div class="hm-cell ${pCls}" style="--cell-fill:${fillW}%;" data-symbol="${escapeHTML(r.symbol)}" data-report="${escapeHTML(r.report)}">
         <div class="quality ${r.qual||'fresh'}" title="data quality: ${r.qual}"></div>
         <div class="nm">${escapeHTML(r.navn_no||r.market)}</div>
@@ -3222,7 +3246,10 @@ async function openMarket(symbol, report){
   const sp = r.spekulanter||{}, pr = r.produsenter||{}, sm = r.smahandlere||{};
   const tsHTML = ts ? renderSparkline(ts.data||[],'spec_net') : '<div class="skel">No long-history series.</div>';
   // Plain-English headline for current positioning state
-  const interp = _interpretPosition(a.mm_net_pctile_52w ?? r.pct52, r.change_spec_net);
+  const _modalNetPct = (r.spekulanter?.net != null && r.open_interest)
+                        ? (r.spekulanter.net / r.open_interest) * 100
+                        : (a.mm_net != null && a.oi_now ? (a.mm_net / a.oi_now) * 100 : null);
+  const interp = _interpretPosition(a.mm_net_pctile_52w ?? r.pct52, r.change_spec_net, _modalNetPct);
   const interpBadge = interp.label
     ? `<span class="hm-tag ${interp.cls}" style="margin-left:auto;padding:4px 10px;border:1px solid currentColor;font-size:13px;">${escapeHTML(interp.label)}</span>`
     : '';
