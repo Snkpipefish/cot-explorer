@@ -2031,10 +2031,28 @@ function _ana(name){
   return ana[k] || null;
 }
 
-/* factor: COT positioning percentile (52w). Below 25 = contra-bull, above 75 = contra-bear */
-function f_cot(name, weight=1.0){
+/* Lookup by symbol_report into the extremes file. Used by f_cot when the
+   curated cot_analytics doesn't have the asset (it only covers ~14 of 123
+   markets). Returns the same shape as a curated entry — most importantly
+   `mm_net_pctile_52w` which is what f_cot consumes. */
+function _anaExt(symbol, report){
+  const ext = D.cotExt?.assets;
+  if(!ext || !symbol || !report) return null;
+  return ext[`${symbol}_${report}`] || null;
+}
+
+/* factor: COT positioning percentile (52w). Below 25 = contra-bull, above 75 = contra-bear.
+   Optional symbol/report enables fallback to the extremes snapshot (covers
+   all 1100+ symbol_report combos) when curated cot_analytics doesn't have
+   the asset — previously PLATINUM, PALLADIUM, BTC, ETH, NATGAS, COPPER all
+   silently dropped the COT factor here, leaving them with single-channel
+   reads. */
+function f_cot(name, weight=1.0, symbol=null, report=null){
   return ()=>{
-    const a = _ana(name);
+    let a = _ana(name);
+    if((!a || a.mm_net_pctile_52w==null) && symbol && report){
+      a = _anaExt(symbol, report);
+    }
     if(!a || a.mm_net_pctile_52w==null) return null;
     const p = a.mm_net_pctile_52w;
     let bias = 0;
@@ -2335,10 +2353,12 @@ const SYNTH = [
     f_cot('AUDUSD',1.2), f_cot_momentum('232741','tff'), f_usd(-1,0.6), f_bedrock('AUDUSD'),
   ]},
   {key:'NZDUSD', name:'NZD / USD', symbol:'112741', report:'tff', group:'fx', factors:[
-    f_cot('NZDUSD',1.2), f_cot_momentum('112741','tff'), f_usd(-1,0.6),
+    f_cot('NZDUSD',1.2,'112741','tff'), f_cot_momentum('112741','tff'),
+    f_usd(-1,0.6), f_real_rates(-1,0.3),
   ]},
   {key:'USDCAD', name:'USD / CAD', symbol:'090741', report:'tff', group:'fx', factors:[
-    f_cot('USDCAD',1.2), f_cot_momentum('090741','tff'), f_usd(+1,0.7),
+    f_cot('USDCAD',1.2,'090741','tff'), f_cot_momentum('090741','tff'),
+    f_usd(+1,0.7), f_oil(-1,0.3),
   ]},
   {key:'DXY', name:'Dollar Index (DXY)', symbol:'098662', report:'disaggregated', group:'fx', factors:[
     f_usd(+1,1.2), f_real_rates(+1,0.6), f_vix(+1,0.3), f_bedrock('DXY'),
@@ -2354,14 +2374,16 @@ const SYNTH = [
     f_real_rates(-1,0.7), f_comex('silver',0.8), f_bedrock('XAGUSD'),
   ]},
   {key:'COPPER', name:'Copper', symbol:'085692', report:'disaggregated', group:'metals', factors:[
-    f_cot('Copper',1.2), f_cot_momentum('085692','disaggregated'),
-    f_bdi(0.5), f_comex('copper',0.4),
+    f_cot('Copper',1.2,'085692','disaggregated'), f_cot_momentum('085692','disaggregated'),
+    f_bdi(0.5), f_comex('copper',0.4), f_usd(-1,0.5), f_real_rates(-1,0.4),
   ]},
   {key:'PLATINUM', name:'Platinum', symbol:'076651', report:'disaggregated', group:'metals', factors:[
-    f_cot('Platinum',1.2), f_cot_momentum('076651','disaggregated'),
+    f_cot('Platinum',1.2,'076651','disaggregated'), f_cot_momentum('076651','disaggregated'),
+    f_real_rates(-1,0.4), f_usd(-1,0.4),
   ]},
   {key:'PALLADIUM', name:'Palladium', symbol:'075651', report:'disaggregated', group:'metals', factors:[
-    f_cot('Palladium',1.2), f_cot_momentum('075651','disaggregated'),
+    f_cot('Palladium',1.2,'075651','disaggregated'), f_cot_momentum('075651','disaggregated'),
+    f_real_rates(-1,0.4), f_usd(-1,0.4),
   ]},
 
   // ─── Energy
@@ -2374,7 +2396,8 @@ const SYNTH = [
     f_oil_geo(0.7), f_brent_wti(+1,0.5),
   ]},
   {key:'NATGAS', name:'Natural Gas', symbol:'023391', report:'disaggregated', group:'energy', factors:[
-    f_cot('NatGas',1.0), f_cot_momentum('023391','disaggregated'),
+    f_cot('NatGas',1.0,'023391','disaggregated'), f_cot_momentum('023391','disaggregated'),
+    f_oil(+1,0.4), f_oil_geo(0.4),
   ]},
 
   // ─── Equities
@@ -2387,10 +2410,12 @@ const SYNTH = [
     f_vix(+1,0.7), f_real_rates(-1,0.5),
   ]},
   {key:'RUT', name:'Russell 2000', symbol:'239742', report:'tff', group:'equity', factors:[
-    f_cot('Russell2000',1.0), f_cot_momentum('239742','tff'), f_vix(+1,0.6),
+    f_cot('Russell2000',1.0,'239742','tff'), f_cot_momentum('239742','tff'),
+    f_vix(+1,0.6), f_real_rates(-1,0.4), f_usd(-1,0.3),
   ]},
   {key:'VIX', name:'VIX Futures', symbol:'1170E1', report:'tff', group:'equity', factors:[
-    f_cot('VIX',1.0), f_cot_momentum('1170E1','tff'), f_vix(-1,0.7),
+    f_cot('VIX',1.0,'1170E1','tff'), f_cot_momentum('1170E1','tff'),
+    f_vix(-1,0.7), f_real_rates(+1,0.3),
   ]},
 
   // ─── Agri
@@ -2428,12 +2453,14 @@ const SYNTH = [
 
   // ─── Crypto
   {key:'BTC', name:'Bitcoin', symbol:'133741', report:'disaggregated', group:'crypto', factors:[
-    f_cot('Bitcoin',1.0), f_cot_momentum('133741','disaggregated'),
+    f_cot('Bitcoin',1.0,'133741','disaggregated'), f_cot_momentum('133741','disaggregated'),
     f_btc_dom(+1,0.4), f_fear_greed(+1,0.4), f_bedrock('BTCUSD'),
+    f_real_rates(-1,0.4), f_vix(-1,0.3),
   ]},
   {key:'ETH', name:'Ether', symbol:'146021', report:'disaggregated', group:'crypto', factors:[
-    f_cot('Ether',1.0), f_cot_momentum('146021','disaggregated'),
+    f_cot('Ether',1.0,'146021','disaggregated'), f_cot_momentum('146021','disaggregated'),
     f_btc_dom(-1,0.4), f_fear_greed(+1,0.4),
+    f_real_rates(-1,0.3), f_vix(-1,0.3),
   ]},
 ];
 
