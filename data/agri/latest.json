@@ -1,5 +1,5 @@
 {
-  "generated": "2026-05-07 01:48 UTC",
+  "generated": "2026-05-07 01:50 UTC",
   "cot_date": "2026-05-06",
   "source": "CFTC · Euronext · Open-Meteo · NOAA ENSO · IRI Columbia · ECMWF SEAS5",
   "month": 5,
@@ -1107,9 +1107,9 @@
       "outlook": {
         "signal": "NØYTRAL",
         "color": "neutral",
-        "total_score": 0.8
+        "total_score": -0.3
       },
-      "avg_wx_score": 2.5,
+      "avg_wx_score": 2.0,
       "cot_score": -2,
       "risk_regions": 2,
       "total_regions": 2,
@@ -1129,8 +1129,8 @@
         "Værstress i India – Punjab / Haryana (tørt)",
         "2 risiko-regioner",
         "COT: spekulanter øker short (net -18% av OI)",
-        "Prognose El Niño: Gunstig regn",
-        "ECMWF: El Niño sannsynlig — Gunstig regn forventet"
+        "Prognose El Niño: Tørkerisiko",
+        "ECMWF: El Niño sannsynlig — Tørkerisiko forventet"
       ],
       "worst_region": {
         "region": "india_punjab",
@@ -1170,19 +1170,6 @@
       },
       "regions": [
         {
-          "name": "Brazil – Mato Grosso",
-          "id": "brazil_mato_grosso",
-          "weather_score": 3,
-          "weather_outlook": "tørke",
-          "weather_summary": "Alvorlig tørke: 1mm / 30°C maks",
-          "precip_7d": 0.9,
-          "temp_max_avg": 30.2,
-          "in_season": false,
-          "stage": "Etter høst",
-          "yield_rating": null,
-          "enso_impact": "Prognose El Niño: Gunstig regn"
-        },
-        {
           "name": "India – Punjab / Haryana",
           "id": "india_punjab",
           "weather_score": 2,
@@ -1194,6 +1181,19 @@
           "stage": "Høsting",
           "yield_rating": "Middels",
           "enso_impact": "Prognose El Niño: Tørkerisiko"
+        },
+        {
+          "name": "Brasil – São Paulo (Center-South sukker)",
+          "id": "brazil_sao_paulo",
+          "weather_score": 2,
+          "weather_outlook": "tørt",
+          "weather_summary": "Tørt og varmt: 3mm / 25°C maks",
+          "precip_7d": 2.7,
+          "temp_max_avg": 25.2,
+          "in_season": true,
+          "stage": "Høsting",
+          "yield_rating": "Utmerket (tidlig)",
+          "enso_impact": "Prognose El Niño: Logistikk-flom (Santos-køer)"
         }
       ],
       "growth_stage": "Høsting",
@@ -1209,9 +1209,9 @@
       "ideal_precip_mm": 1500,
       "precip_pct": 50.1,
       "stress_days": 94,
-      "yield_quality": "Middels",
-      "yield_score": 55,
-      "yield_hint": "Noen utfordringer → mulig prispress oppover",
+      "yield_quality": "God",
+      "yield_score": 74,
+      "yield_hint": "Normal produksjon → moderate priser",
       "price": {
         "value": 13.83,
         "chg1d": 0.0,
@@ -1675,8 +1675,7 @@
       "crops": [
         "soybeans",
         "corn",
-        "cotton",
-        "sugar"
+        "cotton"
       ],
       "growth_stage": {
         "stage": "post-harvest",
@@ -1806,41 +1805,6 @@
             "signal": "BULLISH",
             "color": "bull",
             "total_score": 2.4
-          },
-          "season_metrics": null,
-          "yield_quality": null,
-          "yield_score": null,
-          "yield_hint": null
-        },
-        "sugar": {
-          "weather": {
-            "score": 3,
-            "raw_score": 3,
-            "season_mult": 1.0,
-            "outlook": "tørke",
-            "precip_7d": 0.9,
-            "precip_8_14d": 0.0,
-            "temp_max_avg": 30.2,
-            "temp_min_avg": 19.3,
-            "extended_outlook": "tørke",
-            "summary": "Alvorlig tørke: 1mm / 30°C maks"
-          },
-          "cot": {
-            "market": "Sugar No. 11",
-            "net": -174600,
-            "net_pct": -18.0,
-            "change": 120,
-            "bias": "bear",
-            "momentum": "FALLER",
-            "cot_score": -2,
-            "cot_zscore": -2.26,
-            "date": "2026-04-28",
-            "source": "CFTC"
-          },
-          "outlook": {
-            "signal": "NØYTRAL",
-            "color": "neutral",
-            "total_score": -0.1
           },
           "season_metrics": null,
           "yield_quality": null,
@@ -3020,6 +2984,79 @@
         "precip": 0.0,
         "wind": 1.8,
         "humidity": 80
+      }
+    },
+    {
+      "id": "brazil_sao_paulo",
+      "name": "Brasil – São Paulo (Center-South sukker)",
+      "lat": -22.5,
+      "lon": -48.0,
+      "crops": [
+        "sugar"
+      ],
+      "growth_stage": {
+        "stage": "harvest",
+        "stage_no": "Høsting",
+        "icon": "🚜",
+        "season_pct": 33,
+        "in_season": true,
+        "season_months": "jan–des",
+        "harvest_window": "apr–nov",
+        "season_start_month": 1,
+        "season_end_month": 12
+      },
+      "crops_outlook": {
+        "sugar": {
+          "weather": {
+            "score": 2,
+            "raw_score": 2,
+            "season_mult": 1.0,
+            "outlook": "tørt",
+            "precip_7d": 2.7,
+            "precip_8_14d": 1.2,
+            "temp_max_avg": 25.2,
+            "temp_min_avg": 15.8,
+            "extended_outlook": "normalt",
+            "summary": "Tørt og varmt: 3mm / 25°C maks"
+          },
+          "cot": {
+            "market": "Sugar No. 11",
+            "net": -174600,
+            "net_pct": -18.0,
+            "change": 120,
+            "bias": "bear",
+            "momentum": "FALLER",
+            "cot_score": -2,
+            "cot_zscore": -2.26,
+            "date": "2026-04-28",
+            "source": "CFTC"
+          },
+          "outlook": {
+            "signal": "BEARISH",
+            "color": "bear",
+            "total_score": -2.9
+          },
+          "season_metrics": {
+            "gdd_accumulated": 837,
+            "gdd_required": 3500,
+            "gdd_pct": 23.9,
+            "season_precip_mm": 614,
+            "ideal_precip_mm": 1500,
+            "precip_pct": 41.0,
+            "stress_days": 0,
+            "days_measured": 126
+          },
+          "yield_quality": "Utmerket (tidlig)",
+          "yield_score": 92,
+          "yield_hint": "Tidlig i sesongen — høy produksjon → stabilt prisnivå"
+        }
+      },
+      "enso_impact": "Prognose El Niño: Logistikk-flom (Santos-køer)",
+      "current_weather": {
+        "temp": 21.4,
+        "precip": 0.0,
+        "wind": 9.7,
+        "humidity": 55
       }
     },
     {

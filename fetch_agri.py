@@ -176,8 +176,10 @@ ENSO_IMPACTS = {
     ("El Niño", "sea_palm"):         {"impact": "Tørkerisiko", "adj": 0.5},
     ("El Niño", "west_africa_cocoa"):{"impact": "Tørrere enn normalt", "adj": 0.3},
     ("El Niño", "brazil_mato_grosso"):{"impact": "Gunstig regn", "adj": -0.3},
+    ("El Niño", "brazil_sao_paulo"):  {"impact": "Logistikk-flom (Santos-køer)", "adj": 0.4},
     ("El Niño", "argentina_pampas"):  {"impact": "Gunstig regn", "adj": -0.3},
     # La Niña-effekter
+    ("La Niña", "brazil_sao_paulo"):  {"impact": "Tørke under crush (lavere TRS)", "adj": 0.3},
     ("La Niña", "us_cornbelt"):      {"impact": "Tørkerisiko", "adj": 0.5},
     ("La Niña", "us_great_plains"):  {"impact": "Tørkerisiko", "adj": 0.5},
     ("La Niña", "us_delta_cotton"):  {"impact": "Tørkerisiko", "adj": 0.3},
@@ -191,7 +193,8 @@ ENSO_IMPACTS = {
 REGION_CROPS = {
     "us_cornbelt":       ["corn", "soybeans"],
     "us_great_plains":   ["wheat"],
-    "brazil_mato_grosso":["soybeans", "corn", "cotton", "sugar"],
+    "brazil_mato_grosso":["soybeans", "corn", "cotton"],
+    "brazil_sao_paulo":  ["sugar"],   # Center-South — pris-marginal sukkerregion
     "argentina_pampas":  ["soybeans", "wheat", "corn"],
     "ukraine_blacksea":  ["wheat", "corn"],
     "eu_northern":       ["wheat", "canola"],
