@@ -2306,7 +2306,17 @@ function _bedrockBestFor(synthKey){
   const aSet = new Set(aliases.map(x=>x.toUpperCase()));
   const cand = _allBedrockSignals().filter(s=>aSet.has(String(s.instrument||'').toUpperCase()));
   if(!cand.length) return null;
-  cand.sort((x,y)=>(BDR_GRADE_ORDER[x.grade]??9)-(BDR_GRADE_ORDER[y.grade]??9));
+  // Sort: 1) lower grade order (A+ < A < B...), 2) published > unpublished,
+  //       3) higher score within tied grade. Previously only sorted by grade,
+  //       so a tied A-grade BUY and SELL (e.g. Sugar) returned whichever came
+  //       first in the data — non-deterministic and could surface the
+  //       unpublished side of the trade.
+  cand.sort((x,y)=>{
+    const og = (BDR_GRADE_ORDER[x.grade]??9) - (BDR_GRADE_ORDER[y.grade]??9);
+    if(og !== 0) return og;
+    if(!!x.published !== !!y.published) return x.published ? -1 : 1;
+    return (y.score||0) - (x.score||0);
+  });
   return cand[0];
 }
 
