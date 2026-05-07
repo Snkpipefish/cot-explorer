@@ -804,36 +804,57 @@ def _best_agri_t1(levels: list[dict], entry: float, risk: float,
     return dict(l, distance=d, rr=round(d / risk, 2) if risk > 0 else 0)
 
 
-def calc_levels(price, direction, crop_key, instrument=None):
+def calc_levels(price, direction, crop_key, instrument=None, horizon="SWING"):
     """
-    Beregner entry, SL, T1, T2.
+    Beregner entry, SL, T1, T2 — horisont-bevisst ATR-skalering.
 
     Prioritet:
-      1. Entry + SL = ATR-basert (som før — struktur for SL krever intraday data)
-      2. T1/T2 = reelle swing-nivåer + round numbers hvis innen rekkevidde
-      3. Fallback: mekanisk 2.5×ATR hvis ingen reelle nivåer nær
+      1. Entry = liten ATR-pullback fra current (intraday-skala)
+      2. SL = horisont-skalert ATR-multiplum (D1 for SWING/MAKRO, H1 for SCALP)
+      3. T1/T2 = reelle swing-nivåer + round numbers hvis innen rekkevidde
+      4. Fallback: mekanisk ATR-multiplum hvis ingen reelle nivåer nær
 
     ATR-kilde: live ATR fra macro/latest.json → estimert ATR fra CROP_ATR_PCT.
+    Bug-historikk: tidligere brukte alle horisonter samme `1.5 × atr_h1` for SL,
+    så SWING corn fikk SL bare ~0.3% unna entry — knipset bort av normal-støy
+    på under en time. Nå brukes D1 ATR (≈ 7× H1) for SWING/MAKRO.
     """
     # Prøv live ATR fra macro/latest.json (satt av fetch_all.py fra bot-priser)
-    atr = None
+    # Disse verdiene er H1-kalibrert (per CROP_ATR_PCT-kommentaren).
+    atr_h1 = None
     atr_source = "estimated"
     if instrument:
         live_atr = (macro_prices.get(instrument) or {}).get("atr_d1")
         if live_atr and live_atr > 0:
-            atr = live_atr
+            atr_h1 = live_atr
             atr_source = "live"
-    if atr is None:
+    if atr_h1 is None:
         atr_pct = CROP_ATR_PCT.get(crop_key, 1.8)
-        atr = price * atr_pct / 100
+        atr_h1 = price * atr_pct / 100
 
-    # Entry + SL: ATR-basert (struktur for SL krever intraday — ikke tilgjengelig)
+    # Daily ATR ≈ 7× intraday (per kalibrerings-kommentaren)
+    atr_d1 = atr_h1 * 7
+
+    # Horisont-skalert SL — SWING/MAKRO må overleve daglig støy, ikke
+    # 1H-noise. SCALP-trades bruker H1 ATR siden de holdes i timer.
+    if horizon == "MAKRO":
+        sl_atr, sl_mult = atr_d1, 3.0
+    elif horizon == "SWING":
+        sl_atr, sl_mult = atr_d1, 2.0
+    else:  # SCALP eller fallback
+        sl_atr, sl_mult = atr_h1, 1.5
+
+    # Entry: liten pull-back fra current — bruker H1 ATR (entry er intraday).
     if direction == "BUY":
-        entry = round(price - 0.3 * atr, 2)
-        sl    = round(entry - 1.5 * atr, 2)
+        entry = round(price - 0.3 * atr_h1, 2)
+        sl    = round(entry - sl_mult * sl_atr, 2)
     else:
-        entry = round(price + 0.3 * atr, 2)
-        sl    = round(entry + 1.5 * atr, 2)
+        entry = round(price + 0.3 * atr_h1, 2)
+        sl    = round(entry + sl_mult * sl_atr, 2)
+
+    # Bevar `atr` for resten av funksjonen (T1/T2 bruker `atr` som ATR-base).
+    # Bruk atr_d1 for swing/makro-targets, atr_h1 for scalp.
+    atr = atr_d1 if horizon in ("MAKRO", "SWING") else atr_h1
 
     risk = abs(entry - sl)
 
@@ -943,16 +964,18 @@ for crop in agri.get("crop_summary", []):
     if scoring["total"] < MIN_OUTLOOK_SCORE:
         continue
 
-    # Beregn nivåer (bruk live ATR hvis tilgjengelig)
-    levels = calc_levels(price, scoring["direction"], crop_key, instrument=instrument)
-
-    # Timeframe basert på confidence — C-grade sendes ikke til boten
+    # Timeframe basert på confidence — C-grade sendes ikke til boten.
+    # Må bestemmes FØR calc_levels så SL kan skalere ATR-en etter horisont
+    # (SWING/MAKRO trenger D1 ATR, SCALP trenger H1).
     if scoring["confidence"] == "A":
         timeframe = "MAKRO"
     elif scoring["confidence"] == "B":
         timeframe = "SWING"
     else:
         continue  # Grade C = ikke tradeable, hopp over
+
+    # Beregn nivåer (bruk live ATR hvis tilgjengelig, skalert til horisont)
+    levels = calc_levels(price, scoring["direction"], crop_key, instrument=instrument, horizon=timeframe)
 
     # Bygg signal
     cot = crop.get("cot") or {}
