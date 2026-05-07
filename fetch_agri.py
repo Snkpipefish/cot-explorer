@@ -1135,7 +1135,30 @@ def combine_outlook(weather_score, cot_score, crop_key, lat,
     #  • Bomull: specs long +11% mens demand er svak og yield Utmerket →
     #    posisjonen er momentum-resten, neppe lovende.
     if cot_score is not None:
-        bullish_fund = (yield_score is not None and yield_score < 50) or fund_contrib > 0.3
+        # Cross-asset: Brent-nivå er bullish for ethanol-koblede crops (sukker
+        # via mill-mix, mais via US-RFS). Når Brent er høy (≥$80), favoriserer
+        # det biofuel og presser sukker/mais opp via etanol-parity. Agri-
+        # modellen bygde ellers ikke inn dette signalet, så Sukker-kontrarian
+        # fyrte ikke selv om brukeren OG Control Panel så caset klart bullish.
+        ETHANOL_COUPLED = ("sugar", "corn")
+        oil_bullish = False
+        if crop_key in ETHANOL_COUPLED:
+            try:
+                with open(os.path.expanduser(
+                        "~/cot-explorer/data/oilgas/latest.json")) as _f:
+                    _oil = json.load(_f)
+                _brent = next((i for i in (_oil.get("instruments") or [])
+                               if i.get("id") == "brent"), None)
+                _bp = (_brent or {}).get("price", {}).get("value")
+                oil_bullish = _bp is not None and _bp >= 80
+            except Exception:
+                pass   # graceful — oilgas mangler eller bad format
+
+        bullish_fund = (
+            (yield_score is not None and yield_score < 50)
+            or fund_contrib > 0.3
+            or oil_bullish
+        )
         bearish_fund = (yield_score is not None and yield_score >= 80) or fund_contrib < -0.3
         no_price_follow_up = price_chg_20d is not None and price_chg_20d <= 0
         no_price_follow_down = price_chg_20d is not None and price_chg_20d >= 0
