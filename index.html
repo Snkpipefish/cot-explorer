@@ -2093,13 +2093,19 @@ function f_usd(direction=1, weight=0.7){
   };
 }
 
-/* factor: real 10Y rates (negative for non-yielding stores of value) */
+/* factor: real 10Y rates. With direction=-1 (gold/silver/palladium etc),
+   high real rates → bearish (carry penalty for non-yielding); negative
+   real rates → bullish. Direction=+1 is for assets where high real rates
+   are SUPPORTIVE (DXY: yield-driven flows into USD).
+   Bug history: previously the formula had a stray leading minus
+   (`-r.value/2`) that combined with direction=-1 to invert the sign,
+   so high real rates were rendering as BULLISH gold. */
 function f_real_rates(direction=-1, weight=0.6){
   return ()=>{
     const r = D.fund?.market_rates?.dfii10;
     if(!r || r.value==null) return null;
     // anchor: 0% real = neutral; +2% = bearish gold; -1% = bullish gold
-    const bias = Math.max(-1, Math.min(1, -r.value/2)) * direction;
+    const bias = Math.max(-1, Math.min(1, r.value/2)) * direction;
     return {bias, weight, label:'Real 10Y',
             value: r.value.toFixed(2)+'%',
             why: r.value>1.5?'high carry — headwind':r.value<0?'negative — tailwind':'neutral'};
@@ -2167,13 +2173,17 @@ function f_enso(crop_la_bias=+0.6, crop_el_bias=-0.4, weight=0.5){
   };
 }
 
-/* factor: Conab YoY for a given crop */
+/* factor: Conab YoY for a given crop. With direction=-1 (the only call
+   pattern in SYNTH today), a YoY drop in production = supply tight =
+   bullish prices = positive bias. Bug history: previous formula had
+   `-c.yoy_change_pct/15`; combined with direction=-1 the double-negative
+   inverted the sign, so coffee's +17% bumper crop reported bias=+1.0
+   (BULLISH) when it should have been -1.0 (BEARISH supply pressure). */
 function f_conab(crop, direction=-1, weight=0.5){
   return ()=>{
     const c = D.conab?.crops?.[crop];
     if(!c || c.yoy_change_pct==null) return null;
-    // big YoY drop in production = supply tight = bullish
-    const bias = Math.max(-1, Math.min(1, -c.yoy_change_pct/15)) * direction;
+    const bias = Math.max(-1, Math.min(1, c.yoy_change_pct/15)) * direction;
     return {bias, weight, label:`Conab ${crop} YoY`,
             value: pct(c.yoy_change_pct),
             why: c.yoy_change_pct<-3?'crop loss → tighter supply':c.yoy_change_pct>3?'larger crop → supply pressure':'flat YoY'};
