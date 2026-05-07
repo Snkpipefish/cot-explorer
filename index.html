@@ -422,6 +422,16 @@ body{
 .hm-cell .quality{
   position:absolute;top:5px;right:6px;width:6px;height:6px;border-radius:50%;
 }
+.hm-cell .hm-tag{
+  margin-top:4px;
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
+  line-height:1.2;color:var(--ink-bone-dim);
+  border-top:1px dotted var(--ink-rule-soft);padding-top:4px;
+}
+.hm-cell .hm-tag.pos {color:var(--sig-pos);}
+.hm-cell .hm-tag.neg {color:var(--sig-neg);}
+.hm-cell .hm-tag.warn{color:var(--sig-warn);}
+.hm-cell .hm-tag.info{color:var(--ink-bone-dim);}
 .hm-cell .quality.fresh{background:var(--sig-pos);}
 .hm-cell .quality.degraded{background:var(--sig-warn);}
 .hm-cell .quality.stale{background:var(--sig-neg);}
@@ -2581,19 +2591,62 @@ const CAT_LABEL = {valuta:'Foreign Exchange', renter:'Interest Rates', aksjer:'E
                    råvarer:'Commodities', landbruk:'Agriculture', krypto:'Crypto'};
 const HM_STATE = { cats: new Set(CAT_ORDER), extreme:false, sort:'pct' };
 
+/* Map a combined-row's COT market name to the curated cot_analytics asset key.
+   The COT report uses single-currency labels (Japanese Yen, Euro Fx, etc.)
+   while analytics tracks pairs (USDJPY, EURUSD). Norwegian display names
+   (Sølv, Gull, Bomull) also need an English bridge. */
+const POS_ALIAS = {
+  // FX (single-leg → pair)
+  'JAPANESEYEN':'USDJPY', 'EUROFX':'EURUSD', 'BRITISHPOUND':'GBPUSD',
+  'AUSTRALIANDOLLAR':'AUDUSD', 'CANADIANDOLLAR':'USDCAD',
+  'NZDOLLAR':'NZDUSD', 'NZDOLLARNZD':'NZDUSD', 'SWISSFRANC':'USDCHF',
+  'USDINDEX':'DXY', 'DOLLARINDEX':'DXY',
+  // Norwegian display names
+  'JAPANSKYEN':'USDJPY', 'EUROEURUSD':'EURUSD', 'BRITISKPUND':'GBPUSD',
+  'AUSTRALSKDOLLAR':'AUDUSD', 'KANADISKDOLLAR':'USDCAD',
+  'NEWZEALANDDOLLAR':'NZDUSD', 'SVEITSISKFRANC':'USDCHF',
+  'DOLLARINDEKSDXY':'DXY',
+  // Metals
+  'GULL':'Gold', 'SLV':'Silver', 'SLV2':'Silver',  // Sølv strips to SLV
+  'PLATINUM':'Platinum', 'PALLADIUM':'Palladium', 'COPPER':'Copper',
+  // Energy
+  'WTI':'WTI', 'BRENTLASTDAY':'Brent', 'CRUDEOILLIGHTSWEET':'WTI',
+  'GASOLINERBOB':'WTI',  // proxy
+  // Equities
+  'SP500':'SPX', 'SP500CONSOLIDATED':'SPX',
+  'NASDAQ':'NAS100', 'NASDAQMINI':'NAS100',
+  'RUSSELL2000':'NAS100',  // proxy fallback
+  // Agri (Norwegian → English)
+  'MAIS':'Corn', 'CORN':'Corn',
+  'HVETE':'Wheat', 'WHEAT':'Wheat',
+  'SOYABNNER':'Soybean', 'SOYBEANS':'Soybean',
+  'BOMULL':'Cotton', 'COTTONNO2':'Cotton',
+  'SUKKER':'Sugar', 'SUGARNO11':'Sugar',
+  'KAFFE':'Coffee', 'KAFFEARABICA':'Coffee', 'COFFEEC':'Coffee',
+  'KAKAO':'Cocoa', 'COCOA':'Cocoa',
+};
+
+function _lookupAnalytics(r, aMap){
+  // 1) Try the explicit alias map (Norwegian + market-name fallbacks)
+  const k1 = (r.navn_no||'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
+  const k2 = (r.market||'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
+  const aliasMatch = POS_ALIAS[k1] || POS_ALIAS[k2];
+  if(aliasMatch && aMap[aliasMatch.toUpperCase()]) return aMap[aliasMatch.toUpperCase()];
+  // 2) Direct uppercase match on either name
+  return aMap[k1] || aMap[k2] || null;
+}
+
 function renderPositions(){
   const rows = (D.combined||[]).filter(r=>r.kategori && r.kategori!=='annet');
   const ana = D.cotAna?.assets || {};
-  // attach percentile from analytics if available
   const aMap = {};
   Object.entries(ana).forEach(([k,v])=>{ aMap[k.toUpperCase()] = v; });
   const enriched = rows.map(r=>{
-    const aliasKey = (r.navn_no||r.market||'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
-    const a = aMap[aliasKey] || aMap[(r.market||'').replace(/\s/g,'').toUpperCase()];
+    const a = _lookupAnalytics(r, aMap) || {};
     return {
       ...r,
-      pct52 : a?.mm_net_pctile_52w ?? null,
-      qual  : a?.data_quality || 'fresh',
+      pct52 : a.mm_net_pctile_52w ?? null,
+      qual  : a.data_quality || 'fresh',
     };
   });
   D.posRows = enriched;
@@ -2606,6 +2659,49 @@ function renderPositions(){
   $('#hmExtreme').onchange = (e)=>{ HM_STATE.extreme = e.target.checked; drawHeatmap(); };
   $('#hmSort').onchange = (e)=>{ HM_STATE.sort = e.target.value; drawHeatmap(); };
   drawHeatmap();
+}
+
+/* Interpret a market's positioning into a plain-English label.
+   Combines 52-week percentile (where positioning sits relative to its
+   own history) with the weekly spec_net change (whether traders are
+   adding to or unwinding the position). Returns {label, cls} where cls
+   is one of: pos / neg / warn / info. */
+function _interpretPosition(pct, weekChg){
+  if(pct == null) return {label:'', cls:''};
+  const adding = (weekChg||0) > 0;
+  const cutting = (weekChg||0) < 0;
+  if(pct >= 90){
+    return adding
+      ? {label:'Stretched long · reversal risk', cls:'warn'}
+      : cutting
+      ? {label:'Crowded long · unwinding',       cls:'warn'}
+      : {label:'Crowded long',                   cls:'warn'};
+  }
+  if(pct <= 10){
+    return cutting
+      ? {label:'Stretched short · squeeze risk', cls:'warn'}
+      : adding
+      ? {label:'Short cover starting',           cls:'pos'}
+      : {label:'Crowded short',                  cls:'warn'};
+  }
+  if(pct >= 70){
+    return adding
+      ? {label:'Bull trend confirming',  cls:'pos'}
+      : cutting
+      ? {label:'Bull losing momentum',   cls:'info'}
+      : {label:'Upper-range',            cls:'info'};
+  }
+  if(pct <= 30){
+    return cutting
+      ? {label:'Bear trend confirming',  cls:'neg'}
+      : adding
+      ? {label:'Bear losing momentum',   cls:'info'}
+      : {label:'Lower-range',            cls:'info'};
+  }
+  // 30–70: mid-range
+  if(adding)  return {label:'Building bull',  cls:'pos'};
+  if(cutting) return {label:'Building bear',  cls:'neg'};
+  return {label:'Neutral mid-range', cls:'info'};
 }
 
 function drawHeatmap(){
@@ -2627,6 +2723,7 @@ function drawHeatmap(){
       const fillW = p!=null?Math.max(2,Math.min(100,p)):0;
       const pCls = p==null?'p-mid' : p<10?'p-0' : p<30?'p-1' : p<70?'p-2' : p<90?'p-3' : 'p-4';
       const chgCls = r.change_spec_net>0?'up':r.change_spec_net<0?'dn':'';
+      const interp = _interpretPosition(p, r.change_spec_net);
       return `<div class="hm-cell ${pCls}" style="--cell-fill:${fillW}%;" data-symbol="${escapeHTML(r.symbol)}" data-report="${escapeHTML(r.report)}">
         <div class="quality ${r.qual||'fresh'}" title="data quality: ${r.qual}"></div>
         <div class="nm">${escapeHTML(r.navn_no||r.market)}</div>
@@ -2634,6 +2731,7 @@ function drawHeatmap(){
           <span class="pct">${p!=null?p.toFixed(0)+' pct':'—'}</span>
           <span class="chg ${chgCls}">${arrow(r.change_spec_net)} ${fmt(r.change_spec_net)}</span>
         </div>
+        ${interp.label?`<div class="hm-tag ${interp.cls}">${escapeHTML(interp.label)}</div>`:''}
       </div>`;
     }).join('');
     return `<div class="hm-section">
@@ -2654,17 +2752,24 @@ async function openMarket(symbol, report){
          || (D.combined||[]).find(x=>x.symbol===symbol && x.report===report);
   if(!r){ return; }
   const ana = D.cotAna?.assets || {};
-  const aliasKey = (r.navn_no||r.market||'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
-  const a = ana[aliasKey] || {};
+  const aMap = {};
+  Object.entries(ana).forEach(([k,v])=>{ aMap[k.toUpperCase()] = v; });
+  const a = _lookupAnalytics(r, aMap) || {};
   // fetch timeseries
   const ts = await safeFetch(`data/timeseries/${symbol}_${report}.json`);
   const card = $('#modalCard');
   const sp = r.spekulanter||{}, pr = r.produsenter||{}, sm = r.smahandlere||{};
   const tsHTML = ts ? renderSparkline(ts.data||[],'spec_net') : '<div class="skel">No long-history series.</div>';
+  // Plain-English headline for current positioning state
+  const interp = _interpretPosition(a.mm_net_pctile_52w ?? r.pct52, r.change_spec_net);
+  const interpBadge = interp.label
+    ? `<span class="hm-tag ${interp.cls}" style="margin-left:auto;padding:4px 10px;border:1px solid currentColor;font-size:13px;">${escapeHTML(interp.label)}</span>`
+    : '';
   card.innerHTML = `
     <div class="modal-hd">
       <div class="nm">${escapeHTML(r.navn_no||r.market)}</div>
       <div class="sym">${escapeHTML(symbol)} · ${escapeHTML(report)}</div>
+      ${interpBadge}
       <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
