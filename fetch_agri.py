@@ -20,6 +20,8 @@ REGIONS_FILE      = os.path.join(BASE, "geointel", "agri_regions.json")
 COMBINED_FILE     = os.path.join(BASE, "combined", "latest.json")
 EURONEXT_COT_FILE = os.path.join(BASE, "euronext_cot", "latest.json")
 MACRO_PRICES_FILE = os.path.join(BASE, "macro", "latest.json")
+BEDROCK_UNICA_FILE = os.path.join(BASE, "bedrock", "unica.json")
+BEDROCK_CONAB_FILE = os.path.join(BASE, "bedrock", "conab.json")
 
 # Mapping fra crop_key → nøkkel i macro/latest.json prices
 CROP_PRICE_MAP = {
@@ -1043,7 +1045,7 @@ PERENNIAL_CROPS = {"cocoa", "coffee", "palm"}
 
 def combine_outlook(weather_score, cot_score, crop_key, lat,
                     yield_score=None, enso_adj=0,
-                    price_chg_20d=None):
+                    price_chg_20d=None, fund_adj=0):
     """
     Kombinerer vær, COT, yield, ENSO og prisbevegelse til endelig
     prisretning.
@@ -1063,7 +1065,11 @@ def combine_outlook(weather_score, cot_score, crop_key, lat,
     cot_contrib = max(-1.5, min(1.5, cot_score))
     enso_contrib = max(-1.0, min(1.0, enso_adj))
 
-    total = wx_contrib + cot_contrib + enso_contrib
+    # Fundamentale (UNICA mix, CONAB YoY) — direkte tilbud-side, capper på
+    # ±1.0 så ikke en enkelt rapport dominerer.
+    fund_contrib = max(-1.0, min(1.0, fund_adj or 0))
+
+    total = wx_contrib + cot_contrib + enso_contrib + fund_contrib
 
     # Perennials (kakao, kaffe, palmeolje) får SVAK yield-vekt fordi
     # weather-modellen er blind for flerårig akkumulert supply-skade
@@ -1334,6 +1340,94 @@ def _get_crop_price(crop_key):
         "source": p.get("source", "yahoo"),
     }
 
+# ── Bedrock fundamentale data (UNICA + CONAB) ───────────────────
+# Bedrock kjører UNICA + CONAB fetchers og lagrer normaliserte
+# rapporter. Cot-explorer bruker dem som ekstra outlook-drivere så
+# modellen ser noe annet enn vær + COT — fundamentale skift er ofte
+# det som faktisk presser prisen mer enn én ukes vær eller en
+# spec-bevegelse.
+def _load_bedrock_unica():
+    try:
+        with open(BEDROCK_UNICA_FILE) as f:
+            d = json.load(f)
+        return d.get("data") or {}
+    except Exception:
+        return {}
+
+def _load_bedrock_conab():
+    try:
+        with open(BEDROCK_CONAB_FILE) as f:
+            d = json.load(f)
+        return d.get("data") or {}
+    except Exception:
+        return {}
+
+bedrock_unica = _load_bedrock_unica()
+bedrock_conab = _load_bedrock_conab()
+
+# Mapping crop_key → CONAB-nøkkel (Brazilian crop name)
+CONAB_CROP_MAP = {
+    "soybeans": "soja",
+    "corn":     "milho",
+    "cotton":   "algodao",
+    "coffee":   "cafe_total",
+}
+
+
+def fund_signals_for_crop(crop_key):
+    """Returnerer (fund_adj, drivers_text) basert på CONAB/UNICA fundamentaldata.
+    fund_adj brukes som tilleggssignal i combine_outlook (positivt = bullish
+    pris). drivers_text er 0-2 setninger til drivere-listen.
+    """
+    adj = 0.0
+    txts = []
+
+    # UNICA mix-shift for sukker — tilbud-side. Hvis millene shifter MOT
+    # sukker, kommer mer sukker på markedet (bearish). Skift mot etanol
+    # (bullish sukker) = adj negativ. Vi snur fortegnet siden vi
+    # pris-bullish = positiv adj.
+    if crop_key == "sugar" and bedrock_unica:
+        cur = bedrock_unica.get("mix_sugar_pct")
+        prev = bedrock_unica.get("mix_sugar_pct_prev")
+        if cur is not None and prev is not None:
+            shift = cur - prev
+            if shift >= 2:
+                adj -= 0.4   # mer sukker → bearish pris
+                txts.append(f"UNICA: mix shifter mot sukker ({prev:.1f}% → {cur:.1f}%) — mer tilbud")
+            elif shift <= -2:
+                adj += 0.4   # mer etanol → bullish sukker
+                txts.append(f"UNICA: mix shifter mot etanol ({prev:.1f}% → {cur:.1f}%) — mindre sukker-tilbud")
+        crush_yoy = bedrock_unica.get("crush_yoy_pct")
+        if crush_yoy is not None:
+            if crush_yoy <= -3:
+                adj += 0.3
+                txts.append(f"UNICA: cane-crush {crush_yoy:+.1f}% YoY — knappere safra")
+            elif crush_yoy >= 3:
+                adj -= 0.3
+                txts.append(f"UNICA: cane-crush {crush_yoy:+.1f}% YoY — rikelig safra")
+
+    # CONAB YoY for Brasil-tunge avlinger — direkte tilbud-signal.
+    conab_key = CONAB_CROP_MAP.get(crop_key)
+    if conab_key and bedrock_conab.get(conab_key):
+        c = bedrock_conab[conab_key]
+        yoy = c.get("yoy_change_pct")
+        if yoy is not None:
+            # Stor avlings-vekst = bearish; svikt = bullish
+            if yoy <= -10:    adj += 0.7
+            elif yoy <= -5:   adj += 0.4
+            elif yoy <= -2:   adj += 0.2
+            elif yoy >= 15:   adj -= 0.7
+            elif yoy >= 8:    adj -= 0.4
+            elif yoy >= 3:    adj -= 0.2
+            label = {"soja":"soja","milho":"mais","algodao":"bomull",
+                     "cafe_total":"kaffe","cafe_arabica":"kaffe arabica"}.get(conab_key, conab_key)
+            arrow = "vekst" if yoy >= 0 else "svikt"
+            sign = "↑" if yoy >= 0 else "↓"
+            txts.append(f"CONAB Brasil {label}: {yoy:+.1f}% YoY ({sign} {arrow})")
+
+    return adj, txts
+
+
 # ── Per-avling sammendrag ─────────────────────────────────────────
 crop_summary = []
 
@@ -1389,9 +1483,14 @@ for crop_key, meta in CROP_META.items():
     crop_price_now = _get_crop_price(crop_key)
     price_chg_20d = (crop_price_now or {}).get("chg20d")
 
+    # Fundamentale fra bedrock — UNICA-mix og CONAB-YoY. Tilbud-side
+    # justering som vær-modellen ikke ser direkte.
+    fund_adj, fund_drivers = fund_signals_for_crop(crop_key)
+
     outlook = combine_outlook(avg_wx_score, cot_score, crop_key, 45,
                               yield_score=avg_yield, enso_adj=avg_enso_adj,
-                              price_chg_20d=price_chg_20d)
+                              price_chg_20d=price_chg_20d,
+                              fund_adj=fund_adj)
 
     # Yield-rating utledes direkte fra avg_yield (tallet vist i UI), så
     # etiketten og tallet alltid matcher samme bånd. Tidligere ble rating
@@ -1417,6 +1516,9 @@ for crop_key, meta in CROP_META.items():
         drivers.append(f"Yield {yield_rating.lower()} — risiko for lav produksjon")
     elif yield_rating and "Utmerket" in yield_rating:
         drivers.append(f"Yield {yield_rating.lower()} — god produksjon holder prisene nede")
+    # Fundamentale (UNICA / CONAB) — direkte tilbud-side
+    for fd in fund_drivers:
+        drivers.append(fd)
     # ENSO-driver (nåværende fase)
     enso_impacts_crop = [r.get("enso_impact") for r in region_list if r.get("enso_impact")]
     if enso_impacts_crop:
