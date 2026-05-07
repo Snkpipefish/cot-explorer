@@ -103,7 +103,8 @@ def build_context_for_asset(asset: str,
     # cachen. Hver er None-safe -> compute_positioning_v2 faller tilbake til
     # legacy-beregninger hvis verdien mangler.
     for k in ("mm_net_pctile_52w", "mm_comm_divergence_z",
-              "oi_regime_label", "index_investor_bias"):
+              "oi_regime_label", "index_investor_bias",
+              "mm_net_pct"):
         if macro_context.get(k) is not None:
             ctx[k] = macro_context[k]
 

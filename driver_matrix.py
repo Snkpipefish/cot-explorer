@@ -169,6 +169,11 @@ def compute_positioning_v2(cot_bias_aligns: bool,
                            # Runde 4: olje supply-disruption som POSITIONING-bias
                            # (erstatter hard dir_color-flip i fetch_all/rescore)
                            oil_supply_disruption: bool           = False,
+                           # net_pct = mm_net / open_interest * 100. Brukes til
+                           # å skille "ekte crowded" fra "covering / shaken-out"
+                           # når pctile er ekstrem men absolutt-positionen er
+                           # mild (samme bug-mønster som SYNTH f_cot 36f1879c).
+                           mm_net_pct:           Optional[float] = None,
                            ) -> GroupScore:
     """POSITIONING-familie med 3 legacy + opptil 4 disaggregated sub-signaler.
 
@@ -206,15 +211,37 @@ def compute_positioning_v2(cot_bias_aligns: bool,
     # ─── Styrke: MM-percentile hvis tilgjengelig, ellers legacy cot_pct ─────
     if mm_net_pctile_52w is not None:
         p = mm_net_pctile_52w
-        # Contrarian-lesning: ekstrem MM-long = topp-signal (bearish), vice versa
+        # Contrarian-lesning krever at pctile + net_pct sign stemmer overens.
+        # Ellers er det "shaken-out longs" eller "covering shorts" — milder
+        # signal som ikke skal få full +1.0 contra-boost.
+        # Eksempel-bug før fix: Silver pctile=8 men mm_net=+10% → systemet ga
+        # +1.0 contra-bull, men reality var "longs ristet ut fra høyere base".
+        truly_crowded_long  = mm_net_pct is None or mm_net_pct >  3
+        truly_crowded_short = mm_net_pct is None or mm_net_pct < -3
         if is_bull and p <= 10:
-            subs.append((1.0, f"MM percentile {p:.0f} (bunn — contra-bull)"))
+            if truly_crowded_short:
+                subs.append((1.0, f"MM percentile {p:.0f} + net short — crowded short, contra-bull"))
+            elif mm_net_pct is not None and mm_net_pct >= 5:
+                subs.append((0.5, f"MM percentile {p:.0f} + still net long ({mm_net_pct:+.0f}%) — shaken-out longs"))
+            else:
+                subs.append((0.3, f"MM percentile {p:.0f} + flat positioning — mild"))
         elif is_bull and p <= 20:
-            subs.append((0.5, f"MM percentile {p:.0f} (lav)"))
+            if truly_crowded_short:
+                subs.append((0.5, f"MM percentile {p:.0f} (lav)"))
+            else:
+                subs.append((0.2, f"MM percentile {p:.0f} (lav)"))
         elif is_bear and p >= 90:
-            subs.append((1.0, f"MM percentile {p:.0f} (topp — contra-bear)"))
+            if truly_crowded_long:
+                subs.append((1.0, f"MM percentile {p:.0f} + net long — crowded long, contra-bear"))
+            elif mm_net_pct is not None and mm_net_pct <= -5:
+                subs.append((0.5, f"MM percentile {p:.0f} + still net short ({mm_net_pct:+.0f}%) — covering shorts"))
+            else:
+                subs.append((0.3, f"MM percentile {p:.0f} + flat positioning — mild"))
         elif is_bear and p >= 80:
-            subs.append((0.5, f"MM percentile {p:.0f} (høy)"))
+            if truly_crowded_long:
+                subs.append((0.5, f"MM percentile {p:.0f} (høy)"))
+            else:
+                subs.append((0.2, f"MM percentile {p:.0f} (høy)"))
         else:
             subs.append((0.0, None))
     else:
@@ -920,6 +947,7 @@ def score_asset(
         oi_regime_label=context.get("oi_regime_label"),
         index_investor_bias=context.get("index_investor_bias"),
         oil_supply_disruption=context.get("oil_supply_disruption", False),
+        mm_net_pct=context.get("mm_net_pct"),
     )
 
     # Familie 3 — MACRO

@@ -1644,6 +1644,12 @@ for inst in INSTRUMENTS:
         _macro_ctx["mm_net_pctile_52w"]    = _asset_analytics.get("mm_net_pctile_52w")
         _macro_ctx["mm_comm_divergence_z"] = _asset_analytics.get("mm_comm_divergence_z")
         _macro_ctx["index_investor_bias"]  = _asset_analytics.get("index_investor_bias")
+        # Net positioning som % av OI — disambiguerer pctile-kontrarian-lesning
+        # for en-sidige markeder (palladium always-short, gold normally heavy-long).
+        _mm_net = _asset_analytics.get("mm_net")
+        _oi_now = _asset_analytics.get("oi_now")
+        if _mm_net is not None and _oi_now:
+            _macro_ctx["mm_net_pct"] = (_mm_net / _oi_now) * 100
         # OI-regime krever direction (per-asset) — beregnes her, ikke i cachen
         _oi_avg_4w = _asset_analytics.get("oi_change_4w_avg", 0)
         _oi_cur    = _asset_analytics.get("change_oi_current", 0)

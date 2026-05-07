@@ -247,6 +247,11 @@ def rescore():
             _macro_ctx["mm_net_pctile_52w"]    = a.get("mm_net_pctile_52w")
             _macro_ctx["mm_comm_divergence_z"] = a.get("mm_comm_divergence_z")
             _macro_ctx["index_investor_bias"]  = a.get("index_investor_bias")
+            # Net positioning som % av OI — disambiguerer pctile for én-sidige markeder
+            mm_net = a.get("mm_net")
+            oi_now = a.get("oi_now")
+            if mm_net is not None and oi_now:
+                _macro_ctx["mm_net_pct"] = (mm_net / oi_now) * 100
             oi_avg_4w = a.get("oi_change_4w_avg", 0)
             oi_cur    = a.get("change_oi_current", 0)
             if oi_avg_4w or oi_cur:
@@ -332,6 +337,28 @@ def rescore():
         }
         lv["active_driver_groups"]  = result.active_driver_groups
         lv["group_drivers"]         = result.flat_drivers(limit=8)
+        # Rebuild score_details (Norwegian display labels per family) — used by
+        # the dashboard for the per-signal score breakdown. Without this,
+        # rescore was updating driver_groups but leaving stale score_details
+        # from the original fetch_all run, so the dashboard kept showing
+        # old driver text even after positioning_v2 logic was fixed.
+        _GROUP_LABELS_NO = {
+            "trend":       "Trendbildet (SMA/momentum/align)",
+            "positioning": "COT-posisjonering",
+            "macro":       "Makrobilde (DXY/VIX/renter)",
+            "fundamental": "Fundamentalt (asset-spesifikt)",
+            "risk":        "Event-risiko (kalender/geo)",
+            "structure":   "Teknisk struktur (HTF/SMC)",
+        }
+        lv["score_details"] = [
+            {"kryss": _GROUP_LABELS_NO.get(group_key, group_key),
+             "id":    f"group_{group_key}",
+             "verdi": grp.score >= 0.3,
+             "vekt":  round(grp.weight, 2),
+             "poeng": round(grp.score * grp.weight, 2),
+             "drivers": grp.drivers}
+            for group_key, grp in result.driver_groups.items()
+        ]
         lv["data_quality"]          = result.data_quality
         lv["quality_notes"]         = result.quality_notes
         # dir_override_reason settes/clears tidligere i loopen via in-place
