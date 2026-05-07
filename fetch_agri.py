@@ -791,9 +791,18 @@ def score_weather(w, crop_key, lat):
 
 _zscore_cache = {}  # crop_key → {"mean": float, "std": float}
 
+# 5 år (260 uker). Tidligere 52 uker, men det ga ekstreme z-scores
+# (Hvete z=6, Bomull z=7.9) når en avling hadde drevet jevnt i én retning
+# i ett år — gjeldende verdi så ut som "uten sidestykke" mot et altfor
+# kort vindu. 5 år gir et mer stabilt baseline som dekker bull/bear-sykler
+# og strukturelle skift.
+COT_ZSCORE_WINDOW_WEEKS = 260
+
+
 def load_cot_zscore_stats():
-    """Beregner 52-ukers mean og std for net_pct per crop fra timeseries-data.
-    Returnerer dict crop_key → {"mean", "std", "weeks"}."""
+    """Beregner mean og std for net_pct per crop fra timeseries-data
+    over et lengre vindu (5 år) for å unngå at lange trender ser
+    ekstreme ut. Returnerer dict crop_key → {"mean", "std", "weeks"}."""
     global _zscore_cache
     if _zscore_cache:
         return _zscore_cache
@@ -806,17 +815,16 @@ def load_cot_zscore_stats():
             with open(ts_file) as f:
                 ts_data = json.load(f)
             pts = ts_data.get("data", [])
-            # Bruk siste 52 uker (1 år)
-            recent = pts[-52:] if len(pts) >= 52 else pts
-            if len(recent) < 26:
-                continue  # For lite data for meningsfull z-score
+            recent = pts[-COT_ZSCORE_WINDOW_WEEKS:] if len(pts) >= COT_ZSCORE_WINDOW_WEEKS else pts
+            if len(recent) < 52:
+                continue   # mindre enn ett år → ikke meningsfull z-score
             net_pcts = []
             for p in recent:
                 oi = p.get("oi", 0)
                 sn = p.get("spec_net", 0)
                 if oi > 0:
                     net_pcts.append(sn / oi * 100)
-            if len(net_pcts) < 20:
+            if len(net_pcts) < 50:
                 continue
             mean = sum(net_pcts) / len(net_pcts)
             std = (sum((x - mean)**2 for x in net_pcts) / len(net_pcts)) ** 0.5
@@ -828,7 +836,7 @@ def load_cot_zscore_stats():
 
 
 def cot_net_pct_to_zscore(crop_key, net_pct):
-    """Konverterer net_pct til z-score basert på 52-ukers historikk.
+    """Konverterer net_pct til z-score basert på 5-års historikk.
     Returnerer (z_score, cot_score) der cot_score er -2 til +2."""
     stats = load_cot_zscore_stats()
     s = stats.get(crop_key)
