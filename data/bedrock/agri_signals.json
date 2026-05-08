@@ -1,7 +1,7 @@
 {
-  "generated": "2026-05-07T22:00:28+00:00",
+  "generated": "2026-05-08T04:00:28+00:00",
   "source": "Bedrock \u00b7 agri_signals.json (mirrored)",
-  "rows": 20,
+  "rows": 28,
   "raw": [
     {
       "instrument": "Cocoa",
@@ -14,25 +14,26 @@
       "published": false,
       "setup": {
         "setup_id": "aeb8b647dc5d",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Cocoa",
           "direction": "buy",
           "horizon": "swing",
-          "entry": 4387.0,
-          "sl": 4341.207142857143,
-          "tp": 4839.0,
-          "rr": 9.870535017937858,
-          "atr": 152.64285714285714,
-          "entry_cluster_price": 4387.0,
+          "entry": 4206.0,
+          "sl": 4161.9857142857145,
+          "tp": 4587.0,
+          "rr": 8.656280428432368,
+          "atr": 146.71428571428572,
+          "entry_cluster_price": 4206.0,
           "entry_cluster_types": [
             "prior_low",
             "prior_high"
           ],
-          "tp_cluster_price": 4839.0,
+          "tp_cluster_price": 4587.0,
           "tp_cluster_types": [
-            "prior_low"
+            "prior_low",
+            "prior_high"
           ]
         }
       },
@@ -216,25 +217,26 @@
       "published": false,
       "setup": {
         "setup_id": "918bc859fa35",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Cocoa",
           "direction": "sell",
           "horizon": "swing",
-          "entry": 4587.0,
-          "sl": 4632.792857142857,
-          "tp": 4206.0,
-          "rr": 8.320074871314876,
-          "atr": 152.64285714285714,
-          "entry_cluster_price": 4587.0,
+          "entry": 4387.0,
+          "sl": 4431.0142857142855,
+          "tp": 3931.0,
+          "rr": 10.3602726387537,
+          "atr": 146.71428571428572,
+          "entry_cluster_price": 4387.0,
           "entry_cluster_types": [
             "prior_low",
             "prior_high"
           ],
-          "tp_cluster_price": 4206.0,
+          "tp_cluster_price": 3931.0,
           "tp_cluster_types": [
             "prior_low",
+            "swing_low",
             "prior_high"
           ]
         }
@@ -419,18 +421,18 @@
       "published": true,
       "setup": {
         "setup_id": "cb58f433e5db",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Cocoa",
           "direction": "buy",
           "horizon": "makro",
-          "entry": 4387.0,
-          "sl": 4158.035714285715,
+          "entry": 4206.0,
+          "sl": 3985.9285714285716,
           "tp": null,
           "rr": null,
-          "atr": 152.64285714285714,
-          "entry_cluster_price": 4387.0,
+          "atr": 146.71428571428572,
+          "entry_cluster_price": 4206.0,
           "entry_cluster_types": [
             "prior_low",
             "prior_high"
@@ -639,18 +641,18 @@
       "published": false,
       "setup": {
         "setup_id": "625a908665a4",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Cocoa",
           "direction": "sell",
           "horizon": "makro",
-          "entry": 4587.0,
-          "sl": 4815.964285714285,
+          "entry": 4387.0,
+          "sl": 4607.071428571428,
           "tp": null,
           "rr": null,
-          "atr": 152.64285714285714,
-          "entry_cluster_price": 4587.0,
+          "atr": 146.71428571428572,
+          "entry_cluster_price": 4387.0,
           "entry_cluster_types": [
             "prior_low",
             "prior_high"
@@ -849,6 +851,871 @@
       "asset_class": "softs"
     },
     {
+      "instrument": "Coffee",
+      "direction": "buy",
+      "horizon": "swing",
+      "score": 3.869194102564103,
+      "grade": "C",
+      "max_score": 9.0,
+      "min_score_publish": 6.0,
+      "published": false,
+      "setup": null,
+      "skip_reason": "build_setup returned None (no asymmetric setup found)",
+      "gates_triggered": [],
+      "families": {
+        "outlook": {
+          "name": "outlook",
+          "score": 0.0,
+          "drivers": []
+        },
+        "yield": {
+          "name": "yield",
+          "score": 0.21321,
+          "drivers": [
+            {
+              "name": "weather_stress",
+              "value": 0.0903,
+              "weight": 0.7,
+              "contribution": 0.06321,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "disease_pressure",
+              "value": 0.5,
+              "weight": 0.3,
+              "contribution": 0.15,
+              "horizons": null
+            }
+          ]
+        },
+        "positioning": {
+          "name": "positioning",
+          "score": 0.7262820512820514,
+          "drivers": [
+            {
+              "name": "positioning_mm_pct",
+              "value": 0.5,
+              "weight": 0.4,
+              "contribution": 0.2,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_oi_change",
+              "value": 1.0,
+              "weight": 0.35,
+              "contribution": 0.35,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_swap_dealer_skew",
+              "value": 0.7051282051282052,
+              "weight": 0.25,
+              "contribution": 0.1762820512820513,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "enso": {
+          "name": "enso",
+          "score": 0.0,
+          "drivers": []
+        },
+        "conab": {
+          "name": "conab",
+          "score": 0.0,
+          "drivers": []
+        },
+        "cross": {
+          "name": "cross",
+          "score": 0.5885,
+          "drivers": [
+            {
+              "name": "brl_chg5d",
+              "value": 0.5,
+              "weight": 0.65,
+              "contribution": 0.325,
+              "horizons": null
+            },
+            {
+              "name": "event_distance",
+              "value": 1.0,
+              "weight": 0.1,
+              "contribution": 0.1,
+              "horizons": [
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_ice_mm_pct",
+              "value": 0.654,
+              "weight": 0.25,
+              "contribution": 0.1635,
+              "horizons": null
+            }
+          ]
+        },
+        "analog": {
+          "name": "analog",
+          "score": 0.30000000000000004,
+          "drivers": [
+            {
+              "name": "analog_hit_rate",
+              "value": 0.2,
+              "weight": 0.5,
+              "contribution": 0.1,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "analog_avg_return",
+              "value": 0.4,
+              "weight": 0.5,
+              "contribution": 0.2,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        }
+      },
+      "active_families": 4,
+      "analog": {
+        "asset_class": "softs",
+        "horizon_days": 30,
+        "outcome_threshold_pct": 3.0,
+        "n_neighbors": 5,
+        "hit_rate_pct": 20.0,
+        "avg_return_pct": 0.5485505670894654,
+        "avg_drawdown_pct": -8.612465686773316,
+        "dims_used": [
+          "enso_regime",
+          "weather_stress"
+        ],
+        "neighbors": [
+          {
+            "ref_date": "2025-04-01",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -3.881243043239191,
+            "max_drawdown_pct": -12.170666256680251
+          },
+          {
+            "ref_date": "2025-04-02",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -1.002955853225873,
+            "max_drawdown_pct": -12.125496504153988
+          },
+          {
+            "ref_date": "2025-04-03",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -2.336145360155739,
+            "max_drawdown_pct": -11.30434465748702
+          },
+          {
+            "ref_date": "2025-04-04",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": 2.8575283950324604,
+            "max_drawdown_pct": -6.562756138606041
+          },
+          {
+            "ref_date": "2025-04-07",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": 7.105568697035669,
+            "max_drawdown_pct": -0.8990648769392817
+          }
+        ]
+      },
+      "asset_class": "softs"
+    },
+    {
+      "instrument": "Coffee",
+      "direction": "sell",
+      "horizon": "swing",
+      "score": 3.930805897435898,
+      "grade": "C",
+      "max_score": 9.0,
+      "min_score_publish": 6.0,
+      "published": false,
+      "setup": null,
+      "skip_reason": "build_setup returned None (no asymmetric setup found)",
+      "gates_triggered": [],
+      "families": {
+        "outlook": {
+          "name": "outlook",
+          "score": 0.0,
+          "drivers": []
+        },
+        "yield": {
+          "name": "yield",
+          "score": 0.78679,
+          "drivers": [
+            {
+              "name": "weather_stress",
+              "value": 0.9097,
+              "weight": 0.7,
+              "contribution": 0.63679,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "disease_pressure",
+              "value": 0.5,
+              "weight": 0.3,
+              "contribution": 0.15,
+              "horizons": null
+            }
+          ]
+        },
+        "positioning": {
+          "name": "positioning",
+          "score": 0.27371794871794874,
+          "drivers": [
+            {
+              "name": "positioning_mm_pct",
+              "value": 0.5,
+              "weight": 0.4,
+              "contribution": 0.2,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_oi_change",
+              "value": 0.0,
+              "weight": 0.35,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_swap_dealer_skew",
+              "value": 0.2948717948717948,
+              "weight": 0.25,
+              "contribution": 0.0737179487179487,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "enso": {
+          "name": "enso",
+          "score": 0.0,
+          "drivers": []
+        },
+        "conab": {
+          "name": "conab",
+          "score": 0.0,
+          "drivers": []
+        },
+        "cross": {
+          "name": "cross",
+          "score": 0.4115,
+          "drivers": [
+            {
+              "name": "brl_chg5d",
+              "value": 0.5,
+              "weight": 0.65,
+              "contribution": 0.325,
+              "horizons": null
+            },
+            {
+              "name": "event_distance",
+              "value": 0.0,
+              "weight": 0.1,
+              "contribution": 0.0,
+              "horizons": [
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_ice_mm_pct",
+              "value": 0.346,
+              "weight": 0.25,
+              "contribution": 0.0865,
+              "horizons": null
+            }
+          ]
+        },
+        "analog": {
+          "name": "analog",
+          "score": 0.1,
+          "drivers": [
+            {
+              "name": "analog_hit_rate",
+              "value": 0.2,
+              "weight": 0.5,
+              "contribution": 0.1,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "analog_avg_return",
+              "value": 0.0,
+              "weight": 0.5,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        }
+      },
+      "active_families": 4,
+      "analog": {
+        "asset_class": "softs",
+        "horizon_days": 30,
+        "outcome_threshold_pct": 3.0,
+        "n_neighbors": 5,
+        "hit_rate_pct": 20.0,
+        "avg_return_pct": 0.5485505670894654,
+        "avg_drawdown_pct": -8.612465686773316,
+        "dims_used": [
+          "enso_regime",
+          "weather_stress"
+        ],
+        "neighbors": [
+          {
+            "ref_date": "2025-04-01",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -3.881243043239191,
+            "max_drawdown_pct": -12.170666256680251
+          },
+          {
+            "ref_date": "2025-04-02",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -1.002955853225873,
+            "max_drawdown_pct": -12.125496504153988
+          },
+          {
+            "ref_date": "2025-04-03",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -2.336145360155739,
+            "max_drawdown_pct": -11.30434465748702
+          },
+          {
+            "ref_date": "2025-04-04",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": 2.8575283950324604,
+            "max_drawdown_pct": -6.562756138606041
+          },
+          {
+            "ref_date": "2025-04-07",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": 7.105568697035669,
+            "max_drawdown_pct": -0.8990648769392817
+          }
+        ]
+      },
+      "asset_class": "softs"
+    },
+    {
+      "instrument": "Coffee",
+      "direction": "buy",
+      "horizon": "makro",
+      "score": 6.787749658119658,
+      "grade": "B",
+      "max_score": 18.0,
+      "min_score_publish": 6.0,
+      "published": false,
+      "setup": null,
+      "skip_reason": "build_setup returned None (no asymmetric setup found)",
+      "gates_triggered": [],
+      "families": {
+        "outlook": {
+          "name": "outlook",
+          "score": 0.4,
+          "drivers": [
+            {
+              "name": "seasonal_stage",
+              "value": 0.4,
+              "weight": 1.0,
+              "contribution": 0.4,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "yield": {
+          "name": "yield",
+          "score": 0.21321,
+          "drivers": [
+            {
+              "name": "weather_stress",
+              "value": 0.0903,
+              "weight": 0.7,
+              "contribution": 0.06321,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "disease_pressure",
+              "value": 0.5,
+              "weight": 0.3,
+              "contribution": 0.15,
+              "horizons": null
+            }
+          ]
+        },
+        "positioning": {
+          "name": "positioning",
+          "score": 0.7262820512820514,
+          "drivers": [
+            {
+              "name": "positioning_mm_pct",
+              "value": 0.5,
+              "weight": 0.4,
+              "contribution": 0.2,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_oi_change",
+              "value": 1.0,
+              "weight": 0.35,
+              "contribution": 0.35,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_swap_dealer_skew",
+              "value": 0.7051282051282052,
+              "weight": 0.25,
+              "contribution": 0.1762820512820513,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "enso": {
+          "name": "enso",
+          "score": 0.4,
+          "drivers": [
+            {
+              "name": "noaa_oni_index",
+              "value": 0.5,
+              "weight": 0.6,
+              "contribution": 0.3,
+              "horizons": [
+                "MAKRO"
+              ]
+            },
+            {
+              "name": "noaa_enso_forecast_3mo",
+              "value": 0.25,
+              "weight": 0.4,
+              "contribution": 0.1,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "conab": {
+          "name": "conab",
+          "score": 0.105,
+          "drivers": [
+            {
+              "name": "conab_yoy",
+              "value": 0.15,
+              "weight": 0.7,
+              "contribution": 0.105,
+              "horizons": [
+                "MAKRO"
+              ]
+            },
+            {
+              "name": "cecafe_export_change",
+              "value": 0.0,
+              "weight": 0.3,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "cross": {
+          "name": "cross",
+          "score": 0.5427777777777778,
+          "drivers": [
+            {
+              "name": "brl_chg5d",
+              "value": 0.5,
+              "weight": 0.7222222222222223,
+              "contribution": 0.36111111111111116,
+              "horizons": null
+            },
+            {
+              "name": "cot_ice_mm_pct",
+              "value": 0.654,
+              "weight": 0.2777777777777778,
+              "contribution": 0.18166666666666667,
+              "horizons": null
+            }
+          ]
+        },
+        "analog": {
+          "name": "analog",
+          "score": 0.30000000000000004,
+          "drivers": [
+            {
+              "name": "analog_hit_rate",
+              "value": 0.2,
+              "weight": 0.5,
+              "contribution": 0.1,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "analog_avg_return",
+              "value": 0.4,
+              "weight": 0.5,
+              "contribution": 0.2,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        }
+      },
+      "active_families": 7,
+      "analog": {
+        "asset_class": "softs",
+        "horizon_days": 30,
+        "outcome_threshold_pct": 3.0,
+        "n_neighbors": 5,
+        "hit_rate_pct": 20.0,
+        "avg_return_pct": 0.5485505670894654,
+        "avg_drawdown_pct": -8.612465686773316,
+        "dims_used": [
+          "enso_regime",
+          "weather_stress"
+        ],
+        "neighbors": [
+          {
+            "ref_date": "2025-04-01",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -3.881243043239191,
+            "max_drawdown_pct": -12.170666256680251
+          },
+          {
+            "ref_date": "2025-04-02",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -1.002955853225873,
+            "max_drawdown_pct": -12.125496504153988
+          },
+          {
+            "ref_date": "2025-04-03",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -2.336145360155739,
+            "max_drawdown_pct": -11.30434465748702
+          },
+          {
+            "ref_date": "2025-04-04",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": 2.8575283950324604,
+            "max_drawdown_pct": -6.562756138606041
+          },
+          {
+            "ref_date": "2025-04-07",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": 7.105568697035669,
+            "max_drawdown_pct": -0.8990648769392817
+          }
+        ]
+      },
+      "asset_class": "softs"
+    },
+    {
+      "instrument": "Coffee",
+      "direction": "sell",
+      "horizon": "makro",
+      "score": 10.012250341880343,
+      "grade": "A",
+      "max_score": 18.0,
+      "min_score_publish": 6.0,
+      "published": true,
+      "setup": {
+        "setup_id": "7d3c943f8050",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
+        "setup": {
+          "instrument": "Coffee",
+          "direction": "sell",
+          "horizon": "makro",
+          "entry": 278.6499938964844,
+          "sl": 292.7178464617048,
+          "tp": null,
+          "rr": null,
+          "atr": 9.378568376813616,
+          "entry_cluster_price": 278.6499938964844,
+          "entry_cluster_types": [
+            "prior_low",
+            "swing_low",
+            "prior_high",
+            "swing_high"
+          ],
+          "tp_cluster_price": null,
+          "tp_cluster_types": null
+        }
+      },
+      "skip_reason": null,
+      "gates_triggered": [],
+      "families": {
+        "outlook": {
+          "name": "outlook",
+          "score": 0.6,
+          "drivers": [
+            {
+              "name": "seasonal_stage",
+              "value": 0.6,
+              "weight": 1.0,
+              "contribution": 0.6,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "yield": {
+          "name": "yield",
+          "score": 0.78679,
+          "drivers": [
+            {
+              "name": "weather_stress",
+              "value": 0.9097,
+              "weight": 0.7,
+              "contribution": 0.63679,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "disease_pressure",
+              "value": 0.5,
+              "weight": 0.3,
+              "contribution": 0.15,
+              "horizons": null
+            }
+          ]
+        },
+        "positioning": {
+          "name": "positioning",
+          "score": 0.27371794871794874,
+          "drivers": [
+            {
+              "name": "positioning_mm_pct",
+              "value": 0.5,
+              "weight": 0.4,
+              "contribution": 0.2,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_oi_change",
+              "value": 0.0,
+              "weight": 0.35,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_swap_dealer_skew",
+              "value": 0.2948717948717948,
+              "weight": 0.25,
+              "contribution": 0.0737179487179487,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "enso": {
+          "name": "enso",
+          "score": 0.6000000000000001,
+          "drivers": [
+            {
+              "name": "noaa_oni_index",
+              "value": 0.5,
+              "weight": 0.6,
+              "contribution": 0.3,
+              "horizons": [
+                "MAKRO"
+              ]
+            },
+            {
+              "name": "noaa_enso_forecast_3mo",
+              "value": 0.75,
+              "weight": 0.4,
+              "contribution": 0.30000000000000004,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "conab": {
+          "name": "conab",
+          "score": 0.895,
+          "drivers": [
+            {
+              "name": "conab_yoy",
+              "value": 0.85,
+              "weight": 0.7,
+              "contribution": 0.595,
+              "horizons": [
+                "MAKRO"
+              ]
+            },
+            {
+              "name": "cecafe_export_change",
+              "value": 1.0,
+              "weight": 0.3,
+              "contribution": 0.3,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "cross": {
+          "name": "cross",
+          "score": 0.45722222222222225,
+          "drivers": [
+            {
+              "name": "brl_chg5d",
+              "value": 0.5,
+              "weight": 0.7222222222222223,
+              "contribution": 0.36111111111111116,
+              "horizons": null
+            },
+            {
+              "name": "cot_ice_mm_pct",
+              "value": 0.346,
+              "weight": 0.2777777777777778,
+              "contribution": 0.0961111111111111,
+              "horizons": null
+            }
+          ]
+        },
+        "analog": {
+          "name": "analog",
+          "score": 0.1,
+          "drivers": [
+            {
+              "name": "analog_hit_rate",
+              "value": 0.2,
+              "weight": 0.5,
+              "contribution": 0.1,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "analog_avg_return",
+              "value": 0.0,
+              "weight": 0.5,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        }
+      },
+      "active_families": 7,
+      "analog": {
+        "asset_class": "softs",
+        "horizon_days": 30,
+        "outcome_threshold_pct": 3.0,
+        "n_neighbors": 5,
+        "hit_rate_pct": 20.0,
+        "avg_return_pct": 0.5485505670894654,
+        "avg_drawdown_pct": -8.612465686773316,
+        "dims_used": [
+          "enso_regime",
+          "weather_stress"
+        ],
+        "neighbors": [
+          {
+            "ref_date": "2025-04-01",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -3.881243043239191,
+            "max_drawdown_pct": -12.170666256680251
+          },
+          {
+            "ref_date": "2025-04-02",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -1.002955853225873,
+            "max_drawdown_pct": -12.125496504153988
+          },
+          {
+            "ref_date": "2025-04-03",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": -2.336145360155739,
+            "max_drawdown_pct": -11.30434465748702
+          },
+          {
+            "ref_date": "2025-04-04",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": 2.8575283950324604,
+            "max_drawdown_pct": -6.562756138606041
+          },
+          {
+            "ref_date": "2025-04-07",
+            "similarity": 0.8588059048991261,
+            "forward_return_pct": 7.105568697035669,
+            "max_drawdown_pct": -0.8990648769392817
+          }
+        ]
+      },
+      "asset_class": "softs"
+    },
+    {
       "instrument": "Corn",
       "direction": "buy",
       "horizon": "swing",
@@ -859,17 +1726,17 @@
       "published": false,
       "setup": {
         "setup_id": "539caf06b933",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Corn",
           "direction": "buy",
           "horizon": "swing",
           "entry": 452.25,
-          "sl": 449.925,
+          "sl": 449.9089285714286,
           "tp": 476.5,
-          "rr": 10.430107526881772,
-          "atr": 7.75,
+          "rr": 10.358504958047371,
+          "atr": 7.803571428571429,
           "entry_cluster_price": 452.25,
           "entry_cluster_types": [
             "prior_low",
@@ -1137,17 +2004,17 @@
       "published": false,
       "setup": {
         "setup_id": "43ea6126bbda",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Corn",
           "direction": "sell",
           "horizon": "swing",
           "entry": 473.75,
-          "sl": 476.075,
+          "sl": 476.0910714285714,
           "tp": 374.5,
-          "rr": 42.68817204301096,
-          "atr": 7.75,
+          "rr": 42.395118230358825,
+          "atr": 7.803571428571429,
           "entry_cluster_price": 473.75,
           "entry_cluster_types": [
             "prior_high",
@@ -1414,17 +2281,17 @@
       "published": true,
       "setup": {
         "setup_id": "4bd0d7305574",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Corn",
           "direction": "buy",
           "horizon": "makro",
           "entry": 452.25,
-          "sl": 440.625,
+          "sl": 440.54464285714283,
           "tp": null,
           "rr": null,
-          "atr": 7.75,
+          "atr": 7.803571428571429,
           "entry_cluster_price": 452.25,
           "entry_cluster_types": [
             "prior_low",
@@ -1710,17 +2577,17 @@
       "published": false,
       "setup": {
         "setup_id": "e91154dd0c19",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Corn",
           "direction": "sell",
           "horizon": "makro",
           "entry": 473.75,
-          "sl": 485.375,
+          "sl": 485.45535714285717,
           "tp": null,
           "rr": null,
-          "atr": 7.75,
+          "atr": 7.803571428571429,
           "entry_cluster_price": 473.75,
           "entry_cluster_types": [
             "prior_high",
@@ -2214,8 +3081,32 @@
       "max_score": 9.0,
       "min_score_publish": 6.0,
       "published": false,
-      "setup": null,
-      "skip_reason": "build_setup returned None (no asymmetric setup found)",
+      "setup": {
+        "setup_id": "d9802663e8b5",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
+        "setup": {
+          "instrument": "Cotton",
+          "direction": "sell",
+          "horizon": "swing",
+          "entry": 83.2300033569336,
+          "sl": 83.76786030360631,
+          "tp": 80.58000183105469,
+          "rr": 4.926963465420128,
+          "atr": 1.7928564889090401,
+          "entry_cluster_price": 83.2300033569336,
+          "entry_cluster_types": [
+            "prior_high",
+            "prior_low"
+          ],
+          "tp_cluster_price": 80.58000183105469,
+          "tp_cluster_types": [
+            "prior_high",
+            "prior_low"
+          ]
+        }
+      },
+      "skip_reason": null,
       "gates_triggered": [],
       "families": {
         "outlook": {
@@ -2428,18 +3319,18 @@
       "published": true,
       "setup": {
         "setup_id": "3cfa32473b01",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Cotton",
           "direction": "buy",
           "horizon": "makro",
-          "entry": 83.2300033569336,
-          "sl": 79.48000417436872,
+          "entry": 81.70999908447266,
+          "sl": 79.02071435110909,
           "tp": null,
           "rr": null,
-          "atr": 2.499999455043248,
-          "entry_cluster_price": 83.2300033569336,
+          "atr": 1.7928564889090401,
+          "entry_cluster_price": 81.70999908447266,
           "entry_cluster_types": [
             "prior_high",
             "prior_low"
@@ -2670,8 +3561,29 @@
       "max_score": 16.0,
       "min_score_publish": 6.0,
       "published": false,
-      "setup": null,
-      "skip_reason": "build_setup returned None (no asymmetric setup found)",
+      "setup": {
+        "setup_id": "d8fdd615cadf",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
+        "setup": {
+          "instrument": "Cotton",
+          "direction": "sell",
+          "horizon": "makro",
+          "entry": 83.2300033569336,
+          "sl": 85.91928809029716,
+          "tp": null,
+          "rr": null,
+          "atr": 1.7928564889090401,
+          "entry_cluster_price": 83.2300033569336,
+          "entry_cluster_types": [
+            "prior_high",
+            "prior_low"
+          ],
+          "tp_cluster_price": null,
+          "tp_cluster_types": null
+        }
+      },
+      "skip_reason": "opposite_direction_dominates",
       "gates_triggered": [],
       "families": {
         "outlook": {
@@ -2895,27 +3807,28 @@
       "published": false,
       "setup": {
         "setup_id": "719652a4fa27",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Soybean",
           "direction": "buy",
           "horizon": "swing",
-          "entry": 1183.75,
-          "sl": 1180.2035714285714,
-          "tp": 1211.0,
-          "rr": 7.683786505538757,
-          "atr": 11.821428571428571,
-          "entry_cluster_price": 1183.75,
+          "entry": 1080.0,
+          "sl": 1076.4589285714285,
+          "tp": 1223.25,
+          "rr": 40.45385779122445,
+          "atr": 11.803571428571429,
+          "entry_cluster_price": 1080.0,
           "entry_cluster_types": [
             "prior_high",
+            "prior_low",
             "swing_high",
-            "prior_low"
+            "swing_low"
           ],
-          "tp_cluster_price": 1211.0,
+          "tp_cluster_price": 1223.25,
           "tp_cluster_types": [
             "prior_high",
-            "prior_low"
+            "swing_high"
           ]
         }
       },
@@ -3165,28 +4078,28 @@
       "published": false,
       "setup": {
         "setup_id": "ffeb5957ba09",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Soybean",
           "direction": "sell",
           "horizon": "swing",
-          "entry": 1200.25,
-          "sl": 1203.7964285714286,
-          "tp": 1080.0,
-          "rr": 33.90735146022149,
-          "atr": 11.821428571428571,
-          "entry_cluster_price": 1200.25,
+          "entry": 1211.0,
+          "sl": 1214.5410714285715,
+          "tp": 984.0,
+          "rr": 64.104891578415,
+          "atr": 11.803571428571429,
+          "entry_cluster_price": 1211.0,
           "entry_cluster_types": [
-            "prior_low",
-            "prior_high"
+            "prior_high",
+            "prior_low"
           ],
-          "tp_cluster_price": 1080.0,
+          "tp_cluster_price": 984.0,
           "tp_cluster_types": [
             "prior_high",
             "prior_low",
-            "swing_high",
-            "swing_low"
+            "swing_low",
+            "swing_high"
           ]
         }
       },
@@ -3436,22 +4349,23 @@
       "published": false,
       "setup": {
         "setup_id": "dd456ae33312",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Soybean",
           "direction": "buy",
           "horizon": "makro",
-          "entry": 1183.75,
-          "sl": 1166.017857142857,
+          "entry": 1080.0,
+          "sl": 1062.294642857143,
           "tp": null,
           "rr": null,
-          "atr": 11.821428571428571,
-          "entry_cluster_price": 1183.75,
+          "atr": 11.803571428571429,
+          "entry_cluster_price": 1080.0,
           "entry_cluster_types": [
             "prior_high",
+            "prior_low",
             "swing_high",
-            "prior_low"
+            "swing_low"
           ],
           "tp_cluster_price": null,
           "tp_cluster_types": null
@@ -3724,21 +4638,21 @@
       "published": true,
       "setup": {
         "setup_id": "f96b6b2db67b",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Soybean",
           "direction": "sell",
           "horizon": "makro",
-          "entry": 1200.25,
-          "sl": 1217.982142857143,
+          "entry": 1211.0,
+          "sl": 1228.705357142857,
           "tp": null,
           "rr": null,
-          "atr": 11.821428571428571,
-          "entry_cluster_price": 1200.25,
+          "atr": 11.803571428571429,
+          "entry_cluster_price": 1211.0,
           "entry_cluster_types": [
-            "prior_low",
-            "prior_high"
+            "prior_high",
+            "prior_low"
           ],
           "tp_cluster_price": null,
           "tp_cluster_types": null
@@ -4001,6 +4915,1044 @@
       "asset_class": "grains"
     },
     {
+      "instrument": "Sugar",
+      "direction": "buy",
+      "horizon": "swing",
+      "score": 4.42845,
+      "grade": "C",
+      "max_score": 11.0,
+      "min_score_publish": 7.0,
+      "published": false,
+      "setup": {
+        "setup_id": "37a78e1e5b73",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
+        "setup": {
+          "instrument": "Sugar",
+          "direction": "buy",
+          "horizon": "swing",
+          "entry": 13.220000267028809,
+          "sl": 13.096143170765467,
+          "tp": 17.940000534057617,
+          "rr": 38.108436330472976,
+          "atr": 0.4128569875444685,
+          "entry_cluster_price": 13.220000267028809,
+          "entry_cluster_types": [
+            "prior_low",
+            "swing_low"
+          ],
+          "tp_cluster_price": 17.940000534057617,
+          "tp_cluster_types": [
+            "prior_low",
+            "prior_high"
+          ]
+        }
+      },
+      "skip_reason": null,
+      "gates_triggered": [],
+      "families": {
+        "outlook": {
+          "name": "outlook",
+          "score": 0.0,
+          "drivers": []
+        },
+        "yield": {
+          "name": "yield",
+          "score": 0.58535,
+          "drivers": [
+            {
+              "name": "weather_stress",
+              "value": 0.6707,
+              "weight": 0.5,
+              "contribution": 0.33535,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "wasde_s2u_change",
+              "value": 0.5,
+              "weight": 0.5,
+              "contribution": 0.25,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "positioning": {
+          "name": "positioning",
+          "score": 0.425,
+          "drivers": [
+            {
+              "name": "positioning_mm_pct",
+              "value": 0.0,
+              "weight": 0.4,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_oi_change",
+              "value": 0.5,
+              "weight": 0.35,
+              "contribution": 0.175,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_swap_dealer_skew",
+              "value": 1.0,
+              "weight": 0.25,
+              "contribution": 0.25,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "enso": {
+          "name": "enso",
+          "score": 0.0,
+          "drivers": []
+        },
+        "unica": {
+          "name": "unica",
+          "score": 0.39499999999999996,
+          "drivers": [
+            {
+              "name": "unica_change",
+              "value": 0.35,
+              "weight": 0.7,
+              "contribution": 0.24499999999999997,
+              "horizons": null
+            },
+            {
+              "name": "unica_change",
+              "value": 0.5,
+              "weight": 0.3,
+              "contribution": 0.15,
+              "horizons": null
+            }
+          ]
+        },
+        "cross": {
+          "name": "cross",
+          "score": 0.5162,
+          "drivers": [
+            {
+              "name": "brl_chg5d",
+              "value": 0.5,
+              "weight": 0.5,
+              "contribution": 0.25,
+              "horizons": null
+            },
+            {
+              "name": "event_distance",
+              "value": 1.0,
+              "weight": 0.1,
+              "contribution": 0.1,
+              "horizons": [
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_ice_mm_pct",
+              "value": 0.231,
+              "weight": 0.2,
+              "contribution": 0.046200000000000005,
+              "horizons": null
+            },
+            {
+              "name": "ethanol_parity_brl",
+              "value": 0.6,
+              "weight": 0.2,
+              "contribution": 0.12,
+              "horizons": [
+                "SWING",
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "analog": {
+          "name": "analog",
+          "score": 0.0,
+          "drivers": [
+            {
+              "name": "analog_hit_rate",
+              "value": 0.0,
+              "weight": 0.5,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "analog_avg_return",
+              "value": 0.0,
+              "weight": 0.5,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        }
+      },
+      "active_families": 4,
+      "analog": {
+        "asset_class": "softs",
+        "horizon_days": 30,
+        "outcome_threshold_pct": 3.0,
+        "n_neighbors": 5,
+        "hit_rate_pct": 0.0,
+        "avg_return_pct": -8.119110910080465,
+        "avg_drawdown_pct": -9.181231112203614,
+        "dims_used": [
+          "enso_regime",
+          "weather_stress"
+        ],
+        "neighbors": [
+          {
+            "ref_date": "2018-06-01",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -11.022364728310997,
+            "max_drawdown_pct": -12.460066793762303
+          },
+          {
+            "ref_date": "2018-06-04",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -6.470584275400637,
+            "max_drawdown_pct": -7.899156390892359
+          },
+          {
+            "ref_date": "2018-06-05",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -7.820303646082428,
+            "max_drawdown_pct": -8.818638762464015
+          },
+          {
+            "ref_date": "2018-06-06",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -10.081963618574985,
+            "max_drawdown_pct": -10.16393270905186
+          },
+          {
+            "ref_date": "2018-06-07",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -5.2003382820332895,
+            "max_drawdown_pct": -6.564360904847533
+          }
+        ]
+      },
+      "asset_class": "softs"
+    },
+    {
+      "instrument": "Sugar",
+      "direction": "sell",
+      "horizon": "swing",
+      "score": 6.57155,
+      "grade": "B",
+      "max_score": 11.0,
+      "min_score_publish": 7.0,
+      "published": false,
+      "setup": null,
+      "skip_reason": "build_setup returned None (no asymmetric setup found)",
+      "gates_triggered": [],
+      "families": {
+        "outlook": {
+          "name": "outlook",
+          "score": 0.0,
+          "drivers": []
+        },
+        "yield": {
+          "name": "yield",
+          "score": 0.41465,
+          "drivers": [
+            {
+              "name": "weather_stress",
+              "value": 0.32930000000000004,
+              "weight": 0.5,
+              "contribution": 0.16465000000000002,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "wasde_s2u_change",
+              "value": 0.5,
+              "weight": 0.5,
+              "contribution": 0.25,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "positioning": {
+          "name": "positioning",
+          "score": 0.575,
+          "drivers": [
+            {
+              "name": "positioning_mm_pct",
+              "value": 1.0,
+              "weight": 0.4,
+              "contribution": 0.4,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_oi_change",
+              "value": 0.5,
+              "weight": 0.35,
+              "contribution": 0.175,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_swap_dealer_skew",
+              "value": 0.0,
+              "weight": 0.25,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "enso": {
+          "name": "enso",
+          "score": 0.0,
+          "drivers": []
+        },
+        "unica": {
+          "name": "unica",
+          "score": 0.605,
+          "drivers": [
+            {
+              "name": "unica_change",
+              "value": 0.65,
+              "weight": 0.7,
+              "contribution": 0.45499999999999996,
+              "horizons": null
+            },
+            {
+              "name": "unica_change",
+              "value": 0.5,
+              "weight": 0.3,
+              "contribution": 0.15,
+              "horizons": null
+            }
+          ]
+        },
+        "cross": {
+          "name": "cross",
+          "score": 0.48380000000000006,
+          "drivers": [
+            {
+              "name": "brl_chg5d",
+              "value": 0.5,
+              "weight": 0.5,
+              "contribution": 0.25,
+              "horizons": null
+            },
+            {
+              "name": "event_distance",
+              "value": 0.0,
+              "weight": 0.1,
+              "contribution": 0.0,
+              "horizons": [
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_ice_mm_pct",
+              "value": 0.769,
+              "weight": 0.2,
+              "contribution": 0.15380000000000002,
+              "horizons": null
+            },
+            {
+              "name": "ethanol_parity_brl",
+              "value": 0.4,
+              "weight": 0.2,
+              "contribution": 0.08000000000000002,
+              "horizons": [
+                "SWING",
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "analog": {
+          "name": "analog",
+          "score": 1.0,
+          "drivers": [
+            {
+              "name": "analog_hit_rate",
+              "value": 1.0,
+              "weight": 0.5,
+              "contribution": 0.5,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "analog_avg_return",
+              "value": 1.0,
+              "weight": 0.5,
+              "contribution": 0.5,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        }
+      },
+      "active_families": 5,
+      "analog": {
+        "asset_class": "softs",
+        "horizon_days": 30,
+        "outcome_threshold_pct": 3.0,
+        "n_neighbors": 5,
+        "hit_rate_pct": 0.0,
+        "avg_return_pct": -8.119110910080465,
+        "avg_drawdown_pct": -9.181231112203614,
+        "dims_used": [
+          "enso_regime",
+          "weather_stress"
+        ],
+        "neighbors": [
+          {
+            "ref_date": "2018-06-01",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -11.022364728310997,
+            "max_drawdown_pct": -12.460066793762303
+          },
+          {
+            "ref_date": "2018-06-04",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -6.470584275400637,
+            "max_drawdown_pct": -7.899156390892359
+          },
+          {
+            "ref_date": "2018-06-05",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -7.820303646082428,
+            "max_drawdown_pct": -8.818638762464015
+          },
+          {
+            "ref_date": "2018-06-06",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -10.081963618574985,
+            "max_drawdown_pct": -10.16393270905186
+          },
+          {
+            "ref_date": "2018-06-07",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -5.2003382820332895,
+            "max_drawdown_pct": -6.564360904847533
+          }
+        ]
+      },
+      "asset_class": "softs"
+    },
+    {
+      "instrument": "Sugar",
+      "direction": "buy",
+      "horizon": "makro",
+      "score": 8.275938888888888,
+      "grade": "A",
+      "max_score": 18.0,
+      "min_score_publish": 7.0,
+      "published": false,
+      "setup": {
+        "setup_id": "254674fb129d",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
+        "setup": {
+          "instrument": "Sugar",
+          "direction": "buy",
+          "horizon": "makro",
+          "entry": 13.220000267028809,
+          "sl": 12.600714785712105,
+          "tp": null,
+          "rr": null,
+          "atr": 0.4128569875444685,
+          "entry_cluster_price": 13.220000267028809,
+          "entry_cluster_types": [
+            "prior_low",
+            "swing_low"
+          ],
+          "tp_cluster_price": null,
+          "tp_cluster_types": null
+        }
+      },
+      "skip_reason": "opposite_direction_dominates",
+      "gates_triggered": [],
+      "families": {
+        "outlook": {
+          "name": "outlook",
+          "score": 0.6,
+          "drivers": [
+            {
+              "name": "seasonal_stage",
+              "value": 0.6,
+              "weight": 1.0,
+              "contribution": 0.6,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "yield": {
+          "name": "yield",
+          "score": 0.58535,
+          "drivers": [
+            {
+              "name": "weather_stress",
+              "value": 0.6707,
+              "weight": 0.5,
+              "contribution": 0.33535,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "wasde_s2u_change",
+              "value": 0.5,
+              "weight": 0.5,
+              "contribution": 0.25,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "positioning": {
+          "name": "positioning",
+          "score": 0.425,
+          "drivers": [
+            {
+              "name": "positioning_mm_pct",
+              "value": 0.0,
+              "weight": 0.4,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_oi_change",
+              "value": 0.5,
+              "weight": 0.35,
+              "contribution": 0.175,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_swap_dealer_skew",
+              "value": 1.0,
+              "weight": 0.25,
+              "contribution": 0.25,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "enso": {
+          "name": "enso",
+          "score": 0.6000000000000001,
+          "drivers": [
+            {
+              "name": "noaa_oni_index",
+              "value": 0.5,
+              "weight": 0.6,
+              "contribution": 0.3,
+              "horizons": [
+                "MAKRO"
+              ]
+            },
+            {
+              "name": "noaa_enso_forecast_3mo",
+              "value": 0.75,
+              "weight": 0.4,
+              "contribution": 0.30000000000000004,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "unica": {
+          "name": "unica",
+          "score": 0.27249999999999996,
+          "drivers": [
+            {
+              "name": "unica_change",
+              "value": 0.35,
+              "weight": 0.35,
+              "contribution": 0.12249999999999998,
+              "horizons": null
+            },
+            {
+              "name": "unica_change",
+              "value": 0.5,
+              "weight": 0.15,
+              "contribution": 0.075,
+              "horizons": null
+            },
+            {
+              "name": "usda_psd_yoy",
+              "value": 0.15,
+              "weight": 0.15,
+              "contribution": 0.0225,
+              "horizons": [
+                "MAKRO"
+              ]
+            },
+            {
+              "name": "usda_psd_yoy",
+              "value": 0.15,
+              "weight": 0.1,
+              "contribution": 0.015,
+              "horizons": [
+                "MAKRO"
+              ]
+            },
+            {
+              "name": "comtrade_export_yoy",
+              "value": 0.15,
+              "weight": 0.25,
+              "contribution": 0.0375,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "cross": {
+          "name": "cross",
+          "score": 0.46244444444444444,
+          "drivers": [
+            {
+              "name": "brl_chg5d",
+              "value": 0.5,
+              "weight": 0.5555555555555556,
+              "contribution": 0.2777777777777778,
+              "horizons": null
+            },
+            {
+              "name": "cot_ice_mm_pct",
+              "value": 0.231,
+              "weight": 0.22222222222222224,
+              "contribution": 0.05133333333333334,
+              "horizons": null
+            },
+            {
+              "name": "ethanol_parity_brl",
+              "value": 0.6,
+              "weight": 0.22222222222222224,
+              "contribution": 0.13333333333333333,
+              "horizons": [
+                "SWING",
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "analog": {
+          "name": "analog",
+          "score": 0.0,
+          "drivers": [
+            {
+              "name": "analog_hit_rate",
+              "value": 0.0,
+              "weight": 0.5,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "analog_avg_return",
+              "value": 0.0,
+              "weight": 0.5,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        }
+      },
+      "active_families": 6,
+      "analog": {
+        "asset_class": "softs",
+        "horizon_days": 30,
+        "outcome_threshold_pct": 3.0,
+        "n_neighbors": 5,
+        "hit_rate_pct": 0.0,
+        "avg_return_pct": -8.119110910080465,
+        "avg_drawdown_pct": -9.181231112203614,
+        "dims_used": [
+          "enso_regime",
+          "weather_stress"
+        ],
+        "neighbors": [
+          {
+            "ref_date": "2018-06-01",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -11.022364728310997,
+            "max_drawdown_pct": -12.460066793762303
+          },
+          {
+            "ref_date": "2018-06-04",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -6.470584275400637,
+            "max_drawdown_pct": -7.899156390892359
+          },
+          {
+            "ref_date": "2018-06-05",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -7.820303646082428,
+            "max_drawdown_pct": -8.818638762464015
+          },
+          {
+            "ref_date": "2018-06-06",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -10.081963618574985,
+            "max_drawdown_pct": -10.16393270905186
+          },
+          {
+            "ref_date": "2018-06-07",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -5.2003382820332895,
+            "max_drawdown_pct": -6.564360904847533
+          }
+        ]
+      },
+      "asset_class": "softs"
+    },
+    {
+      "instrument": "Sugar",
+      "direction": "sell",
+      "horizon": "makro",
+      "score": 9.724061111111112,
+      "grade": "A",
+      "max_score": 18.0,
+      "min_score_publish": 7.0,
+      "published": true,
+      "setup": {
+        "setup_id": "3ff3f4313719",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
+        "setup": {
+          "instrument": "Sugar",
+          "direction": "sell",
+          "horizon": "makro",
+          "entry": 14.680000305175781,
+          "sl": 15.299285786492485,
+          "tp": null,
+          "rr": null,
+          "atr": 0.4128569875444685,
+          "entry_cluster_price": 14.680000305175781,
+          "entry_cluster_types": [
+            "prior_low",
+            "prior_high",
+            "swing_low",
+            "swing_high"
+          ],
+          "tp_cluster_price": null,
+          "tp_cluster_types": null
+        }
+      },
+      "skip_reason": null,
+      "gates_triggered": [],
+      "families": {
+        "outlook": {
+          "name": "outlook",
+          "score": 0.4,
+          "drivers": [
+            {
+              "name": "seasonal_stage",
+              "value": 0.4,
+              "weight": 1.0,
+              "contribution": 0.4,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "yield": {
+          "name": "yield",
+          "score": 0.41465,
+          "drivers": [
+            {
+              "name": "weather_stress",
+              "value": 0.32930000000000004,
+              "weight": 0.5,
+              "contribution": 0.16465000000000002,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "wasde_s2u_change",
+              "value": 0.5,
+              "weight": 0.5,
+              "contribution": 0.25,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "positioning": {
+          "name": "positioning",
+          "score": 0.575,
+          "drivers": [
+            {
+              "name": "positioning_mm_pct",
+              "value": 1.0,
+              "weight": 0.4,
+              "contribution": 0.4,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_oi_change",
+              "value": 0.5,
+              "weight": 0.35,
+              "contribution": 0.175,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "cot_swap_dealer_skew",
+              "value": 0.0,
+              "weight": 0.25,
+              "contribution": 0.0,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        },
+        "enso": {
+          "name": "enso",
+          "score": 0.4,
+          "drivers": [
+            {
+              "name": "noaa_oni_index",
+              "value": 0.5,
+              "weight": 0.6,
+              "contribution": 0.3,
+              "horizons": [
+                "MAKRO"
+              ]
+            },
+            {
+              "name": "noaa_enso_forecast_3mo",
+              "value": 0.25,
+              "weight": 0.4,
+              "contribution": 0.1,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "unica": {
+          "name": "unica",
+          "score": 0.7275,
+          "drivers": [
+            {
+              "name": "unica_change",
+              "value": 0.65,
+              "weight": 0.35,
+              "contribution": 0.22749999999999998,
+              "horizons": null
+            },
+            {
+              "name": "unica_change",
+              "value": 0.5,
+              "weight": 0.15,
+              "contribution": 0.075,
+              "horizons": null
+            },
+            {
+              "name": "usda_psd_yoy",
+              "value": 0.85,
+              "weight": 0.15,
+              "contribution": 0.1275,
+              "horizons": [
+                "MAKRO"
+              ]
+            },
+            {
+              "name": "usda_psd_yoy",
+              "value": 0.85,
+              "weight": 0.1,
+              "contribution": 0.085,
+              "horizons": [
+                "MAKRO"
+              ]
+            },
+            {
+              "name": "comtrade_export_yoy",
+              "value": 0.85,
+              "weight": 0.25,
+              "contribution": 0.2125,
+              "horizons": [
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "cross": {
+          "name": "cross",
+          "score": 0.5375555555555556,
+          "drivers": [
+            {
+              "name": "brl_chg5d",
+              "value": 0.5,
+              "weight": 0.5555555555555556,
+              "contribution": 0.2777777777777778,
+              "horizons": null
+            },
+            {
+              "name": "cot_ice_mm_pct",
+              "value": 0.769,
+              "weight": 0.22222222222222224,
+              "contribution": 0.1708888888888889,
+              "horizons": null
+            },
+            {
+              "name": "ethanol_parity_brl",
+              "value": 0.4,
+              "weight": 0.22222222222222224,
+              "contribution": 0.0888888888888889,
+              "horizons": [
+                "SWING",
+                "MAKRO"
+              ]
+            }
+          ]
+        },
+        "analog": {
+          "name": "analog",
+          "score": 1.0,
+          "drivers": [
+            {
+              "name": "analog_hit_rate",
+              "value": 1.0,
+              "weight": 0.5,
+              "contribution": 0.5,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            },
+            {
+              "name": "analog_avg_return",
+              "value": 1.0,
+              "weight": 0.5,
+              "contribution": 0.5,
+              "horizons": [
+                "MAKRO",
+                "SWING"
+              ]
+            }
+          ]
+        }
+      },
+      "active_families": 7,
+      "analog": {
+        "asset_class": "softs",
+        "horizon_days": 30,
+        "outcome_threshold_pct": 3.0,
+        "n_neighbors": 5,
+        "hit_rate_pct": 0.0,
+        "avg_return_pct": -8.119110910080465,
+        "avg_drawdown_pct": -9.181231112203614,
+        "dims_used": [
+          "enso_regime",
+          "weather_stress"
+        ],
+        "neighbors": [
+          {
+            "ref_date": "2018-06-01",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -11.022364728310997,
+            "max_drawdown_pct": -12.460066793762303
+          },
+          {
+            "ref_date": "2018-06-04",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -6.470584275400637,
+            "max_drawdown_pct": -7.899156390892359
+          },
+          {
+            "ref_date": "2018-06-05",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -7.820303646082428,
+            "max_drawdown_pct": -8.818638762464015
+          },
+          {
+            "ref_date": "2018-06-06",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -10.081963618574985,
+            "max_drawdown_pct": -10.16393270905186
+          },
+          {
+            "ref_date": "2018-06-07",
+            "similarity": 0.886585243743138,
+            "forward_return_pct": -5.2003382820332895,
+            "max_drawdown_pct": -6.564360904847533
+          }
+        ]
+      },
+      "asset_class": "softs"
+    },
+    {
       "instrument": "Wheat",
       "direction": "buy",
       "horizon": "swing",
@@ -4011,18 +5963,18 @@
       "published": false,
       "setup": {
         "setup_id": "38286350b0aa",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Wheat",
           "direction": "buy",
           "horizon": "swing",
-          "entry": 598.25,
-          "sl": 595.1375,
+          "entry": 562.25,
+          "sl": 559.1803571428571,
           "tp": 639.25,
-          "rr": 13.172690763052401,
-          "atr": 10.375,
-          "entry_cluster_price": 598.25,
+          "rr": 25.0843513670738,
+          "atr": 10.232142857142858,
+          "entry_cluster_price": 562.25,
           "entry_cluster_types": [
             "prior_low",
             "prior_high",
@@ -4295,17 +6247,17 @@
       "published": false,
       "setup": {
         "setup_id": "a9a4a3548f94",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Wheat",
           "direction": "sell",
           "horizon": "swing",
           "entry": 635.0,
-          "sl": 638.1125,
+          "sl": 638.0696428571429,
           "tp": 492.25,
-          "rr": 45.863453815261714,
-          "atr": 10.375,
+          "rr": 46.503781268179026,
+          "atr": 10.232142857142858,
           "entry_cluster_price": 635.0,
           "entry_cluster_types": [
             "prior_low",
@@ -4580,18 +6532,18 @@
       "published": true,
       "setup": {
         "setup_id": "2ee41753938a",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Wheat",
           "direction": "buy",
           "horizon": "makro",
-          "entry": 598.25,
-          "sl": 582.6875,
+          "entry": 562.25,
+          "sl": 546.9017857142857,
           "tp": null,
           "rr": null,
-          "atr": 10.375,
-          "entry_cluster_price": 598.25,
+          "atr": 10.232142857142858,
+          "entry_cluster_price": 562.25,
           "entry_cluster_types": [
             "prior_low",
             "prior_high",
@@ -4872,17 +6824,17 @@
       "published": false,
       "setup": {
         "setup_id": "f982b283c623",
-        "first_seen": "2026-05-07T10:21:37.453423Z",
-        "last_updated": "2026-05-07T10:21:37.453423Z",
+        "first_seen": "2026-05-08T01:30:10.560072Z",
+        "last_updated": "2026-05-08T01:30:10.560072Z",
         "setup": {
           "instrument": "Wheat",
           "direction": "sell",
           "horizon": "makro",
           "entry": 635.0,
-          "sl": 650.5625,
+          "sl": 650.3482142857143,
           "tp": null,
           "rr": null,
-          "atr": 10.375,
+          "atr": 10.232142857142858,
           "entry_cluster_price": 635.0,
           "entry_cluster_types": [
             "prior_low",
