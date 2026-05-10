@@ -152,6 +152,12 @@ body{
   display:flex;flex-direction:column;gap:2px;
 }
 .state-cell:last-child{border-right:none;}
+/* Wrapper rundt state-cells (lagt til av initStateStripTicker for mobil
+   marquee). På desktop er display:contents transparent — cellene
+   beholder sin opprinnelige flex-layout, og klonene (aria-hidden) er
+   skjult slik at vi ikke får dobbel rad. */
+.state-strip-track{display:contents;}
+.state-strip-track > [aria-hidden="true"]{display:none;}
 .state-cell .lbl{
   font-family:'Cormorant Garamond',serif;font-style:italic;
   color:var(--ink-mute);font-size:11px;letter-spacing:.08em;
@@ -1027,10 +1033,11 @@ body{
 @media (max-width:780px){
   html,body{font-size:13px;}
   .deck{padding:14px 12px 60px;}
-  .masthead{padding:12px 14px 8px;}
-  .mast-row{flex-wrap:wrap;gap:10px;}
-  .mast-title{font-size:24px;}
-  .mast-sub{font-size:12px;margin-left:0;flex-basis:100%;}
+  .masthead{padding:8px 14px 4px;}
+  .mast-row{flex-wrap:nowrap;gap:10px;align-items:baseline;}
+  .mast-title{font-size:20px;}
+  .mast-sub{display:none;}
+  .mast-rules{display:none;}
 
   /* Tabs: scroll horizontally rather than wrap, keep labels visible */
   .tabs{padding:0 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -1038,17 +1045,47 @@ body{
   .tab{padding:11px 14px 9px;font-size:14px;flex-shrink:0;gap:6px;}
   .tab .num{font-size:10px;padding:0 4px;}
 
-  /* State strip: 2-col grid instead of 8-flex (still scannable, no cramping) */
-  .state-strip{display:grid;grid-template-columns:repeat(2,1fr);padding:0;}
-  .state-cell{
-    min-width:0;flex:none;padding:8px 12px;
-    border-right:1px solid var(--ink-rule-soft);
-    border-bottom:1px solid var(--ink-rule-soft);
+  /* State strip: single horizontal scrollable row (was 2×4 grid → ~160px tall).
+     Label and value sit on the same baseline so each cell stays one line. */
+  .state-strip{
+    display:flex;flex-wrap:nowrap;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    padding:0;
   }
-  .state-cell:nth-child(2n){border-right:none;}
-  .state-cell:nth-last-child(-n+2){border-bottom:none;}
-  .state-cell .lbl{font-size:10px;}
-  .state-cell .val{font-size:13px;}
+  .state-strip::-webkit-scrollbar{display:none;}
+  .state-cell{
+    flex:0 0 auto;min-width:0;
+    flex-direction:row;align-items:baseline;gap:6px;
+    padding:6px 12px;
+    border-right:1px solid var(--ink-rule-soft);
+    border-bottom:none;
+    white-space:nowrap;
+  }
+  .state-cell .lbl{font-size:9px;letter-spacing:.06em;}
+  .state-cell .val{font-size:12px;}
+
+  /* Auto-scrolling ticker på mobil: track-elementet inneholder cellene
+     duplisert to ganger, og translateX(-50%) gir en sømløs loop fordi
+     den andre halvdelen er identisk med den første. ticker-track lages
+     i JS (initStateStripTicker) — uten den faller layoutet tilbake til
+     statisk horisontal scroll. */
+  .state-strip{overflow:hidden;}
+  .state-strip-track{
+    display:flex;flex-wrap:nowrap;width:max-content;
+    animation:stateStripScroll 35s linear infinite;
+  }
+  /* Restore klone-cellene på mobil (skjult som standard for desktop) */
+  .state-strip-track > [aria-hidden="true"]{display:flex;}
+  .state-strip:hover .state-strip-track,
+  .state-strip:active .state-strip-track{animation-play-state:paused;}
+  @keyframes stateStripScroll{
+    from{transform:translateX(0);}
+    to{transform:translateX(-50%);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .state-strip-track{animation:none;}
+    .state-strip{overflow-x:auto;}
+  }
 
   /* Plates: smaller chrome, looser body */
   .plate-hd{padding:10px 14px 8px;flex-wrap:wrap;gap:8px;}
@@ -4029,6 +4066,58 @@ window.addEventListener('resize', _updateTabsOverflow);
 window.addEventListener('load', _updateTabsOverflow);
 requestAnimationFrame(_updateTabsOverflow);
 _updateTabsOverflow();
+
+/* ════════════ STATE-STRIP TICKER (mobil) ════════════
+   Pakker cellene i .state-strip-track og dupliserer settet én gang.
+   CSS-animasjonen translateX(0 → -50%) gir sømløs loop fordi andre
+   halvdel er identisk med første. Kjøres én gang ved load — cellenes
+   .val-tekst oppdateres senere av render-funksjonen, men begge sett
+   må holdes synkront, så vi gjenbruker samme id på klonene (fjernes
+   for å unngå duplikat-id, men beholder klassene). */
+function _initStateStripTicker(){
+  const strip = document.getElementById('stateStrip');
+  if(!strip || strip.dataset.tickerInit) return;
+  const cells = Array.from(strip.querySelectorAll(':scope > .state-cell'));
+  if(cells.length === 0) return;
+  const track = document.createElement('div');
+  track.className = 'state-strip-track';
+  cells.forEach(c => track.appendChild(c));
+  // Andre sett: rene klones (uten id) for sømløs loop. aria-hidden så
+  // skjermlesere ikke leser duplikatene.
+  cells.forEach(c => {
+    const clone = c.cloneNode(true);
+    clone.setAttribute('aria-hidden','true');
+    clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    track.appendChild(clone);
+  });
+  strip.appendChild(track);
+  strip.dataset.tickerInit = '1';
+}
+_initStateStripTicker();
+
+/* Når renderState() oppdaterer .val-cellene må klonene følge etter.
+   Vi observerer mutasjoner på første halvdel og kopierer textContent
+   til speilet i andre halvdel. */
+(function _syncTickerClones(){
+  const strip = document.getElementById('stateStrip');
+  const track = strip?.querySelector('.state-strip-track');
+  if(!track) return;
+  const half = track.children.length / 2;
+  if(half < 1 || !Number.isInteger(half)) return;
+  const obs = new MutationObserver(() => {
+    for(let i = 0; i < half; i++){
+      const src = track.children[i];
+      const dst = track.children[i + half];
+      if(src && dst && src.textContent !== dst.textContent){
+        // Speil val-cellen, inkl. evt. fargeklasser (.pos/.neg/.warn/.info).
+        const sv = src.querySelector('.val');
+        const dv = dst.querySelector('.val');
+        if(sv && dv){ dv.textContent = sv.textContent; dv.className = sv.className; }
+      }
+    }
+  });
+  obs.observe(track, {subtree:true, characterData:true, childList:true, attributes:true, attributeFilter:['class']});
+})();
 
 /* ════════════ TAG → JUMP TO POSITION ════════════ */
 function _findTagMatch(target){
