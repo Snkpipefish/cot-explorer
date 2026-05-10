@@ -47,18 +47,30 @@ if [ "$DOW" -eq 5 ] && [ "$HOUR" -ge 20 ]; then
         || echo "  ICE COT FEIL" >> "$LOG"
 fi
 
-# ── CFTC COT + ICE COT: lørdag 00:00 (begge garantert ute etter fre 21:30) ──
+# ── CFTC COT + ICE COT: lørdag 00:00 primær + stale-gate fallback ─────────
+# Primært vindu: lørdag 00:00-04:00 (begge garantert ute etter fre 21:30).
+# Fallback: hvis combined/latest.json er >6 dager gammel kjører vi catch-up
+# uansett ukedag/time — slik at en lørdagskjøring som ble missed fordi
+# maskinen var av (Persistent=true triggerer for sent på dagen) fanges opp.
+COMBINED_FILE="$HOME/cot-explorer/data/combined/latest.json"
+COT_REASON=""
 if [ "$DOW" -eq 6 ] && [ "$HOUR" -le 4 ]; then
+    COT_REASON="lørdag primærvindu"
+elif [ ! -f "$COMBINED_FILE" ] || [ "$(find "$COMBINED_FILE" -mmin +8640 2>/dev/null | wc -l)" -gt 0 ]; then
+    COT_REASON="stale-gate (>6d siden siste vellykkede kjøring)"
+fi
+if [ -n "$COT_REASON" ]; then
+    echo "  COT/CFTC: kjører ($COT_REASON)" >> "$LOG"
     python3 fetch_cot.py >> "$LOG" 2>&1 && echo "  COT OK" >> "$LOG" || echo "  COT FEIL" >> "$LOG"
     python3 fetch_ice_cot.py >> "$LOG" 2>&1 \
-        && echo "  ICE COT OK (lørdag)" >> "$LOG" \
+        && echo "  ICE COT OK (catch-up)" >> "$LOG" \
         || echo "  ICE COT FEIL" >> "$LOG"
     python3 build_combined.py >> "$LOG" 2>&1 && echo "  combined OK" >> "$LOG" || echo "  combined FEIL" >> "$LOG"
     python3 scripts/build_extreme_percentiles.py >> "$LOG" 2>&1 \
         && echo "  extremes OK" >> "$LOG" \
         || echo "  extremes FEIL" >> "$LOG"
 else
-    [ "$DOW" -ne 5 ] && echo "  COT/CFTC: hopper over (kun lør 00:00)" >> "$LOG"
+    [ "$DOW" -ne 5 ] && echo "  COT/CFTC: hopper over (data <6d, og ikke lør 00-04)" >> "$LOG"
 fi
 
 # ── Euronext COT: kun onsdag ettermiddag (data per foregående fredagsbørslutt) ──
