@@ -1,6 +1,6 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-05-10 21:22 UTC",
+  "generated": "2026-05-10 22:02 UTC",
   "cot_date": "2026-04-28",
   "global_state": {
     "geo_active": true,
@@ -75,10 +75,12 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 0.8,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.4,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -125,9 +127,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 0.8,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
           "score": 0.7,
@@ -138,29 +142,26 @@
         }
       },
       "active_driver_groups": 5,
-      "data_quality": "degraded",
-      "quality_notes": [
-        "DFII10 (real yield) arvet fra cache",
-        "Yield curve (DGS10-DGS2) arvet fra cache"
-      ],
+      "data_quality": "fresh",
+      "quality_notes": [],
       "dir_override_reason": null,
       "current": 80.865,
       "entry": 79.701,
-      "sl": 78.32723,
-      "t1": 82.58312,
-      "t2": 82.58312,
-      "rr_t1": 2.1,
-      "rr_t2": 2.1,
+      "sl": 78.29721,
+      "t1": 82.83,
+      "t2": 83.14439,
+      "rr_t1": 2.23,
+      "rr_t2": 2.45,
       "sl_type": "struktur",
       "cot_bias": "LONG",
       "cot_pct": 10.5,
       "correlation_group": "precious_metals",
       "adr_utilization": {
-        "pct": 40.7,
+        "pct": 38.1,
         "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": 2.69107,
+      "atr_d1": 2.81114,
       "horizon_config": {
         "confirmation_tf": "1H",
         "confirmation_max_candles": 6,
@@ -245,10 +246,12 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -292,9 +295,11 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
           "score": 1.0,
@@ -305,29 +310,26 @@
         }
       },
       "active_driver_groups": 4,
-      "data_quality": "degraded",
-      "quality_notes": [
-        "DFII10 (real yield) arvet fra cache",
-        "Yield curve (DGS10-DGS2) arvet fra cache"
-      ],
+      "data_quality": "fresh",
+      "quality_notes": [],
       "dir_override_reason": null,
       "current": 4730.7,
-      "entry": 4729.2998,
-      "sl": 4703.55,
-      "t1": 4851.0,
-      "t2": 4879.7002,
-      "rr_t1": 4.73,
-      "rr_t2": 5.84,
+      "entry": 4699.7998,
+      "sl": 4669.6998,
+      "t1": 4772.56245,
+      "t2": 4851.0,
+      "rr_t1": 2.42,
+      "rr_t2": 5.02,
       "sl_type": "struktur",
       "cot_bias": "LONG",
       "cot_pct": 24.3,
       "correlation_group": "precious_metals",
       "adr_utilization": {
-        "pct": 35.8,
+        "pct": 33.7,
         "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": 75.80001,
+      "atr_d1": 80.40001,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -358,24 +360,26 @@
       }
     },
     {
-      "key": "WTI",
-      "name": "WTI",
+      "key": "Brent",
+      "name": "Brent",
       "action": "BUY",
-      "timeframe": "SCALP",
-      "horizon": "SCALP",
-      "grade": "B",
-      "score": 2.69,
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "A",
+      "score": 2.76,
       "max_score": 5.0,
-      "score_pct": 54,
+      "score_pct": 55,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.33,
+          "poeng": 1.0,
           "drivers": [
-            "SMA200-align"
+            "SMA200-align",
+            "Momentum 20d +",
+            "D1+4H kongruent"
           ]
         },
         {
@@ -405,35 +409,37 @@
           "poeng": 0.76,
           "drivers": [
             "Supply disruption aktiv",
-            "Oilgas: STERKT BULLISH",
+            "Oilgas: BULLISH",
             "Brent-WTI spread +5.9 (tight)"
           ]
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
-          "verdi": true,
+          "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.6,
-          "drivers": [
-            "HTF-nivå w3"
-          ]
+          "poeng": 0.0,
+          "drivers": []
         }
       ],
       "driver_groups": {
         "trend": {
-          "score": 0.33,
+          "score": 1.0,
           "weight": 1.0,
           "drivers": [
-            "SMA200-align"
+            "SMA200-align",
+            "Momentum 20d +",
+            "D1+4H kongruent"
           ]
         },
         "positioning": {
@@ -454,235 +460,71 @@
           "weight": 1.0,
           "drivers": [
             "Supply disruption aktiv",
-            "Oilgas: STERKT BULLISH",
+            "Oilgas: BULLISH",
             "Brent-WTI spread +5.9 (tight)"
           ]
         },
         "risk": {
+          "score": 0.5,
+          "weight": 1.0,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
           "score": 0.0,
           "weight": 1.0,
           "drivers": []
-        },
-        "structure": {
-          "score": 0.6,
-          "weight": 1.0,
-          "drivers": [
-            "HTF-nivå w3"
-          ]
         }
       },
-      "active_driver_groups": 4,
-      "data_quality": "degraded",
-      "quality_notes": [
-        "DFII10 (real yield) arvet fra cache",
-        "Yield curve (DGS10-DGS2) arvet fra cache"
-      ],
+      "active_driver_groups": 3,
+      "data_quality": "fresh",
+      "quality_notes": [],
       "dir_override_reason": null,
-      "current": 95.42,
-      "entry": 95.35,
-      "sl": 93.31696,
-      "t1": 101.33415,
-      "t2": 101.33415,
-      "rr_t1": 2.94,
-      "rr_t2": 2.94,
+      "current": 101.29,
+      "entry": 96.07,
+      "sl": 92.38179,
+      "t1": 119.12,
+      "t2": 119.12,
+      "rr_t1": 6.25,
+      "rr_t2": 6.25,
       "sl_type": "struktur",
-      "cot_bias": "SHORT",
-      "cot_pct": 4.4,
+      "cot_bias": "LONG",
+      "cot_pct": 8.5,
       "correlation_group": "energy",
       "adr_utilization": {
-        "pct": 25.1,
+        "pct": 29.6,
         "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": 7.05214,
+      "atr_d1": 7.37643,
       "horizon_config": {
-        "confirmation_tf": "5min",
-        "confirmation_max_candles": 6,
-        "confirmation_escape_atr_factor": 0.5,
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
         "confirmation_min_score": 2,
         "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0015,
-        "entry_zone_margin_atr": 0.3,
-        "exit_t1_close_pct": 0.5,
-        "exit_t2_close_pct": 0.25,
-        "exit_trail_tf": "5min",
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
         "exit_trail_atr_mult": {
-          "fx": 2.0,
-          "gold": 2.5,
-          "silver": 2.5,
-          "oil": 2.5,
-          "index": 2.0
+          "fx": 3.0,
+          "gold": 4.0,
+          "silver": 4.0,
+          "oil": 3.5,
+          "index": 3.0
         },
-        "exit_ema_tf": "5min",
+        "exit_ema_tf": "1H",
         "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 8,
+        "exit_timeout_partial_candles": 96,
         "exit_timeout_partial_pct": 0.5,
-        "exit_timeout_full_candles": 16,
-        "exit_geo_spike_atr_mult": 2.0,
-        "sizing_base_risk_usd": 20
-      }
-    },
-    {
-      "key": "USDJPY",
-      "name": "USD/JPY",
-      "action": "BUY",
-      "timeframe": "SCALP",
-      "horizon": "SCALP",
-      "grade": "B",
-      "score": 2.51,
-      "max_score": 5.0,
-      "score_pct": 50,
-      "score_details": [
-        {
-          "kryss": "Trendbildet (SMA/momentum/align)",
-          "id": "group_trend",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.67,
-          "drivers": [
-            "SMA200-align",
-            "D1+4H kongruent"
-          ]
-        },
-        {
-          "kryss": "COT-posisjonering",
-          "id": "group_positioning",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.75,
-          "drivers": [
-            "MM percentile 8 + net short — crowded short, contra-bull",
-            "OI stigende (bekrefter)"
-          ]
-        },
-        {
-          "kryss": "Makrobilde (DXY/VIX/renter)",
-          "id": "group_macro",
-          "verdi": false,
-          "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
-        },
-        {
-          "kryss": "Fundamentalt (asset-spesifikt)",
-          "id": "group_fundamental",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.39,
-          "drivers": [
-            "FRED fund +0.78"
-          ]
-        },
-        {
-          "kryss": "Event-risiko (kalender/geo)",
-          "id": "group_risk",
-          "verdi": false,
-          "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
-        },
-        {
-          "kryss": "Teknisk struktur (HTF/SMC)",
-          "id": "group_structure",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.7,
-          "drivers": [
-            "SMC-bekreftelse"
-          ]
-        }
-      ],
-      "driver_groups": {
-        "trend": {
-          "score": 0.67,
-          "weight": 1.0,
-          "drivers": [
-            "SMA200-align",
-            "D1+4H kongruent"
-          ]
-        },
-        "positioning": {
-          "score": 0.75,
-          "weight": 1.0,
-          "drivers": [
-            "MM percentile 8 + net short — crowded short, contra-bull",
-            "OI stigende (bekrefter)"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.39,
-          "weight": 1.0,
-          "drivers": [
-            "FRED fund +0.78"
-          ]
-        },
-        "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "structure": {
-          "score": 0.7,
-          "weight": 1.0,
-          "drivers": [
-            "SMC-bekreftelse"
-          ]
-        }
-      },
-      "active_driver_groups": 4,
-      "data_quality": "degraded",
-      "quality_notes": [
-        "DFII10 (real yield) arvet fra cache",
-        "Yield curve (DGS10-DGS2) arvet fra cache"
-      ],
-      "dir_override_reason": null,
-      "current": 156.62,
-      "entry": 156.601,
-      "sl": 156.3115,
-      "t1": 156.97301,
-      "t2": 156.97301,
-      "rr_t1": 1.28,
-      "rr_t2": 1.28,
-      "sl_type": "struktur",
-      "cot_bias": "SHORT",
-      "cot_pct": 20.3,
-      "correlation_group": "usd_pairs",
-      "adr_utilization": {
-        "pct": 14.5,
-        "ok_for_scalp": true,
-        "available": true
-      },
-      "atr_d1": 1.56343,
-      "horizon_config": {
-        "confirmation_tf": "5min",
-        "confirmation_max_candles": 6,
-        "confirmation_escape_atr_factor": 0.5,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0015,
-        "entry_zone_margin_atr": 0.3,
-        "exit_t1_close_pct": 0.5,
-        "exit_t2_close_pct": 0.25,
-        "exit_trail_tf": "5min",
-        "exit_trail_atr_mult": {
-          "fx": 2.0,
-          "gold": 2.5,
-          "silver": 2.5,
-          "oil": 2.5,
-          "index": 2.0
-        },
-        "exit_ema_tf": "5min",
-        "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 8,
-        "exit_timeout_partial_pct": 0.5,
-        "exit_timeout_full_candles": 16,
-        "exit_geo_spike_atr_mult": 2.0,
-        "sizing_base_risk_usd": 20
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
       }
     },
     {
@@ -692,7 +534,7 @@
       "timeframe": "SWING",
       "horizon": "SWING",
       "grade": "B",
-      "score": 6.3,
+      "score": 6.5,
       "max_score": 18,
       "current": 456.25,
       "entry": 455.96,
@@ -736,80 +578,20 @@
       },
       "data_quality": "fresh",
       "quality_notes": [],
-      "yield_score": 47,
-      "weather_outlook": "tørt",
+      "yield_score": 49,
+      "weather_outlook": "vått",
       "drivers": [
         "Bedrock A BUY bekrefter (score 10.2)",
-        "Værstress i Kina – Hebei / Henan (tørt)",
-        "COT: bull BLANDET (net +15%)",
-        "Yield svak — risiko for lav produksjon"
-      ]
-    },
-    {
-      "key": "Sugar",
-      "name": "Sukker",
-      "action": "SELL",
-      "timeframe": "SWING",
-      "horizon": "SWING",
-      "grade": "B",
-      "score": 5.2,
-      "max_score": 18,
-      "current": 14.69,
-      "entry": 14.71,
-      "sl": 15.49,
-      "t1": 13.0,
-      "t2": 12.5,
-      "rr_t1": 2.19,
-      "rr_t2": 2.83,
-      "sl_type": "atr_prosent",
-      "cot_bias": "bear",
-      "atr_d1": 0.39,
-      "source": "agri_fundamental",
-      "correlation_group": "softs",
-      "horizon_config": {
-        "confirmation_tf": "15min",
-        "confirmation_max_candles": 8,
-        "confirmation_escape_atr_factor": 0.7,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0025,
-        "entry_zone_margin_atr": 0.7,
-        "exit_t1_close_pct": 0.33,
-        "exit_t2_close_pct": 0.33,
-        "exit_trail_tf": "1H",
-        "exit_trail_atr_mult": {
-          "fx": 3.0,
-          "gold": 4.0,
-          "silver": 4.0,
-          "oil": 3.5,
-          "index": 3.0
-        },
-        "exit_ema_tf": "1H",
-        "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 96,
-        "exit_timeout_partial_pct": 0.5,
-        "exit_timeout_full_hours": 120,
-        "exit_be_timeout_hours": 48,
-        "exit_event_close_hours": 2,
-        "exit_geo_spike_atr_mult": 3.0,
-        "sizing_base_risk_usd": 40
-      },
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "yield_score": 68,
-      "weather_outlook": "tørke",
-      "drivers": [
-        "UNICA: mix sukker 50.4% (+2.3pp) → prispress ned",
-        "Bedrock A SELL bekrefter (score 9.6)",
-        "Værstress i India – Punjab / Haryana (tørke)",
-        "COT: spekulanter øker short (net -18% av OI)"
+        "Værstress i Kina – Hebei / Henan (vått)",
+        "2 risiko-regioner",
+        "COT: bull BLANDET (net +15%)"
       ]
     }
   ],
   "_meta": {
-    "generated_at": "2026-05-10T21:22:45Z",
+    "generated_at": "2026-05-10T22:02:12Z",
     "script": "push_signals.py",
-    "macro_date": "2026-05-10 20:40 UTC",
+    "macro_date": "2026-05-10 22:00 UTC",
     "cot_date": "2026-04-28"
   }
 }
