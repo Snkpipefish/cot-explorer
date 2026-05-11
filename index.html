@@ -85,6 +85,93 @@ body{
   color:var(--ink-bone-dim);font-size:14px;margin-left:auto;
   letter-spacing:.04em;
 }
+.mast-tools{
+  display:flex;align-items:center;gap:14px;margin-left:24px;
+}
+.mast-link{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:14px;letter-spacing:.04em;
+  color:var(--ink-bone-dim);text-decoration:none;
+  border-bottom:1px dotted var(--brass-dim);padding-bottom:1px;
+  transition:color .15s,border-color .15s;
+}
+.mast-link:hover{color:var(--brass);border-bottom-color:var(--brass);}
+.mode-toggle{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;
+  letter-spacing:.10em;text-transform:uppercase;
+  background:transparent;cursor:pointer;
+  color:var(--ink-bone-dim);
+  border:1px solid var(--ink-rule);
+  padding:5px 12px;
+  transition:color .15s,border-color .15s,background .15s;
+}
+.mode-toggle:hover{color:var(--ink-bone);border-color:var(--brass-dim);}
+.mode-toggle .mt-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:transparent;border:1px solid var(--ink-rule);
+  transition:background .15s,border-color .15s;
+}
+.mode-toggle[aria-pressed="true"]{
+  color:var(--brass);border-color:var(--brass-dim);
+  background:var(--brass-soft);
+}
+.mode-toggle[aria-pressed="true"] .mt-dot{
+  background:var(--brass);border-color:var(--brass);
+  box-shadow:0 0 0 2px rgba(201,163,94,.18);
+}
+
+/* ─── Reader Mode: hide jargon-heavy tabs and condense italics ─── */
+body.reader-mode .tab-tech{display:none;}
+body.reader-mode .descr{
+  font-style:normal;font-size:13px;
+  border-bottom:none;padding:6px 0 4px;
+  color:var(--ink-bone);
+}
+body.reader-mode .descr em{font-style:normal;}
+body.reader-mode .reader-hide{display:none !important;}
+body.reader-mode .reader-only{display:initial;}
+.reader-only{display:none;}
+
+/* ─── Glossary trigger + popover ─── */
+.gloss{
+  border-bottom:1px dotted var(--brass-dim);
+  cursor:help;color:inherit;
+  position:relative;
+}
+.gloss:hover{color:var(--brass);border-bottom-color:var(--brass);}
+.gloss-pop{
+  position:fixed;z-index:200;
+  max-width:340px;min-width:240px;
+  background:linear-gradient(180deg,#161d30 0%,#10162a 100%);
+  border:1px solid var(--brass-dim);
+  border-left:3px solid var(--brass);
+  box-shadow:0 8px 24px rgba(0,0,0,.45);
+  padding:14px 16px 12px;
+  font-family:'Cormorant Garamond',serif;font-size:14px;line-height:1.5;
+  color:var(--ink-bone);
+  opacity:0;transform:translateY(-4px);
+  pointer-events:none;transition:opacity .14s,transform .14s;
+}
+.gloss-pop.open{opacity:1;transform:translateY(0);pointer-events:auto;}
+.gloss-pop .gp-term{
+  font-weight:600;color:var(--brass);
+  font-size:14px;letter-spacing:.08em;text-transform:uppercase;
+  display:block;margin-bottom:4px;
+}
+.gloss-pop .gp-def{color:var(--ink-bone);}
+.gloss-pop .gp-tech{
+  display:block;margin-top:8px;padding-top:8px;
+  border-top:1px dotted var(--ink-rule);
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--ink-mute);font-style:normal;letter-spacing:0;
+}
+.gloss-pop .gp-more{
+  display:block;margin-top:8px;
+  font-style:italic;font-size:12px;
+  color:var(--ink-bone-dim);
+}
+.gloss-pop .gp-more a{color:var(--brass);text-decoration:none;border-bottom:1px dotted var(--brass-dim);}
 .mast-rules{margin-top:10px;}
 .mast-rules .rule-double{border-top-color:var(--brass-dim);box-shadow:0 2px 0 -1px var(--brass-dim);}
 
@@ -292,6 +379,39 @@ body{
 .explainer strong.hi{color:var(--brass);}
 .explainer code{font-family:'JetBrains Mono',monospace;font-size:12px;
   background:rgba(201,163,94,.08);padding:1px 5px;border:1px solid var(--brass-dim);}
+
+/* ─── Today in one sentence — plain-language hero summary ─── */
+.today-summary{
+  background:linear-gradient(180deg,#141a2c 0%,#10162a 100%);
+  border:1px solid var(--ink-rule);
+  border-left:3px solid var(--brass);
+  padding:18px 22px 16px;margin-bottom:18px;
+  position:relative;
+}
+.today-summary .ts-eyebrow{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--brass);margin-bottom:4px;
+}
+.today-summary .ts-body{
+  font-family:'Cormorant Garamond',serif;
+  font-size:21px;line-height:1.45;color:var(--ink-paper);
+  font-weight:500;letter-spacing:.01em;
+}
+.today-summary .ts-body em{font-style:italic;color:var(--ink-bone-dim);}
+.today-summary .ts-body strong{font-weight:600;color:var(--ink-paper);}
+.today-summary .ts-body .ts-pos{color:var(--sig-pos);font-weight:600;}
+.today-summary .ts-body .ts-neg{color:var(--sig-neg);font-weight:600;}
+.today-summary .ts-body .ts-warn{color:var(--sig-warn);font-weight:600;}
+.today-summary .ts-meta{
+  margin-top:10px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--ink-mute);letter-spacing:.04em;
+}
+@media (max-width:780px){
+  .today-summary{padding:14px 16px 12px;}
+  .today-summary .ts-body{font-size:17px;}
+}
 
 /* ─── Today's Conclusion strip — top of Control Panel ─── */
 .conclusion{
@@ -1182,6 +1302,13 @@ body{
 <header class="masthead">
   <div class="mast-row">
     <div class="mast-title">COT <span class="et">&amp;</span> Explorer</div>
+    <div class="mast-tools">
+      <a class="mast-link" href="docs/reading-guide.html">Reading Guide</a>
+      <button class="mode-toggle" id="readerToggle" type="button" aria-pressed="false" title="Hide jargon, simplify gauges and labels">
+        <span class="mt-dot" aria-hidden="true"></span>
+        <span class="mt-label">Reader Mode</span>
+      </button>
+    </div>
     <div class="mast-sub">Observatory of Speculative Positioning · Established 2026</div>
   </div>
   <div class="mast-rules">
@@ -1191,23 +1318,23 @@ body{
 
 <div class="tabs-wrap" id="tabsWrap">
 <nav class="tabs">
-  <button class="tab active" data-tab="control"><span>Control Panel</span><span class="num">I</span></button>
-  <button class="tab" data-tab="observatory"><span>Market Regime</span><span class="num">II</span></button>
-  <button class="tab" data-tab="positions"><span>Positions</span><span class="num">III</span></button>
-  <button class="tab" data-tab="setups"><span>Setups</span><span class="num">IV</span></button>
-  <button class="tab" data-tab="bedrock"><span>Bedrock</span><span class="num">V</span></button>
-  <button class="tab" data-tab="pipeline"><span>Pipeline</span><span class="num">VI</span></button>
+  <button class="tab active" data-tab="control"><span class="tab-lbl" data-plain="Today" data-tech="Control Panel">Today</span><span class="num">I</span></button>
+  <button class="tab" data-tab="observatory"><span class="tab-lbl" data-plain="Markets at a Glance" data-tech="Market Regime">Markets at a Glance</span><span class="num">II</span></button>
+  <button class="tab" data-tab="positions"><span class="tab-lbl" data-plain="Position Pressure" data-tech="Positions">Position Pressure</span><span class="num">III</span></button>
+  <button class="tab" data-tab="setups"><span class="tab-lbl" data-plain="Trade Ideas" data-tech="Setups">Trade Ideas</span><span class="num">IV</span></button>
+  <button class="tab tab-tech" data-tab="bedrock"><span class="tab-lbl" data-plain="Engine Room" data-tech="Bedrock">Engine Room</span><span class="num">V</span></button>
+  <button class="tab tab-tech" data-tab="pipeline"><span class="tab-lbl" data-plain="Data Health" data-tech="Pipeline">Data Health</span><span class="num">VI</span></button>
 </nav>
 </div>
 
 <div class="state-strip" id="stateStrip">
-  <div class="state-cell"><span class="lbl">COT Date</span><span class="val" id="ssCotDate">—</span></div>
-  <div class="state-cell"><span class="lbl">USD Bias</span><span class="val" id="ssUsd">—</span></div>
-  <div class="state-cell"><span class="lbl">VIX Regime</span><span class="val" id="ssVix">—</span></div>
+  <div class="state-cell"><span class="lbl"><span class="gloss" data-term="cot">COT</span> Date</span><span class="val" id="ssCotDate">—</span></div>
+  <div class="state-cell"><span class="lbl"><span class="gloss" data-term="dxy">USD</span> Bias</span><span class="val" id="ssUsd">—</span></div>
+  <div class="state-cell"><span class="lbl"><span class="gloss" data-term="vix">VIX</span> Regime</span><span class="val" id="ssVix">—</span></div>
   <div class="state-cell"><span class="lbl">Geopolitical</span><span class="val" id="ssGeo">—</span></div>
   <div class="state-cell"><span class="lbl">Oil Warning</span><span class="val" id="ssOil">—</span></div>
-  <div class="state-cell"><span class="lbl">ENSO</span><span class="val" id="ssEnso">—</span></div>
-  <div class="state-cell"><span class="lbl">BDI Signal</span><span class="val" id="ssBdi">—</span></div>
+  <div class="state-cell"><span class="lbl"><span class="gloss" data-term="enso">ENSO</span></span><span class="val" id="ssEnso">—</span></div>
+  <div class="state-cell"><span class="lbl"><span class="gloss" data-term="bdi">BDI</span> Signal</span><span class="val" id="ssBdi">—</span></div>
   <div class="state-cell"><span class="lbl">Last Refresh</span><span class="val" id="ssRefresh">—</span></div>
 </div>
 
@@ -1215,6 +1342,8 @@ body{
 
   <!-- ═══════════════════════ I · CONTROL PANEL ═══════════════════════ -->
   <section class="panel active" id="panel-control">
+    <!-- Today in one sentence — plain-language summary, top of page -->
+    <div id="todaySummary" class="today-summary"></div>
     <!-- Today's Conclusion strip — strongest bull / bear / extremes / freshness -->
     <div id="ctrlConclusion"></div>
     <div class="plate">
@@ -1229,8 +1358,8 @@ body{
           <span class="mast-sub" id="ctrlSummary" style="margin-left:auto;"></span>
         </div>
         <p class="descr" style="border:0;padding:6px 0 12px;">
-          <em>Each card aggregates COT positioning, macro fundamentals, sector data (COMEX, EIA, ENSO, weather, shipping) and event-risk into one signal.
-          The gauge runs <strong>−3 (bearish) to +3 (bullish)</strong>; the bars below name the contributing factors.
+          <em>Each card aggregates <span class="gloss" data-term="cot">COT positioning</span>, macro fundamentals, sector data (COMEX, EIA, <span class="gloss" data-term="enso">ENSO</span>, weather, shipping) and event-risk into one signal.
+          The <span class="gloss" data-term="gauge">gauge</span> runs <strong>−3 (<span class="gloss" data-term="bear">bearish</span>) to +3 (<span class="gloss" data-term="bull">bullish</span>)</strong>; the bars below name the contributing factors.
           Click a card to drill into the underlying market in <strong>Positions</strong>.</em>
         </p>
         <div class="ctrl-grid" id="ctrlGrid"><div class="skel">Loading market signals…</div></div>
@@ -1262,7 +1391,7 @@ body{
   <section class="panel" id="panel-positions">
     <div class="hm-controls" id="hmControls">
       <div class="hm-cat-toggles" id="hmCatToggles"></div>
-      <label class="hm-extreme"><input type="checkbox" id="hmExtreme"> Extremes only (≤10 / ≥90 pct)</label>
+      <label class="hm-extreme"><input type="checkbox" id="hmExtreme"> <span class="gloss" data-term="extreme">Extremes</span> only (≤10 / ≥90 <span class="gloss" data-term="percentile">pct</span>)</label>
       <select class="hm-sort" id="hmSort">
         <option value="pct">Sort: percentile</option>
         <option value="chgAbs">Sort: largest move (abs)</option>
@@ -1280,12 +1409,13 @@ body{
   <!-- ═══════════════════════ IV · SETUPS ═══════════════════════ -->
   <section class="panel" id="panel-setups">
     <p class="explainer">
-      <strong>Setups vs Bedrock — what's the difference?</strong><br>
-      <strong class="hi">Setups (this tab)</strong> shows only the <em>published, A/B-grade observations</em> from cot-explorer's
-      own scorer — filtered, conviction-checked, ready to read. <strong class="hi">Bedrock (tab V)</strong> exposes the
-      <em>full scoring engine</em>: every instrument, every driver, every horizon, including <em>unpublished
-      candidates</em> that didn't clear the publish threshold. Use Setups for "what looks tradable today,"
-      Bedrock for "why" and "what's nearly there."
+      <strong>What is a <span class="gloss" data-term="setup">setup</span>?</strong>
+      A market observation that has passed our quality filter — labelled A or B by conviction. Read-only, not a trade order.<br>
+      <span class="reader-hide"><strong class="hi">Setups (this tab)</strong> shows only the <em>published, A/B-grade observations</em> from cot-explorer's
+      own scorer — filtered, conviction-checked, ready to read. <strong class="hi"><span class="gloss" data-term="bedrock">Bedrock</span> (tab V)</strong> exposes the
+      <em>full scoring engine</em>: every instrument, every <span class="gloss" data-term="driver">driver</span>, every <span class="gloss" data-term="horizon">horizon</span>, including <em>unpublished
+      candidates</em> that didn't clear the <span class="gloss" data-term="publish">publish threshold</span>. Use Setups for "what looks tradable today,"
+      Bedrock for "why" and "what's nearly there."</span>
     </p>
     <div class="plate">
       <div class="plate-hd">
@@ -1298,7 +1428,7 @@ body{
       </div>
     </div>
     <p class="descr" style="border:0;padding:14px 6px;">
-      <em>Read-only observations. The score combines trend, positioning, macro, fundamentals, event-risk, and structure.
+      <em>Read-only observations. The <span class="gloss" data-term="scoring">score</span> combines trend, <span class="gloss" data-term="cot">positioning</span>, macro, fundamentals, event-risk, and structure.
       Each row links back to the underlying market in <strong>Positions</strong>. No price targets are given —
       this is observation, not orders.</em>
     </p>
@@ -1307,9 +1437,9 @@ body{
   <!-- ═══════════════════════ V · BEDROCK ═══════════════════════ -->
   <section class="panel" id="panel-bedrock">
     <p class="explainer">
-      <strong>Bedrock — the full scoring engine.</strong>
-      Every instrument scored across 6 driver families (financial) or 8 (agri), with each individual driver visible
-      on click. Three status views: <strong class="hi">Published</strong> = signals that cleared their
+      <strong><span class="gloss" data-term="bedrock">Bedrock</span> — the full scoring engine.</strong>
+      Every instrument scored across 6 <span class="gloss" data-term="driver">driver</span> families (financial) or 8 (agri), with each individual driver visible
+      on click. Three status views: <strong class="hi"><span class="gloss" data-term="publish">Published</span></strong> = signals that cleared their
       <code>min_score_publish</code> threshold (tradable). <strong class="hi">Near publish</strong> = signals at
       70–99 % of their threshold — almost there, watch for the next refresh.
       <strong class="hi">All</strong> = the full deck including unpublished candidates. Use the Asset-Class filter
@@ -1347,9 +1477,9 @@ body{
           <span class="mast-sub" id="bedrockCount" style="margin-left:auto;"></span>
         </div>
         <p class="descr" style="border:0;padding:6px 0 10px;">
-          <em>Bedrock evaluates each instrument across <strong>six driver families</strong> (trend, positioning, macro,
+          <em><span class="gloss" data-term="bedrock">Bedrock</span> evaluates each instrument across <strong>six <span class="gloss" data-term="driver">driver</span> families</strong> (trend, positioning, macro,
           fundamental, risk, structure) using ~96 individual drivers configured per instrument. A signal is
-          <em>published</em> only when its score clears that instrument's <strong>min_score_publish</strong> threshold.
+          <em><span class="gloss" data-term="publish">published</span></em> only when its <span class="gloss" data-term="scoring">score</span> clears that instrument's <strong>min_score_publish</strong> threshold.
           Click a row to inspect every driver that fired.</em>
         </p>
         <div id="bedrockList"><div class="skel">Loading driver scores…</div></div>
@@ -2664,6 +2794,73 @@ function _ctrlFreshness(rules){
   return                  {label: ageDays.toFixed(0)+'d', cls:'stale', ageH:ageDays*24};
 }
 
+/* "Today in one sentence" — plain-English hero summary, no jargon.
+   Pulls top bull/bear from the same synthesized list as the grid, then
+   garnishes with the loudest global-state flags (USD bias, oil warning,
+   ENSO, VIX). Output is one or two sentences in Cormorant serif. */
+function renderTodaySummary(items){
+  const el = document.getElementById('todaySummary');
+  if(!el) return;
+  const scored = items.map(r => ({rules:r, s: synthesize(r)}))
+                      .filter(x => x.s.factors.length > 0);
+  const bulls = [...scored].filter(x=>x.s.score>=0.5).sort((a,b)=>b.s.score-a.s.score);
+  const bears = [...scored].filter(x=>x.s.score<=-0.5).sort((a,b)=>a.s.score-b.s.score);
+  const topBull = bulls.slice(0,2).map(x=>x.rules.name);
+  const topBear = bears.slice(0,2).map(x=>x.rules.name);
+
+  // Global tone fragments — only mention what is actually noteworthy.
+  const fund = D.fund||{}, agri = D.agri||{}, ship = D.shipping||{};
+  const gs = (D.signals||{}).global_state || {};
+  const fragments = [];
+  const usdBias = (fund.usd_fundamental?.bias||'').toLowerCase();
+  if(usdBias.startsWith('bull') || usdBias==='strong_bullish'){
+    fragments.push('the <strong>dollar is firm</strong>');
+  } else if(usdBias.startsWith('bear') || usdBias==='strong_bearish'){
+    fragments.push('the <strong>dollar is soft</strong>');
+  }
+  const vix = (gs.vix_regime||'').toLowerCase();
+  if(vix==='spike') fragments.push('volatility is <span class="ts-warn">spiking</span>');
+  else if(vix==='elevated') fragments.push('volatility is elevated');
+  if(gs.oil_geo_warning) fragments.push('a <span class="ts-warn">geopolitical oil warning</span> is active');
+  if(gs.geo_active && !gs.oil_geo_warning) fragments.push('geopolitical risk is active');
+  const enso = (agri.enso?.phase||'').toLowerCase();
+  if(enso && enso!=='neutral' && enso!=='—') fragments.push('ENSO is in a <strong>'+escapeHTML(enso)+'</strong> phase');
+  const bdi = (ship.bdi_signal||'').toLowerCase();
+  if(bdi && bdi!=='neutral' && bdi!=='—') fragments.push('shipping demand is <strong>'+escapeHTML(bdi)+'</strong>');
+
+  // Build the sentence.
+  const fmtList = arr => arr.length===2 ? arr[0]+' and '+arr[1] : arr.join(', ');
+  const bullPart = topBull.length
+    ? 'Strongest bullish reads: <span class="ts-pos">'+escapeHTML(fmtList(topBull))+'</span>'
+    : null;
+  const bearPart = topBear.length
+    ? 'strongest bearish: <span class="ts-neg">'+escapeHTML(fmtList(topBear))+'</span>'
+    : null;
+  let signalSentence;
+  if(bullPart && bearPart)      signalSentence = bullPart+'; '+bearPart+'.';
+  else if(bullPart)             signalSentence = bullPart+'. No bearish reads stand out today.';
+  else if(bearPart)             signalSentence = 'No bullish reads stand out today; '+bearPart+'.';
+  else                          signalSentence = 'No markets stand out above the noise floor today — positioning is broadly mixed.';
+
+  const contextSentence = fragments.length
+    ? 'Right now '+fmtList(fragments.slice(0,3))+'.'
+    : '';
+
+  // Counts for the meta line.
+  const cnt = scored.length;
+  const bullCnt = scored.filter(x=>x.s.score>=0.25).length;
+  const bearCnt = scored.filter(x=>x.s.score<=-0.25).length;
+  const cotDate = (D.signals||{}).cot_date || (D.combined && D.combined[0] && D.combined[0].date) || null;
+
+  el.innerHTML = `
+    <div class="ts-eyebrow">Today in one sentence</div>
+    <div class="ts-body">${contextSentence ? contextSentence+' ' : ''}${signalSentence}</div>
+    <div class="ts-meta">
+      ${cnt} instrument${cnt===1?'':'s'} scanned · ${bullCnt} bullish · ${bearCnt} bearish · ${cnt-bullCnt-bearCnt} neutral
+      ${cotDate ? ' · COT date '+escapeHTML(cotDate) : ''}
+    </div>`;
+}
+
 /* "Today's Conclusion" strip — strongest signals + freshness + extremes */
 function renderConclusion(items){
   const scored = items.map(r => ({rules:r, s: synthesize(r)}))
@@ -2753,7 +2950,8 @@ function renderConclusion(items){
 
 function drawControl(){
   const items = SYNTH.filter(r=>CTRL_STATE.groups.has(r.group));
-  // Today's Conclusion at top — same filter as the grid below
+  // Plain-language hero summary at the very top, then the bull/bear cards
+  renderTodaySummary(items);
   renderConclusion(items);
   const cards = items.map(rules=>{
     const s = synthesize(rules);
@@ -4077,6 +4275,210 @@ $$('.tab').forEach(t=>t.addEventListener('click',()=>{
   // Keep the active tab visible when the strip scrolls horizontally on mobile
   t.scrollIntoView({inline:'nearest', block:'nearest', behavior:'smooth'});
 }));
+
+/* ════════════ GLOSSARY ════════════
+   Plain-English definitions of recurring jargon. Triggered by any
+   element with class .gloss and a data-term attribute. Hovering or
+   tapping reveals a small popover with the definition plus an
+   optional technical footnote. */
+const GLOSSARY = {
+  cot:{
+    term:'COT report',
+    def:'Commitments of Traders. A weekly US government report that lists who owns what in commodity and currency futures — split into hedgers, speculators, and small traders.',
+    tech:'Source: CFTC, ICE, Euronext. Tuesday snapshot, published Friday.'
+  },
+  open_interest:{
+    term:'Open interest',
+    def:'The total number of futures contracts that exist right now. Rising open interest means new money is coming in; falling means positions are being closed.'
+  },
+  percentile:{
+    term:'Percentile',
+    def:'Where today’s number sits compared to the past few years. 0 means record low, 100 means record high. Above 90 or below 10 is usually called an extreme.'
+  },
+  extreme:{
+    term:'Extreme',
+    def:'Positioning that sits in the top or bottom 10% of its historical range. Crowded trades — they often unwind in sharp moves.'
+  },
+  bull:{
+    term:'Bullish',
+    def:'Tilted toward a rising price.'
+  },
+  bear:{
+    term:'Bearish',
+    def:'Tilted toward a falling price.'
+  },
+  gauge:{
+    term:'Bull / Bear gauge',
+    def:'A single number from −3 (strongly bearish) to +3 (strongly bullish) that combines positioning, macro, sector data, and event risk into one reading per market.'
+  },
+  bedrock:{
+    term:'Bedrock',
+    def:'The internal scoring engine behind the trade ideas. Tab V lets you look under the hood and see every individual driver — most readers can skip it.',
+    tech:'~96 drivers across 6 families (trend, positioning, macro, fundamental, risk, structure), asymmetric per direction and horizon.'
+  },
+  publish:{
+    term:'Published vs near publish',
+    def:'A signal is “published” when its score clears the threshold the engine considers tradable. “Near publish” means it is close — worth watching, not yet ready.',
+    tech:'Threshold is per instrument and direction (min_score_publish).'
+  },
+  driver:{
+    term:'Driver',
+    def:'A single piece of evidence — for example, “positioning is at a 5-year extreme” or “the dollar is strengthening”. Many drivers together form a signal.'
+  },
+  horizon:{
+    term:'Horizon',
+    def:'How long a signal is meant to last. Scalp = hours to a day. Swing = days to weeks. Macro = weeks to months.'
+  },
+  setup:{
+    term:'Setup',
+    def:'A read-only observation about a market that has cleared the publish threshold. Each row is an A or B grade — not a trade order, just a labelled view.'
+  },
+  affects:{
+    term:'Affects',
+    def:'Which markets a given signal is currently bearing on. Click any tag to jump to that instrument in the Position Pressure tab.'
+  },
+  enso:{
+    term:'ENSO',
+    def:'El Niño / La Niña — Pacific ocean temperature cycle that swings global rainfall and matters for grains, sugar, coffee, and cocoa.'
+  },
+  bdi:{
+    term:'BDI',
+    def:'Baltic Dry Index — the price of moving bulk goods by sea. A real-time read on global trade demand.'
+  },
+  vix:{
+    term:'VIX',
+    def:'The market’s “fear gauge”. Implied volatility of the S&P 500 over the next 30 days. Above 25 = stressed, below 15 = complacent.'
+  },
+  dxy:{
+    term:'DXY',
+    def:'A trade-weighted index of the US dollar against major peers. The single most important macro number for most markets.'
+  },
+  wasde:{
+    term:'WASDE',
+    def:'World Agricultural Supply and Demand Estimates. Monthly US government report that sets the agenda for grains and softs markets.'
+  },
+  scoring:{
+    term:'Score',
+    def:'The number the engine gives a signal after summing all its drivers. Higher is more conviction. Each instrument has its own publish threshold.'
+  }
+};
+
+/* Mount a single shared popover element. */
+(function _initGlossary(){
+  if(document.getElementById('glossPop')) return;
+  const pop = document.createElement('div');
+  pop.id = 'glossPop';
+  pop.className = 'gloss-pop';
+  pop.setAttribute('role','tooltip');
+  document.body.appendChild(pop);
+  let openFor = null;
+  let hideTimer = null;
+  const render = (key)=>{
+    const g = GLOSSARY[key];
+    if(!g) return false;
+    pop.innerHTML =
+      '<span class="gp-term">'+g.term+'</span>'
+      + '<span class="gp-def">'+g.def+'</span>'
+      + (g.tech ? '<span class="gp-tech">'+g.tech+'</span>' : '')
+      + '<span class="gp-more"><a href="docs/reading-guide.html#glossary">Full glossary →</a></span>';
+    return true;
+  };
+  const place = (el)=>{
+    const r = el.getBoundingClientRect();
+    pop.style.visibility = 'hidden';
+    pop.classList.add('open');
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    let left = r.left + r.width/2 - pw/2;
+    let top  = r.bottom + 8;
+    if(left < 10) left = 10;
+    if(left + pw > window.innerWidth - 10) left = window.innerWidth - pw - 10;
+    if(top + ph > window.innerHeight - 10) top = r.top - ph - 8;
+    pop.style.left = left + 'px';
+    pop.style.top  = top  + 'px';
+    pop.style.visibility = '';
+  };
+  const show = (el)=>{
+    if(hideTimer){ clearTimeout(hideTimer); hideTimer = null; }
+    const key = el.dataset.term;
+    if(!render(key)) return;
+    place(el);
+    openFor = el;
+  };
+  const scheduleHide = ()=>{
+    if(hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(()=>{
+      pop.classList.remove('open');
+      openFor = null;
+    }, 120);
+  };
+  document.addEventListener('mouseover', e=>{
+    const el = e.target.closest && e.target.closest('.gloss');
+    if(el) show(el);
+  });
+  document.addEventListener('mouseout', e=>{
+    const el = e.target.closest && e.target.closest('.gloss');
+    if(el) scheduleHide();
+  });
+  pop.addEventListener('mouseenter', ()=>{ if(hideTimer){ clearTimeout(hideTimer); hideTimer=null; } });
+  pop.addEventListener('mouseleave', scheduleHide);
+  document.addEventListener('click', e=>{
+    const el = e.target.closest && e.target.closest('.gloss');
+    if(el){
+      e.preventDefault();
+      if(openFor === el){
+        pop.classList.remove('open');
+        openFor = null;
+      } else {
+        show(el);
+      }
+      return;
+    }
+    if(openFor && !pop.contains(e.target)){
+      pop.classList.remove('open');
+      openFor = null;
+    }
+  });
+  window.addEventListener('scroll', ()=>{
+    if(openFor) pop.classList.remove('open');
+    openFor = null;
+  }, {passive:true});
+})();
+
+/* ════════════ READER MODE TOGGLE ════════════
+   Lay-reader view: hides Engine Room + Data Health tabs, swaps technical
+   tab labels for plain-English aliases, softens italic descr-paragraphs.
+   State persists in localStorage. If the active tab gets hidden, fall
+   back to Today. */
+(function _initReaderMode(){
+  const btn = document.getElementById('readerToggle');
+  if(!btn) return;
+  const KEY = 'cotx.readerMode';
+  const apply = (on)=>{
+    document.body.classList.toggle('reader-mode', on);
+    btn.setAttribute('aria-pressed', on?'true':'false');
+    // Swap tab labels: tech ↔ plain.
+    document.querySelectorAll('.tab-lbl').forEach(s=>{
+      const plain = s.dataset.plain, tech = s.dataset.tech;
+      if(!plain || !tech) return;
+      s.textContent = on ? plain : tech;
+    });
+    // If we just hid the currently active tab, fall back to Today.
+    if(on){
+      const active = document.querySelector('.tab.active');
+      if(active && active.classList.contains('tab-tech')){
+        document.querySelector('.tab[data-tab="control"]')?.click();
+      }
+    }
+    try{ localStorage.setItem(KEY, on?'1':'0'); }catch(_){}
+  };
+  // Default: tech-view OFF so power-users see what they expect.
+  // First-time visitors get Reader Mode ON for a friendlier landing.
+  let stored = null;
+  try{ stored = localStorage.getItem(KEY); }catch(_){}
+  const initialOn = stored === null ? true : stored === '1';
+  apply(initialOn);
+  btn.addEventListener('click', ()=> apply(!(btn.getAttribute('aria-pressed')==='true')));
+})();
 /* Show a fade on the right edge of the tab strip when more tabs are off-screen,
    and hide it once the user has scrolled to the end. Updates on resize too. */
 function _updateTabsOverflow(){

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Guide · COT Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink-bg:#0e1320;
+  --ink-bg-2:#131a2a;
+  --ink-paper:#f0e6cf;
+  --ink-paper-2:#e9dcb9;
+  --ink-rule:#2a334a;
+  --ink-rule-soft:#1d2536;
+  --ink-bone:#e8dcc0;
+  --ink-bone-dim:#a89e85;
+  --ink-mute:#6c7589;
+  --brass:#c9a35e;
+  --brass-dim:#8b6f3e;
+  --brass-soft:rgba(201,163,94,.14);
+  --sig-pos:#6b9d7a;
+  --sig-neg:#c25c5c;
+  --sig-warn:#d4a44a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{
+  background:var(--ink-bg);
+  color:var(--ink-bone);
+  font-family:'Cormorant Garamond',serif;
+  font-size:17px;line-height:1.65;
+  min-height:100%;
+}
+body{
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,163,94,.04), transparent 60%),
+    linear-gradient(180deg, #0e1320 0%, #0a0e18 100%);
+  background-attachment:fixed;
+  padding:0 0 80px;
+}
+.masthead{
+  border-bottom:1px solid var(--ink-rule);
+  background:linear-gradient(180deg,#13192a 0%,#0e1320 100%);
+  padding:18px 28px 14px;
+  display:flex;align-items:baseline;gap:18px;
+}
+.mast-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px;line-height:1;font-weight:600;
+  color:var(--ink-paper);letter-spacing:.02em;
+}
+.mast-title .et{color:var(--brass);font-style:italic;font-weight:400;margin:0 .2em;}
+.mast-back{
+  font-style:italic;font-size:14px;
+  color:var(--ink-bone-dim);text-decoration:none;
+  border-bottom:1px dotted var(--brass-dim);
+}
+.mast-back:hover{color:var(--brass);border-bottom-color:var(--brass);}
+.mast-sub{
+  font-style:italic;color:var(--ink-bone-dim);font-size:14px;
+  margin-left:auto;letter-spacing:.04em;
+}
+.rule-double{
+  border:0;border-top:1px solid var(--brass-dim);
+  box-shadow:0 2px 0 -1px var(--brass-dim);height:2px;margin:10px 28px 0;
+}
+
+.wrap{max-width:760px;margin:0 auto;padding:32px 28px 0;}
+h1.page{
+  font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;
+  color:var(--ink-paper);letter-spacing:.01em;line-height:1.15;
+  margin-bottom:6px;
+}
+.lede{
+  font-style:italic;color:var(--ink-bone-dim);font-size:17px;
+  margin-bottom:30px;padding-bottom:18px;
+  border-bottom:1px solid var(--ink-rule);
+}
+
+h2{
+  font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;
+  color:var(--brass);letter-spacing:.04em;
+  margin:34px 0 4px;
+  display:flex;align-items:baseline;gap:12px;
+}
+h2 .num{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--ink-mute);font-weight:400;letter-spacing:0;
+  border:1px solid var(--ink-rule);padding:2px 6px;
+}
+h3{
+  font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;
+  color:var(--ink-paper);letter-spacing:.02em;
+  margin:18px 0 4px;
+}
+p{margin-bottom:12px;color:var(--ink-bone);}
+ul, ol{margin:6px 0 14px 22px;color:var(--ink-bone);}
+li{margin-bottom:6px;}
+em{color:var(--ink-bone-dim);}
+strong{color:var(--ink-paper);font-weight:600;}
+code{
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  background:rgba(201,163,94,.08);padding:1px 5px;
+  border:1px solid var(--brass-dim);color:var(--ink-paper);
+}
+.callout{
+  background:linear-gradient(180deg,#141a2c 0%,#10162a 100%);
+  border:1px solid var(--ink-rule);
+  border-left:3px solid var(--brass);
+  padding:14px 18px;margin:18px 0;
+  font-size:16px;
+}
+.callout .ttl{
+  display:block;
+  font-family:'Cormorant Garamond',serif;
+  font-size:13px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--brass);margin-bottom:6px;
+}
+.gauge-demo{
+  display:flex;align-items:center;gap:10px;
+  margin:12px 0 6px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+}
+.gauge-bar{
+  flex:1;height:10px;
+  background:linear-gradient(90deg, var(--sig-neg) 0%, #2a334a 50%, var(--sig-pos) 100%);
+  border:1px solid var(--ink-rule);
+}
+.gauge-end{color:var(--ink-bone-dim);width:80px;}
+.gauge-end.l{text-align:right;}
+.gauge-end.r{text-align:left;}
+
+.glossary{
+  background:linear-gradient(180deg,#141a2c 0%,#10162a 100%);
+  border:1px solid var(--ink-rule);
+  padding:20px 22px;margin-top:14px;
+}
+.glossary dt{
+  font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;
+  color:var(--brass);margin-top:14px;
+  letter-spacing:.04em;
+}
+.glossary dt:first-child{margin-top:0;}
+.glossary dd{
+  margin:2px 0 0 0;color:var(--ink-bone);font-size:15px;line-height:1.55;
+}
+.glossary dd .tech{
+  display:block;margin-top:4px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--ink-mute);letter-spacing:.02em;
+}
+
+.further{
+  margin-top:32px;padding-top:18px;
+  border-top:1px solid var(--ink-rule);
+}
+.further a{
+  color:var(--brass);text-decoration:none;
+  border-bottom:1px dotted var(--brass-dim);
+}
+.further a:hover{border-bottom-color:var(--brass);}
+
+@media (max-width:640px){
+  .masthead{padding:14px 18px 10px;flex-wrap:wrap;}
+  .rule-double{margin:8px 18px 0;}
+  .wrap{padding:24px 18px 0;}
+  h1.page{font-size:30px;}
+  h2{font-size:21px;}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="mast-title">COT <span class="et">&amp;</span> Explorer</div>
+  <a class="mast-back" href="../index.html">← back to the deck</a>
+  <div class="mast-sub">Reading Guide · for first-time readers</div>
+</header>
+<hr class="rule-double">
+
+<main class="wrap">
+
+  <h1 class="page">How to read this almanac</h1>
+  <p class="lede">
+    The dashboard looks dense at first because it pulls together a lot of separate market signals into one view.
+    You do not have to understand every column. This page walks through the parts in plain English,
+    in the order most readers find useful. Bookmark it — there is no test.
+  </p>
+
+  <h2><span class="num">I</span> What you are looking at</h2>
+  <p>
+    The site is a quiet, daily snapshot of the futures markets — currencies, metals, oil, grains,
+    softs (coffee, sugar, cocoa, cotton), bond yields, and a few crypto contracts.
+    It does <em>not</em> tell you to buy or sell anything. It gives you a labelled view of
+    <strong>where positioning is, what the macro backdrop looks like, and which markets are leaning bullish or bearish today</strong>.
+  </p>
+  <p>
+    Think of it the way a sailor thinks of an almanac: a reference you check before setting out,
+    so you know where the tides and winds are likely to be.
+  </p>
+
+  <h2><span class="num">II</span> Reader Mode</h2>
+  <p>
+    The button in the top-right of the deck. Off by default for power users; on by default for
+    first-time visitors. When on, the two most technical tabs (<strong>Engine Room</strong> and
+    <strong>Data Health</strong>) are hidden, the tab labels switch to plain English, and the small
+    italic explanations under each panel become shorter.
+  </p>
+  <p>
+    Nothing is deleted — turn it off any time you want the full view. Your choice is remembered between visits.
+  </p>
+
+  <h2><span class="num">III</span> The Today tab — your starting point</h2>
+  <p>
+    The first tab (<strong>Today</strong>) is where almost everyone should start.
+    It opens with a single sentence summarising the day, followed by two short cards
+    ("Top Bullish" and "Top Bearish"), and then a grid of one card per market.
+  </p>
+
+  <h3>The bull / bear gauge</h3>
+  <p>Each card carries one number from −3 to +3:</p>
+  <div class="gauge-demo">
+    <span class="gauge-end l">−3 bearish</span>
+    <span class="gauge-bar"></span>
+    <span class="gauge-end r">+3 bullish</span>
+  </div>
+  <ul>
+    <li><strong>Around 0</strong> — no clear lean. Most cards live here.</li>
+    <li><strong>±1</strong> — a real tilt, worth noting.</li>
+    <li><strong>±2 or more</strong> — strong, multi-source agreement.</li>
+  </ul>
+  <p>
+    Click any card to open a deeper view of that market.
+  </p>
+
+  <div class="callout">
+    <span class="ttl">Rule of thumb</span>
+    Treat the gauge as a thermometer, not an order. It says <em>"this market is leaning this way today"</em>,
+    not <em>"buy this now"</em>.
+  </div>
+
+  <h2><span class="num">IV</span> What is a COT report?</h2>
+  <p>
+    "COT" stands for <strong>Commitments of Traders</strong>. Every Friday, the US futures regulator
+    publishes a snapshot of who owns what in the futures markets, split into a handful of groups:
+  </p>
+  <ul>
+    <li><strong>Commercials</strong> — producers and consumers (an oil company, a wheat mill).
+        They use futures to lock in prices and hedge their real-world business.</li>
+    <li><strong>Managed money / large speculators</strong> — hedge funds and big traders.
+        They are betting on price direction.</li>
+    <li><strong>Small traders</strong> — everyone else.</li>
+  </ul>
+  <p>
+    When speculators are extremely crowded on one side, that is often interesting — crowded trades
+    tend to unwind sharply. The dashboard flags these as <strong>extremes</strong> (top or bottom 10% of the
+    past few years).
+  </p>
+
+  <h2><span class="num">V</span> Trade Ideas vs Engine Room</h2>
+  <p>
+    Two tabs cover the same underlying scoring, but at different levels of detail.
+  </p>
+  <ul>
+    <li><strong>Trade Ideas</strong> shows only the observations that have passed the quality filter —
+        labelled A or B by conviction. Read-only. Designed to be skimmable.</li>
+    <li><strong>Engine Room</strong> exposes every score for every market and every time-horizon,
+        including the ones that did not pass the filter. Useful for understanding <em>why</em>
+        a market is or is not on the list — overkill for casual reading.</li>
+  </ul>
+  <p>
+    If you are not sure: stick with Trade Ideas. Engine Room will still be there when you are curious.
+  </p>
+
+  <h2><span class="num">VI</span> Data Health</h2>
+  <p>
+    The last tab simply shows whether each upstream data source has been refreshed recently.
+    Green means recent, amber means aging, red means stale. If something on the main pages looks
+    off, this is where you check whether the underlying feed is the problem.
+  </p>
+
+  <h2 id="glossary"><span class="num">G</span> Glossary</h2>
+  <p>
+    Same definitions you see in the small popovers on the main page, gathered in one place.
+  </p>
+  <dl class="glossary">
+    <dt>COT report</dt>
+    <dd>Commitments of Traders. A weekly US government report listing who owns what in commodity and currency futures, split into hedgers, speculators and small traders.
+      <span class="tech">Source: CFTC, ICE, Euronext. Tuesday snapshot, published Friday.</span></dd>
+
+    <dt>Open interest</dt>
+    <dd>The total number of futures contracts that exist right now. Rising open interest means new money is coming in; falling means positions are being closed.</dd>
+
+    <dt>Percentile</dt>
+    <dd>Where today's number sits compared to the past few years. 0 = record low, 100 = record high. Above 90 or below 10 is usually called an extreme.</dd>
+
+    <dt>Extreme</dt>
+    <dd>Positioning that sits in the top or bottom 10% of its historical range. Crowded trades — they often unwind in sharp moves.</dd>
+
+    <dt>Bullish / Bearish</dt>
+    <dd>Tilted toward a rising / falling price.</dd>
+
+    <dt>Bull / bear gauge</dt>
+    <dd>A single number from −3 (strongly bearish) to +3 (strongly bullish) that combines positioning, macro, sector data and event risk into one reading per market.</dd>
+
+    <dt>Bedrock</dt>
+    <dd>The internal scoring engine behind the trade ideas. Tab V (Engine Room) lets you look under the hood. Most readers can skip it.
+      <span class="tech">~96 drivers across 6 families (trend, positioning, macro, fundamental, risk, structure), asymmetric per direction and horizon.</span></dd>
+
+    <dt>Published vs near publish</dt>
+    <dd>A signal is "published" when its score clears the threshold the engine considers tradable. "Near publish" means it is close — worth watching, not yet ready.
+      <span class="tech">Threshold is per instrument and direction (min_score_publish).</span></dd>
+
+    <dt>Driver</dt>
+    <dd>A single piece of evidence — for example "positioning is at a 5-year extreme" or "the dollar is strengthening". Many drivers together form a signal.</dd>
+
+    <dt>Horizon</dt>
+    <dd>How long a signal is meant to last. Scalp = hours to a day. Swing = days to weeks. Macro = weeks to months.</dd>
+
+    <dt>Setup</dt>
+    <dd>A read-only observation about a market that has cleared the publish threshold. Each row is labelled A or B by conviction — not a trade order, just a view.</dd>
+
+    <dt>Affects</dt>
+    <dd>Which markets a given signal is currently bearing on. Click any tag to jump to that instrument in the Position Pressure tab.</dd>
+
+    <dt>ENSO</dt>
+    <dd>El Niño / La Niña — the Pacific ocean temperature cycle that swings global rainfall. Matters for grains, sugar, coffee and cocoa.</dd>
+
+    <dt>BDI</dt>
+    <dd>Baltic Dry Index — the price of moving bulk goods by sea. A real-time read on global trade demand.</dd>
+
+    <dt>VIX</dt>
+    <dd>The market's "fear gauge" — implied volatility of the S&amp;P 500 over the next 30 days. Above 25 = stressed, below 15 = complacent.</dd>
+
+    <dt>DXY</dt>
+    <dd>A trade-weighted index of the US dollar against major peers. The single most important macro number for most markets.</dd>
+
+    <dt>WASDE</dt>
+    <dd>World Agricultural Supply and Demand Estimates. The monthly US government report that sets the agenda for grains and softs.</dd>
+
+    <dt>Score</dt>
+    <dd>The number the engine gives a signal after summing all its drivers. Higher is more conviction. Each instrument has its own publish threshold.</dd>
+  </dl>
+
+  <div class="further">
+    <p>
+      For the full technical writeups of how signals are generated and scored, see
+      <a href="signal-generation-detailed.md">signal-generation-detailed</a> and
+      <a href="agri-signals-bot-integration.md">agri-signals-bot-integration</a>.
+      Those are unchanged engineering docs — this Reading Guide is a layer over them, not a replacement.
+    </p>
+  </div>
+
+</main>
+
+</body>
+</html>
