@@ -19,10 +19,36 @@ Vekting for høy-sannsynlighets-setups:
 """
 import urllib.request, json, os, time
 from datetime import datetime, timezone
+from pathlib import Path
 
-FRED_API_KEY = os.environ.get("FRED_API_KEY", "")
+
+def _load_bedrock_secret(key: str) -> str:
+    """Les KEY=VALUE-linje fra ~/.bedrock/secrets.env. Cot-explorer bruker
+    bedrock som upstream, så vi deler hemmelighetene derfra når en env-var
+    ikke er satt direkte. Returnerer '' hvis ingen treff."""
+    secrets_path = Path.home() / ".bedrock" / "secrets.env"
+    if not secrets_path.exists():
+        return ""
+    try:
+        for line in secrets_path.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, _, v = line.partition("=")
+            if k.strip() == key:
+                # strip enclosing quotes if present
+                v = v.strip()
+                if len(v) >= 2 and v[0] == v[-1] and v[0] in ('"', "'"):
+                    v = v[1:-1]
+                return v
+    except Exception:
+        return ""
+    return ""
+
+
+FRED_API_KEY = os.environ.get("FRED_API_KEY", "") or _load_bedrock_secret("FRED_API_KEY")
 if not FRED_API_KEY:
-    print("FEIL: FRED_API_KEY ikke satt. Legg til i ~/.bashrc: export FRED_API_KEY='din_nøkkel'")
+    print("FEIL: FRED_API_KEY ikke satt i env eller ~/.bedrock/secrets.env.")
     print("Gratis nøkkel: https://fred.stlouisfed.org/docs/api/api_key.html")
     import sys; sys.exit(1)
 
@@ -42,8 +68,8 @@ os.makedirs(os.path.join(BASE, "fundamentals"), exist_ok=True)
 # ── FRED-serier ───────────────────────────────────────────────────────────────
 # Merk: NAPM og NMFCI (ISM PMI) gir 400-feil — ISM selger dataene, de er ikke
 # gratis på FRED. PMI håndteres i try_calendar_pmi() under.
-# ADPMNUSNERNSA er allerede en månedlig ENDRINGSSERIE (ikke nivåserie),
-# så type = "level" — ikke "mom_abs" (som ville gitt andre derivat).
+# ADPMNUSNERNSA er en NIVÅSERIE (total privat sysselsetting i tusen, NSA),
+# så vi henter månedlig endring via type="mom_abs" (samme som PAYEMS/NFP).
 
 FRED_SERIES = {
     # Economic Growth & Consumer Strength
@@ -59,8 +85,8 @@ FRED_SERIES = {
     "NFP":     {"id": "PAYEMS",          "type": "mom_abs", "label": "NFP Endring (k)"},
     "Unemp":   {"id": "UNRATE",          "type": "level",   "label": "Arbeidsledighet (%)"},
     "Claims":  {"id": "ICSA",            "type": "level",   "label": "Init. Krav (k)"},
-    # ADP: allerede en endringsserie → type="level" (raw = månedlig endring i tusen)
-    "ADP":     {"id": "ADPMNUSNERNSA",   "type": "level",   "label": "ADP Endring (k)"},
+    # ADP: nivåserie → mom_abs gir månedlig endring i tusen
+    "ADP":     {"id": "ADPMNUSNERNSA",   "type": "mom_abs", "label": "ADP Endring (k)"},
     "JOLTS":   {"id": "JTSJOL",          "type": "level",   "label": "JOLTS Stillinger (k)"},
 }
 
@@ -191,15 +217,13 @@ def score_indicator(key, current, previous):
                 s -= 1
         return max(-2, min(2, s))
 
-    # ADP — allerede månedlig endring i tusen (level-serie)
+    # ADP — månedlig endring i tusen (fra ADPMNUSNERNSA mom_abs)
     if key == "ADP":
-        # Normaliser: verdier > 5000 er sannsynligvis i antall personer, ikke tusen
-        val = current / 1000 if abs(current) > 5000 else current
-        if val > 250:   return 2
-        elif val > 150: return 1
-        elif val > 50:  return 0
-        elif val > 0:   return -1
-        else:           return -2
+        if current > 250:   return 2
+        elif current > 150: return 1
+        elif current > 50:  return 0
+        elif current > 0:   return -1
+        else:               return -2
 
     # Arbeidsledighet — lavere = bedre for USD
     if key == "Unemp":
@@ -295,6 +319,12 @@ def compute_indicator(key, cfg, obs):
             return None
         current  = round(obs[-1][1] - obs[-2][1], 1)
         previous = round(obs[-2][1] - obs[-3][1], 1) if len(obs) >= 3 else None
+        # FRED-enhetsrydd: ADPMNUSNERNSA leveres i absolutte personer, mens
+        # PAYEMS (NFP) leveres i tusen. Normaliser ADP til tusen så label
+        # "ADP Endring (k)" stemmer.
+        if key == "ADP":
+            current  = round(current  / 1000, 1)
+            previous = round(previous / 1000, 1) if previous is not None else None
 
     else:
         current, previous = raw_cur, raw_prev
@@ -306,11 +336,6 @@ def compute_indicator(key, cfg, obs):
     # Lesbare visningsverdier
     display_cur  = round(current  / 1000, 1) if key == "Claims" else current
     display_prev = round(previous / 1000, 1) if (key == "Claims" and previous is not None) else previous
-
-    # ADP: normaliser store verdier til tusen
-    if key == "ADP" and abs(current) > 5000:
-        display_cur  = round(current  / 1000, 1)
-        display_prev = round(previous / 1000, 1) if previous is not None else None
 
     return {
         "key":      key,

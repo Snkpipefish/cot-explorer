@@ -3,8 +3,8 @@
 fetch_prices.py — Henter live priser og bygger data/macro/latest.json
 
 Prioritet per symbol:
-  1. data/prices/live_prices.json  (fra trading-boten via Skilling — oppdateres hvert 4. time)
-  2. Yahoo Finance                 (fallback for symboler boten ikke har)
+  1. data/bedrock/prices.json     (fra bedrock-importen — oppdateres av scripts/import_from_bedrock.py)
+  2. Yahoo Finance                (fallback for symboler bedrock ikke dekker, f.eks. VIX/DXY/HYG/TIP)
 """
 import urllib.request, urllib.parse, json, os
 from datetime import datetime, timezone
@@ -12,7 +12,7 @@ from pathlib import Path
 
 BASE         = Path(os.path.expanduser("~/cot-explorer/data"))
 OUT          = BASE / "macro" / "latest.json"
-BOT_PRICES   = Path.home() / "scalp_edge" / "live_prices.json"
+BOT_PRICES   = BASE / "bedrock" / "prices.json"
 PRICE_HIST   = BASE / "prices" / "bot_history.json"
 OUT.parent.mkdir(parents=True, exist_ok=True)
 PRICE_HIST.parent.mkdir(parents=True, exist_ok=True)
@@ -81,77 +81,33 @@ SYMBOLS = {
     "TIP":    "TIP",
 }
 
-# Alle nøkler boten sender i live_prices.json → nøkkel i macro prices
-# None = boten har den men den brukes ikke i macro (f.eks. bare i oilgas/crypto)
-BOT_KEY_MAP = {
-    "EURUSD":  "EURUSD",
-    "GBPUSD":  "GBPUSD",
-    "USDJPY":  "USDJPY",
-    "AUDUSD":  "AUDUSD",
-    "USDCHF":  "USDCHF",
-    "USDNOK":  "USDNOK",
-    "USDCAD":  "USDCAD",
-    "NZDUSD":  "NZDUSD",
-    "EURGBP":  "EURGBP",
-    "DXY":     "DXY",
-    "Brent":   "Brent",
-    "WTI":     "WTI",
-    "Gold":    "Gold",
-    "Silver":  "Silver",
-    "NatGas":  None,       # brukes kun av fetch_oilgas
-    "SPX":     "SPX",
-    "NAS100":  "NAS100",
-    "BTC":     "BTC",
-    "ETH":     "ETH",
-    "SOL":     "SOL",
-    "XRP":     "XRP",
-    "ADA":     "ADA",
-    "DOGE":    "DOGE",
-    # Jordbruksråvarer (nye fra bot)
-    "Coffee":  "Coffee",
-    "Cotton":  "Cotton",
-    "Sugar":   "Sugar",
-    "Cocoa":   "Cocoa",
-    "Corn":    "Corn",
-    "Soybean": "Soybean",
-    "Wheat":   "Wheat",
-}
-
-
 def load_bot_prices():
-    """Les live_prices.json fra boten. Returnerer dict med macro-nøkkel → pris-objekt.
+    """Les data/bedrock/prices.json (fra import_from_bedrock.py).
 
-    Støtter to formater:
-      Flatt:  {KEY: {"value": 1.085, "updated": "..."}, ...}
-      Nestet: {"prices": {KEY: {"value": ..., "chg1d": ...}}}
+    Format: {"data": {macro_key: {"value", "chg1d", "chg5d", "chg20d", "ts"}}}
+    Macro-nøklene er allerede mappet til cot-explorer-konvensjonen i exporten,
+    så vi trenger ingen translasjon her.
     """
     if not BOT_PRICES.exists():
         return {}
     try:
-        raw = json.loads(BOT_PRICES.read_text())
-        # Flatt format (bot sender direkte) eller nestet (via signal_server)
-        bot = raw if isinstance(raw, dict) and "value" not in raw and "prices" not in raw \
-              else raw.get("prices", raw)
+        raw  = json.loads(BOT_PRICES.read_text())
+        data = raw.get("data") if isinstance(raw, dict) else None
+        if not data:
+            return {}
         result = {}
-        for bot_key, macro_key in BOT_KEY_MAP.items():
-            if macro_key is None:
-                continue
-            p = bot.get(bot_key)
+        for macro_key, p in data.items():
             if not p or p.get("value") is None:
                 continue
-            val    = float(p["value"])
-            chg1d  = float(p.get("chg1d",  0.0) or 0.0)
-            chg5d  = float(p.get("chg5d",  0.0) or 0.0)
-            chg20d = float(p.get("chg20d", 0.0) or 0.0)
             result[macro_key] = {
-                "price":  round(val, 6),
-                "chg1d":  round(chg1d, 3),
-                "chg5d":  round(chg5d, 3),
-                "chg20d": round(chg20d, 3),
+                "price":  round(float(p["value"]),  6),
+                "chg1d":  round(float(p.get("chg1d",  0.0) or 0.0), 3),
+                "chg5d":  round(float(p.get("chg5d",  0.0) or 0.0), 3),
+                "chg20d": round(float(p.get("chg20d", 0.0) or 0.0), 3),
             }
         return result
     except Exception as e:
-        print(f"  live_prices.json FEIL: {e}")
+        print(f"  bedrock prices FEIL: {e}")
         return {}
 
 
@@ -181,26 +137,32 @@ def fetch_yahoo(symbol):
         return None
 
 
-# ── Last inn prishistorikk og bot-priser ─────────────────────────
+# ── Last inn prishistorikk og bedrock-priser ─────────────────────
 price_hist = load_price_history()
 bot_prices = load_bot_prices()
 if bot_prices:
-    print(f"  Bot-priser (Skilling): {len(bot_prices)} symboler lastet fra live_prices.json")
+    print(f"  Bedrock-priser: {len(bot_prices)} symboler lastet fra data/bedrock/prices.json")
 
-# ── Hent resten fra Yahoo (kun symboler boten ikke dekker) ────────
+
+def from_bedrock(key: str) -> dict:
+    """Bygg pris-objekt fra bedrock-snapshot. chg-verdier er allerede
+    beregnet upstream fra D1-serien."""
+    p = bot_prices[key]
+    update_price_history(price_hist, key, p["price"])
+    return {
+        "price":  p["price"],
+        "chg1d":  p["chg1d"],
+        "chg5d":  p["chg5d"],
+        "chg20d": p["chg20d"],
+        "source": "bedrock",
+    }
+
+# ── Hent resten fra Yahoo (kun symboler bedrock ikke dekker) ──────
 prices = {}
 for key, sym in SYMBOLS.items():
     if key in bot_prices:
-        new_price = bot_prices[key]["price"]
-        update_price_history(price_hist, key, new_price)
-        prices[key] = {
-            "price":  new_price,
-            "chg1d":  chg_from_history(price_hist, key, new_price, 24),
-            "chg5d":  chg_from_history(price_hist, key, new_price, 120),
-            "chg20d": chg_from_history(price_hist, key, new_price, 480),
-            "source": "bot",
-        }
-        print(f"  {key:10} → {new_price} (bot, 1d={prices[key]['chg1d']:+.2f}%)")
+        prices[key] = from_bedrock(key)
+        print(f"  {key:10} → {prices[key]['price']} (bedrock, 1d={prices[key]['chg1d']:+.2f}%)")
         continue
     print(f"Henter {key} ({sym}) fra Yahoo...")
     v = fetch_yahoo(sym)
@@ -208,20 +170,12 @@ for key, sym in SYMBOLS.items():
         prices[key] = v
         print(f"  → {v['price']} ({v['chg1d']:+.2f}%)")
 
-# Legg til krypto og jordbruksråvarer fra bot
+# Legg til krypto og jordbruksråvarer fra bedrock
 for extra_key in ("BTC", "ETH", "SOL", "XRP", "ADA", "DOGE",
                   "Corn", "Wheat", "Soybean", "Coffee", "Cotton", "Sugar", "Cocoa"):
     if extra_key in bot_prices and extra_key not in prices:
-        new_price = bot_prices[extra_key]["price"]
-        update_price_history(price_hist, extra_key, new_price)
-        prices[extra_key] = {
-            "price":  new_price,
-            "chg1d":  chg_from_history(price_hist, extra_key, new_price, 24),
-            "chg5d":  chg_from_history(price_hist, extra_key, new_price, 120),
-            "chg20d": chg_from_history(price_hist, extra_key, new_price, 480),
-            "source": "bot",
-        }
-        print(f"  {extra_key:10} → {new_price} (bot)")
+        prices[extra_key] = from_bedrock(extra_key)
+        print(f"  {extra_key:10} → {prices[extra_key]['price']} (bedrock)")
 
 save_price_history(price_hist)
 

@@ -180,20 +180,36 @@ Kjører `update.sh`: full pipeline (se tabell under)
 
 `push_signals.py` sender de beste tradingideene til Telegram, Discord og Flask-server via én `/push-alert` endpoint. Tekniske og agri-signaler merges inn i samme `signals.json` og samme Flask-push. Agri-signaler merkes med `source: "agri_fundamental"` slik at boten kan rekalibrere entry/SL/T1 med live ATR. Agri-signaler pushes til Flask uavhengig av om det finnes tekniske signaler i samme kjøring (Telegram/Discord-meldingen hopper over når kun agri er tilstede). **Aging-filter er fjernet (schema 2.2)** — boten håndterer signal-utløp via `horizon_config.exit_timeout_*`-feltene (SCALP 8 candles, SWING 96 candles, MAKRO 288 candles) i stedet.
 
-`push_agri_signals.py` genererer fundamentale agri-setups basert på outlook (vær + COT + yield + ENSO) og skriver til `agri_signals.json`. Ingen separat Flask-push — `push_signals.py` merger dette inn. Agri-signaler propagerer `data_quality` (`fresh`/`degraded`/`stale`) basert på Conab/UNICA-staleness — inkludert **`corrupt`-deteksjon** (halv-skrevne JSON-filer flagges som stale) og **`io_error`-deteksjon** (PermissionError/OSError skilt fra semantisk korrupt data). En avling som scorer A med manglende, korrupt eller IO-feil-rammet Conab-data flagges som `stale` med `quality_notes` slik at brukeren ser hvilken kilde som mangler.
+`push_agri_signals.py` er et **separat scoring-system for agri** (se seksjonen under). Det genererer fundamentale agri-setups basert på outlook (vær + COT + yield + ENSO) og skriver til `agri_signals.json`. Ingen separat Flask-push — `push_signals.py` merger dette inn. Agri-signaler propagerer `data_quality` (`fresh`/`degraded`/`stale`) basert på Conab/UNICA-staleness — inkludert **`corrupt`-deteksjon** (halv-skrevne JSON-filer flagges som stale) og **`io_error`-deteksjon** (PermissionError/OSError skilt fra semantisk korrupt data). En avling som scorer A med manglende, korrupt eller IO-feil-rammet Conab-data flagges som `stale` med `quality_notes` slik at brukeren ser hvilken kilde som mangler.
 
 **Race-defense:** `push_signals.py` sjekker mtime på `agri_signals.json` ved merge. Hvis fila er > 8 t gammel (2× update-syklus) — typisk fordi `push_agri_signals.py` krasjet i forrige kjøring — flagges alle agri-signaler som `data_quality="stale"` med en konkret note (`"agri_signals.json Xt gammel"`). Dette gjelder både GitHub Pages-payloaden og Flask-pushen, slik at boten ikke trader på utdaterte agri-setups uten å vite det.
 
-**Scoring-arkitektur (schema 2.0 — 6-familie driver matrix):**
-- `driver_matrix.py` — 6-familie scoring (TREND, POSITIONING, MACRO, FUNDAMENTAL, RISK/EVENT, STRUCTURE) med confluens-gate som fikser C1 korrelasjons-bias
-- `driver_group_mapping.py` — asset-klasse-routing (FX/metaller/energi/indekser/grains/softs/crypto → riktig data per familie)
-- `cot_analytics.py` — disaggregerte COT sub-signaler (MM-percentile 52w, MM-Commercial divergens-z, OI-regime, Index Investor-flow) med cache i `data/cot_analytics/latest.json`
-- `scoring_config.py` — delte konstanter: PUSH_THRESHOLDS, HORIZON_CONFIGS, DXY_MOMENTUM_THRESHOLD, CORRELATION_REGIME_CONFIGS, korrelasjons-grupper. **Inneholder ikke lenger scoring-logikk** — alt det er flyttet til `driver_matrix.py`.
+**Scoring-arkitektur (schema 2.2 — TO parallelle scoring-systemer):**
 
-Både `fetch_all.py` (hver 4. time) og `rescore.py` (hver time via update_prices.sh) bruker `driver_matrix.score_asset()` som **eneste scoring-motor**. Legacy 9-kriterie-systemet er fullstendig fjernet (commit 349a2b7) — én konsistent scoring-skala (0-6) på tvers av hele pipelinen.
+Prosjektet har **to separate scoring-systemer** for ulike asset-klasser. De bruker forskjellige skalaer og ulik kode-sti, og merges først i `push_signals.py` når signalene skal pushes.
+
+**System 1 — Financial (FX, metaller, energi, indekser, krypto) — `driver_matrix`:**
+- `driver_matrix.py` — 6-familie scoring (TREND, POSITIONING, MACRO, FUNDAMENTAL, RISK/EVENT, STRUCTURE). Entry-point: `score_asset()` (linje 841). Returnerer `GroupResult`.
+- `driver_group_mapping.py` — asset-klasse-routing (fx/metals/energy/indices/crypto → riktig data per familie)
+- `cot_analytics.py` — disaggregerte COT sub-signaler (MM-percentile 52w, MM-Commercial divergens-z, OI-regime, Index Investor-flow) med cache i `data/cot_analytics/latest.json`
+- **Skala:** 0–6 absolutt, max 4.2 (SCALP) / 5.0 (SWING) / 5.2 (MAKRO) per horisont (horisont-vektet i `HORIZON_GROUP_WEIGHTS`)
+- **Legacy 9-kriterie-systemet er fjernet (commit 349a2b7)** — driver_matrix er eneste scoring-motor for *financial*-siden.
+- **Callet fra:** `fetch_all.py:1635` (hver 4. time) og `rescore.py:261` (hver time via update_prices.sh).
+
+**System 2 — Agri (grains + softs: Corn, Wheat, Soybean, Cotton, Sugar, Coffee, Cocoa) — `push_agri_signals`:**
+- `push_agri_signals.py` — additivt scoring-system. Hele skriptet *er* pipelinen: laster vær-outlook, Conab, UNICA, ENSO, yield, analog, cross-confirm, og summerer.
+- `agri_analog.py` — K-NN mot 15-år ERA5-historikk for direksjonell prognose (aktiv, gir egen driver-streng i output).
+- **Skala:** 0–18 additiv: outlook (5) + yield (3) + weather (2) + enso (2) + conab (2) + unica (2) + cross-confirm (2). Konstant: `AGRI_MAX_SCORE = 18` i `scoring_config.py:71`.
+- **Callet fra:** `update.sh:149` direkte (FØR `push_signals.py`).
+- **NB:** `driver_matrix.py` har `compute_fundamental_grains` (linje 477) og `compute_fundamental_softs` (linje 524), men de er **dødkode** — agri-instrumenter er ikke i `fetch_all.INSTRUMENTS`, så grenen i `score_asset()` for `asset_class == "grains"/"softs"` nås aldri i produksjon. Disse er definert men aldri kalt. Se `AGRI_KARTLEGGING.md` for full analyse.
+
+**Felles:**
+- `scoring_config.py` — delte konstanter for begge systemer: `PUSH_THRESHOLDS`, `HORIZON_CONFIGS`, `DXY_MOMENTUM_THRESHOLD`, `CORRELATION_REGIME_CONFIGS`, `AGRI_CORRELATION_SUBGROUPS`, `AGRI_MAX_SCORE`. **Inneholder ikke scoring-logikk** — kun konstanter.
+- `push_signals.py` — merge-punkt: leser `macro/latest.json.trading_levels` (System 1) + `agri_signals.json` (System 2), merger til én `signals.json`, pusher til Flask `/push-alert`. Agri-signaler merkes med `source: "agri_fundamental"` og får `max_score: 18`; financial bruker `max_score: 4.2/5.0/5.2`. Boten og dashboardet håndterer to skalaer via `score / max_score` (stjernevisning).
 
 ### Filtrering
-- Horisont-basert: score ≥ terskel for instrumentets horisont (SCALP 1.5 / SWING 2.5 / MAKRO 3.5 — 0-6 skala fra driver matrix)
+- Horisont-basert (financial): score ≥ terskel for instrumentets horisont (SCALP 1.5 / SWING 2.5 / MAKRO 3.5 — 0-6 skala fra driver matrix)
+- Agri har egen push-terskel i `push_agri_signals.py` (på 0-18-skala); agri publiseres typisk fra ~7 poeng (~39 % av max)
 - WATCHLIST pushes aldri — kun synlig på dashboardet
 - Kun klare retninger: `dir_color` er `bull` eller `bear`
 - Sortert etter horisont-prioritet (MAKRO > SWING > SCALP), deretter score
@@ -303,7 +319,9 @@ Sammensatt score som bestemmer bull/bear-retning per instrument:
 
 Hysterese: bull krever > 0.5, bear < -0.5. Mellom → SMA200 bestemmer.
 
-### 6-familie driver matrix (schema 2.0)
+### 6-familie driver matrix (financial, schema 2.2)
+
+Dette er **System 1** — scoring for FX, metaller, energi, indekser og krypto. (Agri scorer separat via `push_agri_signals.py`, se eget system beskrevet under "Scoring-arkitektur" og i `AGRI_KARTLEGGING.md`.)
 
 Scoring skjer i `driver_matrix.score_asset()` som aggregerer 6 uavhengige driver-familier. **C1-prinsippet**: grade krever confluens på tvers av uavhengige datakildefamilier, ikke flere signaler fra samme kilde.
 
@@ -424,14 +442,18 @@ C1-fiksen bevares: POSITIONING alene med alle 7 sub-signaler på maks gir fortsa
 
 ### Push-terskler (til boten)
 
-| Horisont | Min score (0-6 skala) |
+**Financial (driver_matrix, 0-6 skala):**
+
+| Horisont | Min score |
 |----------|----------------------|
 | SCALP | 1.5 |
 | SWING | 2.5 |
 | MAKRO | 3.5 |
 | WATCHLIST | Pushes aldri |
 
-(Legacy 9-kriterie-systemet brukte 3.0/4.5/5.5 på 0-9 skala — fullstendig fjernet i schema 2.0. Driver-matrix er eneste scoring-motor.)
+**Agri (push_agri_signals, 0-18 skala):** egen push-terskel internt i `push_agri_signals.py`. Dagens signaler ligger typisk 7-11 poeng (~39-61 % av max).
+
+(Legacy 9-kriterie-systemet brukte 3.0/4.5/5.5 på 0-9 skala — fullstendig fjernet i schema 2.0 for financial-siden. Driver-matrix er eneste scoring-motor *for financial*; agri scorer via det separate `push_agri_signals.py`-systemet.)
 
 ### Signal-stabilitet
 
@@ -651,8 +673,8 @@ Futures-baserte CFDer får `close_before_rollover=true` i signalet: GOLD, SILVER
 | `data/geointel/chokepoints.json` | 6 chokepoints | Statisk |
 | `data/geointel/mines.json` | 26 gruver | Statisk |
 | `~/scalp_edge/live_prices.json` | Live priser fra bot (21 symboler) | Hvert 58. min |
-| `scoring_config.py` | Delte konstanter: PUSH_THRESHOLDS, HORIZON_CONFIGS, DXY_MOMENTUM_THRESHOLD, CORRELATION_REGIME_CONFIGS. (Legacy 9-kriterie-scoring fjernet — driver_matrix er eneste scoring-motor.) | — |
-| `utils.py` | Delt verktøybibliotek (logging, retry, stooq, news, freshness) | — |
+| `scoring_config.py` | Delte konstanter for begge scoring-systemer: PUSH_THRESHOLDS + HORIZON_CONFIGS + DXY_MOMENTUM_THRESHOLD + CORRELATION_REGIME_CONFIGS (financial) og AGRI_MAX_SCORE + AGRI_CORRELATION_SUBGROUPS (agri). Ingen scoring-logikk her, kun konstanter. | — |
+| `utils.py` | ⚠️ Ikke importert noe sted — ble brukt før, men fetch-scripts gjør nå egen inline-logging. Kandidat for sletting eller re-integrering. | — |
 | `logs/` | Python-loggfiler per script | Ved kjøring |
 
 ---
@@ -781,11 +803,12 @@ Driver-strenger fra `driver_matrix` oversettes til pirat-formulert klarspråk i 
 | Kart | Mapbox GL JS med satelitt/mørkt tema — per-tab overlays (pipelines, gruver, landbruk) |
 | Grafer | Chart.js (COT-historikk modal, stacked bar charts) |
 | Tidssoner | `toNO()` helper konverterer UTC-timestamps til norsk tid (Europe/Oslo) |
-| Backend | Python 3 + `requests` + `openpyxl` + `utils.py` (delt verktøybibliotek) |
+| Backend | Python 3 + `requests` + `openpyxl` (merk: `utils.py` er ikke importert av aktive scripts) |
 | Hosting | GitHub Pages (statisk) |
 | Automatisering | `cot-prices.timer` (XX:40 hver time) + `cot-explorer.timer` (6× daglig man-fre + lør 00:00) |
 | Prisintegrasjon | `signal_server.py` Flask — `POST /push-prices`, `GET /prices` → `update_prices.sh` patcher JSON |
-| Scoring-motor | `driver_matrix.py` (6 driver-familier, schema 2.0) + `driver_group_mapping.py` (asset-routing) |
+| Scoring-motor (financial) | `driver_matrix.py` (6 driver-familier, 0-6 skala) + `driver_group_mapping.py` (asset-routing) — for FX/metaller/energi/indekser/krypto |
+| Scoring-motor (agri) | `push_agri_signals.py` (additivt, 0-18 skala) — for Corn/Wheat/Soybean/Cotton/Sugar/Coffee/Cocoa. Konstant: `AGRI_MAX_SCORE = 18` |
 | COT-analytics | `cot_analytics.py` (MM-percentile 52w, divergens-z, OI-regime, Index Investor) — cache i `data/cot_analytics/` |
 | Scoring-config | `scoring_config.py` — PUSH_THRESHOLDS, HORIZON_CONFIGS, DXY-penalty, korrelasjonsgrenser |
 | Varsling | Telegram / Discord webhook / Flask REST API |

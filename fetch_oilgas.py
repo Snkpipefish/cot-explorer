@@ -20,14 +20,14 @@ OUT.parent.mkdir(parents=True, exist_ok=True)
 COMBINED_FILE  = BASE / "data" / "combined" / "latest.json"
 ICE_COT_FILE   = BASE / "data" / "ice_cot" / "latest.json"
 MACRO_FILE     = BASE / "data" / "macro" / "latest.json"
-BOT_PRICES_FILE = Path.home() / "scalp_edge" / "live_prices.json"
+BOT_PRICES_FILE = BASE / "data" / "bedrock" / "prices.json"
 
-# Mapping fra instrument-id → nøkkel boten sender i /push-prices
+# Mapping fra instrument-id → nøkkel i bedrock-eksporten
 BOT_PRICE_MAP = {
     "brent":  "Brent",
     "wti":    "WTI",
     "natgas": "NatGas",
-    # rbob og heatoil ikke tilgjengelig i Skilling
+    # rbob og heatoil ikke tilgjengelig i bedrock prices ennå
 }
 MACRO_PRICE_MAP = {
     "brent": "Brent",
@@ -184,7 +184,7 @@ def fetch_stooq(symbol):
 
 
 def fetch_from_bot(instrument_id):
-    """Hent pris fra ~/scalp_edge/live_prices.json (sendt av trading-boten fra Skilling)."""
+    """Hent pris fra data/bedrock/prices.json (importert fra bedrock.db)."""
     try:
         if not BOT_PRICES_FILE.exists():
             return None
@@ -193,8 +193,7 @@ def fetch_from_bot(instrument_id):
         key = BOT_PRICE_MAP.get(instrument_id)
         if not key:
             return None
-        # Støtter flatt format {KEY: {...}} og nestet {"prices": {KEY: {...}}}
-        bot = raw if "prices" not in raw else raw.get("prices", {})
+        bot = (raw.get("data") if isinstance(raw, dict) else None) or {}
         p = bot.get(key)
         if not p or p.get("value") is None:
             return None
@@ -210,12 +209,12 @@ def fetch_from_bot(instrument_id):
             "dev_ma": None,
             "trend":  None,
             "signal": "neutral",
-            "date":   p.get("updated", ""),
+            "date":   p.get("ts", ""),
             "history": [],
-            "source": "bot",
+            "source": "bedrock",
         }
     except Exception as e:
-        print(f"  Bot-priser FEIL ({instrument_id}): {e}")
+        print(f"  bedrock-priser FEIL ({instrument_id}): {e}")
         return None
 
 
@@ -445,7 +444,7 @@ for i, inst in enumerate(PRICE_INDICES):
     if price is None:
         price = fetch_from_bot(inst["id"])
         if price:
-            print(f"    {inst['label']:20} → bruker bot-priser (Skilling)")
+            print(f"    {inst['label']:20} → bruker bedrock-priser")
     if price is None:
         price = fetch_from_macro(inst["id"])
         if price:
@@ -535,7 +534,7 @@ for _inst in instruments:
 output = {
     "generated":      datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     "cot_date":       _og_cot_date,
-    "source":         "CFTC · Skilling bot · Yahoo Finance · Google News RSS",
+    "source":         "CFTC · Bedrock prices · Yahoo Finance · Google News RSS",
     "overall_risk":   overall_risk,
     "overall_signal": overall_signal,
     "brent_wti_spread": brent_wti_spread,

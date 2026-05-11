@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# update_prices.sh — Oppdaterer kun priser fra bot (live_prices.json → macro/latest.json)
+# update_prices.sh — Oppdaterer kun priser fra bedrock (data/bedrock/prices.json → macro/latest.json)
 # Kjøres hvert 58. minutt i timen av cron/systemd
 # Raskere enn full update.sh — ingen COT, ingen nyheter, ingen git push
 
@@ -19,12 +19,12 @@ LOG="$LOG_DIR/prices.log"
 
 echo "=== $(date '+%Y-%m-%d %H:%M %Z') ===" >> "$LOG"
 
-# Bygg macro/latest.json fra bot-priser (+ Yahoo for det som mangler)
+# Bygg macro/latest.json fra bedrock-priser (+ Yahoo for det som mangler)
 python3 fetch_prices.py >> "$LOG" 2>&1 \
     && echo "  priser OK" >> "$LOG" \
     || echo "  priser FEIL" >> "$LOG"
 
-# Oppdater olje & gass med bot-priser
+# Oppdater olje & gass med bedrock-priser
 python3 fetch_oilgas.py >> "$LOG" 2>&1 \
     && echo "  oilgas OK" >> "$LOG" \
     || echo "  oilgas FEIL" >> "$LOG"
@@ -51,11 +51,11 @@ try:
     for c in agri.get('crop_summary', []):
         pk = CROP_MAP.get(c.get('crop_key',''))
         if not pk: continue
-        # Bot-priser prioriteres (ferske fra cTrader)
+        # bot_history er fetch_prices' egen rolling buffer av bedrock-prisene
         bp = bot_prices.get(pk)
         mp = macro_prices.get(pk, {})
         if bp:
-            c['price'] = {'value': bp['price'], 'chg1d': mp.get('chg1d',0), 'chg5d': mp.get('chg5d',0), 'chg20d': mp.get('chg20d',0), 'source': 'bot'}
+            c['price'] = {'value': bp['price'], 'chg1d': mp.get('chg1d',0), 'chg5d': mp.get('chg5d',0), 'chg20d': mp.get('chg20d',0), 'source': mp.get('source','bedrock')}
             patched += 1
         elif mp.get('price'):
             c['price'] = {'value': mp['price'], 'chg1d': mp.get('chg1d',0), 'chg5d': mp.get('chg5d',0), 'chg20d': mp.get('chg20d',0), 'source': mp.get('source','macro')}
@@ -81,7 +81,7 @@ try:
             mp = prices[k]
             crypto['prices'][k]['price'] = mp.get('price', crypto['prices'][k]['price'])
             if mp.get('chg1d') is not None: crypto['prices'][k]['chg1d'] = mp['chg1d']
-            crypto['prices'][k]['source'] = mp.get('source', 'bot')
+            crypto['prices'][k]['source'] = mp.get('source', 'bedrock')
     from datetime import datetime, timezone
     crypto['updated'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
     json.dump(crypto, open(CRYPTO,'w'), ensure_ascii=False, indent=2)

@@ -211,23 +211,23 @@ def fetch_google_news(query_id, query_label, query_text, max_articles=8):
         return []
 
 
-# ── Bot-priser ───────────────────────────────────────────────
-BOT_PRICES_FILE = Path.home() / "scalp_edge" / "live_prices.json"
+# ── Bedrock-priser (overtok rollen til den fjernede Skilling-boten) ────
+BOT_PRICES_FILE = Path(__file__).parent / "data" / "bedrock" / "prices.json"
 
 def load_bot_prices():
-    """Last bot-priser fra live_prices.json. Returnerer dict eller {}."""
+    """Last bedrock prices snapshot. Returnerer flatt dict {key: {value, chg1d,...}}."""
     try:
         if not BOT_PRICES_FILE.exists():
             return {}
         with open(BOT_PRICES_FILE) as f:
             raw = json.load(f)
-        return raw if "prices" not in raw else raw.get("prices", {})
+        return (raw.get("data") if isinstance(raw, dict) else None) or {}
     except Exception:
         return {}
 
 
 def fetch_from_bot(bot_key_map, instrument_id):
-    """Hent pris for instrument fra bot-data."""
+    """Hent pris for instrument fra bedrock-snapshotet."""
     try:
         bot = load_bot_prices()
         key = bot_key_map.get(instrument_id)
@@ -248,9 +248,9 @@ def fetch_from_bot(bot_key_map, instrument_id):
             "dev_ma": None,
             "trend": None,
             "signal": "neutral",
-            "date": p.get("updated", ""),
+            "date": p.get("ts", ""),
             "history": [],
-            "source": "bot",
+            "source": "bedrock",
         }
     except Exception:
         return None

@@ -24,7 +24,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-BEDROCK_DB = Path(os.environ.get("BEDROCK_DB", os.path.expanduser("~/bedrock/bedrock.db")))
+BEDROCK_DB = Path(os.environ.get("BEDROCK_DB", os.path.expanduser("~/bedrock/data/bedrock.db")))
 OUT_DIR    = Path(os.environ.get("BEDROCK_EXPORT", os.path.expanduser("~/cot-explorer/data/bedrock")))
 
 
@@ -163,6 +163,61 @@ def export_crypto_sent():    return export_manual_csv("crypto_sentiment.csv","Cr
 # Manual fallbacks for DB tables that aren't yet populated by bedrock fetchers
 def export_cot_ice_manual():       return export_manual_csv("cot_ice.csv",          "ICE COT (manual fallback — bedrock cot_ice table empty)")
 def export_shipping_manual():      return export_manual_csv("shipping_indices.csv", "Baltic indices (manual fallback — bedrock bdi table empty)")
+
+
+_BEDROCK_TO_COT_INSTRUMENT = {
+    # FX / indices / commodities mapped to the keys cot-explorer uses
+    "CrudeOil":   "WTI",
+    "SP500":      "SPX",
+    "Nasdaq":     "NAS100",
+    "NaturalGas": "NatGas",
+}
+
+
+def export_prices(con: sqlite3.Connection) -> dict:
+    """Latest close per instrument + chg1d/5d/20d from D1 history.
+
+    Replaces the dead Skilling-bot pipeline that used to write
+    ~/scalp_edge/live_prices.json. fetch_prices.py reads this snapshot.
+    """
+    rows = fetch_all(
+        con,
+        """
+        SELECT instrument, ts, close
+        FROM prices
+        WHERE tf IN ('D1', 'M1', 'H1')
+        ORDER BY instrument, ts DESC
+        """,
+    )
+    by_inst: dict[str, list[dict]] = {}
+    for r in rows:
+        by_inst.setdefault(r["instrument"], []).append(r)
+
+    prices: dict[str, dict] = {}
+    for inst, rs in by_inst.items():
+        if not rs or rs[0]["close"] is None:
+            continue
+        cur = rs[0]["close"]
+        # D1 history for change calcs (skip intraday tfs to avoid same-day noise)
+        d1 = [x for x in rs if len(str(x["ts"])) >= 10][:30]
+        def pct_back(n: int) -> float:
+            if len(d1) <= n or d1[n]["close"] in (None, 0):
+                return 0.0
+            return round((cur / d1[n]["close"] - 1) * 100, 3)
+        out_key = _BEDROCK_TO_COT_INSTRUMENT.get(inst, inst)
+        prices[out_key] = {
+            "value":  round(cur, 6),
+            "chg1d":  pct_back(1),
+            "chg5d":  pct_back(5),
+            "chg20d": pct_back(20),
+            "ts":     rs[0]["ts"],
+        }
+    return {
+        "generated": now_iso(),
+        "source":    "Bedrock · prices (latest close per instrument)",
+        "rows":      len(prices),
+        "data":      prices if prices else None,
+    }
 
 
 def export_seismic(con: sqlite3.Connection) -> dict:
@@ -368,11 +423,13 @@ def export_weather(con: sqlite3.Connection) -> dict:
 
 
 def export_crop_progress(con: sqlite3.Connection) -> dict:
+    """USDA NASS weekly crop progress. Bedrock-skjema: week_ending, commodity,
+    state, metric, value_pct (NASS-original kolonnenavn)."""
     n = fetch_count(con, "crop_progress")
     rows = (
         fetch_all(
             con,
-            "SELECT * FROM crop_progress ORDER BY report_date DESC LIMIT 200",
+            "SELECT * FROM crop_progress ORDER BY week_ending DESC LIMIT 200",
         )
         if n
         else []
@@ -466,6 +523,7 @@ def export_agri_signals_passthrough() -> dict:
 # ─────────────────────────────────────────────────────────────────────
 EXPORTERS = {
     # SQLite-backed
+    "prices.json":          export_prices,
     "eia_storage.json":     export_eia_storage,
     "seismic.json":         export_seismic,
     "cot_euronext.json":    export_cot_euronext,

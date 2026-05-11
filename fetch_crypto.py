@@ -59,7 +59,7 @@ for inst in CRYPTO_SYMBOLS:
     # Yahoo for historikk (korrelasjon, chg7d/30d)
     rows = fetch_yahoo(inst["symbol"])
 
-    # Bot-pris som primær (ferskere)
+    # Bedrock-pris som primær (ferskere enn Yahoo daily closes)
     mp = macro_prices.get(key)
     if mp and mp.get("price"):
         curr = mp["price"]
@@ -75,9 +75,9 @@ for inst in CRYPTO_SYMBOLS:
             "chg1d":  round(mp.get("chg1d", 0), 2),
             "chg7d":  round((curr/c7-1)*100, 2) if c7 else 0,
             "chg30d": round((curr/c30-1)*100, 2) if c30 else 0,
-            "source": "bot",
+            "source": mp.get("source", "bedrock"),
         }
-        print(f"    → {curr} (bot)")
+        print(f"    → {curr} ({prices[key]['source']})")
     elif rows and len(rows) >= 2:
         curr = rows[-1][2]
         c1   = rows[-2][2]
