@@ -4471,11 +4471,11 @@ const GLOSSARY = {
     }
     try{ localStorage.setItem(KEY, on?'1':'0'); }catch(_){}
   };
-  // Default: tech-view OFF so power-users see what they expect.
-  // First-time visitors get Reader Mode ON for a friendlier landing.
+  // Default: Reader Mode OFF — full technical deck is the canonical view.
+  // Lay-readers can opt in via the toggle; their choice persists.
   let stored = null;
   try{ stored = localStorage.getItem(KEY); }catch(_){}
-  const initialOn = stored === null ? true : stored === '1';
+  const initialOn = stored === '1';
   apply(initialOn);
   btn.addEventListener('click', ()=> apply(!(btn.getAttribute('aria-pressed')==='true')));
 })();
