@@ -237,11 +237,19 @@ print(f"\nKombinert: {len(combined)} markeder -> data/combined/latest.json")
 
 if do_history:
     print("\n[HISTORISKE DATA]")
+    # Inkluderer inneværende år (YEAR+1 i range) — CFTC oppdaterer den
+    # samme {rid}_{YEAR}.zip ukentlig med alle uker hittil i året, så
+    # vi får keep_all=True til å hente hele året så langt. Hopper over
+    # ferdige år som allerede er lagret, for å unngå unødvendige 16-års
+    # nedlastinger hver lørdag.
     for report in REPORTS:
-        for yr in range(report["hist_from"], YEAR):
+        for yr in range(report["hist_from"], YEAR + 1):
+            out_path = f"data/history/{report['id']}/{yr}.json"
+            if yr < YEAR and os.path.exists(out_path):
+                continue
             data = process_report(report, yr, keep_all=True)
             if data:
-                save(f"data/history/{report['id']}/{yr}.json", data)
+                save(out_path, data)
     print("Historiske data lagret i data/history/")
 
 print("\nFerdig! Kjor:")
