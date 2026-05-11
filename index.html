@@ -3104,7 +3104,19 @@ function openBedrockSetup(i){
         ${readout('Gates', (s.gates_triggered||[]).join(', ')||'—', (s.gates_triggered||[]).length?'warn':'', '')}
       </div>
       ${setupHTML}
-      <div class="narrative">Bedrock evaluated ${Object.keys(fams).length} families. ${s.skip_reason?'<strong>Skip:</strong> '+escapeHTML(s.skip_reason):''}</div>
+      ${(()=>{
+        // Reconcile: sum of family scores vs total score. The gap (often
+        // non-zero, ~0.25 avg, up to ±1.0) reflects gate penalties, analog
+        // bonus, asset-class adjustments etc. applied after family aggregation.
+        // Surface it explicitly so readers don't try to mentally sum the
+        // family bars and end up with a different number than the total.
+        const famSum = Object.values(fams).reduce((t,f)=>t+(f.score||0),0);
+        const adj = (s.score||0) - famSum;
+        const adjStr = (Math.abs(adj) < 0.05)
+          ? ''
+          : ` Sum of families: ${famSum.toFixed(2)} · adjustments: ${adj>=0?'+':''}${adj.toFixed(2)} → total ${(s.score||0).toFixed(2)}.`;
+        return `<div class="narrative">Bedrock evaluated ${Object.keys(fams).length} families.${adjStr} ${s.skip_reason?'<strong>Skip:</strong> '+escapeHTML(s.skip_reason):''}</div>`;
+      })()}
       ${famsHTML}
     </div>`;
   $('#modal').classList.add('open');
@@ -3551,7 +3563,16 @@ function buildMarketNarrative(r,a){
       }
     }
     else if(p<=30) parts.push(`Speculators are in the <strong>lower third</strong> of the year (${p.toFixed(0)}th pct) — room above without crowding.`);
-    else if(p<=70) parts.push(`Positioning is mid-range (${p.toFixed(0)}th pct) — neither stretched nor depressed.`);
+    else if(p<=70){
+      // Mid-range percentile, but if absolute net is one-sided (>15% of OI),
+      // the percentile lens understates how stretched specs actually are.
+      if(netPct != null && Math.abs(netPct) > 15){
+        const side = netPct > 0 ? 'long' : 'short';
+        parts.push(`Pctile is mid-range (${p.toFixed(0)}th) but specs are net <em>${side}</em> at <strong>${netPct.toFixed(0)}% of OI</strong> — absolute positioning is one-sided even though the 52-week percentile lens looks neutral.`);
+      } else {
+        parts.push(`Positioning is mid-range (${p.toFixed(0)}th pct) — neither stretched nor depressed.`);
+      }
+    }
     else if(p<=90) parts.push(`Speculators are in the <strong>upper third</strong> (${p.toFixed(0)}th pct) — late-cycle territory; further extension is possible but the asymmetry tilts.`);
     else {
       if(netPct == null || netPct > 3){
@@ -3565,9 +3586,13 @@ function buildMarketNarrative(r,a){
   if(dxC!=null && Math.abs(dxC)>0){
     parts.push(dxC>0 ? `Specs <strong>added longs</strong> this week (Δ +${fmt(dxC)}).` : `Specs <strong>cut longs / added shorts</strong> this week (Δ ${fmt(dxC)}).`);
   }
-  if(a.change_oi_current!=null && a.oi_change_4w_avg!=null){
-    if(a.change_oi_current > 1.5*Math.abs(a.oi_change_4w_avg)) parts.push(`Open interest <em>surged</em> this week — fresh capital, conviction.`);
-    else if(a.change_oi_current < -1.5*Math.abs(a.oi_change_4w_avg)) parts.push(`Open interest <em>flushed</em> — positions being closed, not flipped.`);
+  if(a.change_oi_current!=null && a.oi_change_4w_avg!=null && a.oi_change_4w_avg!=0){
+    // Graduated tiers so we don't call a 1.51× print a "surge"
+    const ratio = a.change_oi_current / Math.abs(a.oi_change_4w_avg);
+    if(ratio >= 2.5)      parts.push(`Open interest <em>surged</em> this week (${ratio.toFixed(1)}× the 4-week pace) — fresh capital, conviction.`);
+    else if(ratio >= 1.5) parts.push(`Open interest <em>elevated</em> this week (${ratio.toFixed(1)}× the 4-week pace) — above-trend inflow but not a spike.`);
+    else if(ratio <= -2.5) parts.push(`Open interest <em>flushed</em> (${ratio.toFixed(1)}× the 4-week pace) — positions being closed in size, not flipped.`);
+    else if(ratio <= -1.5) parts.push(`Open interest is <em>contracting</em> (${ratio.toFixed(1)}× the 4-week pace) — above-trend outflow but not capitulation.`);
   }
   if(dq && dq!=='fresh') parts.push(`<strong>Data quality:</strong> ${dq} — interpret with appropriate skepticism.`);
   return parts.join(' ') || 'No notable conditions on this market — positioning is flat and uneventful.';
