@@ -2557,18 +2557,29 @@ function renderFundNarrativ(symbol){
 function renderFundMakroProxy(){
   const mi = D.macro?.macro_indicators || {};
   if(!Object.keys(mi).length) return '';
-  let body = '<div class="body">';
+  let rows = '';
   for(const [k, v] of Object.entries(mi)){
     if(v == null) continue;
     const info = FUND_MAKRO_PROXY_NO[k] || { navn:k, forklaring:'' };
-    body += `
-      <div class="dom-kv">
-        <span class="k">${info.navn}<em style="display:block;font-style:italic;color:var(--ink-mute);font-size:10px;">${info.forklaring}</em></span>
-        <span class="v">${typeof v === 'number' ? v.toFixed(2) : v}</span>
+    // verdier kan være rene tall, eller {price, chg1d, chg5d, chg20d}
+    let pris = null, chg5 = null;
+    if(typeof v === 'number'){ pris = v; }
+    else if(typeof v === 'object'){
+      pris = v.price ?? v.value ?? v.latest ?? null;
+      chg5 = v.chg5d ?? v.chg_5d ?? null;
+    }
+    const cls = chg5 == null ? 'flat' : (chg5 > 0 ? 'up' : (chg5 < 0 ? 'down' : 'flat'));
+    const pil = chg5 == null ? '' : (chg5 > 0 ? '↑' : (chg5 < 0 ? '↓' : '→'));
+    const chgTekst = chg5 == null ? '' : `${pil} ${Math.abs(chg5).toFixed(2).replace('.', ',')} % (5d)`;
+    const prisTekst = pris == null ? '—' : Number(pris).toFixed(2).replace('.', ',');
+    rows += `
+      <div class="fund-rate">
+        <span class="nm">${info.navn}<em>${info.forklaring}</em></span>
+        <span class="val">${prisTekst}</span>
+        <span class="delta ${cls}">${chgTekst}</span>
       </div>`;
   }
-  body += '</div>';
-  return `<div class="fund-block"><div class="ttl">I·G Globale makro-proksjer</div>${body}</div>`;
+  return `<div class="fund-block"><div class="ttl">I·G Globale makro-proksjer</div><div class="fund-rates">${rows}</div></div>`;
 }
 
 function renderFundamentaler(symbol){
