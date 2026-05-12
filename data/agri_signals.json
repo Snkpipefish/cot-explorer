@@ -1,38 +1,12 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-05-12 14:01 UTC",
+  "generated": "2026-05-12 18:02 UTC",
   "cot_date": "2026-05-06",
   "enso_phase": "Nøytral",
   "global_state": {
     "geo_active": true,
     "vix_regime": "normal",
-    "usda_blackout": {
-      "Corn": {
-        "report": "WASDE",
-        "time_utc": "2026-05-12 16:00 UTC",
-        "hours_away": 2.0
-      },
-      "Wheat": {
-        "report": "WASDE",
-        "time_utc": "2026-05-12 16:00 UTC",
-        "hours_away": 2.0
-      },
-      "Soybean": {
-        "report": "WASDE",
-        "time_utc": "2026-05-12 16:00 UTC",
-        "hours_away": 2.0
-      },
-      "Cotton": {
-        "report": "WASDE",
-        "time_utc": "2026-05-12 16:00 UTC",
-        "hours_away": 2.0
-      },
-      "Sugar": {
-        "report": "WASDE",
-        "time_utc": "2026-05-12 16:00 UTC",
-        "hours_away": 2.0
-      }
-    }
+    "usda_blackout": null
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -46,19 +20,19 @@
       "key": "Coffee",
       "name": "Kaffe",
       "action": "SELL",
-      "timeframe": "MAKRO",
-      "grade": "A",
-      "score": 7.5,
-      "current": 271.100006,
-      "entry": 271.39,
-      "sl": 291.89,
-      "t1": 240.0,
-      "t2": 247.48,
-      "rr_t1": 1.53,
-      "rr_t2": 1.17,
+      "timeframe": "SWING",
+      "grade": "B",
+      "score": 6.9,
+      "current": 278.799988,
+      "entry": 279.1,
+      "sl": 293.15,
+      "t1": 250.0,
+      "t2": 240.0,
+      "rr_t1": 2.07,
+      "rr_t2": 2.78,
       "sl_type": "atr_prosent",
-      "t1_source": "rn240",
-      "atr_est": 6.83,
+      "t1_source": "rn250",
+      "atr_est": 7.03,
       "driver_groups": {
         "trend": {
           "score": 0.0,
@@ -104,6 +78,7 @@
         "Krysssjekk: yield_score 91 + Conab YoY +17.1% → supply-overflod bekreftet",
         "Struktur: Conab YoY +17.1% (cafe_total) → overflod vs forrige safra",
         "Bedrock A SELL bekrefter (score 9.7)",
+        "Værstress i Vietnam – Dak Lak (robusta-belte) (vått)",
         "COT: spekulanter øker short (net +0% av OI)",
         "Yield utmerket — god produksjon holder prisene nede",
         "CONAB Brasil kaffe: +17.1% YoY (↑ vekst)",
@@ -125,7 +100,93 @@
         "Krysssjekk: yield_score 91 + Conab YoY +17.1% → supply-overflod bekreftet",
         "Struktur: Conab YoY +17.1% (cafe_total) → overflod vs forrige safra",
         "Bedrock A SELL bekrefter (score 9.7)",
-        "COT: spekulanter øker short (net +0% av OI)"
+        "Værstress i Vietnam – Dak Lak (robusta-belte) (vått)"
+      ]
+    },
+    {
+      "key": "Corn",
+      "name": "Mais",
+      "action": "BUY",
+      "timeframe": "SWING",
+      "grade": "B",
+      "score": 5.0,
+      "current": 479.0,
+      "entry": 478.7,
+      "sl": 464.62,
+      "t1": 510.0,
+      "t2": 520.0,
+      "rr_t1": 2.22,
+      "rr_t2": 2.93,
+      "sl_type": "atr_prosent",
+      "t1_source": "rn510",
+      "atr_est": 7.04,
+      "driver_groups": {
+        "trend": {
+          "score": 1.0,
+          "weight": 0.8,
+          "drivers": []
+        },
+        "positioning": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": [
+            "COT bull 0.3%"
+          ]
+        },
+        "macro": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "fundamental": {
+          "score": 0.29166666666666663,
+          "weight": 1.3,
+          "drivers": [
+            "Bedrock A BUY bekrefter (score 10.4)",
+            "Værstress i Kina – Hebei / Henan (vått)",
+            "2 risiko-regioner"
+          ]
+        },
+        "risk": {
+          "score": 0.5,
+          "weight": 1.0,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
+          "score": 0.0,
+          "weight": 0.5,
+          "drivers": []
+        }
+      },
+      "active_driver_groups": 2,
+      "group_drivers": [
+        "Bedrock A BUY bekrefter (score 10.4)",
+        "Værstress i Kina – Hebei / Henan (vått)",
+        "2 risiko-regioner",
+        "COT: bull BLANDET (net +0%)",
+        "Yield svak — risiko for lav produksjon",
+        "CONAB Brasil mais: -1.1% YoY (↓ svikt)",
+        "Bedrock: A BUY makro publisert (score 10.4)"
+      ],
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "atr_source": "estimated",
+      "cot_bias": "bull",
+      "cot_pct": 0.3,
+      "cot_zscore": -0.23,
+      "source": "agri_fundamental",
+      "yield_score": 49,
+      "yield_quality": "Svak",
+      "weather_outlook": "vått",
+      "growth_stage": "Aksing",
+      "season_pct": 82,
+      "drivers": [
+        "Bedrock A BUY bekrefter (score 10.4)",
+        "Værstress i Kina – Hebei / Henan (vått)",
+        "2 risiko-regioner",
+        "COT: bull BLANDET (net +0%)"
       ]
     }
   ]
