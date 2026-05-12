@@ -1841,7 +1841,7 @@ function renderInstrumentProfile(symbol, subtab){
         <span><span class="lbl">20d:</span> <span class="inst-chg ${pctClass(p.chg20d)}">${p.chg20d != null ? chgPrefix(p.chg20d) + Number(p.chg20d).toFixed(2) + '%' : '—'}</span></span>
       </div>
       <div style="margin-left:auto;">
-        ${interp.regime_label ? `<span class="regime-pill farge-${interp.regime_farge}">${interp.regime_label}</span>` : ''}
+        ${interp.regime_label ? `<span class="regime-pill farge-${interp.regime_farge || 'grå'}">${interp.regime_label}</span>` : ''}
       </div>
     </div>`;
 
@@ -2078,14 +2078,15 @@ function renderWhoStrip(actors){
 
 /* MM-percentil visualisert som bar (for Markeder-tabellen) */
 function renderMMPctileBar(pct){
-  if(pct == null) return '<span style="color:var(--ink-mute);">—</span>';
+  if(pct == null || !Number.isFinite(Number(pct))) return '<span style="color:var(--ink-mute);">—</span>';
+  const p = Math.max(0, Math.min(100, Number(pct)));
   return `<div class="mm-bar-wrap" title="0=mest short på 52u, 100=mest long. Rød sone (under 15 / over 85) = ekstrem.">
     <div class="mm-bar">
       <div class="zone-low"></div>
       <div class="zone-high"></div>
-      <div class="mm-marker" style="left:calc(${pct}% - 1px);"></div>
+      <div class="mm-marker" style="left:calc(${p}% - 1px);"></div>
     </div>
-    <div class="mm-bar-lbl">${Number(pct).toFixed(0)}%</div>
+    <div class="mm-bar-lbl">${p.toFixed(0)}%</div>
   </div>`;
 }
 
