@@ -1420,7 +1420,7 @@ function fmtPrice(v, decimals){
 }
 function fmtPct(v){
   if(v == null) return '—';
-  const sign = v >= 0 ? '+' : '';
+  const sign = v > 0 ? '+' : '';
   return sign + Number(v).toFixed(2) + '%';
 }
 function fmtK(n){
@@ -2339,8 +2339,8 @@ function renderPosisjonering(symbol, interp){
                   <td>${a.dato}</td>
                   <td>${a.mm_pctile != null ? Number(a.mm_pctile).toFixed(0) + '%' : '—'}</td>
                   <td>${fmtK(a.oi_4w_avg)}</td>
-                  <td class="${a.fwd_4u_pct >= 0 ? 'chg-pos' : 'chg-neg'}">${a.fwd_4u_pct != null ? fmtPct(a.fwd_4u_pct) : '—'}</td>
-                  <td class="${a.fwd_8u_pct >= 0 ? 'chg-pos' : 'chg-neg'}">${a.fwd_8u_pct != null ? fmtPct(a.fwd_8u_pct) : '—'}</td>
+                  <td class="${pctClass(a.fwd_4u_pct)}">${a.fwd_4u_pct != null ? fmtPct(a.fwd_4u_pct) : '—'}</td>
+                  <td class="${pctClass(a.fwd_8u_pct)}">${a.fwd_8u_pct != null ? fmtPct(a.fwd_8u_pct) : '—'}</td>
                 </tr>
               `).join('')}
             </tbody>
