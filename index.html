@@ -1488,7 +1488,7 @@ function bestEntriesByInstrument(){
       : entries.sort((a,b) => ratio(b) - ratio(a))[0];
     // Tell antall konkurrerende setup på andre horisonter/retninger
     const alternatives = entries.length - 1;
-    const conflicts = entries.filter(e => e !== pick && e.direction !== pick.direction && ratio(e) >= 0.5).length;
+    const conflicts = entries.filter(e => e !== pick && e.horizon === pick.horizon && e.direction !== pick.direction && ratio(e) >= 0.5).length;
     out.push({ ...pick, _alternatives: alternatives, _conflicts: conflicts, _ratio: ratio(pick) });
   }
   return out;
@@ -3129,7 +3129,7 @@ function renderBedrock(){
       return `<span class="bk-fam-dot ${fs > 0.1 ? 'on' : ''}" title="${k}: ${fs.toFixed(2)}"></span>`;
     }).join('');
     const conflictBadge = r._conflicts > 0
-      ? `<span class="bk-conflict" title="${r._conflicts} motstridende setup på samme instrument">⚠</span>`
+      ? `<span class="bk-conflict" title="${r._conflicts} motsatt retning på samme horisont (≥50 % av terskel)">⚠</span>`
       : '';
     return `
       <div class="bk-card ${dirCls} ${r.published ? '' : 'not-pub'}" data-symbol="${ourSym}">
