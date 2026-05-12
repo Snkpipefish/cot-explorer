@@ -1975,8 +1975,10 @@ function renderActorBoard(actors){
 }
 
 function renderActorCard(a){
-  const pct = a.net_pctile_52w;
-  const pctNum = pct != null ? Number(pct).toFixed(0) : '—';
+  const pctRaw = a.net_pctile_52w;
+  const pctValid = pctRaw != null && Number.isFinite(Number(pctRaw));
+  const pct = pctValid ? Math.max(0, Math.min(100, Number(pctRaw))) : null;
+  const pctNum = pct != null ? pct.toFixed(0) : '—';
   const markerStyle = pct != null ? `left:calc(${pct}% - 1.5px);` : 'display:none;';
   const verdictCls = 'verdict-' + (a.verdict || 'STABIL').replace(/\s+/g, '-');
 
@@ -1988,11 +1990,6 @@ function renderActorCard(a){
 
   const longArrow = arrowFor(a.long_delta);
   const shortArrow = arrowFor(a.short_delta);
-
-  // Forklaringer for percentil-strikene
-  const pctLowLabel = pct != null && pct <= 15 ? 'EKSTREM' : '';
-  const pctHighLabel = pct != null && pct >= 85 ? 'EKSTREM' : '';
-  const pctMid = pct != null && pct > 15 && pct < 85 ? '' : '';
 
   return `
     <div class="actor-card">
