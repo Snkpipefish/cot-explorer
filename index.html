@@ -2425,12 +2425,15 @@ function renderSetupLevels(sig, setup){
     if(sig.t1 != null) items.push({color:'var(--sig-pos)', lbl:`Mål 1${sig.rr_t1 != null ? ' (R:R '+Number(sig.rr_t1).toFixed(2)+')' : ''}`, v:sig.t1});
     if(sig.t2 != null) items.push({color:'var(--sig-pos)', lbl:`Mål 2${sig.rr_t2 != null ? ' (R:R '+Number(sig.rr_t2).toFixed(2)+')' : ''}`, v:sig.t2});
   } else if(setup) {
-    const s = setup.long || setup.short;
-    const dir = setup.long ? 'long' : 'short';
-    if(s?.entry != null) items.push({color:'var(--brass)', lbl:`Inngang (${dir})`, v:s.entry});
-    if(s?.sl != null) items.push({color:'var(--sig-neg)', lbl:'Stopptap', v:s.sl});
-    if(s?.t1 != null) items.push({color:'var(--sig-pos)', lbl:'Mål 1', v:s.t1});
-    if(s?.t2 != null) items.push({color:'var(--sig-pos)', lbl:'Mål 2', v:s.t2});
+    const sides = [];
+    if(setup.long)  sides.push({s:setup.long,  dir:'long'});
+    if(setup.short) sides.push({s:setup.short, dir:'short'});
+    for(const {s, dir} of sides){
+      if(s?.entry != null) items.push({color:'var(--brass)', lbl:`Inngang (${dir})`, v:s.entry});
+      if(s?.sl != null) items.push({color:'var(--sig-neg)', lbl:`Stopptap (${dir})`, v:s.sl});
+      if(s?.t1 != null) items.push({color:'var(--sig-pos)', lbl:`Mål 1 (${dir})`, v:s.t1});
+      if(s?.t2 != null) items.push({color:'var(--sig-pos)', lbl:`Mål 2 (${dir})`, v:s.t2});
+    }
   }
   if(!items.length) return '<div class="skel" style="text-align:left;padding:4px 0;">Ingen aktive setup-nivåer.</div>';
   return items.map(i => `
@@ -2482,12 +2485,14 @@ function drawPriceChart(rows, sig, setup){
     svgContent += drawLevel(sig.t1, 'price-level-t1', 'T1');
     svgContent += drawLevel(sig.t2, 'price-level-t2', 'T2');
   } else if(setup){
-    const s = setup.long || setup.short;
-    if(s){
-      svgContent += drawLevel(s.entry, 'price-level-entry', 'Inngang');
-      svgContent += drawLevel(s.sl, 'price-level-sl', 'SL');
-      svgContent += drawLevel(s.t1, 'price-level-t1', 'T1');
-      svgContent += drawLevel(s.t2, 'price-level-t2', 'T2');
+    const sides = [];
+    if(setup.long)  sides.push({s:setup.long,  suf:' L'});
+    if(setup.short) sides.push({s:setup.short, suf:' S'});
+    for(const {s, suf} of sides){
+      svgContent += drawLevel(s.entry, 'price-level-entry', 'Inngang' + suf);
+      svgContent += drawLevel(s.sl,    'price-level-sl',    'SL'      + suf);
+      svgContent += drawLevel(s.t1,    'price-level-t1',    'T1'      + suf);
+      svgContent += drawLevel(s.t2,    'price-level-t2',    'T2'      + suf);
     }
   }
   // Dates on x-axis
