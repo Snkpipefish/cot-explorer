@@ -686,6 +686,126 @@ main.deck{padding:24px 28px 60px;max-width:1480px;margin:0 auto;}
 .dom-kv .k{font-style:italic;color:var(--ink-bone-dim);}
 .dom-kv .v{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-paper);}
 
+/* ─── Fundamentaler — kompass, kategorier, drivere ─── */
+.fund-compass{
+  display:grid;grid-template-columns:1fr;gap:10px;
+  padding:14px 4px 6px;
+}
+.fund-compass .hdr{
+  display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;
+}
+.fund-compass .hdr .sym{
+  font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink-paper);
+}
+.fund-compass .hdr .bias{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;letter-spacing:.04em;
+}
+.fund-compass .hdr .bias.pos{color:var(--sig-pos);}
+.fund-compass .hdr .bias.neg{color:var(--sig-neg);}
+.fund-compass .hdr .bias.neu{color:var(--brass);}
+.fund-meter{
+  position:relative;height:18px;border:1px solid var(--ink-rule);
+  background:linear-gradient(90deg,rgba(194,92,92,.18) 0%,rgba(194,92,92,.05) 35%,rgba(201,163,94,.12) 50%,rgba(107,157,122,.05) 65%,rgba(107,157,122,.18) 100%);
+}
+.fund-meter .mid{
+  position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink-rule);
+}
+.fund-meter .tick{
+  position:absolute;top:0;bottom:0;width:1px;background:var(--ink-rule-soft);
+}
+.fund-meter .needle{
+  position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--brass);
+  box-shadow:0 0 6px rgba(201,163,94,.55);
+}
+.fund-meter-scale{
+  display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);
+  margin-top:3px;
+}
+.fund-summary{
+  padding:8px 0;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-bone);
+  border-top:1px dotted var(--ink-rule-soft);border-bottom:1px dotted var(--ink-rule-soft);
+}
+.fund-summary strong.pos{color:var(--sig-pos);}
+.fund-summary strong.neg{color:var(--sig-neg);}
+.fund-summary strong.neu{color:var(--brass);}
+.fund-summary .stamp{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);margin-left:8px;}
+
+.fund-cats{display:grid;grid-template-columns:1fr;gap:10px;padding:6px 0 2px;}
+.fund-cat{
+  display:grid;grid-template-columns:140px 1fr 110px;gap:12px;align-items:center;
+  padding:4px 0;border-bottom:1px dotted var(--ink-rule-soft);
+}
+.fund-cat:last-child{border-bottom:none;}
+.fund-cat .nm{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-bone);}
+.fund-cat .nm em{display:block;font-style:italic;color:var(--ink-mute);font-size:11px;}
+.fund-cat .bar{
+  position:relative;height:10px;border:1px solid var(--ink-rule-soft);background:#0b1020;
+}
+.fund-cat .bar .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink-rule);}
+.fund-cat .bar .fill{position:absolute;top:0;bottom:0;}
+.fund-cat .bar .fill.pos{background:linear-gradient(90deg,rgba(107,157,122,.25),var(--sig-pos));}
+.fund-cat .bar .fill.neg{background:linear-gradient(90deg,var(--sig-neg),rgba(194,92,92,.25));}
+.fund-cat .bias-lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;text-align:right;}
+.fund-cat .bias-lbl.pos{color:var(--sig-pos);}
+.fund-cat .bias-lbl.neg{color:var(--sig-neg);}
+.fund-cat .bias-lbl.neu{color:var(--brass);}
+
+.fund-grid-two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fund-col h4{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;
+  color:var(--ink-bone-dim);letter-spacing:.04em;margin:0 0 6px;
+  padding-bottom:4px;border-bottom:1px solid var(--ink-rule-soft);
+}
+.fund-col h4.pos{color:var(--sig-pos);}
+.fund-col h4.neg{color:var(--sig-neg);}
+.fund-driver{
+  display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:baseline;
+  padding:5px 0;border-bottom:1px dotted var(--ink-rule-soft);
+}
+.fund-driver:last-child{border-bottom:none;}
+.fund-driver .nm{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-bone);}
+.fund-driver .nm em{display:block;font-style:italic;color:var(--ink-mute);font-size:10px;}
+.fund-driver .val{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-paper);}
+.fund-driver .delta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);}
+.fund-driver .delta.up{color:var(--sig-pos);}
+.fund-driver .delta.down{color:var(--sig-neg);}
+.fund-neutral-note{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
+  color:var(--ink-mute);padding:6px 0 0;
+}
+
+.fund-rates{display:grid;grid-template-columns:1fr;gap:6px;}
+.fund-rate{
+  display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:baseline;
+  padding:6px 0;border-bottom:1px dotted var(--ink-rule-soft);
+}
+.fund-rate:last-child{border-bottom:none;}
+.fund-rate .nm{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-bone);}
+.fund-rate .nm em{display:block;font-style:italic;color:var(--ink-mute);font-size:11px;}
+.fund-rate .val{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-paper);}
+.fund-rate .delta{font-family:'JetBrains Mono',monospace;font-size:11px;}
+.fund-rate .delta.up{color:var(--sig-pos);}
+.fund-rate .delta.down{color:var(--sig-neg);}
+.fund-rate .delta.flat{color:var(--ink-mute);}
+
+.fund-narrative{
+  font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.5;
+  color:var(--ink-paper);padding:8px 4px;font-style:italic;
+}
+.fund-narrative strong{font-style:normal;color:var(--brass);}
+
+.fund-stale{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+  color:var(--sig-warn);margin-left:6px;
+}
+
+@media (max-width: 780px){
+  .fund-grid-two{grid-template-columns:1fr;}
+  .fund-cat{grid-template-columns:1fr;gap:4px;}
+  .fund-cat .bias-lbl{text-align:left;}
+}
+
 .news-row{
   padding:8px 0;border-bottom:1px dotted var(--ink-rule-soft);
   display:grid;grid-template-columns:100px 1fr;gap:14px;
@@ -886,6 +1006,48 @@ const INSTRUMENT_NAVN_NO = {
   'Corn':'Mais', 'Wheat':'Hvete', 'Soybean':'Soyabønner',
   'Cotton':'Bomull', 'Sugar':'Sukker', 'Coffee':'Kaffe', 'Cocoa':'Kakao',
   'BTC':'Bitcoin', 'ETH':'Ether',
+};
+
+// Norsk gloss for de 12 USD-fundamentale indikatorene i data/fundamentals/latest.json → indicators.*
+const FUND_INDIKATOR_NO = {
+  GDP:    { navn:'BNP-vekst',                  forklaring:'kvartalsvis endring',            enhet:'%' },
+  Retail: { navn:'Detaljhandel',               forklaring:'mnd/mnd endring',                enhet:'%' },
+  ConConf:{ navn:'Forbrukertillit',            forklaring:'UoM-indeks',                     enhet:''  },
+  mPMI:   { navn:'PMI tilvirkning',            forklaring:'over 50 = vekst',                enhet:''  },
+  sPMI:   { navn:'PMI tjenester',              forklaring:'over 50 = vekst',                enhet:''  },
+  CPI:    { navn:'Konsumprisindeks',           forklaring:'år/år, total',                   enhet:'%' },
+  PPI:    { navn:'Produsentpriser',            forklaring:'år/år',                          enhet:'%' },
+  PCE:    { navn:'PCE-inflasjon',              forklaring:'Feds favorittmål, år/år',        enhet:'%' },
+  IntRate:{ navn:'Styringsrente',              forklaring:'Fed funds-mål',                  enhet:'%' },
+  NFP:    { navn:'Nye jobber utenom landbruk', forklaring:'månedlig endring',               enhet:'k' },
+  Unemp:  { navn:'Arbeidsledighet',            forklaring:'andel av arbeidsstyrken',        enhet:'%' },
+  Claims: { navn:'Nye trygdkrav',              forklaring:'ukentlig, lavere = sterkere',    enhet:'k' },
+  ADP:    { navn:'ADP privat sysselsetting',   forklaring:'månedlig endring',               enhet:'k' },
+  JOLTS:  { navn:'Ledige stillinger (JOLTS)',  forklaring:'mill stillinger',                enhet:'mill' },
+};
+
+// Bias-etiketter på norsk for fundamentals
+const FUND_BIAS_NO = {
+  'strong_bullish':{ tekst:'klart positiv', klasse:'pos' },
+  'bullish':       { tekst:'positiv',       klasse:'pos' },
+  'neutral':       { tekst:'nøytral',       klasse:'neu' },
+  'bearish':       { tekst:'negativ',       klasse:'neg' },
+  'strong_bearish':{ tekst:'klart negativ', klasse:'neg' },
+};
+
+const FUND_KATEGORI_NO = {
+  econ_growth: { navn:'Økonomisk vekst', forklaring:'BNP · detaljhandel · PMI · tillit' },
+  inflation:   { navn:'Inflasjon',       forklaring:'KPI · PPI · PCE · styringsrente' },
+  jobs:        { navn:'Arbeidsmarked',   forklaring:'NFP · ledighet · ADP · JOLTS · krav' },
+};
+
+const FUND_MAKRO_PROXY_NO = {
+  TNX:   { navn:'10-års statsrente',         forklaring:'proksjer DGS10×10' },
+  IRX:   { navn:'13-uker T-bill rente',      forklaring:'kortenden av kurven' },
+  HYG:   { navn:'Høyrisiko-obligasjoner',    forklaring:'kredittstemning' },
+  TIP:   { navn:'Inflasjonsindekserte obl.', forklaring:'real-renteproxy' },
+  Copper:{ navn:'Kobberpris',                forklaring:'industriaktivitet' },
+  EEM:   { navn:'Vekstmarkeder',             forklaring:'risikoappetitt' },
 };
 
 // Pris-fil-navn (lowercase stem) for assets med data/prices/<stem>.json
@@ -2115,38 +2277,311 @@ function renderDomIndekser(symbol){
 }
 
 /* ════════ FUNDAMENTALER-FANE ════════ */
-function renderFundamentaler(symbol){
-  let html = '';
-  // Makro-indikatorer
-  const mi = D.macro?.macro_indicators || {};
-  const fund = D.fundamentals || {};
 
-  let macroBody = '<div class="body">';
+function fundFmtDato(iso){
+  if(!iso) return '';
+  try{
+    const d = new Date(iso);
+    const md = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'][d.getUTCMonth()];
+    return `${d.getUTCDate()}. ${md}`;
+  }catch{ return (iso || '').slice(0,10); }
+}
+
+function fundBiasInfo(bias){
+  return FUND_BIAS_NO[bias] || { tekst: bias || 'ukjent', klasse: 'neu' };
+}
+
+function fundFmtTall(v, enhet){
+  if(v == null || Number.isNaN(v)) return '—';
+  const n = Number(v);
+  const abs = Math.abs(n);
+  let s;
+  if(abs >= 1000) s = n.toFixed(0);
+  else if(abs >= 100) s = n.toFixed(1);
+  else if(abs >= 10) s = n.toFixed(2);
+  else s = n.toFixed(2);
+  return enhet ? `${s} ${enhet}` : s;
+}
+
+function renderFundKompass(symbol){
+  const fund = D.fundamentals || {};
+  const sc = fund.instrument_scores?.[symbol];
+  const navn = INSTRUMENT_NAVN_NO[symbol] || symbol;
+  if(!sc){
+    return `
+      <div class="fund-block">
+        <div class="ttl">I·A Fundamentalkompass</div>
+        <div class="body">
+          <em style="color:var(--ink-mute);">${navn} er ikke direkte koblet til USD-makro­modellen. Se Domene-fanen for instrument­spesifikke fundamentaler. Den generelle USD-bakgrunnen nedenfor er likevel relevant som globalt risikobilde.</em>
+        </div>
+      </div>`;
+  }
+  const score = Number(sc.score);
+  const biasInfo = fundBiasInfo(sc.bias);
+  // Posisjon i prosent — score går fra −1 til +1, midt = 50%
+  const pos = Math.max(0, Math.min(100, (score + 1) * 50));
+  return `
+    <div class="fund-block">
+      <div class="ttl">I·A Fundamentalkompass · ${navn}</div>
+      <div class="fund-compass">
+        <div class="hdr">
+          <span class="sym">Fundamental retning</span>
+          <span class="bias ${biasInfo.klasse}">${biasInfo.tekst} · ${score >= 0 ? '+' : ''}${score.toFixed(2).replace('.', ',')}</span>
+        </div>
+        <div class="fund-meter">
+          <div class="tick" style="left:25%;"></div>
+          <div class="mid"></div>
+          <div class="tick" style="left:75%;"></div>
+          <div class="needle" style="left:calc(${pos}% - 1.5px);"></div>
+        </div>
+        <div class="fund-meter-scale">
+          <span>−1 (svært bearish)</span>
+          <span>0</span>
+          <span>+1 (svært bullish)</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderFundUsdHelse(){
+  const u = D.fundamentals?.usd_fundamental;
+  const meta = D.fundamentals?._meta;
+  const oppd = D.fundamentals?.updated;
+  if(!u) return '';
+  const biasInfo = fundBiasInfo(u.bias);
+  const cm = D.fundamentals?.consensus_multi;
+  return `
+    <div class="fund-block">
+      <div class="ttl">I·B USD-helse — overordnet</div>
+      <div class="fund-summary">
+        USD-fundamentaler står som <strong class="${biasInfo.klasse}">${biasInfo.tekst}</strong>
+        (skår ${u.score >= 0 ? '+' : ''}${Number(u.score).toFixed(2).replace('.', ',')} av ${u.n} indikatorer)
+        <span class="stamp">oppdatert ${fundFmtDato(oppd)}</span>
+        ${cm != null && cm !== 1 ? `<em style="color:var(--ink-mute);font-style:italic;margin-left:8px;">konsensus×${cm}</em>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderFundKategorier(){
+  const cats = D.fundamentals?.category_scores;
+  if(!cats || !Object.keys(cats).length) return '';
+  let rows = '';
+  for(const [k, v] of Object.entries(cats)){
+    if(!v) continue;
+    const kInfo = FUND_KATEGORI_NO[k] || { navn:k, forklaring:'' };
+    const biasInfo = fundBiasInfo(v.bias);
+    const avg = Number(v.avg || 0);
+    // avg ligger typisk i [−2, +2]; mapp til [0, 100]
+    const pct = Math.max(0, Math.min(100, (avg + 2) * 25));
+    const midPct = 50;
+    const fillCls = avg >= 0 ? 'pos' : 'neg';
+    const fillLeft = avg >= 0 ? midPct : pct;
+    const fillWidth = Math.abs(pct - midPct);
+    rows += `
+      <div class="fund-cat">
+        <div class="nm">${kInfo.navn}<em>${kInfo.forklaring}</em></div>
+        <div class="bar">
+          <div class="mid"></div>
+          <div class="fill ${fillCls}" style="left:${fillLeft}%;width:${fillWidth}%;"></div>
+        </div>
+        <div class="bias-lbl ${biasInfo.klasse}">${biasInfo.tekst}<br><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);">snitt ${avg >= 0 ? '+' : ''}${avg.toFixed(2).replace('.', ',')}</span></div>
+      </div>`;
+  }
+  return `
+    <div class="fund-block">
+      <div class="ttl">I·C Kategorisk balanse</div>
+      <div class="fund-cats">${rows}</div>
+    </div>`;
+}
+
+function renderFundDrivere(){
+  const ind = D.fundamentals?.indicators;
+  if(!ind || !Object.keys(ind).length) return '';
+  const pos = [], neg = [], neu = [];
+  for(const [k, v] of Object.entries(ind)){
+    if(!v) continue;
+    const info = FUND_INDIKATOR_NO[k] || { navn:k, forklaring:'', enhet:'' };
+    const cur = v.current, prev = v.previous;
+    const score = Number(v.score || 0);
+    const enhet = info.enhet || '';
+    const delta = (cur != null && prev != null) ? (cur - prev) : null;
+    const deltaCls = delta == null ? 'flat' : (delta > 0 ? 'up' : (delta < 0 ? 'down' : 'flat'));
+    const deltaPil = delta == null ? '·' : (delta > 0 ? '↑' : (delta < 0 ? '↓' : '→'));
+    const deltaTekst = delta == null ? '' : `${deltaPil} ${Math.abs(delta).toFixed(2)}`;
+    const row = `
+      <div class="fund-driver">
+        <span class="nm">${info.navn}<em>${info.forklaring}</em></span>
+        <span class="val">${fundFmtTall(cur, enhet)}</span>
+        <span class="delta ${deltaCls}">${deltaTekst}</span>
+      </div>`;
+    if(score > 0) pos.push({ k, row, score });
+    else if(score < 0) neg.push({ k, row, score });
+    else neu.push({ k, info });
+  }
+  pos.sort((a,b) => b.score - a.score);
+  neg.sort((a,b) => a.score - b.score);
+
+  const posHtml = pos.length
+    ? pos.map(x => x.row).join('')
+    : '<em style="color:var(--ink-mute);font-style:italic;font-size:12px;">Ingen indikatorer trekker USD opp akkurat nå.</em>';
+  const negHtml = neg.length
+    ? neg.map(x => x.row).join('')
+    : '<em style="color:var(--ink-mute);font-style:italic;font-size:12px;">Ingen indikatorer trekker USD ned akkurat nå.</em>';
+  const neuHtml = neu.length
+    ? `<div class="fund-neutral-note">Nøytrale (ingen retning): ${neu.map(n => (FUND_INDIKATOR_NO[n.k]?.navn || n.k)).join(', ')}.</div>`
+    : '';
+
+  return `
+    <div class="fund-block">
+      <div class="ttl">I·D Drivere — hvilke indikatorer trekker hvor</div>
+      <div class="fund-grid-two">
+        <div class="fund-col">
+          <h4 class="pos">Styrker USD (${pos.length})</h4>
+          ${posHtml}
+        </div>
+        <div class="fund-col">
+          <h4 class="neg">Svekker USD (${neg.length})</h4>
+          ${negHtml}
+        </div>
+      </div>
+      ${neuHtml}
+    </div>`;
+}
+
+function renderFundRenter(){
+  const mr = D.fundamentals?.market_rates;
+  if(!mr) return '';
+  function rateRow(nm, forklaring, obj){
+    if(obj == null) return '';
+    const v = obj.value, c = obj.chg_5d, dato = obj.date;
+    const cls = c == null ? 'flat' : (c > 0 ? 'up' : (c < 0 ? 'down' : 'flat'));
+    const pil = c == null ? '·' : (c > 0 ? '↑' : (c < 0 ? '↓' : '→'));
+    const stale = obj._fresh === false ? `<span class="fund-stale">(eldre data — ${dato || ''})</span>` : '';
+    return `
+      <div class="fund-rate">
+        <span class="nm">${nm}<em>${forklaring}</em></span>
+        <span class="val">${v != null ? Number(v).toFixed(2) + ' %' : '—'} ${stale}</span>
+        <span class="delta ${cls}">${pil} ${c != null ? Math.abs(c).toFixed(2) + ' (5d)' : ''}</span>
+      </div>`;
+  }
+  const ts = mr.term_spread;
+  const tsTekst = ts == null
+    ? ''
+    : (ts >= 0
+      ? `<em style="color:var(--sig-pos);">positiv kurve — normal vekstforventning</em>`
+      : `<em style="color:var(--sig-neg);">invertert — historisk et resesjonsvarsel</em>`);
+  return `
+    <div class="fund-block">
+      <div class="ttl">I·E Markedsrenter</div>
+      <div class="fund-rates">
+        ${rateRow('10-års statsrente', 'nominell, USA', mr.dgs10)}
+        ${rateRow('10-års real-rente', 'inflasjonsjustert (TIPS)', mr.dfii10)}
+        ${rateRow('2-års statsrente', 'kortenden av kurven', mr.dgs2)}
+        ${ts != null ? `
+          <div class="fund-rate">
+            <span class="nm">Term-spread (10Y − 2Y)<em>kurveform</em></span>
+            <span class="val">${Number(ts).toFixed(2)} %-poeng</span>
+            <span class="delta flat">${tsTekst}</span>
+          </div>` : ''}
+      </div>
+    </div>`;
+}
+
+function fundNoTall(n, des){
+  if(n == null) return '—';
+  return Number(n).toFixed(des == null ? 2 : des).replace('.', ',');
+}
+
+function renderFundNarrativ(symbol){
+  const fund = D.fundamentals || {};
+  const u = fund.usd_fundamental;
+  const cats = fund.category_scores || {};
+  const mr = fund.market_rates || {};
+  const sc = fund.instrument_scores?.[symbol];
+  const navn = INSTRUMENT_NAVN_NO[symbol] || symbol;
+  if(!u) return '';
+  const usdBias = fundBiasInfo(u.bias);
+  const usdPos = u.score > 0;
+  const usdScore = u.score >= 0 ? '+' + fundNoTall(u.score) : fundNoTall(u.score);
+  const realY = mr.dfii10?.value;
+  const fxUsd = ['EURUSD','GBPUSD','AUDUSD','USDJPY','DXY'].includes(symbol);
+  const metall = ['Gold','Silver'].includes(symbol);
+  const indeks = ['SPX','NAS100'].includes(symbol);
+  const olje = ['WTI','Brent'].includes(symbol);
+  let txt = '';
+
+  if(fxUsd){
+    const usdRetning = usdPos ? 'styrket' : (u.score < 0 ? 'svekket' : 'nøytralt stilt');
+    if(symbol === 'USDJPY' || symbol === 'DXY'){
+      const presset = usdPos ? 'oppover­press' : (u.score < 0 ? 'nedover­press' : 'lite retnings­press');
+      txt = `USD-bildet er <strong>${usdBias.tekst}</strong> (skår ${usdScore}). En ${usdRetning} dollar legger ${presset} på ${navn}.`;
+    } else {
+      const presset = usdPos ? 'nedover­press' : (u.score < 0 ? 'oppover­press' : 'lite retnings­press');
+      txt = `USD-bildet er <strong>${usdBias.tekst}</strong> (skår ${usdScore}). En ${usdRetning} dollar legger ${presset} på ${navn}.`;
+    }
+  } else if(metall){
+    const realTekst = realY != null ? `Real-renten på <strong>${fundNoTall(realY)} %</strong>` : 'Real-renten';
+    const usdDel = usdPos
+      ? `og en <strong>${usdBias.tekst}</strong> USD demper oppsiden`
+      : (u.score < 0
+        ? `og en <strong>${usdBias.tekst}</strong> USD åpner for oppside`
+        : `og en USD i balanse gir lite drahjelp`);
+    txt = `${realTekst} ${usdDel} for ${navn}. Metaller beveger seg typisk motsatt vei av real-renter og dollar.`;
+  } else if(indeks){
+    const infAvg = cats.inflation?.avg;
+    const jobAvg = cats.jobs?.avg;
+    const infTekst = infAvg == null ? 'uklart' : (infAvg > 1 ? 'klart over mål' : (infAvg > 0 ? 'noe over mål' : 'rolig'));
+    const jobTekst = jobAvg == null ? 'uklart' : (jobAvg > 0.5 ? 'sterkt' : (jobAvg < -0.5 ? 'svakt' : 'i balanse'));
+    txt = `Inflasjons­bildet er <strong>${infTekst}</strong> og arbeids­markedet <strong>${jobTekst}</strong>. For ${navn} betyr det at aksjer møter både medvind fra jobbtall og motvind fra prispress — sjekk om bildet er konsistent.`;
+  } else if(olje){
+    const vekstAvg = cats.econ_growth?.avg;
+    const vekstTekst = vekstAvg == null ? 'uklart' : (vekstAvg > 0 ? 'oppover' : 'nedover');
+    const usdDel = usdPos
+      ? 'mens en sterk USD demper prisen'
+      : (u.score < 0 ? 'og en svakere USD støtter prisen' : 'og USD er i balanse');
+    txt = `Økonomisk vekst peker <strong>${vekstTekst}</strong>, ${usdDel} for ${navn}. Olje følger global etterspørsel og dollarstyrke.`;
+  } else if(sc){
+    const biasInfo = fundBiasInfo(sc.bias);
+    const sScore = sc.score >= 0 ? '+' + fundNoTall(sc.score) : fundNoTall(sc.score);
+    txt = `Fundamental­modellen klassifiserer ${navn} som <strong>${biasInfo.tekst}</strong> (skår ${sScore}). Det generelle USD-bildet er <strong>${usdBias.tekst}</strong>.`;
+  } else {
+    txt = `${navn} er ikke direkte koblet til USD-makro­modellen — se Domene-fanen for instrument­spesifikke fundamentaler. Den globale risiko­appetitten styres likevel av USD-bildet, som nå er <strong>${usdBias.tekst}</strong>.`;
+  }
+  return `
+    <div class="fund-block">
+      <div class="ttl">I·F Hva betyr dette for ${navn}?</div>
+      <p class="fund-narrative">${txt}</p>
+    </div>`;
+}
+
+function renderFundMakroProxy(){
+  const mi = D.macro?.macro_indicators || {};
+  if(!Object.keys(mi).length) return '';
+  let body = '<div class="body">';
   for(const [k, v] of Object.entries(mi)){
     if(v == null) continue;
-    macroBody += `<div class="dom-kv"><span class="k">${k.replaceAll('_', ' ')}</span><span class="v">${v}</span></div>`;
+    const info = FUND_MAKRO_PROXY_NO[k] || { navn:k, forklaring:'' };
+    body += `
+      <div class="dom-kv">
+        <span class="k">${info.navn}<em style="display:block;font-style:italic;color:var(--ink-mute);font-size:10px;">${info.forklaring}</em></span>
+        <span class="v">${typeof v === 'number' ? v.toFixed(2) : v}</span>
+      </div>`;
   }
-  macroBody += '</div>';
-  html += `<div class="fund-block"><div class="ttl">Makro-indikatorer</div>${macroBody}</div>`;
+  body += '</div>';
+  return `<div class="fund-block"><div class="ttl">I·G Globale makro-proksjer</div>${body}</div>`;
+}
 
-  // Fundamentale verdier fra fundamentals/latest.json
-  if(fund && Object.keys(fund).length){
-    let body = '<div class="body">';
-    let count = 0;
-    for(const [k, v] of Object.entries(fund)){
-      if(count > 12) break;
-      if(typeof v === 'object' && v !== null){
-        body += `<div class="dom-kv"><span class="k">${k.replaceAll('_', ' ')}</span><span class="v">${v.value != null ? v.value : (v.latest != null ? v.latest : '—')}</span></div>`;
-      } else if(v != null && typeof v !== 'object'){
-        body += `<div class="dom-kv"><span class="k">${k.replaceAll('_', ' ')}</span><span class="v">${v}</span></div>`;
-      }
-      count++;
-    }
-    body += '</div>';
-    html += `<div class="fund-block"><div class="ttl">Fundamentaler</div>${body}</div>`;
-  }
+function renderFundamentaler(symbol){
+  const blocks = [];
+  blocks.push(renderFundKompass(symbol));
+  blocks.push(renderFundUsdHelse());
+  blocks.push(renderFundKategorier());
+  blocks.push(renderFundDrivere());
+  blocks.push(renderFundRenter());
+  blocks.push(renderFundNarrativ(symbol));
+  blocks.push(renderFundMakroProxy());
 
-  // News intel — siste 10 overskrifter
+  // I·H Nyhetsintel
   const news = D.newsIntel || [];
   if(news.length){
     let body = '<div class="body">';
@@ -2157,10 +2592,10 @@ function renderFundamentaler(symbol){
       </div>`;
     });
     body += '</div>';
-    html += `<div class="fund-block"><div class="ttl">Nyhetsintel</div>${body}</div>`;
+    blocks.push(`<div class="fund-block"><div class="ttl">I·H Nyhetsintel</div>${body}</div>`);
   }
 
-  // Calendar
+  // I·I Kalender
   const cal = D.macro?.calendar;
   if(Array.isArray(cal) && cal.length){
     let body = '<div class="body">';
@@ -2171,9 +2606,10 @@ function renderFundamentaler(symbol){
       </div>`;
     });
     body += '</div>';
-    html += `<div class="fund-block"><div class="ttl">Kalender</div>${body}</div>`;
+    blocks.push(`<div class="fund-block"><div class="ttl">I·I Kalender</div>${body}</div>`);
   }
 
+  const html = blocks.filter(Boolean).join('');
   return html || `<div class="alert-no-cot">Ingen fundamentale data tilgjengelig.</div>`;
 }
 
@@ -2292,7 +2728,7 @@ function renderDatakvalitet(){
     { nm:'Signaler (financial)', path:'data/signals.json', count:(D.signals?.signals || []).length, ts:D.signals?.generated },
     { nm:'Signaler (landbruk)', path:'data/agri_signals.json', count:(D.agri_signals?.signals || []).length, ts:D.agri_signals?.generated },
     { nm:'Makro/sentiment', path:'data/macro/latest.json', ts:D.macro?.date },
-    { nm:'Fundamentaler', path:'data/fundamentals/latest.json', count:Object.keys(D.fundamentals || {}).length },
+    { nm:'Fundamentaler', path:'data/fundamentals/latest.json', count:Object.keys(D.fundamentals?.indicators || {}).length },
     { nm:'COMEX-flyt', path:'data/bedrock/comex.json', count:D.comex.length },
     { nm:'EIA-lager', path:'data/bedrock/eia_storage.json', count:D.eiaStorage.length },
     { nm:'USDA crop progress', path:'data/bedrock/crop_progress.json', count:D.cropProgress.length },
