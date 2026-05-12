@@ -980,6 +980,68 @@ body[data-mode="visuelt"] .dom-block .body em{display:none;}
 body[data-mode="visuelt"] .setup-summary .setup-line:nth-child(n+3){display:none;}
 body[data-mode="visuelt"] .markets-intro{display:none;}
 
+/* ─────── TFF FALLBACK (indekser/krypto uten klassisk COT) ─────── */
+.tff-board{
+  border:1px solid var(--ink-rule);padding:14px 18px;margin-bottom:14px;
+  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
+}
+.tff-board .ttl{
+  font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;
+  color:var(--brass);letter-spacing:.04em;margin-bottom:6px;
+}
+.tff-board .sub{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
+  color:var(--ink-bone-dim);margin-bottom:12px;
+}
+.tff-summary{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;
+  padding:6px 0 12px;border-bottom:1px dotted var(--ink-rule-soft);margin-bottom:12px;
+}
+.tff-summary .cell .k{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;color:var(--ink-mute);
+  display:block;
+}
+.tff-summary .cell .v{
+  font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--ink-paper);
+}
+.tff-actor{
+  display:grid;grid-template-columns:1fr;gap:6px;
+  padding:10px 0;border-bottom:1px dotted var(--ink-rule-soft);
+}
+.tff-actor:last-child{border-bottom:none;}
+.tff-actor .head{
+  display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;
+}
+.tff-actor .nm{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-paper);font-weight:600;}
+.tff-actor .nm em{display:block;font-style:italic;font-weight:400;font-size:11px;color:var(--ink-mute);}
+.tff-actor .net{
+  font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.04em;
+}
+.tff-actor .net.long{color:var(--sig-pos);}
+.tff-actor .net.short{color:var(--sig-neg);}
+.tff-actor .net-lbl{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
+  color:var(--ink-mute);margin-right:8px;
+}
+.tff-bars{
+  display:grid;grid-template-columns:60px 1fr 60px;gap:8px;align-items:center;
+}
+.tff-bars .side{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-bone-dim);
+}
+.tff-bars .side.l{text-align:left;}
+.tff-bars .side.s{text-align:right;}
+.tff-split{
+  position:relative;height:14px;border:1px solid var(--ink-rule);
+  background:#0b1020;display:flex;overflow:hidden;
+}
+.tff-split .long-fill{background:linear-gradient(90deg,var(--sig-pos-dim),var(--sig-pos));height:100%;}
+.tff-split .short-fill{background:linear-gradient(90deg,var(--sig-neg),var(--sig-neg-dim));height:100%;}
+.tff-narrative{
+  padding:10px 0 0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;
+  color:var(--ink-bone);line-height:1.5;
+}
+
 /* ─────── BEDROCK KORTGRID (visuell modus) ─────── */
 .bedrock-grid{display:none;}
 body[data-mode="visuelt"] .bedrock-grid{
@@ -1279,7 +1341,7 @@ async function loadAll(){
          bedrockIndex, fundamentalsB, comex, eiaStorage, cropProgress, iriEnso,
          cryptoSentiment, newsIntel, diseaseAlerts, exportEvents,
          oilgas, shipping, geointel, calendar,
-         bedrockSignals, bedrockAgriSignals, bdi] = await Promise.all([
+         bedrockSignals, bedrockAgriSignals, bdi, tff] = await Promise.all([
     loadJSON('data/cot_interpretation/latest.json'),
     loadJSON('data/bedrock/prices.json'),
     loadJSON('data/signals.json'),
@@ -1304,6 +1366,7 @@ async function loadAll(){
     loadJSON('data/bedrock/signals.json'),
     loadJSON('data/bedrock/agri_signals.json'),
     loadJSON('data/bedrock/bdi.json'),
+    loadJSON('data/tff/latest.json'),
   ]);
   D.bedrockSignals = bedrockSignals?.raw || [];
   D.bedrockAgriSignals = bedrockAgriSignals?.raw || [];
@@ -1325,6 +1388,20 @@ async function loadAll(){
   D.diseaseAlerts = diseaseAlerts?.data || [];
   D.exportEvents = exportEvents?.data || [];
   D.bdi = bdi?.data || [];
+  // TFF (Traders in Financial Futures) — gir COT-lignende posisjonering for indekser og krypto
+  // som faller utenfor den vanlige legacy/disaggregated COT-rapporten.
+  D.tff = Array.isArray(tff) ? tff : (tff?.data || []);
+  D.tffBySymbol = {};
+  const TFF_MARKED_MAP = {
+    'S&P 500 Consolidated': 'SPX',
+    'Nasdaq': 'NAS100',
+    'Bitcoin': 'BTC',
+    'Ether Cash Settled': 'ETH',
+  };
+  for(const r of D.tff){
+    const sym = TFF_MARKED_MAP[r.market];
+    if(sym && !D.tffBySymbol[sym]) D.tffBySymbol[sym] = r;
+  }
   D.oilgas = oilgas || {};
   D.shipping = shipping || {};
   D.geointel = geointel || {};
@@ -1695,7 +1772,8 @@ function renderMarketRow(sym){
   const c1 = p.chg1d;
   const c5 = p.chg5d;
   const mmPct = interp.mm_pctile_52w;
-  const regime = interp.regime_label || (interp.data_quality === 'ingen_cot' ? '— ingen COT —' : '—');
+  const hasTFF = !!D.tffBySymbol?.[sym];
+  const regime = interp.regime_label || (interp.data_quality === 'ingen_cot' ? (hasTFF ? 'TFF-posisjonering' : '— ingen COT —') : '—');
   const farge = interp.regime_farge || 'grå';
 
   // Beste setup: publisert signal først, så beste bedrock-entry
@@ -2011,13 +2089,83 @@ function renderMMPctileBar(pct){
   </div>`;
 }
 
+function fundNoKpos(n){
+  if(n == null) return '—';
+  const sign = n > 0 ? '+' : (n < 0 ? '−' : '');
+  return sign + Math.abs(n).toLocaleString('nb-NO');
+}
+
+function renderTFFBoard(symbol){
+  const row = D.tffBySymbol?.[symbol];
+  if(!row) return '';
+  const navn = INSTRUMENT_NAVN_NO[symbol] || symbol;
+  const actors = [
+    { key:'spekulanter',  navn:'Spekulanter',  forklaring:'Hedge-fond og store spekulanter — leder ofte trender' },
+    { key:'institusjoner',navn:'Institusjoner', forklaring:'Pensjonsfond og asset managers — langsiktig, ofte motpart til spekulanter' },
+    { key:'meglere',      navn:'Banker/Meglere',forklaring:'Dealer-bord som balanserer markedet — primært risikoverter' },
+    { key:'smahandlere',  navn:'Småhandlere',   forklaring:'Ikke-rapporteringspliktige; mengden' },
+  ];
+  // Tolkning: stor netto-motvekt mellom spekulanter og institusjoner = klassisk hedge-mønster.
+  const sp = row.spekulanter || {};
+  const inst = row.institusjoner || {};
+  const totalNetGap = (Math.abs(sp.net || 0) + Math.abs(inst.net || 0));
+  let narr = '';
+  if(sp.net < 0 && inst.net > 0 && totalNetGap > 0){
+    narr = `Klassisk hedge-mønster: spekulantene (hedge-fond) er <strong>netto short</strong> mens institusjonene (pensjonsfond/asset managers) er <strong>netto long</strong>. Institusjonene bærer markedseksponeringen, spekulantene sikrer eller spekulerer mot.`;
+  } else if(sp.net > 0 && inst.net < 0){
+    narr = `Spekulantene er <strong>netto long</strong> mens institusjonene er <strong>netto short</strong>. Uvanlig — sjekk om dette er en spekulativ rally eller institusjonell hedging.`;
+  } else if(sp.net > 0 && inst.net > 0){
+    narr = `Både spekulanter og institusjoner er <strong>netto long</strong> — bred bullish posisjonering.`;
+  } else if(sp.net < 0 && inst.net < 0){
+    narr = `Både spekulanter og institusjoner er <strong>netto short</strong> — bred bearish posisjonering.`;
+  }
+  const actorRows = actors.map(a => {
+    const grp = row[a.key] || {};
+    const long = grp.long || 0, short = grp.short || 0, net = grp.net || 0;
+    const total = long + short;
+    const longPct = total > 0 ? (long / total) * 100 : 50;
+    const shortPct = total > 0 ? (short / total) * 100 : 50;
+    const netCls = net > 0 ? 'long' : (net < 0 ? 'short' : '');
+    const netLbl = net > 0 ? 'netto long' : (net < 0 ? 'netto short' : 'balansert');
+    return `
+      <div class="tff-actor">
+        <div class="head">
+          <span class="nm">${a.navn}<em>${a.forklaring}${grp.label ? ' — «' + grp.label + '»' : ''}</em></span>
+          <span><span class="net-lbl">${netLbl}</span><span class="net ${netCls}">${fundNoKpos(net)}</span></span>
+        </div>
+        <div class="tff-bars">
+          <span class="side l">L ${long.toLocaleString('nb-NO')}</span>
+          <div class="tff-split">
+            <div class="long-fill" style="width:${longPct}%;"></div>
+            <div class="short-fill" style="width:${shortPct}%;"></div>
+          </div>
+          <span class="side s">S ${short.toLocaleString('nb-NO')}</span>
+        </div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="tff-board">
+      <div class="ttl">COT · Traders in Financial Futures (TFF)</div>
+      <div class="sub">${navn} dekkes av TFF-rapporten, ikke det vanlige legacy/disaggregated-feedet. Rapport pr. ${row.date}.</div>
+      <div class="tff-summary">
+        <div class="cell"><span class="k">Open interest</span><span class="v">${(row.open_interest || 0).toLocaleString('nb-NO')}</span></div>
+        <div class="cell"><span class="k">Δ OI denne uken</span><span class="v">${fundNoKpos(row.change_oi)}</span></div>
+        <div class="cell"><span class="k">Spekulant-skift</span><span class="v">${fundNoKpos(row.change_spec_net)}</span></div>
+        <div class="cell"><span class="k">Kategori</span><span class="v">${row.kategori || '—'}</span></div>
+      </div>
+      ${actorRows}
+      ${narr ? `<div class="tff-narrative">${narr}</div>` : ''}
+    </div>`;
+}
+
 /* ════════ POSISJONERING-FANE ════════ */
 function renderPosisjonering(symbol, interp){
   if(interp.data_quality === 'ingen_cot'){
+    const tffHtml = renderTFFBoard(symbol);
+    if(tffHtml) return tffHtml;
     return `<div class="alert-no-cot">
       Det finnes ingen COT-rapport for <strong>${INSTRUMENT_NAVN_NO[symbol] || symbol}</strong>.
-      Dette gjelder typisk indekser (SPX, NAS100) og krypto (BTC, ETH) der kontrakten ikke er rapporteringspliktig hos CFTC.
-      Bruk Domene-fanen for alternative posisjoneringsmål (f.eks. ETF-flow, on-chain).
+      Bruk Domene-fanen for alternative posisjoneringsmål.
     </div>`;
   }
   if(interp.data_quality !== 'fresh'){
