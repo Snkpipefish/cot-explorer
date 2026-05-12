@@ -1801,10 +1801,24 @@ function renderMarketRow(sym){
     }
   }
 
-  const fresh = interp.data_quality === 'fresh' ? 'fersk' : (interp.data_quality || '—');
+  // Fallback til TFF for instrumenter uten legacy/disagg COT (SPX/NAS100/BTC/ETH)
+  const tffRow = hasTFF ? D.tffBySymbol[sym] : null;
+  let fresh;
+  if(interp.data_quality === 'fresh'){
+    fresh = 'fersk';
+  } else if(interp.data_quality === 'ingen_cot' && tffRow?.date){
+    const ageDays = Math.floor((Date.now() - new Date(tffRow.date).getTime()) / 86400000);
+    fresh = ageDays >= 0 && ageDays <= 10 ? 'fersk' : 'foreldet';
+  } else {
+    fresh = interp.data_quality || '—';
+  }
 
   // "Hvem gjør hva" mini-strip
-  const whoStrip = renderWhoStrip(interp.actor_board);
+  let actorBoardForStrip = interp.actor_board;
+  if((!actorBoardForStrip || !actorBoardForStrip.length) && tffRow){
+    actorBoardForStrip = tffActorBoard(tffRow);
+  }
+  const whoStrip = renderWhoStrip(actorBoardForStrip);
 
   return `
     <tr class="market-row" data-symbol="${sym}">
@@ -2050,6 +2064,26 @@ function fmtSignedK(n){
 
 /* Kort visuell "hvem gjør hva" for Markeder-rader (én linje).
    Viser spekulant-aktøren (alltid #1) + motparten (kommersiell / dealer / pensjonsfond — #2). */
+/* Bygger en aktør-board-strip fra TFF-rapport (én ukes snapshot).
+   Brukes for SPX/NAS100/BTC/ETH som ikke har legacy/disagg COT.
+   Vi har ikke uke-til-uke-deltaer per aktør i TFF-JSONen, så pilene
+   står som '·' (nøytral) — posisjon-fargen kommer fra netto. */
+function tffActorBoard(row){
+  const mk = (key, navn) => {
+    const g = row?.[key];
+    if(!g) return null;
+    const net = g.net || 0;
+    return {
+      navn,
+      posisjon: net > 0 ? 'long' : (net < 0 ? 'short' : 'balansert'),
+      long_delta: null,
+      short_delta: null,
+      verdict: 'TFF',
+    };
+  };
+  return [mk('spekulanter', 'Spekulanter'), mk('institusjoner', 'Institusjoner')].filter(Boolean);
+}
+
 function renderWhoStrip(actors){
   if(!actors?.length) return '';
   // Bygg liste: alltid første aktør (spekulant) + andre aktør (motpart).
