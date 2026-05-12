@@ -1402,6 +1402,31 @@ async function loadAll(){
     const sym = TFF_MARKED_MAP[r.market];
     if(sym && !D.tffBySymbol[sym]) D.tffBySymbol[sym] = r;
   }
+  // Last 52u-historikk per indeks/krypto fra data/timeseries/*_tff.json
+  // og beregn percentil for spec_net (spekulant-netto), tilsvarende mm_pctile_52w
+  // som legacy-COT-tolkningen lager for andre instrumenter.
+  const TFF_TS_MAP = {
+    SPX:    '13874+_tff.json',
+    NAS100: '20974+_tff.json',
+    BTC:    '133741_tff.json',
+    ETH:    '146021_tff.json',
+  };
+  const tsResults = await Promise.all(Object.entries(TFF_TS_MAP).map(async ([sym, fn]) => {
+    const ts = await loadJSON('data/timeseries/' + fn);
+    return [sym, ts];
+  }));
+  for(const [sym, ts] of tsResults){
+    const rows = ts?.data;
+    if(!Array.isArray(rows) || rows.length < 2) continue;
+    const last52 = rows.slice(-52).map(r => r.spec_net).filter(v => v != null && Number.isFinite(v));
+    if(last52.length < 4) continue;
+    const current = last52[last52.length - 1];
+    const below = last52.filter(v => v < current).length;
+    const pctile = (below / (last52.length - 1)) * 100;
+    if(D.tffBySymbol[sym]){
+      D.tffBySymbol[sym].spec_net_pctile_52w = Math.max(0, Math.min(100, pctile));
+    }
+  }
   D.oilgas = oilgas || {};
   D.shipping = shipping || {};
   D.geointel = geointel || {};
@@ -1771,8 +1796,11 @@ function renderMarketRow(sym){
   const last = p.value != null ? fmtPrice(p.value) : '—';
   const c1 = p.chg1d;
   const c5 = p.chg5d;
-  const mmPct = interp.mm_pctile_52w;
   const hasTFF = !!D.tffBySymbol?.[sym];
+  // For TFF-instrumenter (SPX/NAS100/BTC/ETH) bruker vi spekulant-netto-percentil
+  // beregnet fra data/timeseries/<sym>_tff.json som proxy for MM-percentil.
+  const mmPct = interp.mm_pctile_52w != null ? interp.mm_pctile_52w
+              : (hasTFF ? D.tffBySymbol[sym].spec_net_pctile_52w : null);
   const regime = interp.regime_label || (interp.data_quality === 'ingen_cot' ? (hasTFF ? 'TFF-posisjonering' : '— ingen COT —') : '—');
   const farge = interp.regime_farge || 'grå';
 
