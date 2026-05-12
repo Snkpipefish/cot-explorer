@@ -2232,12 +2232,12 @@ function renderPosisjonering(symbol, interp){
           <div class="smc-bar">
             <div class="lbl">MM (Pengeforvaltere) — percentil 52u</div>
             <div class="val">${smc.mm_pctile != null ? Number(smc.mm_pctile).toFixed(0) : '—'}</div>
-            <div class="meter"><div class="meter-fill" style="width:${smc.mm_pctile || 0}%"></div></div>
+            <div class="meter"><div class="meter-fill" style="width:${Math.max(0, Math.min(100, Number(smc.mm_pctile) || 0))}%"></div></div>
           </div>
           <div class="smc-bar">
             <div class="lbl">Kommersielle — percentil 52u</div>
             <div class="val">${smc.commercial_pctile != null ? Number(smc.commercial_pctile).toFixed(0) : '—'}</div>
-            <div class="meter"><div class="meter-fill" style="width:${smc.commercial_pctile || 0}%"></div></div>
+            <div class="meter"><div class="meter-fill" style="width:${Math.max(0, Math.min(100, Number(smc.commercial_pctile) || 0))}%"></div></div>
           </div>
         </div>
         ${smc.label ? `<div class="smc-label">${smc.label}</div>` : ''}
