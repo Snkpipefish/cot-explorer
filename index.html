@@ -1886,7 +1886,7 @@ function renderOversikt(symbol, interp, p){
           ${sig.sl != null ? `<div class="setup-line"><span class="k">Stopptap</span><span class="v">${fmtPrice(sig.sl)}</span></div>` : ''}
           ${sig.t1 != null ? `<div class="setup-line"><span class="k">Mål 1 (R:R ${sig.rr_t1 != null ? Number(sig.rr_t1).toFixed(2) : '—'})</span><span class="v">${fmtPrice(sig.t1)}</span></div>` : ''}
           ${sig.t2 != null ? `<div class="setup-line"><span class="k">Mål 2 (R:R ${sig.rr_t2 != null ? Number(sig.rr_t2).toFixed(2) : '—'})</span><span class="v">${fmtPrice(sig.t2)}</span></div>` : ''}
-          ${sig.score != null ? `<div class="setup-line"><span class="k">Score</span><span class="v">${Number(sig.score).toFixed(2)} / ${sig.max_score != null ? Number(sig.max_score).toFixed(2) : '—'} (${sig.score_pct}%)</span></div>` : ''}
+          ${sig.score != null ? `<div class="setup-line"><span class="k">Skår</span><span class="v">${Number(sig.score).toFixed(2)} / ${sig.max_score != null ? Number(sig.max_score).toFixed(2) : '—'} (${sig.score_pct}%)</span></div>` : ''}
         </div>
       </div>`;
   } else if(setup && (setup.long || setup.short)){
@@ -3105,7 +3105,8 @@ function renderBedrock(){
     const pctOfPub = r.min_score_publish ? Math.round(100 * r.score / r.min_score_publish) : null;
     const drvSummary = r.families ? Object.entries(r.families).filter(([k,v]) => v.score > 0.1).map(([k,v]) => `${k} ${v.score.toFixed(1)}`).join(' · ') : '';
     const conflictHint = r._conflicts > 0 ? ` <span style="color:var(--sig-warn);font-style:italic;">⚠ ${r._conflicts} motstridende</span>` : '';
-    const altHint = r._alternatives > 0 ? ` <span style="color:var(--ink-mute);font-size:11px;">+${r._alternatives} andre</span>` : '';
+    const otherCount = Math.max(0, (r._alternatives || 0) - (r._conflicts || 0));
+    const altHint = otherCount > 0 ? ` <span style="color:var(--ink-mute);font-size:11px;">+${otherCount} andre</span>` : '';
     return `
       <div class="bedrock-row" data-symbol="${ourSym}" style="cursor:pointer;">
         <span class="nm">${navn} <span style="color:var(--ink-mute);font-size:11px;">${ourSym}</span></span>
@@ -3123,7 +3124,11 @@ function renderBedrock(){
     const dirCls = r.direction === 'buy' ? 'buy' : 'sell';
     const arrow = r.direction === 'buy' ? '↑' : '↓';
     const pctOfPub = r.min_score_publish ? Math.round(100 * r.score / r.min_score_publish) : 0;
-    const barFill = Math.min(100, pctOfPub);
+    // Bar-skala: når skår > terskel, strekk skalaen så pub-markøren flytter seg innover
+    // og fill-baren viser den faktiske skåren relativt til maks i feltet.
+    const barMax = Math.max(100, pctOfPub);
+    const barFill = Math.max(0, Math.min(100, (pctOfPub / barMax) * 100));
+    const pubPos = Math.max(0, Math.min(100, (100 / barMax) * 100));
     const fams = FAM_KEYS.map(k => {
       const fs = r.families?.[k]?.score || 0;
       return `<span class="bk-fam-dot ${fs > 0.1 ? 'on' : ''}" title="${k}: ${fs.toFixed(2)}"></span>`;
@@ -3142,9 +3147,9 @@ function renderBedrock(){
           <span class="bk-arrow">${arrow}</span>
           <span class="bk-action">${dirLabel}</span>
         </div>
-        <div class="bk-bar" title="Score ${r.score.toFixed(2)} av terskel ${r.min_score_publish?.toFixed?.(1) || '—'}">
+        <div class="bk-bar" title="Skår ${r.score.toFixed(2)} av terskel ${r.min_score_publish?.toFixed?.(1) || '—'}">
           <div class="bk-bar-fill" style="width:${barFill}%;"></div>
-          <div class="bk-bar-pub" style="left:100%;"></div>
+          <div class="bk-bar-pub" style="left:${pubPos}%;"></div>
         </div>
         <div class="bk-meta">
           <span class="bk-grade ${r.published ? '' : 'not-pub'}">${r.grade || (r.published ? '?' : 'ikke pub.')}</span>
