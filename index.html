@@ -1952,7 +1952,7 @@ function renderOversikt(symbol, interp, p){
         <span class="hz">${(sig?.timeframe || 'MAKRO').toUpperCase()}</span>
         <span class="act ${pred.retning}">${pred.retning.toUpperCase()}</span>
         <span class="sc">${(pred.sannsynlighet * 100).toFixed(0)}%</span>
-        <span class="why">${pred.tidsvindu} · ${pred.forventet_beveg_pct != null ? (pred.forventet_beveg_pct >= 0 ? '+' : '') + pred.forventet_beveg_pct + '%' : '—'}</span>
+        <span class="why">${pred.tidsvindu} · ${pred.forventet_beveg_pct != null ? (pred.forventet_beveg_pct > 0 ? '+' : '') + pred.forventet_beveg_pct + '%' : '—'}</span>
       </div>
       <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;color:var(--ink-bone-dim);padding:6px 4px 0;">${pred.begrunnelse || ''}</div>`;
   } else {
@@ -2220,7 +2220,7 @@ function renderPosisjonering(symbol, interp){
       </div>
       <div class="prediction-cell">
         <div class="lbl">Median forventet beveg.</div>
-        <div class="val ${pred.forventet_beveg_pct == null ? '' : (pred.forventet_beveg_pct >= 0 ? 'opp' : 'ned')}">${pred.forventet_beveg_pct != null ? (pred.forventet_beveg_pct >= 0 ? '+' : '') + pred.forventet_beveg_pct + '%' : '—'}</div>
+        <div class="val ${pred.forventet_beveg_pct == null || pred.forventet_beveg_pct === 0 ? '' : (pred.forventet_beveg_pct > 0 ? 'opp' : 'ned')}">${pred.forventet_beveg_pct != null ? (pred.forventet_beveg_pct > 0 ? '+' : '') + pred.forventet_beveg_pct + '%' : '—'}</div>
         <div class="sub">${pred.begrunnelse || ''}</div>
       </div>
     </div>`;
@@ -2270,7 +2270,7 @@ function renderPosisjonering(symbol, interp){
 
   // 4. Flow-dekomponering
   if(flow.available){
-    const oiPctStr = `${flow.oi_delta_pct >= 0 ? '+' : ''}${flow.oi_delta_pct}%`;
+    const oiPctStr = `${flow.oi_delta_pct > 0 ? '+' : ''}${flow.oi_delta_pct}%`;
     const flowRow = (who, d) => {
       const isPos = d >= 0;
       const absMax = Math.max(
@@ -2299,7 +2299,7 @@ function renderPosisjonering(symbol, interp){
             <div class="flow-row" style="margin-top:8px;border-top:1px dotted var(--ink-rule);padding-top:10px;">
               <span class="who" style="color:var(--ink-paper);font-weight:600;">Åpen interesse</span>
               <div class="bar"></div>
-              <span class="delta ${flow.oi_delta_pct >= 0 ? 'pos' : 'neg'}">${oiPctStr}</span>
+              <span class="delta ${flow.oi_delta_pct == null || flow.oi_delta_pct === 0 ? '' : (flow.oi_delta_pct > 0 ? 'pos' : 'neg')}">${oiPctStr}</span>
             </div>
           </div>
           <div class="flow-attribution">${flow.attribusjon}</div>
@@ -2746,7 +2746,7 @@ function renderFundKompass(symbol){
       <div class="fund-compass">
         <div class="hdr">
           <span class="sym">Fundamental retning</span>
-          <span class="bias ${biasInfo.klasse}">${biasInfo.tekst} · ${score >= 0 ? '+' : ''}${score.toFixed(2).replace('.', ',')}</span>
+          <span class="bias ${biasInfo.klasse}">${biasInfo.tekst} · ${score > 0 ? '+' : ''}${score.toFixed(2).replace('.', ',')}</span>
         </div>
         <div class="fund-meter">
           <div class="tick" style="left:25%;"></div>
@@ -2775,7 +2775,7 @@ function renderFundUsdHelse(){
       <div class="ttl">I·B USD-helse — overordnet</div>
       <div class="fund-summary">
         USD-fundamentaler står som <strong class="${biasInfo.klasse}">${biasInfo.tekst}</strong>
-        (skår ${u.score >= 0 ? '+' : ''}${Number(u.score).toFixed(2).replace('.', ',')} av ${u.n} indikatorer)
+        (skår ${u.score > 0 ? '+' : ''}${Number(u.score).toFixed(2).replace('.', ',')} av ${u.n} indikatorer)
         <span class="stamp">oppdatert ${fundFmtDato(oppd)}</span>
         ${cm != null && cm !== 1 ? `<em style="color:var(--ink-mute);font-style:italic;margin-left:8px;">konsensus×${cm}</em>` : ''}
       </div>
@@ -2794,7 +2794,7 @@ function renderFundKategorier(){
     // avg ligger typisk i [−2, +2]; mapp til [0, 100]
     const pct = Math.max(0, Math.min(100, (avg + 2) * 25));
     const midPct = 50;
-    const fillCls = avg >= 0 ? 'pos' : 'neg';
+    const fillCls = avg === 0 ? '' : (avg > 0 ? 'pos' : 'neg');
     const fillLeft = avg >= 0 ? midPct : pct;
     const fillWidth = Math.abs(pct - midPct);
     rows += `
@@ -2804,7 +2804,7 @@ function renderFundKategorier(){
           <div class="mid"></div>
           <div class="fill ${fillCls}" style="left:${fillLeft}%;width:${fillWidth}%;"></div>
         </div>
-        <div class="bias-lbl ${biasInfo.klasse}">${biasInfo.tekst}<br><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);">snitt ${avg >= 0 ? '+' : ''}${avg.toFixed(2).replace('.', ',')}</span></div>
+        <div class="bias-lbl ${biasInfo.klasse}">${biasInfo.tekst}<br><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);">snitt ${avg > 0 ? '+' : ''}${avg.toFixed(2).replace('.', ',')}</span></div>
       </div>`;
   }
   return `
@@ -2922,7 +2922,7 @@ function renderFundNarrativ(symbol){
   if(!u) return '';
   const usdBias = fundBiasInfo(u.bias);
   const usdPos = u.score > 0;
-  const usdScore = u.score >= 0 ? '+' + fundNoTall(u.score) : fundNoTall(u.score);
+  const usdScore = u.score > 0 ? '+' + fundNoTall(u.score) : fundNoTall(u.score);
   const realY = mr.dfii10?.value;
   const fxUsd = ['EURUSD','GBPUSD','AUDUSD','USDJPY','DXY'].includes(symbol);
   const metall = ['Gold','Silver'].includes(symbol);
@@ -2962,7 +2962,7 @@ function renderFundNarrativ(symbol){
     txt = `Økonomisk vekst peker <strong>${vekstTekst}</strong>, ${usdDel} for ${navn}. Olje følger global etterspørsel og dollarstyrke.`;
   } else if(sc){
     const biasInfo = fundBiasInfo(sc.bias);
-    const sScore = sc.score >= 0 ? '+' + fundNoTall(sc.score) : fundNoTall(sc.score);
+    const sScore = sc.score > 0 ? '+' + fundNoTall(sc.score) : fundNoTall(sc.score);
     txt = `Fundamental­modellen klassifiserer ${navn} som <strong>${biasInfo.tekst}</strong> (skår ${sScore}). Det generelle USD-bildet er <strong>${usdBias.tekst}</strong>.`;
   } else {
     txt = `${navn} er ikke direkte koblet til USD-makro­modellen — se Domene-fanen for instrument­spesifikke fundamentaler. Den globale risiko­appetitten styres likevel av USD-bildet, som nå er <strong>${usdBias.tekst}</strong>.`;
