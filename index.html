@@ -1429,10 +1429,10 @@ function fmtK(n){
   return Math.round(n).toString();
 }
 function pctClass(v){
-  if(v == null) return '';
-  return v >= 0 ? 'chg-pos' : 'chg-neg';
+  if(v == null || v === 0) return '';
+  return v > 0 ? 'chg-pos' : 'chg-neg';
 }
-function chgPrefix(v){ return v != null && v >= 0 ? '+' : ''; }
+function chgPrefix(v){ return v != null && v > 0 ? '+' : ''; }
 
 /* Finn signal for instrument (signals.json primær, agri_signals.json fallback) */
 function signalFor(symbol){
