@@ -1279,7 +1279,7 @@ async function loadAll(){
          bedrockIndex, fundamentalsB, comex, eiaStorage, cropProgress, iriEnso,
          cryptoSentiment, newsIntel, diseaseAlerts, exportEvents,
          oilgas, shipping, geointel, calendar,
-         bedrockSignals, bedrockAgriSignals] = await Promise.all([
+         bedrockSignals, bedrockAgriSignals, bdi] = await Promise.all([
     loadJSON('data/cot_interpretation/latest.json'),
     loadJSON('data/bedrock/prices.json'),
     loadJSON('data/signals.json'),
@@ -1303,6 +1303,7 @@ async function loadAll(){
     loadJSON('data/calendar/latest.json'),
     loadJSON('data/bedrock/signals.json'),
     loadJSON('data/bedrock/agri_signals.json'),
+    loadJSON('data/bedrock/bdi.json'),
   ]);
   D.bedrockSignals = bedrockSignals?.raw || [];
   D.bedrockAgriSignals = bedrockAgriSignals?.raw || [];
@@ -1323,6 +1324,7 @@ async function loadAll(){
   D.newsIntel = newsIntel?.data || [];
   D.diseaseAlerts = diseaseAlerts?.data || [];
   D.exportEvents = exportEvents?.data || [];
+  D.bdi = bdi?.data || [];
   D.oilgas = oilgas || {};
   D.shipping = shipping || {};
   D.geointel = geointel || {};
@@ -3034,37 +3036,52 @@ function bindBedrockFilters(){
 }
 
 /* ════════ DATAKVALITET ════════ */
+function safeLen(x){
+  if(x == null) return 0;
+  if(Array.isArray(x)) return x.length;
+  if(typeof x === 'object') return Object.keys(x).length;
+  return 0;
+}
+
 function renderDatakvalitet(){
   const cont = $('#pipeContainer');
-  // Bygg en oversikt over kjente data-filer og deres oppdateringstid
-  const sources = [
-    { nm:'Pris-feed (bedrock)', path:D.prices && Object.keys(D.prices).length ? 'data/bedrock/prices.json' : null, count:Object.keys(D.prices || {}).length },
-    { nm:'COT-tolkning', path:'data/cot_interpretation/latest.json', count:Object.keys(D.interpretation?.assets || {}).length, ts:D.interpretation?.generated },
-    { nm:'Signaler (financial)', path:'data/signals.json', count:(D.signals?.signals || []).length, ts:D.signals?.generated },
-    { nm:'Signaler (landbruk)', path:'data/agri_signals.json', count:(D.agri_signals?.signals || []).length, ts:D.agri_signals?.generated },
-    { nm:'Makro/sentiment', path:'data/macro/latest.json', ts:D.macro?.date },
-    { nm:'Fundamentaler', path:'data/fundamentals/latest.json', count:Object.keys(D.fundamentals?.indicators || {}).length },
-    { nm:'COMEX-flyt', path:'data/bedrock/comex.json', count:D.comex.length },
-    { nm:'EIA-lager', path:'data/bedrock/eia_storage.json', count:D.eiaStorage.length },
-    { nm:'USDA crop progress', path:'data/bedrock/crop_progress.json', count:D.cropProgress.length },
-    { nm:'IRI ENSO', path:'data/bedrock/iri_enso.json', count:D.iriEnso.length },
-    { nm:'Krypto-sentiment', path:'data/bedrock/crypto_sentiment.json', count:D.cryptoSentiment.length },
-    { nm:'Nyhetsintel', path:'data/bedrock/news_intel.json', count:D.newsIntel.length },
-    { nm:'Sykdomsvarsler', path:'data/bedrock/disease_alerts.json', count:D.diseaseAlerts.length },
-    { nm:'Eksporthendelser', path:'data/bedrock/export_events.json', count:D.exportEvents.length },
-    { nm:'BDI-indeks', path:'data/bedrock/bdi.json', count:D.bdi.length },
-  ];
-  cont.innerHTML = `
-    <div class="pipe-grid">
-      ${sources.map(s => `
-        <div class="pipe-cell">
-          <div class="nm">${s.nm}</div>
-          <div class="ts">${s.path || '—'}</div>
-          <span class="st ${s.path ? 'fresh' : 'error'}">${s.path ? 'fersk' : 'mangler'}</span>
-          ${s.count != null ? `<span class="ts" style="margin-left:8px;">${s.count} rader</span>` : ''}
-        </div>
-      `).join('')}
-    </div>`;
+  try{
+    const sources = [
+      { nm:'Pris-feed (bedrock)', path:D.prices && Object.keys(D.prices).length ? 'data/bedrock/prices.json' : null, count:safeLen(D.prices) },
+      { nm:'COT-tolkning', path:'data/cot_interpretation/latest.json', count:safeLen(D.interpretation?.assets), ts:D.interpretation?.generated },
+      { nm:'Signaler (financial)', path:'data/signals.json', count:safeLen(D.signals?.signals), ts:D.signals?.generated },
+      { nm:'Signaler (landbruk)', path:'data/agri_signals.json', count:safeLen(D.agri_signals?.signals), ts:D.agri_signals?.generated },
+      { nm:'Makro/sentiment', path:'data/macro/latest.json', ts:D.macro?.date },
+      { nm:'Fundamentaler', path:'data/fundamentals/latest.json', count:safeLen(D.fundamentals?.indicators) },
+      { nm:'COMEX-flyt', path:'data/bedrock/comex.json', count:safeLen(D.comex) },
+      { nm:'EIA-lager', path:'data/bedrock/eia_storage.json', count:safeLen(D.eiaStorage) },
+      { nm:'USDA crop progress', path:'data/bedrock/crop_progress.json', count:safeLen(D.cropProgress) },
+      { nm:'IRI ENSO', path:'data/bedrock/iri_enso.json', count:safeLen(D.iriEnso) },
+      { nm:'Krypto-sentiment', path:'data/bedrock/crypto_sentiment.json', count:safeLen(D.cryptoSentiment) },
+      { nm:'Nyhetsintel', path:'data/bedrock/news_intel.json', count:safeLen(D.newsIntel) },
+      { nm:'Sykdomsvarsler', path:'data/bedrock/disease_alerts.json', count:safeLen(D.diseaseAlerts) },
+      { nm:'Eksporthendelser', path:'data/bedrock/export_events.json', count:safeLen(D.exportEvents) },
+      { nm:'BDI-indeks', path:'data/bedrock/bdi.json', count:safeLen(D.bdi) },
+    ];
+    cont.innerHTML = `
+      <div class="pipe-grid">
+        ${sources.map(s => {
+          const tom = s.count === 0;
+          const stCls = !s.path ? 'error' : (tom ? 'stale' : 'fresh');
+          const stTxt = !s.path ? 'mangler' : (tom ? 'tom' : 'fersk');
+          return `
+            <div class="pipe-cell">
+              <div class="nm">${s.nm}</div>
+              <div class="ts">${s.path || '—'}</div>
+              <span class="st ${stCls}">${stTxt}</span>
+              ${s.count != null ? `<span class="ts" style="margin-left:8px;">${s.count} rader</span>` : ''}
+            </div>`;
+        }).join('')}
+      </div>`;
+  }catch(e){
+    cont.innerHTML = `<div class="alert-no-cot">Klarte ikke bygge datakvalitets-oversikten: ${e.message}</div>`;
+    console.error('renderDatakvalitet feilet', e);
+  }
 }
 
 /* ════════ MODUS-TOGGLE ════════ */
