@@ -2219,7 +2219,7 @@ function renderPosisjonering(symbol, interp){
       </div>
       <div class="prediction-cell">
         <div class="lbl">Median forventet beveg.</div>
-        <div class="val ${pred.forventet_beveg_pct >= 0 ? 'opp' : 'ned'}">${pred.forventet_beveg_pct != null ? (pred.forventet_beveg_pct >= 0 ? '+' : '') + pred.forventet_beveg_pct + '%' : '—'}</div>
+        <div class="val ${pred.forventet_beveg_pct == null ? '' : (pred.forventet_beveg_pct >= 0 ? 'opp' : 'ned')}">${pred.forventet_beveg_pct != null ? (pred.forventet_beveg_pct >= 0 ? '+' : '') + pred.forventet_beveg_pct + '%' : '—'}</div>
         <div class="sub">${pred.begrunnelse || ''}</div>
       </div>
     </div>`;
@@ -2254,12 +2254,12 @@ function renderPosisjonering(symbol, interp){
           <div class="conviction-card long">
             <div class="lbl">Long-side</div>
             <div class="val">${conv.long != null ? conv.long.toFixed(1) : '—'} <span style="font-size:13px;color:var(--ink-mute);">/ 10</span></div>
-            <div class="conviction-bar"><div class="conviction-bar-fill" style="width:${(conv.long || 0) * 10}%"></div></div>
+            <div class="conviction-bar"><div class="conviction-bar-fill" style="width:${Math.max(0, Math.min(100, (conv.long || 0) * 10))}%"></div></div>
           </div>
           <div class="conviction-card short">
             <div class="lbl">Short-side</div>
             <div class="val">${conv.short != null ? conv.short.toFixed(1) : '—'} <span style="font-size:13px;color:var(--ink-mute);">/ 10</span></div>
-            <div class="conviction-bar"><div class="conviction-bar-fill" style="width:${(conv.short || 0) * 10}%"></div></div>
+            <div class="conviction-bar"><div class="conviction-bar-fill" style="width:${Math.max(0, Math.min(100, (conv.short || 0) * 10))}%"></div></div>
           </div>
         </div>
         ${conv.begrunnelse ? `<div class="conviction-reasoning">${conv.begrunnelse}</div>` : ''}
