@@ -864,6 +864,205 @@ main.deck{padding:24px 28px 60px;max-width:1480px;margin:0 auto;}
 }
 .colophon .stamp{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);}
 
+/* ─────── MODUS-TOGGLE (Studium ⇄ Visuelt) ─────── */
+.mode-toggle{
+  position:fixed;top:14px;right:18px;z-index:200;
+  display:flex;border:1px solid var(--brass-dim);background:rgba(14,19,32,.92);
+  font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:.06em;
+  box-shadow:0 2px 12px rgba(0,0,0,.4);
+}
+.mode-toggle button{
+  background:transparent;border:0;color:var(--ink-bone-dim);
+  padding:6px 12px;cursor:pointer;font-family:inherit;font-size:inherit;
+  font-style:italic;letter-spacing:.06em;
+}
+.mode-toggle button + button{border-left:1px solid var(--brass-dim);}
+.mode-toggle button.on{background:var(--brass-soft);color:var(--brass);font-style:normal;}
+.mode-toggle button:hover{color:var(--ink-paper);}
+
+/* ─────── T-BANE-KART ─────── */
+.metro-map{display:none;}
+body[data-mode="visuelt"] .metro-map{display:block;}
+body[data-mode="visuelt"] .market-group{display:none;}
+body[data-mode="visuelt"] .markets-intro{display:none;}
+
+.metro-legend{
+  display:flex;gap:18px;flex-wrap:wrap;align-items:center;
+  padding:10px 16px;margin:0 0 16px;
+  border:1px solid var(--ink-rule);background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
+}
+.metro-legend .lbl{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
+  color:var(--ink-mute);margin-right:4px;
+}
+.metro-legend .item{
+  display:flex;gap:6px;align-items:center;
+  font-family:'Cormorant Garamond',serif;font-size:12px;color:var(--ink-bone);
+}
+.metro-legend .dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+.metro-legend .dot.buy{background:var(--sig-pos);}
+.metro-legend .dot.sell{background:var(--sig-neg);}
+.metro-legend .dot.neutral{background:var(--brass);}
+.metro-legend .dot.empty{background:transparent;border:2px solid var(--ink-mute);}
+.metro-legend .dot.ring{
+  background:transparent;border:2px solid var(--sig-pos);
+  box-shadow:0 0 0 2px rgba(107,157,122,.25);
+}
+
+.metro-line{
+  display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:center;
+  padding:18px 16px;border-bottom:1px solid var(--ink-rule-soft);
+  position:relative;
+}
+.metro-line:last-child{border-bottom:none;}
+.metro-line .line-lbl{
+  font-family:'Cormorant Garamond',serif;font-size:16px;
+  color:var(--ink-paper);letter-spacing:.04em;font-weight:600;
+  text-align:right;padding-right:12px;border-right:2px solid var(--brass-dim);
+}
+.metro-line .line-lbl em{
+  display:block;font-style:italic;font-weight:400;font-size:11px;
+  color:var(--ink-mute);letter-spacing:.02em;margin-top:2px;
+}
+.metro-track{
+  position:relative;display:flex;gap:0;padding:18px 18px 18px 28px;align-items:center;
+}
+.metro-track::before{
+  content:'';position:absolute;top:50%;left:18px;right:18px;height:3px;
+  background:linear-gradient(90deg,var(--brass-dim) 0%,var(--brass) 50%,var(--brass-dim) 100%);
+  transform:translateY(-50%);z-index:0;
+}
+.metro-station{
+  position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
+  cursor:pointer;flex:1;min-width:90px;text-decoration:none;
+}
+.metro-station .dot{
+  width:28px;height:28px;border-radius:50%;
+  border:3px solid var(--ink-paper);
+  background:var(--ink-mute);
+  transition:transform .15s, box-shadow .15s;
+  box-shadow:0 0 0 2px var(--ink-bg);
+}
+.metro-station.buy .dot{background:var(--sig-pos);}
+.metro-station.sell .dot{background:var(--sig-neg);}
+.metro-station.neutral .dot{background:var(--brass);}
+.metro-station.no-data .dot{background:transparent;border-color:var(--ink-mute);}
+.metro-station.strong .dot{
+  box-shadow:0 0 0 2px var(--ink-bg), 0 0 0 5px rgba(201,163,94,.35);
+  width:34px;height:34px;
+}
+.metro-station.has-conflict .dot::after{
+  content:'⚠';position:absolute;top:-12px;right:-8px;
+  font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--sig-warn);
+}
+.metro-station:hover .dot{transform:scale(1.18);}
+.metro-station .nm{
+  font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-paper);
+  margin-top:6px;text-align:center;white-space:nowrap;
+}
+.metro-station .badge{
+  font-family:'Cormorant Garamond',serif;font-size:10px;font-style:italic;
+  color:var(--ink-mute);margin-top:1px;letter-spacing:.04em;
+}
+.metro-station.buy .badge{color:var(--sig-pos);}
+.metro-station.sell .badge{color:var(--sig-neg);}
+.metro-station .pct{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);
+  margin-top:1px;
+}
+
+/* På instrumentdetalj i visuell modus — skjul ren tekst-tunge tabeller */
+body[data-mode="visuelt"] .fund-block.compact-hide{display:none;}
+body[data-mode="visuelt"] .narrative-block{display:none;}
+body[data-mode="visuelt"] .horizon-stack > .driver-scorecard + *{display:none;}
+body[data-mode="visuelt"] .actor-desc{display:none;}
+body[data-mode="visuelt"] .dom-block .body em{display:none;}
+body[data-mode="visuelt"] .setup-summary .setup-line:nth-child(n+3){display:none;}
+body[data-mode="visuelt"] .markets-intro{display:none;}
+
+/* ─────── BEDROCK KORTGRID (visuell modus) ─────── */
+.bedrock-grid{display:none;}
+body[data-mode="visuelt"] .bedrock-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;
+}
+body[data-mode="visuelt"] #bedrockList .bedrock-row{display:none;}
+
+.bk-card{
+  position:relative;border:1px solid var(--ink-rule);
+  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
+  padding:14px 14px 12px;cursor:pointer;
+  transition:transform .12s, border-color .12s;
+  display:flex;flex-direction:column;gap:8px;
+}
+.bk-card:hover{transform:translateY(-2px);border-color:var(--brass-dim);}
+.bk-card.buy{border-left:4px solid var(--sig-pos);}
+.bk-card.sell{border-left:4px solid var(--sig-neg);}
+.bk-card.not-pub{opacity:.7;}
+.bk-card .bk-hd{
+  display:flex;justify-content:space-between;align-items:baseline;gap:6px;
+}
+.bk-card .bk-nm{
+  font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-paper);
+  font-weight:600;letter-spacing:.02em;
+}
+.bk-card .bk-sym{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);}
+.bk-card .bk-dir{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:8px 0 4px;
+}
+.bk-card .bk-arrow{
+  font-family:'JetBrains Mono',monospace;font-size:34px;line-height:1;font-weight:700;
+}
+.bk-card.buy .bk-arrow{color:var(--sig-pos);}
+.bk-card.sell .bk-arrow{color:var(--sig-neg);}
+.bk-card .bk-action{
+  font-family:'Cormorant Garamond',serif;font-size:18px;letter-spacing:.06em;font-weight:600;
+}
+.bk-card.buy .bk-action{color:var(--sig-pos);}
+.bk-card.sell .bk-action{color:var(--sig-neg);}
+.bk-card .bk-bar{
+  position:relative;height:6px;background:var(--ink-rule-soft);border:1px solid var(--ink-rule);
+}
+.bk-card .bk-bar-fill{
+  position:absolute;left:0;top:0;bottom:0;
+  background:linear-gradient(90deg,var(--brass-dim),var(--brass));
+}
+.bk-card .bk-bar-pub{
+  position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--ink-paper);
+}
+.bk-card .bk-meta{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);
+}
+.bk-card .bk-grade{
+  display:inline-block;padding:1px 8px;border:1px solid var(--brass);color:var(--brass);
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+}
+.bk-card .bk-grade.not-pub{border-color:var(--ink-rule);color:var(--ink-mute);}
+.bk-card .bk-conflict{
+  position:absolute;top:6px;right:8px;color:var(--sig-warn);font-family:'JetBrains Mono',monospace;font-size:14px;
+  cursor:help;
+}
+.bk-card .bk-fam{display:flex;gap:3px;margin-top:2px;}
+.bk-card .bk-fam-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--ink-rule);
+  border:1px solid var(--ink-rule-soft);
+}
+.bk-card .bk-fam-dot.on{background:var(--brass);border-color:var(--brass-dim);}
+.bk-card .bk-fam-lbl{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
+  color:var(--ink-mute);margin-left:auto;
+}
+
+@media (max-width: 780px){
+  .metro-line{grid-template-columns:1fr;gap:6px;}
+  .metro-line .line-lbl{text-align:left;border-right:none;border-bottom:2px solid var(--brass-dim);padding:0 0 6px;}
+  .metro-track{flex-wrap:wrap;gap:10px;padding:14px 4px;}
+  .metro-track::before{display:none;}
+  .metro-station{min-width:70px;flex:0 0 auto;}
+  .mode-toggle{top:6px;right:8px;}
+}
+
 .skel{
   font-family:'Cormorant Garamond',serif;font-style:italic;
   color:var(--ink-mute);padding:18px 4px;text-align:center;
@@ -890,6 +1089,11 @@ main.deck{padding:24px 28px 60px;max-width:1480px;margin:0 auto;}
 </head>
 
 <body>
+
+<div class="mode-toggle" id="modeToggle">
+  <button data-mode="studium" class="on">Studium</button>
+  <button data-mode="visuelt">Visuelt</button>
+</div>
 
 <header class="masthead">
   <div class="mast-row">
@@ -1364,30 +1568,90 @@ function renderStateStrip(){
 function renderMarkederLanding(){
   const root = $('#marketsRoot');
   const intro = `<div class="markets-intro">Velg en aktivaklasse-gruppe under for å åpne et instrument. Hvert instrument samler sine egne data: COT-tolkning, posisjonering, pris med setup-nivåer, domene-spesifikk informasjon og fundamentaler.</div>`;
-  const legend = `
-    <div class="markets-legend">
-      <div class="legend-ttl">Slik leser du tabellen</div>
-      <dl>
-        <dt>Siste</dt><dd>Sluttkurs nå.</dd>
-        <dt>Δ 1d / Δ 5d</dt><dd>Prosentvis endring siste handelsdag / siste 5 handelsdager. Grønn er opp, rød er ned.</dd>
-        <dt>MM percentil</dt><dd>Hvor managed money's netto-posisjon (spekulantflokken) ligger i forhold til siste 52 uker. 0 = mest short på 1 år, 100 = mest long på 1 år. Over 85 eller under 15 regnes som ekstrem.</dd>
-        <dt>Regime</dt><dd>COT-tolkning: <em>Akkumulasjon</em> (smart money kjøper, opptur i emning) · <em>Markup</em> (opptrend i full gang) · <em>Distribusjon</em> (mengden trengt long, topp i emning) · <em>Markdown</em> (nedtrend i gang) · <em>Squeeze</em> (ekstrem motsatt pris) · <em>Kapitulasjon</em> (salgs-utmattelse).</dd>
-        <dt>Beste setup</dt><dd>Høyest-rangerte handelsoppsett fra bedrock-motoren — KJØP/SALG, grade (A+ til C), horisont (makro/swing/skalp), % av publiseringsterskel. ⚠ vises hvis retningen motsier COT-prediksjonen.</dd>
-        <dt>Friskhet</dt><dd>Om COT-rapporten er fersk (oppdatert) eller foreldet.</dd>
-      </dl>
-    </div>`;
-  let html = intro + legend;
+  let html = intro;
+  // Studium-modus: vanlige tabeller
   for(const grp of ASSET_GROUPS){
     html += renderGroup(grp);
   }
+  // Visuell modus: T-bane-kart (vises via CSS når body[data-mode="visuelt"])
+  html += renderMetroMap();
   root.innerHTML = html;
-  // Bind clicks on market-row
+  // Bind clicks på begge representasjoner
   $$('.market-row').forEach(row => {
     row.addEventListener('click', () => {
       const sym = row.dataset.symbol;
       location.hash = '#/markets/' + encodeURIComponent(sym);
     });
   });
+  $$('.metro-station').forEach(s => {
+    s.addEventListener('click', () => {
+      const sym = s.dataset.symbol;
+      location.hash = '#/markets/' + encodeURIComponent(sym);
+    });
+  });
+}
+
+/* ════════ T-BANE-KART ════════ */
+function metroStation(sym){
+  const navn = INSTRUMENT_NAVN_NO[sym] || sym;
+  const interp = D.interpretation?.assets?.[sym] || {};
+  const sig = signalFor(sym);
+  const bestBE = bestBedrockEntry(sym);
+  let setupDir = null, grade = null, ratio = null;
+  if(sig){
+    setupDir = sig.action === 'BUY' ? 'buy' : sig.action === 'SELL' ? 'sell' : null;
+    grade = sig.grade || null;
+  } else if(bestBE){
+    setupDir = bestBE.direction === 'buy' ? 'buy' : 'sell';
+    grade = bestBE.grade || null;
+    ratio = bestBE.min_score_publish > 0 ? Math.round(100 * bestBE.score / bestBE.min_score_publish) : null;
+  }
+  const cotDir = interp?.prediksjon?.retning;
+  const dataQ = interp.data_quality;
+  let cls = 'no-data';
+  if(setupDir === 'buy') cls = 'buy';
+  else if(setupDir === 'sell') cls = 'sell';
+  else if(cotDir === 'opp') cls = 'buy';
+  else if(cotDir === 'ned') cls = 'sell';
+  else if(cotDir === 'nøytral' || dataQ === 'fresh') cls = 'neutral';
+  const strong = (grade && /^A/.test(grade)) || (sig && sig.action) ? 'strong' : '';
+  const conflict = setupDir && cotDir && cotDir !== 'nøytral'
+    && ((setupDir === 'buy' && cotDir === 'ned') || (setupDir === 'sell' && cotDir === 'opp'))
+    ? 'has-conflict' : '';
+  const badge = setupDir
+    ? (setupDir === 'buy' ? 'KJØP' : 'SALG') + (grade ? ' ' + grade : '')
+    : (cotDir && cotDir !== 'nøytral' ? cotDir.toUpperCase() : (dataQ === 'fresh' ? 'nøytral' : 'ingen COT'));
+  const pctTxt = ratio != null ? `${ratio}%` : '';
+  return `
+    <a class="metro-station ${cls} ${strong} ${conflict}" data-symbol="${sym}" title="${navn}">
+      <span class="dot"></span>
+      <span class="nm">${navn}</span>
+      <span class="badge">${badge}</span>
+      ${pctTxt ? `<span class="pct">${pctTxt}</span>` : ''}
+    </a>`;
+}
+
+function renderMetroMap(){
+  const legend = `
+    <div class="metro-legend">
+      <span class="lbl">Linjer:</span>
+      <span class="item"><span class="dot buy"></span>KJØP-signal</span>
+      <span class="item"><span class="dot sell"></span>SALG-signal</span>
+      <span class="item"><span class="dot neutral"></span>Nøytral</span>
+      <span class="item"><span class="dot empty"></span>Ingen COT-data</span>
+      <span class="item"><span class="dot ring"></span>Sterkt oppsett (grade A) — større stasjon</span>
+      <span class="item" style="color:var(--sig-warn);">⚠ COT motsier oppsett</span>
+    </div>`;
+  let lines = '';
+  for(const grp of ASSET_GROUPS){
+    const stations = grp.items.map(sym => metroStation(sym)).join('');
+    lines += `
+      <div class="metro-line">
+        <div class="line-lbl">${grp.label}<em>${grp.items.length} stasjoner</em></div>
+        <div class="metro-track">${stations}</div>
+      </div>`;
+  }
+  return `<div class="metro-map">${legend}${lines}</div>`;
 }
 
 function renderGroup(grp){
@@ -2432,7 +2696,7 @@ function renderFundDrivere(){
     : '';
 
   return `
-    <div class="fund-block">
+    <div class="fund-block compact-hide">
       <div class="ttl">I·D Drivere — hvilke indikatorer trekker hvor</div>
       <div class="fund-grid-two">
         <div class="fund-col">
@@ -2471,7 +2735,7 @@ function renderFundRenter(){
       ? `<em style="color:var(--sig-pos);">positiv kurve — normal vekstforventning</em>`
       : `<em style="color:var(--sig-neg);">invertert — historisk et resesjonsvarsel</em>`);
   return `
-    <div class="fund-block">
+    <div class="fund-block compact-hide">
       <div class="ttl">I·E Markedsrenter</div>
       <div class="fund-rates">
         ${rateRow('10-års statsrente', 'nominell, USA', mr.dgs10)}
@@ -2579,7 +2843,7 @@ function renderFundMakroProxy(){
         <span class="delta ${cls}">${chgTekst}</span>
       </div>`;
   }
-  return `<div class="fund-block"><div class="ttl">I·G Globale makro-proksjer</div><div class="fund-rates">${rows}</div></div>`;
+  return `<div class="fund-block compact-hide"><div class="ttl">I·G Globale makro-proksjer</div><div class="fund-rates">${rows}</div></div>`;
 }
 
 function renderFundamentaler(symbol){
@@ -2603,7 +2867,7 @@ function renderFundamentaler(symbol){
       </div>`;
     });
     body += '</div>';
-    blocks.push(`<div class="fund-block"><div class="ttl">I·H Nyhetsintel</div>${body}</div>`);
+    blocks.push(`<div class="fund-block compact-hide"><div class="ttl">I·H Nyhetsintel</div>${body}</div>`);
   }
 
   // I·I Kalender
@@ -2617,7 +2881,7 @@ function renderFundamentaler(symbol){
       </div>`;
     });
     body += '</div>';
-    blocks.push(`<div class="fund-block"><div class="ttl">I·I Kalender</div>${body}</div>`);
+    blocks.push(`<div class="fund-block compact-hide"><div class="ttl">I·I Kalender</div>${body}</div>`);
   }
 
   const html = blocks.filter(Boolean).join('');
@@ -2682,7 +2946,8 @@ function renderBedrock(){
     return;
   }
   rows.sort((a,b) => b._ratio - a._ratio);
-  list.innerHTML = rows.map(r => {
+  const FAM_KEYS = ['trend','positioning','macro','fundamental','risk','structure'];
+  const textRows = rows.map(r => {
     const ourSym = ourSymbol(r.instrument);
     const navn = INSTRUMENT_NAVN_NO[ourSym] || r.instrument;
     const dirLabel = r.direction === 'buy' ? 'KJØP' : r.direction === 'sell' ? 'SALG' : r.direction;
@@ -2701,8 +2966,47 @@ function renderBedrock(){
       </div>
     `;
   }).join('');
-  // Klikk en rad → drill ned i instrumentprofil
-  $$('.bedrock-row[data-symbol]').forEach(r => {
+  const cards = rows.map(r => {
+    const ourSym = ourSymbol(r.instrument);
+    const navn = INSTRUMENT_NAVN_NO[ourSym] || r.instrument;
+    const dirLabel = r.direction === 'buy' ? 'KJØP' : r.direction === 'sell' ? 'SALG' : r.direction;
+    const dirCls = r.direction === 'buy' ? 'buy' : 'sell';
+    const arrow = r.direction === 'buy' ? '↑' : '↓';
+    const pctOfPub = r.min_score_publish ? Math.round(100 * r.score / r.min_score_publish) : 0;
+    const barFill = Math.min(100, pctOfPub);
+    const fams = FAM_KEYS.map(k => {
+      const fs = r.families?.[k]?.score || 0;
+      return `<span class="bk-fam-dot ${fs > 0.1 ? 'on' : ''}" title="${k}: ${fs.toFixed(2)}"></span>`;
+    }).join('');
+    const conflictBadge = r._conflicts > 0
+      ? `<span class="bk-conflict" title="${r._conflicts} motstridende setup på samme instrument">⚠</span>`
+      : '';
+    return `
+      <div class="bk-card ${dirCls} ${r.published ? '' : 'not-pub'}" data-symbol="${ourSym}">
+        ${conflictBadge}
+        <div class="bk-hd">
+          <span class="bk-nm">${navn}</span>
+          <span class="bk-sym">${ourSym}</span>
+        </div>
+        <div class="bk-dir">
+          <span class="bk-arrow">${arrow}</span>
+          <span class="bk-action">${dirLabel}</span>
+        </div>
+        <div class="bk-bar" title="Score ${r.score.toFixed(2)} av terskel ${r.min_score_publish?.toFixed?.(1) || '—'}">
+          <div class="bk-bar-fill" style="width:${barFill}%;"></div>
+          <div class="bk-bar-pub" style="left:100%;"></div>
+        </div>
+        <div class="bk-meta">
+          <span class="bk-grade ${r.published ? '' : 'not-pub'}">${r.grade || (r.published ? '?' : 'ikke pub.')}</span>
+          <span>${(r.horizon || '').toUpperCase()}</span>
+          <span>${pctOfPub}%</span>
+        </div>
+        <div class="bk-fam">${fams}<span class="bk-fam-lbl">trnd · pos · mak · fnd · rsk · str</span></div>
+      </div>`;
+  }).join('');
+  list.innerHTML = textRows + `<div class="bedrock-grid">${cards}</div>`;
+  // Klikk en rad eller kort → drill ned i instrumentprofil
+  $$('.bedrock-row[data-symbol], .bk-card[data-symbol]').forEach(r => {
     r.addEventListener('click', () => {
       location.hash = '#/markets/' + encodeURIComponent(r.dataset.symbol);
     });
@@ -2763,11 +3067,34 @@ function renderDatakvalitet(){
     </div>`;
 }
 
+/* ════════ MODUS-TOGGLE ════════ */
+function applyMode(m){
+  const mode = (m === 'visuelt') ? 'visuelt' : 'studium';
+  document.body.setAttribute('data-mode', mode);
+  $$('#modeToggle button').forEach(b => {
+    b.classList.toggle('on', b.dataset.mode === mode);
+  });
+  try{ localStorage.setItem('cot.mode', mode); }catch{}
+}
+function bindModeToggle(){
+  $$('#modeToggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      applyMode(b.dataset.mode);
+      // Re-render aktiv route så instrument-detalj-blokker også oppdaterer
+      navigate();
+    });
+  });
+  let saved = 'studium';
+  try{ saved = localStorage.getItem('cot.mode') || 'studium'; }catch{}
+  applyMode(saved);
+}
+
 /* ════════ INIT ════════ */
 (async function init(){
   await loadAll();
   renderStateStrip();
   bindBedrockFilters();
+  bindModeToggle();
   // Initial route
   if(!location.hash) location.hash = '#/markets';
   navigate();
