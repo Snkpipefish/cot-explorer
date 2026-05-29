@@ -1,1259 +1,293 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COT Almanakk · Observatorium</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COT · Konsensus</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ─────────────────────────────────────────────────────────
-   OBSERVATORY ALMANAC — 1900-talls vitenskapelig instrument-estetikk
-   for COT-overvåkning. Engraverte linjer, pergament-på-midnatt,
-   messing-aksenter, tabulære tall. Hele UI på norsk.
-   ───────────────────────────────────────────────────────── */
 :root{
-  --ink-bg:        #0e1320;
-  --ink-bg-2:      #131a2a;
-  --ink-paper:     #f0e6cf;
-  --ink-paper-2:   #e9dcb9;
-  --ink-rule:      #2a334a;
-  --ink-rule-soft: #1d2536;
-  --ink-bone:      #e8dcc0;
-  --ink-bone-dim:  #a89e85;
-  --ink-mute:      #6c7589;
-
-  --brass:         #c9a35e;
-  --brass-dim:     #8b6f3e;
-  --brass-soft:    rgba(201,163,94,.14);
-  --copper:        #c97b4a;
-  --copper-dim:    #8c5530;
-
-  --sig-pos:       #6b9d7a;
-  --sig-pos-dim:   #4a6e56;
-  --sig-neg:       #c25c5c;
-  --sig-neg-dim:   #8a3e3e;
-  --sig-warn:      #d4a44a;
-  --sig-warn-dim:  #8b6f30;
-  --sig-info:      #6b8aa8;
+  --bg:#0a0c10; --bg2:#0c0f15;
+  --surface:#12151c; --surface-2:#171b24; --surface-3:#1d222d;
+  --line:rgba(255,255,255,.07); --line-2:rgba(255,255,255,.12);
+  --fg:#e8ecf3; --fg-dim:#9aa3b2; --fg-mute:#5b6473;
+  --teal:#6ee7d6; --indigo:#7c83ff; --accent:#6ee7d6;
+  --up:#34d399; --up-dim:rgba(52,211,153,.16);
+  --down:#fb7185; --down-dim:rgba(251,113,133,.16);
+  --neu:#fbbf24; --neu-dim:rgba(251,191,36,.16);
+  --warn:#fb7185;
+  --radius:14px; --radius-sm:10px;
+  --shadow:0 8px 30px rgba(0,0,0,.45);
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --disp:'Space Grotesk',system-ui,sans-serif;
+  --sans:'Inter',system-ui,sans-serif;
 }
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{
-  background:var(--ink-bg);
-  color:var(--ink-bone);
-  font-family:'Inter',sans-serif;
-  font-size:14px;
-  line-height:1.55;
-  font-feature-settings:"tnum" 1, "lnum" 1;
-  min-height:100%;
-}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
 body{
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,163,94,.04), transparent 60%),
-    linear-gradient(180deg, #0e1320 0%, #0a0e18 100%);
+  font-family:var(--sans); background:var(--bg); color:var(--fg);
+  font-size:14px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(900px 480px at 12% -8%, rgba(110,231,214,.07), transparent 60%),
+    radial-gradient(820px 420px at 92% -4%, rgba(124,131,255,.08), transparent 60%);
   background-attachment:fixed;
+  min-height:100vh;
 }
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tnum{font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}
 
-.rule        { border:0;border-top:1px solid var(--ink-rule); }
-.rule-double { border:0;border-top:1px solid var(--ink-rule);box-shadow:0 2px 0 -1px var(--ink-rule);height:2px;margin:0; }
-.rule-brass  { border:0;border-top:1px solid var(--brass-dim);box-shadow:0 2px 0 -1px var(--brass-dim);height:2px;margin:0; }
+/* ───── TOPBAR ───── */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  background:rgba(10,12,16,.72); backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{max-width:1320px;margin:0 auto;padding:14px 26px;display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1.1}
+.brand .b1{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:-.01em;
+  background:linear-gradient(92deg,var(--teal),var(--indigo));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand .b2{font-size:11px;color:var(--fg-mute);letter-spacing:.04em;margin-top:2px}
+.nav{display:flex;gap:4px;margin-left:6px}
+.nav a{
+  font-family:var(--disp);font-weight:500;font-size:14px;color:var(--fg-dim);
+  padding:7px 14px;border-radius:999px;border:1px solid transparent;transition:.16s;
+}
+.nav a:hover{color:var(--fg);background:var(--surface-2)}
+.nav a.on{color:var(--bg);background:linear-gradient(92deg,var(--teal),var(--indigo));font-weight:600}
+.state{display:flex;gap:0;margin-left:auto;flex-wrap:wrap}
+.state .cell{padding:2px 16px;border-left:1px solid var(--line);display:flex;flex-direction:column;line-height:1.2}
+.state .cell:first-child{border-left:0}
+.state .lbl{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--fg-mute)}
+.state .val{font-family:var(--mono);font-size:12.5px;margin-top:2px;color:var(--fg)}
+.state .val.up{color:var(--up)} .state .val.down{color:var(--down)} .state .val.neu{color:var(--neu)}
 
-.serif       { font-family:'Cormorant Garamond',serif; }
-.mono        { font-family:'JetBrains Mono',monospace; }
-.smallcaps   { text-transform:uppercase;letter-spacing:.18em;font-weight:600; }
-.italic      { font-style:italic; }
-.tnum        { font-variant-numeric:tabular-nums; }
+/* ───── LAYOUT ───── */
+.wrap{max-width:1320px;margin:0 auto;padding:30px 26px 80px}
+.panel{display:none;animation:fade .35s ease}
+.panel.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-/* ─────── MASTHEAD ─────── */
-.masthead{
-  border-bottom:1px solid var(--ink-rule);
-  background:linear-gradient(180deg,#13192a 0%,#0e1320 100%);
-  padding:16px 28px 12px;
-}
-.mast-row{display:flex;align-items:flex-end;gap:24px;}
-.mast-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:30px;line-height:1;font-weight:600;
-  color:var(--ink-paper);letter-spacing:.02em;
-}
-.mast-title .et{color:var(--brass);font-style:italic;font-weight:400;margin:0 .25em;}
-.mast-sub{
-  font-family:'Cormorant Garamond',serif;font-style:italic;
-  color:var(--ink-bone-dim);font-size:14px;margin-left:auto;
-  letter-spacing:.04em;
-}
-.mast-rules{margin-top:10px;}
-.mast-rules .rule-double{border-top-color:var(--brass-dim);box-shadow:0 2px 0 -1px var(--brass-dim);}
+.section-hd{display:flex;align-items:baseline;gap:12px;margin:34px 0 16px}
+.section-hd:first-child{margin-top:0}
+.section-hd h2{font-family:var(--disp);font-weight:600;font-size:20px;letter-spacing:-.01em}
+.section-hd .sub{font-size:12.5px;color:var(--fg-mute)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal)}
 
-/* ─────── TABS (toppnivå) ─────── */
-.tabs-wrap{position:relative;}
-.tabs{
-  display:flex;gap:0;
-  border-bottom:1px solid var(--ink-rule);
-  background:#0c111c;
-  padding:0 28px;
-  overflow-x:auto;
-  scrollbar-width:none;
+/* ───── HERO ───── */
+.hero{
+  border:1px solid var(--line);border-radius:var(--radius);
+  background:linear-gradient(160deg,var(--surface-2),var(--surface) 70%);
+  padding:26px 28px;display:flex;gap:30px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;
 }
-.tabs::-webkit-scrollbar{display:none;}
-.tab{
-  font-family:'Cormorant Garamond',serif;
-  font-size:18px;font-weight:600;letter-spacing:.02em;
-  background:transparent;color:var(--ink-bone-dim);
-  border:0;cursor:pointer;
-  padding:14px 22px 13px;
-  display:inline-flex;align-items:center;gap:10px;
-  border-bottom:2px solid transparent;
-  transition:color .15s,border-color .15s;
-  white-space:nowrap;
-}
-.tab:hover{color:var(--ink-bone);}
-.tab.active{
-  color:var(--ink-paper);
-  border-bottom-color:var(--brass);
-}
-.tab .num{
-  font-family:'JetBrains Mono',monospace;font-size:11px;
-  color:var(--ink-mute);
-  border:1px solid var(--ink-rule);padding:1px 6px;
-}
-.tab.active .num{color:var(--brass);border-color:var(--brass-dim);}
+.hero::before{content:'';position:absolute;inset:0;background:
+  radial-gradient(360px 200px at 88% 0%, rgba(124,131,255,.12), transparent 70%);pointer-events:none}
+.hero h1{font-family:var(--disp);font-weight:700;font-size:30px;letter-spacing:-.02em;line-height:1.1}
+.hero p{color:var(--fg-dim);font-size:13.5px;margin-top:8px;max-width:540px}
+.hero-stats{display:flex;gap:0;margin-left:auto;flex-wrap:wrap}
+.hstat{padding:4px 22px;border-left:1px solid var(--line);text-align:center}
+.hstat:first-child{border-left:0}
+.hstat .n{font-family:var(--mono);font-weight:600;font-size:30px;line-height:1}
+.hstat .l{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-mute);margin-top:6px}
+.hstat.agree .n{color:var(--up)} .hstat.conflict .n{color:var(--down)} .hstat.single .n{color:var(--neu)}
 
-/* ─────── STATUS-STRIPE ─────── */
-.state-strip{
-  display:flex;align-items:stretch;gap:0;
-  background:#0c111c;border-bottom:1px solid var(--ink-rule);
-  padding:0 28px;font-size:11px;
-  overflow-x:auto;scrollbar-width:none;
+/* ───── HEATMAP ───── */
+.heat-group{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center;
+  padding:13px 0;border-bottom:1px solid var(--line)}
+.heat-group .glabel{font-family:var(--disp);font-weight:600;font-size:14px;color:var(--fg-dim);text-align:right;
+  border-right:2px solid var(--line-2);padding-right:14px}
+.heat-cells{display:flex;gap:8px;flex-wrap:wrap}
+.cell{
+  position:relative;width:120px;border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:9px 10px 10px;cursor:pointer;transition:.16s;background:var(--surface);overflow:hidden;
 }
-.state-strip::-webkit-scrollbar{display:none;}
-.state-cell{
-  display:flex;flex-direction:column;justify-content:center;
-  padding:6px 18px 7px;
-  border-right:1px solid var(--ink-rule-soft);
-  white-space:nowrap;
-}
-.state-cell:last-child{border-right:none;}
-.state-cell .lbl{
-  font-family:'Cormorant Garamond',serif;font-style:italic;
-  color:var(--ink-mute);font-size:11px;letter-spacing:.06em;
-}
-.state-cell .val{
-  font-family:'JetBrains Mono',monospace;font-size:12px;
-  color:var(--ink-paper);margin-top:1px;
-}
+.cell:hover{transform:translateY(-2px);border-color:var(--line-2);box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.cell .csym{font-family:var(--disp);font-weight:600;font-size:13px}
+.cell .cnav{font-size:10px;color:var(--fg-mute);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .crow{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.cell .cdir{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.04em}
+.cell .cbar{height:4px;border-radius:3px;background:var(--line);margin-top:7px;overflow:hidden}
+.cell .cbar > i{display:block;height:100%;border-radius:3px}
+.cell.long{border-left:3px solid var(--up)} .cell.short{border-left:3px solid var(--down)}
+.cell.neutral{border-left:3px solid var(--neu)} .cell.empty{border-left:3px solid var(--fg-mute);opacity:.6}
+.cell.conflict{border-left:3px solid var(--down);box-shadow:0 0 0 1px rgba(251,113,133,.4) inset}
+.cdir.long{color:var(--up)} .cdir.short{color:var(--down)} .cdir.neutral{color:var(--neu)} .cdir.empty{color:var(--fg-mute)}
 
-/* ─────── DECK ─────── */
-main.deck{padding:24px 28px 60px;max-width:1480px;margin:0 auto;}
-.panel{display:none;}
-.panel.active{display:block;animation:fade .3s ease;}
-@keyframes fade{from{opacity:0;transform:translateY(2px);}to{opacity:1;transform:translateY(0);}}
+/* agreement dots */
+.adots{display:inline-flex;align-items:center;gap:0;vertical-align:middle}
+.adots .d{width:7px;height:7px;border-radius:50%;background:var(--fg-mute);border:1px solid var(--fg-mute)}
+.adots .d.fill-up{background:var(--up);border-color:var(--up)}
+.adots .d.fill-down{background:var(--down);border-color:var(--down)}
+.adots .d.hollow{background:transparent}
+.adots .ln{width:11px;height:2px;background:var(--fg-mute)}
+.adots.agree .ln{background:var(--up)}
+.adots.conflict .ln{background:repeating-linear-gradient(90deg,var(--down),var(--down) 2px,transparent 2px,transparent 4px)}
 
-/* ─────── PLATE ─────── */
-.plate{
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-  border:1px solid var(--ink-rule);
-  margin-bottom:24px;
+/* ───── CARD GRID ───── */
+.grid{display:grid;gap:14px}
+.grid.cards{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.card{
+  border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(165deg,var(--surface-2),var(--surface));
+  padding:16px 18px;transition:.16s;
 }
-.plate-hd{
-  display:flex;align-items:baseline;gap:12px;
-  padding:11px 20px 10px;
-  border-bottom:1px solid var(--ink-rule);
-  background:linear-gradient(180deg,#161d30 0%,#131a2a 100%);
-}
-.plate-hd .num{
-  font-family:'JetBrains Mono',monospace;font-size:11px;
-  color:var(--brass);letter-spacing:.12em;
-}
-.plate-hd .ttl{
-  font-family:'Cormorant Garamond',serif;font-size:20px;
-  font-weight:600;color:var(--ink-paper);letter-spacing:.02em;
-}
-.plate-hd .sub{
-  font-family:'Cormorant Garamond',serif;font-style:italic;
-  color:var(--ink-bone-dim);font-size:13px;margin-left:8px;
-}
-.plate-hd .stamp{
-  margin-left:auto;font-family:'JetBrains Mono',monospace;
-  font-size:11px;color:var(--ink-mute);
-}
-.plate-body{padding:14px 20px 18px;}
+.card.click{cursor:pointer}
+.card.click:hover{transform:translateY(-2px);border-color:var(--line-2);box-shadow:var(--shadow)}
+.card.long{border-top:3px solid var(--up)} .card.short{border-top:3px solid var(--down)}
+.card.conflict{border-top:3px solid var(--down)}
+.card-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.card-hd .nm{font-family:var(--disp);font-weight:600;font-size:17px}
+.card-hd .nv{font-size:11px;color:var(--fg-mute);margin-top:1px}
+.badge{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;padding:3px 9px;border-radius:999px;border:1px solid var(--line-2);white-space:nowrap}
+.badge.long{color:var(--up);border-color:rgba(52,211,153,.5);background:var(--up-dim)}
+.badge.short{color:var(--down);border-color:rgba(251,113,133,.5);background:var(--down-dim)}
+.badge.neutral{color:var(--neu);border-color:rgba(251,191,36,.5);background:var(--neu-dim)}
+.badge.conflict{color:var(--down);border-color:rgba(251,113,133,.6);background:var(--down-dim)}
+.badge.ghost{color:var(--fg-dim)}
 
-/* ─────── MARKETS LANDING ─────── */
-.markets-intro{
-  font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;
-  color:var(--ink-bone-dim);margin-bottom:18px;padding:0 4px;
-}
-.markets-legend{
-  border:1px solid var(--ink-rule);
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-  padding:12px 18px;margin-bottom:18px;
-}
-.markets-legend .legend-ttl{
-  font-family:'JetBrains Mono',monospace;font-size:10px;
-  color:var(--brass);letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px;
-}
-.markets-legend dl{
-  display:grid;grid-template-columns:140px 1fr;gap:4px 14px;
-  font-family:'Cormorant Garamond',serif;font-size:13px;
-}
-.markets-legend dt{color:var(--brass);font-weight:600;}
-.markets-legend dd{color:var(--ink-bone);font-style:italic;}
-.market-table th[title]{
-  border-bottom:1px dotted var(--brass-dim);cursor:help;
-}
-.conflict-mark{
-  display:inline-block;margin-left:6px;color:var(--sig-warn);font-size:11px;
-  font-style:italic;font-family:'Cormorant Garamond',serif;
-}
-.market-group{
-  margin-bottom:24px;
-  border:1px solid var(--ink-rule);
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-}
-.market-group-hd{
-  display:flex;align-items:baseline;gap:14px;
-  padding:11px 20px 9px;
-  border-bottom:1px solid var(--ink-rule);
-  background:linear-gradient(180deg,#161d30 0%,#131a2a 100%);
-}
-.market-group-hd .ttl{
-  font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;
-  color:var(--ink-paper);letter-spacing:.04em;
-}
-.market-group-hd .ct{
-  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);
-}
-.market-group-hd .hint{
-  margin-left:auto;font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:12px;color:var(--ink-bone-dim);
-}
-.market-table{
-  width:100%;border-collapse:collapse;
-}
-.market-table th, .market-table td{
-  text-align:right;
-  padding:8px 14px;
-  border-bottom:1px solid var(--ink-rule-soft);
-  font-family:'JetBrains Mono',monospace;font-size:13px;
-}
-.market-table th{
-  text-align:right;
-  font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:12px;color:var(--ink-mute);
-  border-bottom:1px solid var(--ink-rule);
-  font-weight:400;letter-spacing:.04em;
-}
-.market-table th:first-child, .market-table td:first-child{text-align:left;}
-.market-table tr.market-row{cursor:pointer;transition:background .12s;}
-.market-table tr.market-row:hover{background:var(--brass-soft);}
-.market-table tr.market-row:hover td:first-child{color:var(--brass);}
-.market-table .inst-name{
-  font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;
-  color:var(--ink-paper);
-}
-.market-table .inst-name .nav{
-  font-family:'Inter',sans-serif;font-size:11px;color:var(--ink-mute);
-  font-weight:400;margin-left:8px;font-style:italic;
-}
-.chg-pos{color:var(--sig-pos);}
-.chg-neg{color:var(--sig-neg);}
-.regime-pill{
-  display:inline-block;padding:2px 9px;
-  font-family:'Cormorant Garamond',serif;font-size:12px;
-  font-style:italic;letter-spacing:.04em;
-  border:1px solid var(--ink-rule);
-}
-.regime-pill.farge-grønn{color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.08);}
-.regime-pill.farge-rød{color:var(--sig-neg);border-color:var(--sig-neg-dim);background:rgba(194,92,92,.08);}
-.regime-pill.farge-gul{color:var(--sig-warn);border-color:var(--sig-warn-dim);background:rgba(212,164,74,.08);}
-.regime-pill.farge-grå{color:var(--ink-bone-dim);border-color:var(--ink-rule);background:transparent;}
-.freshness-dot{
-  display:inline-block;width:7px;height:7px;border-radius:50%;
-  margin-right:5px;vertical-align:middle;
-}
-.fresh-fersk{background:var(--sig-pos);}
-.fresh-foreldet{background:var(--sig-warn);}
-.fresh-missing{background:var(--ink-rule);}
+.card-mid{display:flex;align-items:center;gap:16px;margin:14px 0 4px}
+.verdict-big{font-family:var(--disp);font-weight:700;font-size:26px;letter-spacing:-.01em}
+.verdict-big.long{color:var(--up)} .verdict-big.short{color:var(--down)} .verdict-big.neutral{color:var(--neu)}
+.gauge{flex:0 0 auto}
+.gauge text{font-family:var(--mono)}
 
-/* ─────── INSTRUMENT PROFILE ─────── */
-.profile-back{
-  display:inline-flex;align-items:center;gap:8px;
-  font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:14px;color:var(--ink-bone-dim);
-  border:1px solid var(--ink-rule);background:transparent;
-  padding:5px 12px;cursor:pointer;margin-bottom:14px;
-  transition:color .15s,border-color .15s;
-}
-.profile-back:hover{color:var(--brass);border-color:var(--brass-dim);}
+.kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;padding:4px 0;border-bottom:1px dotted var(--line)}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--fg-mute)}
+.kv .v.up{color:var(--up)} .kv .v.down{color:var(--down)}
 
-.profile-header{
-  display:flex;flex-wrap:wrap;align-items:baseline;gap:18px;
-  padding:14px 20px 12px;
-  border:1px solid var(--ink-rule);
-  background:linear-gradient(180deg,#161d30 0%,#131a2a 100%);
-  margin-bottom:14px;
-}
-.profile-header .inst-title{
-  font-family:'Cormorant Garamond',serif;font-size:28px;
-  font-weight:600;color:var(--ink-paper);letter-spacing:.02em;
-}
-.profile-header .inst-en{
-  font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:14px;color:var(--ink-mute);margin-left:4px;
-}
-.profile-header .inst-price{
-  font-family:'JetBrains Mono',monospace;font-size:22px;
-  color:var(--ink-paper);font-weight:600;
-}
-.profile-header .inst-chg{
-  font-family:'JetBrains Mono',monospace;font-size:13px;
-}
-.profile-header .chg-strip{display:flex;gap:14px;flex-wrap:wrap;}
-.profile-header .chg-strip .lbl{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-mute);font-size:12px;}
+.src-row{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 0}
+.src-row .tag{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--fg-mute);width:62px;flex:0 0 auto}
+.src-row .pill{font-family:var(--mono);font-size:11px;font-weight:600;padding:1px 8px;border-radius:6px}
+.src-row .pill.long{color:var(--up);background:var(--up-dim)} .src-row .pill.short{color:var(--down);background:var(--down-dim)}
+.src-row .pill.none{color:var(--fg-mute);background:var(--surface-3)}
+.src-row .meta{color:var(--fg-dim);font-family:var(--mono);font-size:11px;margin-left:auto}
 
-/* sub-tabs i profil */
-.sub-tabs{
-  display:flex;gap:0;
-  border-bottom:1px solid var(--ink-rule);
-  margin-bottom:18px;
-  overflow-x:auto;scrollbar-width:none;
-}
-.sub-tabs::-webkit-scrollbar{display:none;}
-.sub-tab{
-  font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;
-  background:transparent;border:0;color:var(--ink-bone-dim);
-  padding:9px 18px 8px;cursor:pointer;
-  border-bottom:2px solid transparent;
-  letter-spacing:.04em;transition:color .15s,border-color .15s;
-  white-space:nowrap;
-}
-.sub-tab:hover{color:var(--ink-bone);}
-.sub-tab.active{color:var(--brass);border-bottom-color:var(--brass);}
+/* ───── DRILL-DOWN ───── */
+.back{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;color:var(--fg-dim);
+  padding:6px 12px;border:1px solid var(--line);border-radius:999px;cursor:pointer;transition:.16s;margin-bottom:18px}
+.back:hover{color:var(--fg);border-color:var(--line-2)}
+.dd-hd{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+.dd-hd h1{font-family:var(--disp);font-weight:700;font-size:32px;letter-spacing:-.02em}
+.dd-hd .sub{color:var(--fg-mute);font-size:13px;padding-bottom:5px}
+.cols{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+.cols-3{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 
-.sub-panel{display:none;}
-.sub-panel.active{display:block;animation:fade .25s ease;}
+/* mirrored driver bars */
+.fam-row{display:grid;grid-template-columns:1fr 120px 1fr;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dotted var(--line)}
+.fam-row:last-child{border-bottom:0}
+.fam-row .name{text-align:center;font-family:var(--mono);font-size:11px;color:var(--fg-dim);letter-spacing:.03em}
+.fam-bar{height:8px;background:var(--surface-3);border-radius:5px;overflow:hidden;display:flex}
+.fam-bar.l{justify-content:flex-end}
+.fam-bar > i{height:100%;display:block;border-radius:5px}
+.fam-bar.l > i{background:linear-gradient(90deg,transparent,var(--teal))}
+.fam-bar.r > i{background:linear-gradient(90deg,var(--indigo),transparent)}
 
-/* ─────── AKTØR-TAVLE ─────── */
-.actor-board{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;
-}
-@media (max-width:980px){.actor-board{grid-template-columns:repeat(2,1fr);}}
-@media (max-width:560px){.actor-board{grid-template-columns:1fr;}}
-.actor-card{
-  border:1px solid var(--ink-rule);
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-  padding:12px 14px 12px;display:flex;flex-direction:column;gap:8px;
-  position:relative;
-}
-.actor-card .actor-hd{display:flex;align-items:baseline;gap:6px;}
-.actor-card .actor-nm{
-  font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;
-  color:var(--ink-paper);letter-spacing:.02em;
-}
-.actor-card .actor-role{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
-  color:var(--ink-mute);margin-left:auto;
-}
-.actor-card .actor-desc{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
-  color:var(--ink-bone-dim);line-height:1.35;
-}
-.actor-card .actor-pos{
-  font-family:'JetBrains Mono',monospace;font-size:13px;
-  display:flex;justify-content:space-between;align-items:baseline;
-  padding-top:5px;border-top:1px dotted var(--ink-rule-soft);
-}
-.actor-card .pos-lbl{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
-  color:var(--ink-mute);text-transform:uppercase;letter-spacing:.1em;
-}
-.actor-card .pos-val{color:var(--ink-paper);font-weight:600;}
-.actor-card .pos-val.long{color:var(--sig-pos);}
-.actor-card .pos-val.short{color:var(--sig-neg);}
-.actor-card .pos-val.balansert{color:var(--ink-bone-dim);}
+.legend{display:flex;gap:18px;font-size:11px;color:var(--fg-mute);margin-top:10px;flex-wrap:wrap}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 
-/* Percentile bar with extreme zones */
-.actor-pctile{
-  position:relative;height:14px;background:var(--ink-rule-soft);
-  border:1px solid var(--ink-rule);
-}
-.actor-pctile .zone-low{
-  position:absolute;left:0;top:0;bottom:0;width:15%;
-  background:rgba(194,92,92,.18);
-}
-.actor-pctile .zone-high{
-  position:absolute;right:0;top:0;bottom:0;width:15%;
-  background:rgba(107,157,122,.18);
-}
-.actor-pctile .marker{
-  position:absolute;top:-3px;bottom:-3px;width:3px;
-  background:var(--brass);box-shadow:0 0 0 1px var(--ink-bg);
-}
-.actor-pctile .pct-lbl{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-paper);
-  font-weight:600;text-shadow:0 1px 0 var(--ink-bg);
-}
-.actor-pctile-row{display:flex;justify-content:space-between;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;color:var(--ink-mute);margin-top:1px;}
+/* price chart */
+.chart-box{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:14px 16px}
+svg.price{width:100%;height:300px;display:block}
+.pl-line{fill:none;stroke:var(--teal);stroke-width:1.6}
+.pl-area{fill:url(#parea)}
+.pl-grid{stroke:var(--line);stroke-width:1}
+.pl-lvl{stroke-width:1;stroke-dasharray:4 3}
+.pl-txt{font-family:var(--mono);font-size:10px;fill:var(--fg-mute)}
 
-/* Weekly flow arrows */
-.actor-flow{display:flex;flex-direction:column;gap:3px;}
-.flow-line{
-  display:flex;justify-content:space-between;align-items:baseline;
-  font-family:'JetBrains Mono',monospace;font-size:12px;
-}
-.flow-line .who{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
-  color:var(--ink-bone-dim);
-}
-.flow-line .v{font-weight:600;}
-.flow-line .v.up{color:var(--sig-pos);}
-.flow-line .v.down{color:var(--sig-neg);}
-.flow-line .v.zero{color:var(--ink-mute);}
+/* narrative */
+.narr{border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:var(--radius-sm);
+  background:var(--surface);padding:14px 18px;font-size:14px;color:var(--fg-dim);line-height:1.6}
 
-/* Verdict-tag */
-.actor-verdict{
-  display:inline-block;padding:3px 9px;
-  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;
-  border:1px solid var(--ink-rule);text-transform:uppercase;font-weight:600;
-  align-self:flex-start;
-}
-.verdict-BYGGER-LONG{color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.10);}
-.verdict-DEKKER-SHORT{color:var(--sig-pos);border-color:var(--sig-pos-dim);background:rgba(107,157,122,.10);}
-.verdict-BYGGER-SHORT{color:var(--sig-neg);border-color:var(--sig-neg-dim);background:rgba(194,92,92,.10);}
-.verdict-REDUSERER-LONG{color:var(--sig-warn);border-color:var(--sig-warn-dim);background:rgba(212,164,74,.08);}
-.verdict-ØKER-BEGGE-SIDER{color:var(--sig-info);border-color:var(--ink-rule);background:rgba(107,138,168,.10);}
-.verdict-REDUSERER-BEGGE-SIDER{color:var(--sig-info);border-color:var(--ink-rule);background:rgba(107,138,168,.10);}
-.verdict-STABIL{color:var(--ink-mute);border-color:var(--ink-rule);}
+/* ───── MATRISE ───── */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.fbtn{font-family:var(--mono);font-size:11px;color:var(--fg-dim);padding:6px 12px;border:1px solid var(--line);
+  border-radius:999px;cursor:pointer;transition:.16s}
+.fbtn:hover{color:var(--fg);border-color:var(--line-2)}
+.fbtn.on{color:var(--bg);background:var(--accent);border-color:var(--accent);font-weight:600}
+.mx-card{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);padding:12px 14px}
+.mx-card.long{border-left:3px solid var(--up)} .mx-card.short{border-left:3px solid var(--down)}
+.mx-hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mx-hd .nm{font-family:var(--disp);font-weight:600;font-size:14px}
+.mx-hd .hz{font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:.08em;text-transform:uppercase}
+.mx-dir{display:flex;align-items:center;gap:8px;margin:8px 0 6px}
+.mx-arrow{font-family:var(--mono);font-weight:700;font-size:22px}
+.mx-arrow.long{color:var(--up)} .mx-arrow.short{color:var(--down)}
+.mx-bar{height:6px;background:var(--surface-3);border-radius:4px;position:relative;overflow:hidden}
+.mx-bar > i{position:absolute;left:0;top:0;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--indigo),var(--teal))}
+.mx-bar > .thr{position:absolute;top:-2px;width:2px;height:10px;background:var(--fg)}
+.mx-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--fg-mute);margin-top:6px}
 
-/* Story-strip — kort visuelt sammendrag av aktør-bordet over Markeder-rader */
-.who-strip{
-  display:inline-flex;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;
-  color:var(--ink-bone-dim);align-items:center;
-}
-.who-pill{
-  display:inline-flex;align-items:center;gap:3px;padding:1px 6px;
-  border:1px solid var(--ink-rule);letter-spacing:.04em;
-}
-.who-pill .nm{color:var(--ink-bone-dim);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;}
-.who-pill .arrow{font-weight:700;}
-.who-pill .arrow.up{color:var(--sig-pos);}
-.who-pill .arrow.down{color:var(--sig-neg);}
-.who-pill.is-long{background:rgba(107,157,122,.08);}
-.who-pill.is-short{background:rgba(194,92,92,.08);}
+/* ───── DATA ───── */
+.pipe{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.pcell{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);padding:13px 15px}
+.pcell .pn{font-family:var(--disp);font-weight:600;font-size:14px}
+.pcell .pt{font-family:var(--mono);font-size:11px;color:var(--fg-mute);margin-top:3px}
+.pcell .ps{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:6px;margin-top:8px;border:1px solid var(--line-2)}
+.ps.fresh{color:var(--up);border-color:rgba(52,211,153,.4)} .ps.stale{color:var(--neu);border-color:rgba(251,191,36,.4)}
+.ps.miss{color:var(--fg-mute)}
 
-/* MM percentile bar i Markeder-tabellen */
-.mm-bar-wrap{
-  display:inline-flex;flex-direction:column;align-items:stretch;width:100px;
-}
-.mm-bar{
-  position:relative;height:8px;background:var(--ink-rule-soft);
-  border:1px solid var(--ink-rule);
-}
-.mm-bar .zone-low{position:absolute;left:0;top:0;bottom:0;width:15%;background:rgba(194,92,92,.18);}
-.mm-bar .zone-high{position:absolute;right:0;top:0;bottom:0;width:15%;background:rgba(107,157,122,.18);}
-.mm-bar .mm-marker{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--brass);}
-.mm-bar-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-paper);text-align:center;margin-top:2px;}
+footer{max-width:1320px;margin:30px auto 0;padding:18px 26px 30px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;color:var(--fg-mute);font-size:12px;flex-wrap:wrap;gap:10px}
+footer .mono{font-size:11px}
 
-/* ─────── POSISJONERING-FANE ─────── */
-.narrative-block{
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-  border:1px solid var(--brass-dim);
-  border-left:3px solid var(--brass);
-  padding:16px 22px 14px;
-  margin-bottom:18px;
-}
-.narrative-block .eyebrow{
-  font-family:'JetBrains Mono',monospace;font-size:10px;
-  color:var(--brass);letter-spacing:.16em;text-transform:uppercase;
-  margin-bottom:6px;
-}
-.narrative-block .body{
-  font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.55;
-  color:var(--ink-paper);font-style:italic;
-}
+.empty-note{color:var(--fg-mute);font-size:13px;padding:18px;text-align:center;border:1px dashed var(--line);border-radius:var(--radius-sm)}
 
-.prediction-block{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
-  border:1px solid var(--ink-rule);
-  margin-bottom:18px;
-}
-.prediction-cell{
-  padding:12px 16px;border-right:1px solid var(--ink-rule);
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-}
-.prediction-cell:last-child{border-right:none;}
-.prediction-cell .lbl{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
-  color:var(--ink-mute);letter-spacing:.04em;margin-bottom:3px;
-}
-.prediction-cell .val{
-  font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;
-  color:var(--ink-paper);
-}
-.prediction-cell .val.opp{color:var(--sig-pos);}
-.prediction-cell .val.ned{color:var(--sig-neg);}
-.prediction-cell .val.nøytral{color:var(--ink-bone-dim);}
-.prediction-cell .sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;color:var(--ink-bone-dim);margin-top:2px;}
-
-.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-@media (max-width:780px){.split-grid{grid-template-columns:1fr;}}
-
-.flow-decomp{padding:10px 4px;}
-.flow-row{
-  display:grid;grid-template-columns:160px 1fr 80px;
-  align-items:center;gap:10px;padding:6px 0;
-  border-bottom:1px solid var(--ink-rule-soft);
-}
-.flow-row:last-child{border-bottom:none;}
-.flow-row .who{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:var(--ink-bone-dim);}
-.flow-row .bar{position:relative;height:6px;background:var(--ink-rule-soft);overflow:hidden;}
-.flow-row .bar::before{
-  content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;
-  background:var(--ink-rule);
-}
-.flow-row .bar-fill{position:absolute;top:0;bottom:0;}
-.flow-row .bar-fill.pos{background:var(--sig-pos);left:50%;}
-.flow-row .bar-fill.neg{background:var(--sig-neg);right:50%;}
-.flow-row .delta{font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right;}
-.flow-row .delta.pos{color:var(--sig-pos);}
-.flow-row .delta.neg{color:var(--sig-neg);}
-.flow-attribution{
-  margin-top:10px;padding:8px 12px;
-  background:rgba(201,163,94,.06);border-left:2px solid var(--brass-dim);
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;
-  color:var(--ink-bone);
-}
-
-.conviction-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.conviction-card{padding:12px 14px;border:1px solid var(--ink-rule);}
-.conviction-card .lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;color:var(--ink-mute);}
-.conviction-card .val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:var(--ink-paper);margin:2px 0 8px;}
-.conviction-card.long .val{color:var(--sig-pos);}
-.conviction-card.short .val{color:var(--sig-neg);}
-.conviction-bar{height:8px;background:var(--ink-rule-soft);overflow:hidden;}
-.conviction-bar-fill{height:100%;background:var(--brass);}
-.conviction-card.long .conviction-bar-fill{background:var(--sig-pos);}
-.conviction-card.short .conviction-bar-fill{background:var(--sig-neg);}
-.conviction-reasoning{
-  font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:13px;color:var(--ink-bone-dim);margin-top:10px;padding:0 4px;
-}
-
-.flag-list{display:flex;flex-wrap:wrap;gap:8px;padding:6px 0;}
-.flag-pill{
-  display:inline-block;padding:4px 11px;
-  font-family:'Cormorant Garamond',serif;font-size:13px;
-  border:1px solid var(--sig-warn-dim);color:var(--sig-warn);
-  background:rgba(212,164,74,.06);
-}
-.flag-pill.flag-ekstrem{border-color:var(--sig-neg-dim);color:var(--sig-neg);background:rgba(194,92,92,.06);}
-.flag-pill.flag-divergens{border-color:var(--sig-info);color:var(--sig-info);background:rgba(107,138,168,.08);}
-
-.analog-table{width:100%;border-collapse:collapse;margin-top:8px;}
-.analog-table th, .analog-table td{
-  text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;
-  padding:6px 10px;border-bottom:1px solid var(--ink-rule-soft);
-}
-.analog-table th{text-align:right;font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-mute);font-weight:400;border-bottom:1px solid var(--ink-rule);}
-.analog-table th:first-child, .analog-table td:first-child{text-align:left;}
-.analog-agg{padding:12px 0 8px;border-top:1px solid var(--ink-rule);margin-top:6px;}
-.analog-agg .stat{display:inline-block;margin-right:18px;font-family:'JetBrains Mono',monospace;font-size:13px;}
-.analog-agg .stat .lbl{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-mute);margin-right:6px;font-size:11px;}
-
-.smc-block{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
-.smc-bar{padding:10px 14px;border:1px solid var(--ink-rule);}
-.smc-bar .lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;color:var(--ink-mute);}
-.smc-bar .val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:var(--ink-paper);}
-.smc-bar .meter{height:6px;background:var(--ink-rule-soft);margin-top:6px;}
-.smc-bar .meter-fill{height:100%;background:var(--brass);}
-.smc-label{
-  margin-top:10px;padding:8px 12px;
-  background:rgba(201,163,94,.06);border-left:2px solid var(--brass-dim);
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;
-  color:var(--ink-bone);
-}
-
-/* MM net history-chart */
-.chart-wrap{padding:10px 0;}
-.chart-svg{width:100%;height:240px;display:block;background:linear-gradient(180deg,#0e1320 0%,#0a0e18 100%);border:1px solid var(--ink-rule-soft);}
-.chart-axis-label{
-  font-family:'JetBrains Mono',monospace;font-size:10px;fill:var(--ink-mute);
-}
-.chart-line{fill:none;stroke:var(--brass);stroke-width:1.5;}
-.chart-band{fill:rgba(107,157,122,.08);stroke:none;}
-.chart-band-mid{fill:rgba(212,164,74,.06);stroke:none;}
-
-/* ─────── OVERSIKT-FANE ─────── */
-.overview-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
-@media (max-width:980px){.overview-grid{grid-template-columns:1fr;}}
-
-.headline-call{
-  border:1px solid var(--brass-dim);border-left:3px solid var(--brass);
-  padding:16px 20px 14px;
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-}
-.headline-call .eyebrow{
-  font-family:'JetBrains Mono',monospace;font-size:10px;
-  color:var(--brass);letter-spacing:.16em;text-transform:uppercase;
-}
-.headline-call .verdict{
-  font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;
-  margin:6px 0 4px;color:var(--ink-paper);
-}
-.headline-call .verdict .grade{
-  display:inline-block;margin-left:10px;
-  font-family:'JetBrains Mono',monospace;font-size:14px;
-  border:1px solid var(--brass);color:var(--brass);padding:1px 7px;
-}
-.headline-call .setup-summary{
-  margin-top:10px;padding-top:10px;border-top:1px dotted var(--ink-rule);
-  font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-bone);
-}
-.headline-call .setup-line{display:flex;justify-content:space-between;padding:3px 0;}
-.headline-call .setup-line .k{color:var(--ink-mute);font-style:italic;}
-.headline-call .setup-line .v{font-family:'JetBrains Mono',monospace;color:var(--ink-paper);}
-
-.driver-scorecard{
-  border:1px solid var(--ink-rule);
-  padding:14px 18px;
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-}
-.driver-scorecard .ttl{
-  font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;
-  color:var(--ink-bone-dim);margin-bottom:10px;
-}
-.driver-row{display:grid;grid-template-columns:110px 1fr 50px;gap:10px;align-items:center;padding:5px 0;}
-.driver-row .nm{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-bone);}
-.driver-row .meter{height:6px;background:var(--ink-rule-soft);}
-.driver-row .meter-fill{height:100%;background:var(--brass);}
-.driver-row .sc{font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right;color:var(--ink-paper);}
-.driver-row .drv-list{
-  grid-column:2/4;font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:11px;color:var(--ink-mute);margin-top:1px;
-}
-
-.horizon-stack{margin-top:18px;}
-.horizon-row{
-  display:grid;grid-template-columns:90px 70px 90px 1fr;gap:14px;
-  padding:8px 12px;border:1px solid var(--ink-rule);margin-bottom:6px;
-  align-items:center;
-}
-.horizon-row .hz{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--brass);letter-spacing:.08em;}
-.horizon-row .act{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;}
-.horizon-row .act.opp{color:var(--sig-pos);}
-.horizon-row .act.ned{color:var(--sig-neg);}
-.horizon-row .act.nøytral{color:var(--ink-bone-dim);}
-.horizon-row .sc{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-bone);}
-.horizon-row .why{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;color:var(--ink-bone-dim);}
-
-/* ─────── PRIS-FANE ─────── */
-.price-chart-wrap{padding:0;border:1px solid var(--ink-rule);background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);}
-.price-chart-svg{width:100%;height:380px;display:block;}
-.price-line{fill:none;stroke:var(--ink-paper);stroke-width:1.4;}
-.price-level-entry{stroke:var(--brass);stroke-width:1;stroke-dasharray:4 3;fill:none;}
-.price-level-sl{stroke:var(--sig-neg);stroke-width:1;stroke-dasharray:3 3;fill:none;}
-.price-level-t1{stroke:var(--sig-pos);stroke-width:1;stroke-dasharray:3 3;fill:none;}
-.price-level-t2{stroke:var(--sig-pos);stroke-width:1;stroke-dasharray:5 4;opacity:.7;fill:none;}
-.price-level-label{
-  font-family:'JetBrains Mono',monospace;font-size:10px;
-  fill:var(--ink-bone);
-}
-.price-context{padding:12px 16px;border-top:1px solid var(--ink-rule);display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
-.price-context .cell{padding:0 14px;border-right:1px solid var(--ink-rule-soft);}
-.price-context .cell:last-child{border-right:none;}
-.price-context .lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;color:var(--ink-mute);}
-.price-context .val{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--ink-paper);}
-
-/* ─────── DOMENE / FUNDAMENTALER ─────── */
-.dom-block, .fund-block{
-  border:1px solid var(--ink-rule);
-  padding:14px 18px;
-  margin-bottom:14px;
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-}
-.dom-block .ttl, .fund-block .ttl{
-  font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;
-  color:var(--brass);letter-spacing:.04em;margin-bottom:8px;
-}
-.dom-block .body, .fund-block .body{
-  font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-bone);
-}
-.dom-kv{display:grid;grid-template-columns:1fr auto;gap:8px;padding:4px 0;border-bottom:1px dotted var(--ink-rule-soft);}
-.dom-kv:last-child{border-bottom:none;}
-.dom-kv .k{font-style:italic;color:var(--ink-bone-dim);}
-.dom-kv .v{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-paper);}
-
-/* ─── Fundamentaler — kompass, kategorier, drivere ─── */
-.fund-compass{
-  display:grid;grid-template-columns:1fr;gap:10px;
-  padding:14px 4px 6px;
-}
-.fund-compass .hdr{
-  display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;
-}
-.fund-compass .hdr .sym{
-  font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink-paper);
-}
-.fund-compass .hdr .bias{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;letter-spacing:.04em;
-}
-.fund-compass .hdr .bias.pos{color:var(--sig-pos);}
-.fund-compass .hdr .bias.neg{color:var(--sig-neg);}
-.fund-compass .hdr .bias.neu{color:var(--brass);}
-.fund-meter{
-  position:relative;height:18px;border:1px solid var(--ink-rule);
-  background:linear-gradient(90deg,rgba(194,92,92,.18) 0%,rgba(194,92,92,.05) 35%,rgba(201,163,94,.12) 50%,rgba(107,157,122,.05) 65%,rgba(107,157,122,.18) 100%);
-}
-.fund-meter .mid{
-  position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink-rule);
-}
-.fund-meter .tick{
-  position:absolute;top:0;bottom:0;width:1px;background:var(--ink-rule-soft);
-}
-.fund-meter .needle{
-  position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--brass);
-  box-shadow:0 0 6px rgba(201,163,94,.55);
-}
-.fund-meter-scale{
-  display:flex;justify-content:space-between;
-  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);
-  margin-top:3px;
-}
-.fund-summary{
-  padding:8px 0;font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-bone);
-  border-top:1px dotted var(--ink-rule-soft);border-bottom:1px dotted var(--ink-rule-soft);
-}
-.fund-summary strong.pos{color:var(--sig-pos);}
-.fund-summary strong.neg{color:var(--sig-neg);}
-.fund-summary strong.neu{color:var(--brass);}
-.fund-summary .stamp{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);margin-left:8px;}
-
-.fund-cats{display:grid;grid-template-columns:1fr;gap:10px;padding:6px 0 2px;}
-.fund-cat{
-  display:grid;grid-template-columns:140px 1fr 110px;gap:12px;align-items:center;
-  padding:4px 0;border-bottom:1px dotted var(--ink-rule-soft);
-}
-.fund-cat:last-child{border-bottom:none;}
-.fund-cat .nm{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-bone);}
-.fund-cat .nm em{display:block;font-style:italic;color:var(--ink-mute);font-size:11px;}
-.fund-cat .bar{
-  position:relative;height:10px;border:1px solid var(--ink-rule-soft);background:#0b1020;
-}
-.fund-cat .bar .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink-rule);}
-.fund-cat .bar .fill{position:absolute;top:0;bottom:0;}
-.fund-cat .bar .fill.pos{background:linear-gradient(90deg,rgba(107,157,122,.25),var(--sig-pos));}
-.fund-cat .bar .fill.neg{background:linear-gradient(90deg,var(--sig-neg),rgba(194,92,92,.25));}
-.fund-cat .bias-lbl{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;text-align:right;}
-.fund-cat .bias-lbl.pos{color:var(--sig-pos);}
-.fund-cat .bias-lbl.neg{color:var(--sig-neg);}
-.fund-cat .bias-lbl.neu{color:var(--brass);}
-
-.fund-grid-two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.fund-col h4{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;
-  color:var(--ink-bone-dim);letter-spacing:.04em;margin:0 0 6px;
-  padding-bottom:4px;border-bottom:1px solid var(--ink-rule-soft);
-}
-.fund-col h4.pos{color:var(--sig-pos);}
-.fund-col h4.neg{color:var(--sig-neg);}
-.fund-driver{
-  display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:baseline;
-  padding:5px 0;border-bottom:1px dotted var(--ink-rule-soft);
-}
-.fund-driver:last-child{border-bottom:none;}
-.fund-driver .nm{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-bone);}
-.fund-driver .nm em{display:block;font-style:italic;color:var(--ink-mute);font-size:10px;}
-.fund-driver .val{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-paper);}
-.fund-driver .delta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);}
-.fund-driver .delta.up{color:var(--sig-pos);}
-.fund-driver .delta.down{color:var(--sig-neg);}
-.fund-neutral-note{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
-  color:var(--ink-mute);padding:6px 0 0;
-}
-
-.fund-rates{display:grid;grid-template-columns:1fr;gap:6px;}
-.fund-rate{
-  display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:baseline;
-  padding:6px 0;border-bottom:1px dotted var(--ink-rule-soft);
-}
-.fund-rate:last-child{border-bottom:none;}
-.fund-rate .nm{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-bone);}
-.fund-rate .nm em{display:block;font-style:italic;color:var(--ink-mute);font-size:11px;}
-.fund-rate .val{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-paper);}
-.fund-rate .delta{font-family:'JetBrains Mono',monospace;font-size:11px;}
-.fund-rate .delta.up{color:var(--sig-pos);}
-.fund-rate .delta.down{color:var(--sig-neg);}
-.fund-rate .delta.flat{color:var(--ink-mute);}
-
-.fund-narrative{
-  font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.5;
-  color:var(--ink-paper);padding:8px 4px;font-style:italic;
-}
-.fund-narrative strong{font-style:normal;color:var(--brass);}
-
-.fund-stale{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
-  color:var(--sig-warn);margin-left:6px;
-}
-
-@media (max-width: 780px){
-  .fund-grid-two{grid-template-columns:1fr;}
-  .fund-cat{grid-template-columns:1fr;gap:4px;}
-  .fund-cat .bias-lbl{text-align:left;}
-}
-
-.news-row{
-  padding:8px 0;border-bottom:1px dotted var(--ink-rule-soft);
-  display:grid;grid-template-columns:100px 1fr;gap:14px;
-}
-.news-row:last-child{border-bottom:none;}
-.news-row .date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);}
-.news-row .body{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-bone);}
-
-/* ─────── BEDROCK & DATAKVALITET (legacy panels) ─────── */
-.bedrock-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:10px;}
-.cat-toggles{display:flex;gap:0;border:1px solid var(--ink-rule);}
-.cat-btn{
-  font-family:'Cormorant Garamond',serif;font-size:13px;
-  background:transparent;border:0;border-right:1px solid var(--ink-rule);
-  color:var(--ink-bone-dim);padding:5px 12px;cursor:pointer;
-  font-style:italic;
-}
-.cat-btn:last-child{border-right:none;}
-.cat-btn:hover{color:var(--ink-bone);}
-.cat-btn.on{background:var(--brass-soft);color:var(--brass);}
-.bedrock-row{
-  display:grid;grid-template-columns:140px 80px 100px 80px 1fr;gap:14px;
-  padding:7px 12px;border-bottom:1px solid var(--ink-rule-soft);align-items:center;
-}
-.bedrock-row .nm{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-bone);}
-.bedrock-row .hz{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--brass);}
-.bedrock-row .dir{font-family:'Cormorant Garamond',serif;font-weight:600;}
-.bedrock-row .dir.BUY{color:var(--sig-pos);}
-.bedrock-row .dir.SELL{color:var(--sig-neg);}
-.bedrock-row .sc{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-paper);}
-.bedrock-row .gr{display:inline-block;padding:1px 8px;border:1px solid var(--brass);color:var(--brass);font-family:'JetBrains Mono',monospace;font-size:11px;}
-
-.pipe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
-.pipe-cell{
-  border:1px solid var(--ink-rule);
-  padding:10px 14px;
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-}
-.pipe-cell .nm{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-paper);}
-.pipe-cell .ts{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);}
-.pipe-cell .st{
-  display:inline-block;padding:1px 7px;font-family:'JetBrains Mono',monospace;
-  font-size:11px;margin-top:4px;
-}
-.pipe-cell .st.fresh{color:var(--sig-pos);border:1px solid var(--sig-pos-dim);}
-.pipe-cell .st.stale{color:var(--sig-warn);border:1px solid var(--sig-warn-dim);}
-.pipe-cell .st.error{color:var(--sig-neg);border:1px solid var(--sig-neg-dim);}
-
-.colophon{
-  border-top:1px solid var(--ink-rule);
-  padding:16px 28px 22px;
-  font-family:'Cormorant Garamond',serif;font-style:italic;
-  font-size:13px;color:var(--ink-bone-dim);
-  display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;
-  margin-top:30px;
-}
-.colophon .stamp{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);}
-
-/* ─────── MODUS-TOGGLE (Studium ⇄ Visuelt) ─────── */
-.mode-toggle{
-  position:fixed;top:14px;right:18px;z-index:200;
-  display:flex;border:1px solid var(--brass-dim);background:rgba(14,19,32,.92);
-  font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:.06em;
-  box-shadow:0 2px 12px rgba(0,0,0,.4);
-}
-.mode-toggle button{
-  background:transparent;border:0;color:var(--ink-bone-dim);
-  padding:6px 12px;cursor:pointer;font-family:inherit;font-size:inherit;
-  font-style:italic;letter-spacing:.06em;
-}
-.mode-toggle button + button{border-left:1px solid var(--brass-dim);}
-.mode-toggle button.on{background:var(--brass-soft);color:var(--brass);font-style:normal;}
-.mode-toggle button:hover{color:var(--ink-paper);}
-
-/* ─────── T-BANE-KART ─────── */
-.metro-map{display:none;}
-body[data-mode="visuelt"] .metro-map{display:block;}
-body[data-mode="visuelt"] .market-group{display:none;}
-body[data-mode="visuelt"] .markets-intro{display:none;}
-
-.metro-legend{
-  display:flex;gap:18px;flex-wrap:wrap;align-items:center;
-  padding:10px 16px;margin:0 0 16px;
-  border:1px solid var(--ink-rule);background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-}
-.metro-legend .lbl{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
-  color:var(--ink-mute);margin-right:4px;
-}
-.metro-legend .item{
-  display:flex;gap:6px;align-items:center;
-  font-family:'Cormorant Garamond',serif;font-size:12px;color:var(--ink-bone);
-}
-.metro-legend .dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
-.metro-legend .dot.buy{background:var(--sig-pos);}
-.metro-legend .dot.sell{background:var(--sig-neg);}
-.metro-legend .dot.neutral{background:var(--brass);}
-.metro-legend .dot.empty{background:transparent;border:2px solid var(--ink-mute);}
-.metro-legend .dot.ring{
-  background:transparent;border:2px solid var(--sig-pos);
-  box-shadow:0 0 0 2px rgba(107,157,122,.25);
-}
-
-.metro-line{
-  display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:center;
-  padding:18px 16px;border-bottom:1px solid var(--ink-rule-soft);
-  position:relative;
-}
-.metro-line:last-child{border-bottom:none;}
-.metro-line .line-lbl{
-  font-family:'Cormorant Garamond',serif;font-size:16px;
-  color:var(--ink-paper);letter-spacing:.04em;font-weight:600;
-  text-align:right;padding-right:12px;border-right:2px solid var(--brass-dim);
-}
-.metro-line .line-lbl em{
-  display:block;font-style:italic;font-weight:400;font-size:11px;
-  color:var(--ink-mute);letter-spacing:.02em;margin-top:2px;
-}
-.metro-track{
-  position:relative;display:flex;gap:0;padding:18px 18px 18px 28px;align-items:center;
-}
-.metro-track::before{
-  content:'';position:absolute;top:50%;left:18px;right:18px;height:3px;
-  background:linear-gradient(90deg,var(--brass-dim) 0%,var(--brass) 50%,var(--brass-dim) 100%);
-  transform:translateY(-50%);z-index:0;
-}
-.metro-station{
-  position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
-  cursor:pointer;flex:1;min-width:90px;text-decoration:none;
-}
-.metro-station .dot{
-  width:28px;height:28px;border-radius:50%;
-  border:3px solid var(--ink-paper);
-  background:var(--ink-mute);
-  transition:transform .15s, box-shadow .15s;
-  box-shadow:0 0 0 2px var(--ink-bg);
-}
-.metro-station.buy .dot{background:var(--sig-pos);}
-.metro-station.sell .dot{background:var(--sig-neg);}
-.metro-station.neutral .dot{background:var(--brass);}
-.metro-station.no-data .dot{background:transparent;border-color:var(--ink-mute);}
-.metro-station.strong .dot{
-  box-shadow:0 0 0 2px var(--ink-bg), 0 0 0 5px rgba(201,163,94,.35);
-  width:34px;height:34px;
-}
-.metro-station.has-conflict .dot::after{
-  content:'⚠';position:absolute;top:-12px;right:-8px;
-  font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--sig-warn);
-}
-.metro-station:hover .dot{transform:scale(1.18);}
-.metro-station .nm{
-  font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--ink-paper);
-  margin-top:6px;text-align:center;white-space:nowrap;
-}
-.metro-station .badge{
-  font-family:'Cormorant Garamond',serif;font-size:10px;font-style:italic;
-  color:var(--ink-mute);margin-top:1px;letter-spacing:.04em;
-}
-.metro-station.buy .badge{color:var(--sig-pos);}
-.metro-station.sell .badge{color:var(--sig-neg);}
-.metro-station .pct{
-  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);
-  margin-top:1px;
-}
-
-/* På instrumentdetalj i visuell modus — skjul ren tekst-tunge tabeller */
-body[data-mode="visuelt"] .fund-block.compact-hide{display:none;}
-body[data-mode="visuelt"] .narrative-block{display:none;}
-body[data-mode="visuelt"] .horizon-stack > .driver-scorecard + *{display:none;}
-body[data-mode="visuelt"] .actor-desc{display:none;}
-body[data-mode="visuelt"] .dom-block .body em{display:none;}
-body[data-mode="visuelt"] .setup-summary .setup-line:nth-child(n+3){display:none;}
-body[data-mode="visuelt"] .markets-intro{display:none;}
-
-/* ─────── TFF FALLBACK (indekser/krypto uten klassisk COT) ─────── */
-.tff-board{
-  border:1px solid var(--ink-rule);padding:14px 18px;margin-bottom:14px;
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-}
-.tff-board .ttl{
-  font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;
-  color:var(--brass);letter-spacing:.04em;margin-bottom:6px;
-}
-.tff-board .sub{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;
-  color:var(--ink-bone-dim);margin-bottom:12px;
-}
-.tff-summary{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;
-  padding:6px 0 12px;border-bottom:1px dotted var(--ink-rule-soft);margin-bottom:12px;
-}
-.tff-summary .cell .k{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;color:var(--ink-mute);
-  display:block;
-}
-.tff-summary .cell .v{
-  font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--ink-paper);
-}
-.tff-actor{
-  display:grid;grid-template-columns:1fr;gap:6px;
-  padding:10px 0;border-bottom:1px dotted var(--ink-rule-soft);
-}
-.tff-actor:last-child{border-bottom:none;}
-.tff-actor .head{
-  display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;
-}
-.tff-actor .nm{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-paper);font-weight:600;}
-.tff-actor .nm em{display:block;font-style:italic;font-weight:400;font-size:11px;color:var(--ink-mute);}
-.tff-actor .net{
-  font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.04em;
-}
-.tff-actor .net.long{color:var(--sig-pos);}
-.tff-actor .net.short{color:var(--sig-neg);}
-.tff-actor .net-lbl{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;
-  color:var(--ink-mute);margin-right:8px;
-}
-.tff-bars{
-  display:grid;grid-template-columns:60px 1fr 60px;gap:8px;align-items:center;
-}
-.tff-bars .side{
-  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-bone-dim);
-}
-.tff-bars .side.l{text-align:left;}
-.tff-bars .side.s{text-align:right;}
-.tff-split{
-  position:relative;height:14px;border:1px solid var(--ink-rule);
-  background:#0b1020;display:flex;overflow:hidden;
-}
-.tff-split .long-fill{background:linear-gradient(90deg,var(--sig-pos-dim),var(--sig-pos));height:100%;}
-.tff-split .short-fill{background:linear-gradient(90deg,var(--sig-neg),var(--sig-neg-dim));height:100%;}
-.tff-narrative{
-  padding:10px 0 0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;
-  color:var(--ink-bone);line-height:1.5;
-}
-
-/* ─────── BEDROCK KORTGRID (visuell modus) ─────── */
-.bedrock-grid{display:none;}
-body[data-mode="visuelt"] .bedrock-grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;
-}
-body[data-mode="visuelt"] #bedrockList .bedrock-row{display:none;}
-
-.bk-card{
-  position:relative;border:1px solid var(--ink-rule);
-  background:linear-gradient(180deg,#131a2a 0%,#0e1320 100%);
-  padding:14px 14px 12px;cursor:pointer;
-  transition:transform .12s, border-color .12s;
-  display:flex;flex-direction:column;gap:8px;
-}
-.bk-card:hover{transform:translateY(-2px);border-color:var(--brass-dim);}
-.bk-card.buy{border-left:4px solid var(--sig-pos);}
-.bk-card.sell{border-left:4px solid var(--sig-neg);}
-.bk-card.not-pub{opacity:.7;}
-.bk-card .bk-hd{
-  display:flex;justify-content:space-between;align-items:baseline;gap:6px;
-}
-.bk-card .bk-nm{
-  font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--ink-paper);
-  font-weight:600;letter-spacing:.02em;
-}
-.bk-card .bk-sym{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);}
-.bk-card .bk-dir{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:8px 0 4px;
-}
-.bk-card .bk-arrow{
-  font-family:'JetBrains Mono',monospace;font-size:34px;line-height:1;font-weight:700;
-}
-.bk-card.buy .bk-arrow{color:var(--sig-pos);}
-.bk-card.sell .bk-arrow{color:var(--sig-neg);}
-.bk-card .bk-action{
-  font-family:'Cormorant Garamond',serif;font-size:18px;letter-spacing:.06em;font-weight:600;
-}
-.bk-card.buy .bk-action{color:var(--sig-pos);}
-.bk-card.sell .bk-action{color:var(--sig-neg);}
-.bk-card .bk-bar{
-  position:relative;height:6px;background:var(--ink-rule-soft);border:1px solid var(--ink-rule);
-}
-.bk-card .bk-bar-fill{
-  position:absolute;left:0;top:0;bottom:0;
-  background:linear-gradient(90deg,var(--brass-dim),var(--brass));
-}
-.bk-card .bk-bar-pub{
-  position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--ink-paper);
-}
-.bk-card .bk-meta{
-  display:flex;justify-content:space-between;align-items:baseline;
-  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);
-}
-.bk-card .bk-grade{
-  display:inline-block;padding:1px 8px;border:1px solid var(--brass);color:var(--brass);
-  font-family:'JetBrains Mono',monospace;font-size:11px;
-}
-.bk-card .bk-grade.not-pub{border-color:var(--ink-rule);color:var(--ink-mute);}
-.bk-card .bk-conflict{
-  position:absolute;top:6px;right:8px;color:var(--sig-warn);font-family:'JetBrains Mono',monospace;font-size:14px;
-  cursor:help;
-}
-.bk-card .bk-fam{display:flex;gap:3px;margin-top:2px;}
-.bk-card .bk-fam-dot{
-  width:8px;height:8px;border-radius:50%;background:var(--ink-rule);
-  border:1px solid var(--ink-rule-soft);
-}
-.bk-card .bk-fam-dot.on{background:var(--brass);border-color:var(--brass-dim);}
-.bk-card .bk-fam-lbl{
-  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;
-  color:var(--ink-mute);margin-left:auto;
-}
-
-@media (max-width: 780px){
-  .metro-line{grid-template-columns:1fr;gap:6px;}
-  .metro-line .line-lbl{text-align:left;border-right:none;border-bottom:2px solid var(--brass-dim);padding:0 0 6px;}
-  .metro-track{flex-wrap:wrap;gap:10px;padding:14px 4px;}
-  .metro-track::before{display:none;}
-  .metro-station{min-width:70px;flex:0 0 auto;}
-  .mode-toggle{top:6px;right:8px;}
-}
-
-.skel{
-  font-family:'Cormorant Garamond',serif;font-style:italic;
-  color:var(--ink-mute);padding:18px 4px;text-align:center;
-}
-.alert-no-cot{
-  padding:16px 20px;border:1px dashed var(--ink-rule);
-  font-family:'Cormorant Garamond',serif;font-style:italic;
-  color:var(--ink-bone-dim);
-}
-
-/* Mobile */
-@media (max-width:780px){
-  main.deck{padding:16px 14px 40px;}
-  .market-table th, .market-table td{padding:6px 8px;font-size:12px;}
-  .profile-header{padding:12px 14px;}
-  .profile-header .inst-title{font-size:24px;}
-  .profile-header .inst-price{font-size:18px;}
-  .prediction-block{grid-template-columns:1fr 1fr;}
-  .overview-grid{grid-template-columns:1fr;}
-  .conviction-grid{grid-template-columns:1fr;}
-  .smc-block{grid-template-columns:1fr;}
+@media(max-width:900px){
+  .cols,.cols-3,.cols-2{grid-template-columns:1fr}
+  .hero{flex-direction:column;align-items:flex-start}
+  .hero-stats{margin-left:0}
+}
+@media(max-width:780px){
+  .wrap{padding:22px 14px 60px} .topbar-inner{padding:12px 14px;gap:14px}
+  .state{width:100%;margin-left:0;order:3} .nav{order:2}
+  .heat-group{grid-template-columns:1fr;gap:8px}
+  .heat-group .glabel{text-align:left;border-right:0;border-bottom:1px solid var(--line-2);padding:0 0 4px}
+  .cell{width:calc(50% - 4px)}
+  .hero h1{font-size:24px}
 }
 </style>
 </head>
-
 <body>
 
-<div class="mode-toggle" id="modeToggle">
-  <button data-mode="studium" class="on">Studium</button>
-  <button data-mode="visuelt">Visuelt</button>
-</div>
-
-<header class="masthead">
-  <div class="mast-row">
-    <div class="mast-title">COT <span class="et">&amp;</span> Almanakk</div>
-    <div class="mast-sub">Observatorium for spekulativ posisjonering · Etablert 2026</div>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="b1">COT · Konsensus</span>
+      <span class="b2">to motorer · ett verdikt</span>
+    </div>
+    <nav class="nav" id="nav">
+      <a href="#/konsensus" data-tab="konsensus">Konsensus</a>
+      <a href="#/matrise" data-tab="matrise">Matrise</a>
+      <a href="#/data" data-tab="data">Datakvalitet</a>
+    </nav>
+    <div class="state" id="state"></div>
   </div>
-  <div class="mast-rules"><hr class="rule-double"></div>
 </header>
 
-<div class="tabs-wrap" id="tabsWrap">
-<nav class="tabs">
-  <button class="tab active" data-tab="markets"><span class="tab-lbl">Markeder</span><span class="num">I</span></button>
-  <button class="tab" data-tab="bedrock"><span class="tab-lbl">Bedrock</span><span class="num">II</span></button>
-  <button class="tab" data-tab="pipeline"><span class="tab-lbl">Datakvalitet</span><span class="num">III</span></button>
-</nav>
-</div>
-
-<div class="state-strip" id="stateStrip">
-  <div class="state-cell"><span class="lbl">COT-dato</span><span class="val" id="ssCotDate">—</span></div>
-  <div class="state-cell"><span class="lbl">USD-bias</span><span class="val" id="ssUsd">—</span></div>
-  <div class="state-cell"><span class="lbl">VIX-regime</span><span class="val" id="ssVix">—</span></div>
-  <div class="state-cell"><span class="lbl">Geopolitisk</span><span class="val" id="ssGeo">—</span></div>
-  <div class="state-cell"><span class="lbl">Olje-varsel</span><span class="val" id="ssOil">—</span></div>
-  <div class="state-cell"><span class="lbl">ENSO</span><span class="val" id="ssEnso">—</span></div>
-  <div class="state-cell"><span class="lbl">BDI-signal</span><span class="val" id="ssBdi">—</span></div>
-  <div class="state-cell"><span class="lbl">Sist oppdatert</span><span class="val" id="ssRefresh">—</span></div>
-</div>
-
-<main class="deck">
-
-  <!-- ═══════ I · MARKEDER ═══════ -->
-  <section class="panel active" id="panel-markets">
-    <div id="marketsRoot"><div class="skel">Henter markedsdata…</div></div>
-  </section>
-
-  <!-- ═══════ II · BEDROCK ═══════ -->
-  <section class="panel" id="panel-bedrock">
-    <div class="plate">
-      <div class="plate-hd">
-        <span class="num">II</span>
-        <span class="ttl">Bedrock · driver-matrise</span>
-        <span class="sub">Hele scoringsmotoren — finansielt og landbruk, asymmetrisk per retning × horisont</span>
-      </div>
-      <div class="plate-body">
-        <div class="bedrock-controls">
-          <div class="cat-toggles" id="bedrockClassTabs">
-            <button class="cat-btn on" data-c="all">Alle</button>
-            <button class="cat-btn" data-c="financial">Finansielle</button>
-            <button class="cat-btn" data-c="agri">Landbruk</button>
-          </div>
-          <div class="cat-toggles" id="bedrockHorizonTabs">
-            <button class="cat-btn on" data-h="all">Alle horisonter</button>
-            <button class="cat-btn" data-h="makro">Makro</button>
-            <button class="cat-btn" data-h="swing">Sving</button>
-            <button class="cat-btn" data-h="scalp">Skalp</button>
-          </div>
-          <div class="cat-toggles" id="bedrockStatusTabs">
-            <button class="cat-btn" data-st="all">Alle</button>
-            <button class="cat-btn on" data-st="published">Publisert</button>
-            <button class="cat-btn" data-st="near">Nær publisering</button>
-          </div>
-          <span class="mast-sub" id="bedrockCount" style="margin-left:auto;"></span>
-        </div>
-        <div id="bedrockList"><div class="skel">Henter driver-score…</div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ III · DATAKVALITET ═══════ -->
-  <section class="panel" id="panel-pipeline">
-    <div class="plate">
-      <div class="plate-hd">
-        <span class="num">III</span>
-        <span class="ttl">Datakvalitet</span>
-        <span class="sub">Friskhetsstatus per kildesystem</span>
-      </div>
-      <div class="plate-body">
-        <div id="pipeContainer"><div class="skel">Henter kildefriskhet…</div></div>
-      </div>
-    </div>
-  </section>
-
+<main class="wrap">
+  <section class="panel on" id="panel-konsensus"></section>
+  <section class="panel" id="panel-instrument"></section>
+  <section class="panel" id="panel-matrise"></section>
+  <section class="panel" id="panel-data"></section>
 </main>
 
-<footer class="colophon">
-  <div>En almanakk over spekulativ posisjonering, satt sammen fra de offentlige rapportene fra CFTC, ICE og Euronext.</div>
-  <div class="stamp" id="colophonStamp">— · —</div>
+<footer>
+  <span id="colophon">COT-observatorium · bedrock × cot-explorer</span>
+  <span class="mono" id="colostamp">— · —</span>
 </footer>
 
 <script>
-/* ════════════════════════════════════════════════════════════════
-   COT ALMANAKK — Per-instrument observatorium
-   ════════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════
+   COT · KONSENSUS — "Nordlys"
+   To signalmotorer (bedrock + cot-explorer) forsonet per instrument.
+   ════════════════════════════════════════════════════════════ */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 
-const $ = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-
-/* ════════ ASSET-KLASSE GRUPPERING ════════ */
+/* ──── KONSTANTER ──── */
 const ASSET_GROUPS = [
   { key:'valuta', label:'Valuta',     items:['EURUSD','GBPUSD','USDJPY','AUDUSD'] },
   { key:'metaller', label:'Metaller', items:['Gold','Silver','Platinum','Copper'] },
@@ -1263,79 +297,28 @@ const ASSET_GROUPS = [
   { key:'softs', label:'Softs',       items:['Cotton','Sugar','Coffee','Cocoa'] },
   { key:'krypto', label:'Krypto',     items:['BTC','ETH'] },
 ];
-
 const INSTRUMENT_NAVN_NO = {
-  'EURUSD':'Euro/Dollar', 'GBPUSD':'Pund/Dollar', 'USDJPY':'Dollar/Yen', 'AUDUSD':'Aussie/Dollar',
-  'Gold':'Gull', 'Silver':'Sølv', 'Platinum':'Platina', 'Copper':'Kobber',
-  'WTI':'WTI råolje', 'Brent':'Brent råolje', 'NatGas':'Naturgass',
-  'SPX':'S&P 500', 'NAS100':'Nasdaq 100',
-  'Corn':'Mais', 'Wheat':'Hvete', 'Soybean':'Soyabønner',
-  'Cotton':'Bomull', 'Sugar':'Sukker', 'Coffee':'Kaffe', 'Cocoa':'Kakao',
-  'BTC':'Bitcoin', 'ETH':'Ether',
+  'EURUSD':'Euro/Dollar','GBPUSD':'Pund/Dollar','USDJPY':'Dollar/Yen','AUDUSD':'Aussie/Dollar',
+  'Gold':'Gull','Silver':'Sølv','Platinum':'Platina','Copper':'Kobber',
+  'WTI':'WTI råolje','Brent':'Brent råolje','NatGas':'Naturgass',
+  'SPX':'S&P 500','NAS100':'Nasdaq 100',
+  'Corn':'Mais','Wheat':'Hvete','Soybean':'Soyabønner',
+  'Cotton':'Bomull','Sugar':'Sukker','Coffee':'Kaffe','Cocoa':'Kakao',
+  'BTC':'Bitcoin','ETH':'Ether',
 };
-
-// Norsk gloss for de 12 USD-fundamentale indikatorene i data/fundamentals/latest.json → indicators.*
-const FUND_INDIKATOR_NO = {
-  GDP:    { navn:'BNP-vekst',                  forklaring:'kvartalsvis endring',            enhet:'%' },
-  Retail: { navn:'Detaljhandel',               forklaring:'mnd/mnd endring',                enhet:'%' },
-  ConConf:{ navn:'Forbrukertillit',            forklaring:'UoM-indeks',                     enhet:''  },
-  mPMI:   { navn:'PMI tilvirkning',            forklaring:'over 50 = vekst',                enhet:''  },
-  sPMI:   { navn:'PMI tjenester',              forklaring:'over 50 = vekst',                enhet:''  },
-  CPI:    { navn:'Konsumprisindeks',           forklaring:'år/år, total',                   enhet:'%' },
-  PPI:    { navn:'Produsentpriser',            forklaring:'år/år',                          enhet:'%' },
-  PCE:    { navn:'PCE-inflasjon',              forklaring:'Feds favorittmål, år/år',        enhet:'%' },
-  IntRate:{ navn:'Styringsrente',              forklaring:'Fed funds-mål',                  enhet:'%' },
-  NFP:    { navn:'Nye jobber utenom landbruk', forklaring:'månedlig endring',               enhet:'k' },
-  Unemp:  { navn:'Arbeidsledighet',            forklaring:'andel av arbeidsstyrken',        enhet:'%' },
-  Claims: { navn:'Nye trygdkrav',              forklaring:'ukentlig, lavere = sterkere',    enhet:'k' },
-  ADP:    { navn:'ADP privat sysselsetting',   forklaring:'månedlig endring',               enhet:'k' },
-  JOLTS:  { navn:'Ledige stillinger (JOLTS)',  forklaring:'mill stillinger',                enhet:'mill' },
-};
-
-// Bias-etiketter på norsk for fundamentals
-const FUND_BIAS_NO = {
-  'strong_bullish':{ tekst:'klart positiv', klasse:'pos' },
-  'bullish':       { tekst:'positiv',       klasse:'pos' },
-  'neutral':       { tekst:'nøytral',       klasse:'neu' },
-  'bearish':       { tekst:'negativ',       klasse:'neg' },
-  'strong_bearish':{ tekst:'klart negativ', klasse:'neg' },
-};
-
-const FUND_KATEGORI_NO = {
-  econ_growth: { navn:'Økonomisk vekst', forklaring:'BNP · detaljhandel · PMI · tillit' },
-  inflation:   { navn:'Inflasjon',       forklaring:'KPI · PPI · PCE · styringsrente' },
-  jobs:        { navn:'Arbeidsmarked',   forklaring:'NFP · ledighet · ADP · JOLTS · krav' },
-};
-
-const FUND_MAKRO_PROXY_NO = {
-  TNX:   { navn:'10-års statsrente',         forklaring:'proksjer DGS10×10' },
-  IRX:   { navn:'13-uker T-bill rente',      forklaring:'kortenden av kurven' },
-  HYG:   { navn:'Høyrisiko-obligasjoner',    forklaring:'kredittstemning' },
-  TIP:   { navn:'Inflasjonsindekserte obl.', forklaring:'real-renteproxy' },
-  Copper:{ navn:'Kobberpris',                forklaring:'industriaktivitet' },
-  EEM:   { navn:'Vekstmarkeder',             forklaring:'risikoappetitt' },
-};
-
-// Pris-fil-navn (lowercase stem) for assets med data/prices/<stem>.json
 const PRICE_FILE = {
-  'EURUSD':'eurusd', 'GBPUSD':'gbpusd', 'USDJPY':'usdjpy', 'AUDUSD':'audusd',
-  'Gold':'gold', 'Silver':'silver',
-  'WTI':'wti', 'Brent':'brent',
-  'SPX':'spx', 'NAS100':'nas100',
-  'Corn':'corn', 'Wheat':'wheat', 'Soybean':'soybean',
-  'Cotton':'cotton', 'Sugar':'sugar', 'Coffee':'coffee', 'Cocoa':'cocoa',
+  'EURUSD':'eurusd','GBPUSD':'gbpusd','USDJPY':'usdjpy','AUDUSD':'audusd',
+  'Gold':'gold','Silver':'silver','WTI':'wti','Brent':'brent',
+  'SPX':'spx','NAS100':'nas100','Corn':'corn','Wheat':'wheat','Soybean':'soybean',
+  'Cotton':'cotton','Sugar':'sugar','Coffee':'coffee','Cocoa':'cocoa',
 };
 
-/* ════════ DATA LOADER ════════ */
+/* ──── DATA LOADER (gjenbrukt) ──── */
 const D = {};
 async function loadJSON(path){
-  try{
-    const r = await fetch(path, {cache:'no-store'});
-    if(!r.ok) return null;
-    return await r.json();
-  }catch(e){ return null; }
+  try{ const r = await fetch(path,{cache:'no-store'}); if(!r.ok) return null; return await r.json(); }
+  catch(e){ return null; }
 }
-
 async function loadAll(){
   const [interpretation, prices, signals, agri_signals, latest, macro, fundamentals,
          bedrockIndex, fundamentalsB, comex, eiaStorage, cropProgress, iriEnso,
@@ -1374,1964 +357,534 @@ async function loadAll(){
   D.prices = prices?.data || {};
   D.signals = signals || {};
   D.agri_signals = agri_signals || {};
-  D.latest = latest || {};
   D.macro = macro || {};
   D.fundamentals = fundamentals || {};
   D.bedrockIndex = bedrockIndex;
-  D.bedrockFund = fundamentalsB?.data || [];
-  D.comex = comex?.data || [];
-  D.eiaStorage = eiaStorage?.data || [];
-  D.cropProgress = cropProgress?.data || [];
-  D.iriEnso = iriEnso?.data || [];
-  D.cryptoSentiment = cryptoSentiment?.data || [];
-  D.newsIntel = newsIntel?.data || [];
-  D.diseaseAlerts = diseaseAlerts?.data || [];
-  D.exportEvents = exportEvents?.data || [];
+  D.comex = comex?.data || []; D.eiaStorage = eiaStorage?.data || [];
+  D.cropProgress = cropProgress?.data || []; D.iriEnso = iriEnso?.data || [];
+  D.cryptoSentiment = cryptoSentiment?.data || []; D.newsIntel = newsIntel?.data || [];
+  D.diseaseAlerts = diseaseAlerts?.data || []; D.exportEvents = exportEvents?.data || [];
   D.bdi = bdi?.data || [];
-  // TFF (Traders in Financial Futures) — gir COT-lignende posisjonering for indekser og krypto
-  // som faller utenfor den vanlige legacy/disaggregated COT-rapporten.
-  D.tff = Array.isArray(tff) ? tff : (tff?.data || []);
-  D.tffBySymbol = {};
-  const TFF_MARKED_MAP = {
-    'S&P 500 Consolidated': 'SPX',
-    'Nasdaq': 'NAS100',
-    'Bitcoin': 'BTC',
-    'Ether Cash Settled': 'ETH',
-  };
-  for(const r of D.tff){
-    const sym = TFF_MARKED_MAP[r.market];
-    if(sym && !D.tffBySymbol[sym]) D.tffBySymbol[sym] = r;
-  }
-  // Last 52u-historikk per indeks/krypto fra data/timeseries/*_tff.json
-  // og beregn percentil for spec_net (spekulant-netto), tilsvarende mm_pctile_52w
-  // som legacy-COT-tolkningen lager for andre instrumenter.
-  const TFF_TS_MAP = {
-    SPX:    '13874+_tff.json',
-    NAS100: '20974+_tff.json',
-    BTC:    '133741_tff.json',
-    ETH:    '146021_tff.json',
-  };
-  const tsResults = await Promise.all(Object.entries(TFF_TS_MAP).map(async ([sym, fn]) => {
-    const ts = await loadJSON('data/timeseries/' + fn);
-    return [sym, ts];
-  }));
-  for(const [sym, ts] of tsResults){
-    const rows = ts?.data;
-    if(!Array.isArray(rows) || rows.length < 2) continue;
-    const last52 = rows.slice(-52).map(r => r.spec_net).filter(v => v != null && Number.isFinite(v));
-    if(last52.length < 4) continue;
-    const current = last52[last52.length - 1];
-    const below = last52.filter(v => v < current).length;
-    const pctile = (below / (last52.length - 1)) * 100;
-    if(D.tffBySymbol[sym]){
-      D.tffBySymbol[sym].spec_net_pctile_52w = Math.max(0, Math.min(100, pctile));
-    }
-  }
-  D.oilgas = oilgas || {};
-  D.shipping = shipping || {};
-  D.geointel = geointel || {};
-  D.calendar = calendar?.events || [];
 }
 
-/* ════════ UTILITIES ════════ */
-function fmtPrice(v, decimals){
-  if(v == null) return '—';
-  if(decimals == null){
-    if(Math.abs(v) >= 1000) decimals = 1;
-    else if(Math.abs(v) >= 10) decimals = 2;
-    else decimals = 4;
-  }
-  return Number(v).toFixed(decimals);
+/* ──── FORMAT ──── */
+function fmtPrice(v,d){
+  if(v==null||!Number.isFinite(v)) return '—';
+  if(d==null){ const a=Math.abs(v); d = a>=1000?1 : a>=10?2 : 4; }
+  return Number(v).toFixed(d);
 }
-function fmtPct(v){
-  if(v == null) return '—';
-  const sign = v > 0 ? '+' : '';
-  return sign + Number(v).toFixed(2) + '%';
-}
-function fmtK(n){
-  if(n == null) return '—';
-  if(Math.abs(n) >= 1000) return (n/1000).toFixed(1) + 'k';
-  return Math.round(n).toString();
-}
-function pctClass(v){
-  if(v == null || v === 0) return '';
-  return v > 0 ? 'chg-pos' : 'chg-neg';
-}
-function chgPrefix(v){ return v != null && v > 0 ? '+' : ''; }
+function fmtPct(v){ if(v==null) return '—'; return (v>0?'+':'')+Number(v).toFixed(1)+'%'; }
+function dirNo(dir){ return dir==='LONG'?'LONG':dir==='SHORT'?'SHORT':'—'; }
+function dirClass(dir){ return dir==='LONG'?'long':dir==='SHORT'?'short':'neutral'; }
+function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
 
-/* Finn signal for instrument (signals.json primær, agri_signals.json fallback) */
+/* ──── JOIN-HJELPERE (gjenbrukt) ──── */
 function signalFor(symbol){
-  const primary = (D.signals?.signals || []).find(s => s.key === symbol);
-  if(primary) return primary;
-  return (D.agri_signals?.signals || []).find(s => s.key === symbol) || null;
+  const p = (D.signals?.signals||[]).find(s=>s.key===symbol);
+  if(p) return p;
+  return (D.agri_signals?.signals||[]).find(s=>s.key===symbol) || null;
 }
-
-/* Mapping mellom våre symboler og bedrock signals.json-navn */
-const BEDROCK_SYMBOL_MAP = {
-  'WTI':'CrudeOil', 'NAS100':'Nasdaq', 'SPX':'SP500', 'NatGas':'NaturalGas',
-};
-function bedrockSymbol(sym){ return BEDROCK_SYMBOL_MAP[sym] || sym; }
-function ourSymbol(bedrockSym){
-  for(const [k,v] of Object.entries(BEDROCK_SYMBOL_MAP)){ if(v === bedrockSym) return k; }
-  return bedrockSym;
-}
-
-/* Hent bedrock-entries for et instrument (alle horisonter × retninger).
-   Velger published først, så beste score. */
+const BEDROCK_SYMBOL_MAP = { 'WTI':'CrudeOil','NAS100':'Nasdaq','SPX':'SP500','NatGas':'NaturalGas' };
+function bedrockSymbol(sym){ return BEDROCK_SYMBOL_MAP[sym]||sym; }
 function bedrockEntriesFor(symbol){
-  const bedrockSym = bedrockSymbol(symbol);
-  const all = (D.bedrockSignals || []).concat(D.bedrockAgriSignals || []);
-  return all.filter(e => e.instrument === bedrockSym);
+  const bs = bedrockSymbol(symbol);
+  const all = (D.bedrockSignals||[]).concat(D.bedrockAgriSignals||[]);
+  return all.filter(e=>e.instrument===bs);
 }
-
-/* Beste bedrock-entry for instrument — publisert først, så høyest score/publish-ratio.
-   Bruker score/min_score_publish-forholdet for å finne det mest "klare" oppsettet,
-   ikke bare høyest absolutte score (som favoriserer instrumenter med høye terskler). */
+const bedRatio = e => e.min_score_publish>0 ? (e.score/e.min_score_publish) : 0;
 function bestBedrockEntry(symbol){
-  const entries = bedrockEntriesFor(symbol);
-  if(!entries.length) return null;
-  const ratio = e => e.min_score_publish > 0 ? (e.score / e.min_score_publish) : 0;
-  const pub = entries.filter(e => e.published);
-  if(pub.length) return pub.sort((a,b) => ratio(b) - ratio(a))[0];
-  return entries.sort((a,b) => ratio(b) - ratio(a))[0];
+  const e = bedrockEntriesFor(symbol);
+  if(!e.length) return null;
+  const pub = e.filter(x=>x.published);
+  if(pub.length) return pub.sort((a,b)=>bedRatio(b)-bedRatio(a))[0];
+  return e.sort((a,b)=>bedRatio(b)-bedRatio(a))[0];
 }
 
-/* Kollaps bedrock-matrisen til ett beste setup per instrument */
-function bestEntriesByInstrument(){
-  const all = (D.bedrockSignals || []).concat(D.bedrockAgriSignals || []);
-  const byInst = {};
-  for(const e of all){
-    if(!byInst[e.instrument]) byInst[e.instrument] = [];
-    byInst[e.instrument].push(e);
-  }
-  const ratio = e => e.min_score_publish > 0 ? (e.score / e.min_score_publish) : 0;
-  const out = [];
-  for(const [inst, entries] of Object.entries(byInst)){
-    const pub = entries.filter(e => e.published);
-    const pick = pub.length
-      ? pub.sort((a,b) => ratio(b) - ratio(a))[0]
-      : entries.sort((a,b) => ratio(b) - ratio(a))[0];
-    // Tell antall konkurrerende setup på andre horisonter/retninger
-    const alternatives = entries.length - 1;
-    const conflicts = entries.filter(e => e !== pick && e.horizon === pick.horizon && e.direction !== pick.direction && ratio(e) >= 0.5).length;
-    out.push({ ...pick, _alternatives: alternatives, _conflicts: conflicts, _ratio: ratio(pick) });
-  }
-  return out;
+/* ──── FORENT DATAMODELL — kjernen ──── */
+function normDir(d){
+  if(!d) return null;
+  const s = String(d).toLowerCase();
+  if(s==='buy'||s==='long'||s==='bull') return 'LONG';
+  if(s==='sell'||s==='short'||s==='bear') return 'SHORT';
+  return null;
 }
+function unifyInstrument(symbol){
+  const s = signalFor(symbol);
+  const be = bestBedrockEntry(symbol);
+  const interp = D.interpretation?.assets?.[symbol] || null;
 
-/* Konverter bedrock families-format til driver_groups-format (samme struktur som signals.json) */
-function familiesToDriverGroups(families){
-  if(!families) return null;
-  const out = {};
-  for(const [k, f] of Object.entries(families)){
-    out[k] = {
-      score: f.score || 0,
-      weight: 1.0,
-      drivers: (f.drivers || []).map(d => `${d.name} (${(d.value || 0).toFixed(2)})`),
-    };
+  let cot=null;
+  if(s){
+    const pct = s.score_pct!=null ? s.score_pct
+              : (s.max_score ? Math.round((s.score/s.max_score)*100) : null);
+    cot = { dir:normDir(s.action), scorePct: pct, grade:s.grade||null,
+            setup:{entry:s.entry, sl:s.sl, t1:s.t1, t2:s.t2, current:s.current, rr:s.rr_t1},
+            drivers:s.driver_groups||null, raw:s };
   }
-  return out;
+  let bed=null;
+  if(be){
+    const ratio = bedRatio(be);
+    const su = be.setup?.setup || {};
+    bed = { dir:normDir(be.direction), ratio, pct:clamp(Math.round(ratio*70),0,100),
+            grade:be.grade||null, published:!!be.published, horizon:be.horizon,
+            setup:{entry:su.entry, sl:su.sl, tp:su.tp}, families:be.families||null,
+            analog:be.analog||null, raw:be };
+  }
+
+  let status, verdict=null, conviction=0;
+  if(cot && bed){
+    if(cot.dir && bed.dir && cot.dir===bed.dir){ status='ENIGHET'; verdict=cot.dir; }
+    else if(cot.dir && bed.dir && cot.dir!==bed.dir){ status='KONFLIKT'; verdict=null; }
+    else { status='ENIGHET'; verdict=cot.dir||bed.dir; }
+    conviction = Math.round(((cot.scorePct??0)+(bed.pct??0))/2);
+  } else if(bed){ status='KUN_BEDROCK'; verdict=bed.dir; conviction=bed.pct??0; }
+  else if(cot){ status='KUN_COT'; verdict=cot.dir; conviction=cot.scorePct??0; }
+  else { status='NØYTRAL'; verdict=null; conviction=0; }
+
+  return { symbol, name:INSTRUMENT_NAVN_NO[symbol]||symbol, cot, bed, interp, status, verdict, conviction };
 }
+const STATUS_LBL = {
+  ENIGHET:'Enighet', KONFLIKT:'Konflikt', KUN_BEDROCK:'Kun bedrock',
+  KUN_COT:'Kun cot-explorer', 'NØYTRAL':'Nøytral'
+};
 
-/* Hent setup-bias fra macro/latest.json */
-function macroSetupFor(symbol){
-  const tl = D.macro?.trading_levels?.[symbol];
-  if(!tl) return null;
-  return { long: tl.setup_long, short: tl.setup_short };
+/* ──── VIZ-HJELPERE ──── */
+function color(dir){ return dir==='LONG'?'var(--up)':dir==='SHORT'?'var(--down)':'var(--neu)'; }
+function arc(pct,r,cx,cy){
+  // semisirkel 180°(venstre)→0°(høyre), fyll proporsjonalt
+  const a0=180, a1=180-(clamp(pct,0,100)/100)*180;
+  const rad=d=>d*Math.PI/180;
+  const p=(deg)=>[cx+r*Math.cos(rad(deg)), cy-r*Math.sin(rad(deg))];
+  const [x0,y0]=p(a0), [x1,y1]=p(a1);
+  return `M ${x0.toFixed(1)} ${y0.toFixed(1)} A ${r} ${r} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;
 }
-
-function freshClass(fresh){
-  if(fresh === 'fresh' || fresh === 'fersk') return 'fresh-fersk';
-  if(fresh === 'stale' || fresh === 'foreldet') return 'fresh-foreldet';
-  return 'fresh-missing';
+function gauge(pct, dir, size){
+  size = size||132; const h=Math.round(size*0.62);
+  const cx=size/2, cy=h-8, r=size/2-12;
+  const col = color(dir);
+  return `<svg class="gauge" width="${size}" height="${h}" viewBox="0 0 ${size} ${h}">
+    <path d="${arc(100,r,cx,cy)}" fill="none" stroke="var(--surface-3)" stroke-width="9" stroke-linecap="round"/>
+    <path d="${arc(pct,r,cx,cy)}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"/>
+    <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="22" font-weight="600" fill="${col}">${Math.round(pct)}</text>
+    <text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="9" fill="var(--fg-mute)">KONVIKSJON</text>
+  </svg>`;
 }
-function freshLabel(fresh){
-  if(fresh === 'fresh' || fresh === 'fersk') return 'fersk';
-  if(fresh === 'stale' || fresh === 'foreldet') return 'foreldet';
-  return '—';
+function adots(u){
+  // bedrock ●—● cot
+  const cls = u.status==='ENIGHET'?'agree' : u.status==='KONFLIKT'?'conflict' : '';
+  const fill = d => d==='LONG'?'fill-up' : d==='SHORT'?'fill-down' : 'hollow';
+  const bd = u.bed ? fill(u.bed.dir) : 'hollow';
+  const cd = u.cot ? fill(u.cot.dir) : 'hollow';
+  return `<span class="adots ${cls}" title="bedrock · cot-explorer">
+    <span class="d ${bd}"></span><span class="ln"></span><span class="d ${cd}"></span></span>`;
 }
+function gradeBadge(g){ return g?`<span class="badge ghost">${g}</span>`:''; }
 
-/* ════════ TAB SWITCHER ════════ */
-$$('.tab').forEach(t => t.addEventListener('click', () => {
-  $$('.tab').forEach(x => x.classList.remove('active'));
-  $$('.panel').forEach(x => x.classList.remove('active'));
-  t.classList.add('active');
-  $('#panel-'+t.dataset.tab).classList.add('active');
-  // Update hash if going to markets/bedrock/pipeline directly
-  if(t.dataset.tab === 'markets'){ if(!location.hash.startsWith('#/markets')) location.hash = '#/markets'; }
-  else if(t.dataset.tab === 'bedrock'){ location.hash = '#/bedrock'; }
-  else if(t.dataset.tab === 'pipeline'){ location.hash = '#/datakvalitet'; }
-  window.scrollTo({top:0,behavior:'smooth'});
-}));
+/* ════════ KONSENSUS-LANDING ════════ */
+function renderKonsensus(){
+  const all = ASSET_GROUPS.flatMap(g=>g.items).map(unifyInstrument);
+  const nAgree = all.filter(u=>u.status==='ENIGHET').length;
+  const nConf  = all.filter(u=>u.status==='KONFLIKT').length;
+  const nSingle= all.filter(u=>u.status==='KUN_BEDROCK'||u.status==='KUN_COT').length;
 
-/* ════════ HASH ROUTER ════════ */
-function parseHash(){
-  const h = location.hash || '#/markets';
-  const parts = h.replace(/^#\/?/, '').split('/').filter(Boolean);
-  // parts: ['markets'] | ['markets', 'Gold'] | ['markets', 'Gold', 'posisjonering'] | ['bedrock'] | ['datakvalitet']
-  if(parts.length === 0) return { route:'markets-landing' };
-  if(parts[0] === 'markets'){
-    if(parts.length === 1) return { route:'markets-landing' };
-    return { route:'markets-profile', symbol:parts[1], subtab:parts[2] || 'oversikt' };
-  }
-  if(parts[0] === 'bedrock') return { route:'bedrock' };
-  if(parts[0] === 'datakvalitet' || parts[0] === 'pipeline') return { route:'pipeline' };
-  return { route:'markets-landing' };
-}
-function navigate(){
-  const r = parseHash();
-  if(r.route === 'markets-landing'){
-    $$('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === 'markets'));
-    $$('.panel').forEach(x => x.classList.toggle('active', x.id === 'panel-markets'));
-    renderMarkederLanding();
-  } else if(r.route === 'markets-profile'){
-    $$('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === 'markets'));
-    $$('.panel').forEach(x => x.classList.toggle('active', x.id === 'panel-markets'));
-    renderInstrumentProfile(r.symbol, r.subtab);
-  } else if(r.route === 'bedrock'){
-    $$('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === 'bedrock'));
-    $$('.panel').forEach(x => x.classList.toggle('active', x.id === 'panel-bedrock'));
-    renderBedrock();
-  } else if(r.route === 'pipeline'){
-    $$('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === 'pipeline'));
-    $$('.panel').forEach(x => x.classList.toggle('active', x.id === 'panel-pipeline'));
-    renderDatakvalitet();
-  }
-}
-window.addEventListener('hashchange', navigate);
-
-/* ════════ STATUS-STRIPE ════════ */
-function renderStateStrip(){
-  const cot = D.interpretation?.cot_date || '—';
-  $('#ssCotDate').textContent = cot;
-
-  // USD-bias fra dollar_smile.usd_bias ("UKLAR", "STERK USD", "SVAK USD")
-  const usdBias = D.macro?.dollar_smile?.usd_bias || D.macro?.dollar_smile?.position || '—';
-  $('#ssUsd').textContent = usdBias;
-
-  // VIX
-  $('#ssVix').textContent = D.macro?.vix_regime?.label || D.macro?.vix_regime?.regime || '—';
-
-  // Geopolitisk fra sentiment.news.label + headlines, eller geointel summary
-  const news = D.macro?.sentiment?.news;
-  let geoLabel = '—';
-  if(news?.label){
-    geoLabel = news.label === 'risk_off' ? 'Risk-off' : news.label === 'risk_on' ? 'Risk-on' : news.label;
-  } else if(D.geointel?.overall_risk){
-    geoLabel = D.geointel.overall_risk;
-  }
-  $('#ssGeo').textContent = geoLabel;
-
-  // Olje-varsel fra oilgas overall_signal/risk
-  let oilLabel = '—';
-  if(D.oilgas?.overall_signal && D.oilgas?.overall_risk){
-    const sig = D.oilgas.overall_signal;
-    const risk = D.oilgas.overall_risk;
-    const sigNo = sig === 'BULLISH' ? 'Bullish' : sig === 'BEARISH' ? 'Bearish' : sig === 'NEUTRAL' ? 'Nøytral' : sig;
-    const riskNo = risk === 'HIGH' ? 'høy' : risk === 'MEDIUM' ? 'middels' : risk === 'LOW' ? 'lav' : risk.toLowerCase();
-    oilLabel = `${sigNo} · ${riskNo} risiko`;
-  } else if(D.oilgas?.overall_signal){
-    oilLabel = D.oilgas.overall_signal;
-  }
-  $('#ssOil').textContent = oilLabel;
-
-  // ENSO fra iri_enso (nino34_mean_c)
-  let ensoLabel = '—';
-  const ensoRow = D.iriEnso?.[0];
-  if(ensoRow){
-    const n34 = parseFloat(ensoRow.nino34_mean_c);
-    if(!isNaN(n34)){
-      let phase;
-      if(n34 > 0.5) phase = 'El Niño';
-      else if(n34 < -0.5) phase = 'La Niña';
-      else phase = 'Nøytral';
-      ensoLabel = `${phase} (${n34.toFixed(2)})`;
-    } else {
-      ensoLabel = ensoRow.phase || ensoRow.state || '—';
-    }
-  }
-  $('#ssEnso').textContent = ensoLabel;
-
-  // BDI fra shipping.bdi_signal / overall_risk
-  let bdiLabel = '—';
-  if(D.shipping?.bdi_signal){
-    const sig = D.shipping.bdi_signal;
-    const sigNo = sig === 'bullish' ? 'Bullish' : sig === 'bearish' ? 'Bearish' : sig === 'neutral' ? 'Nøytral' : sig;
-    const risk = D.shipping.overall_risk;
-    const riskNo = risk === 'HIGH' ? 'høy' : risk === 'MEDIUM' ? 'middels' : risk === 'LOW' ? 'lav' : risk ? risk.toLowerCase() : '';
-    bdiLabel = riskNo ? `${sigNo} · ${riskNo} risiko` : sigNo;
-  }
-  $('#ssBdi').textContent = bdiLabel;
-
-  const ts = D.macro?.date || D.interpretation?.generated || '';
-  $('#ssRefresh').textContent = ts.slice(0, 16);
-  $('#colophonStamp').textContent = cot ? ('COT-dato: ' + cot) : '';
-}
-
-/* ════════ MARKEDER LANDING ════════ */
-function renderMarkederLanding(){
-  const root = $('#marketsRoot');
-  const intro = `<div class="markets-intro">Velg en aktivaklasse-gruppe under for å åpne et instrument. Hvert instrument samler sine egne data: COT-tolkning, posisjonering, pris med setup-nivåer, domene-spesifikk informasjon og fundamentaler.</div>`;
-  let html = intro;
-  // Studium-modus: vanlige tabeller
-  for(const grp of ASSET_GROUPS){
-    html += renderGroup(grp);
-  }
-  // Visuell modus: T-bane-kart (vises via CSS når body[data-mode="visuelt"])
-  html += renderMetroMap();
-  root.innerHTML = html;
-  // Bind clicks på begge representasjoner
-  $$('.market-row').forEach(row => {
-    row.addEventListener('click', () => {
-      const sym = row.dataset.symbol;
-      location.hash = '#/markets/' + encodeURIComponent(sym);
-    });
-  });
-  $$('.metro-station').forEach(s => {
-    s.addEventListener('click', () => {
-      const sym = s.dataset.symbol;
-      location.hash = '#/markets/' + encodeURIComponent(sym);
-    });
-  });
-}
-
-/* ════════ T-BANE-KART ════════ */
-function metroStation(sym){
-  const navn = INSTRUMENT_NAVN_NO[sym] || sym;
-  const interp = D.interpretation?.assets?.[sym] || {};
-  const sig = signalFor(sym);
-  const bestBE = bestBedrockEntry(sym);
-  let setupDir = null, grade = null, ratio = null;
-  if(sig){
-    setupDir = sig.action === 'BUY' ? 'buy' : sig.action === 'SELL' ? 'sell' : null;
-    grade = sig.grade || null;
-  } else if(bestBE){
-    setupDir = bestBE.direction === 'buy' ? 'buy' : 'sell';
-    grade = bestBE.grade || null;
-    ratio = bestBE.min_score_publish > 0 ? Math.round(100 * bestBE.score / bestBE.min_score_publish) : null;
-  }
-  const cotDir = interp?.prediksjon?.retning;
-  const dataQ = interp.data_quality;
-  let cls = 'no-data';
-  if(setupDir === 'buy') cls = 'buy';
-  else if(setupDir === 'sell') cls = 'sell';
-  else if(cotDir === 'opp') cls = 'buy';
-  else if(cotDir === 'ned') cls = 'sell';
-  else if(cotDir === 'nøytral' || dataQ === 'fresh') cls = 'neutral';
-  const strong = (grade && /^A/.test(grade)) || (sig && sig.action) ? 'strong' : '';
-  const conflict = setupDir && cotDir && cotDir !== 'nøytral'
-    && ((setupDir === 'buy' && cotDir === 'ned') || (setupDir === 'sell' && cotDir === 'opp'))
-    ? 'has-conflict' : '';
-  const badge = setupDir
-    ? (setupDir === 'buy' ? 'KJØP' : 'SALG') + (grade ? ' ' + grade : '')
-    : (cotDir && cotDir !== 'nøytral' ? cotDir.toUpperCase() : (dataQ === 'fresh' ? 'nøytral' : 'ingen COT'));
-  const pctTxt = ratio != null ? `${ratio}%` : '';
-  return `
-    <a class="metro-station ${cls} ${strong} ${conflict}" data-symbol="${sym}" title="${navn}">
-      <span class="dot"></span>
-      <span class="nm">${navn}</span>
-      <span class="badge">${badge}</span>
-      ${pctTxt ? `<span class="pct">${pctTxt}</span>` : ''}
-    </a>`;
-}
-
-function renderMetroMap(){
-  const legend = `
-    <div class="metro-legend">
-      <span class="lbl">Linjer:</span>
-      <span class="item"><span class="dot buy"></span>KJØP-signal</span>
-      <span class="item"><span class="dot sell"></span>SALG-signal</span>
-      <span class="item"><span class="dot neutral"></span>Nøytral</span>
-      <span class="item"><span class="dot empty"></span>Ingen COT-data</span>
-      <span class="item"><span class="dot ring"></span>Sterkt oppsett (grade A) — større stasjon</span>
-      <span class="item" style="color:var(--sig-warn);">⚠ COT motsier oppsett</span>
-    </div>`;
-  let lines = '';
-  for(const grp of ASSET_GROUPS){
-    const stations = grp.items.map(sym => metroStation(sym)).join('');
-    lines += `
-      <div class="metro-line">
-        <div class="line-lbl">${grp.label}<em>${grp.items.length} stasjoner</em></div>
-        <div class="metro-track">${stations}</div>
-      </div>`;
-  }
-  return `<div class="metro-map">${legend}${lines}</div>`;
-}
-
-function renderGroup(grp){
-  const rows = grp.items.map(sym => renderMarketRow(sym)).join('');
-  return `
-    <div class="market-group">
-      <div class="market-group-hd">
-        <span class="ttl">${grp.label}</span>
-        <span class="ct">${grp.items.length} instrumenter</span>
-        <span class="hint">Klikk en rad for å åpne profilen</span>
-      </div>
-      <table class="market-table">
-        <thead>
-          <tr>
-            <th>Instrument</th>
-            <th title="Sluttkurs nå">Siste</th>
-            <th title="Prosentvis endring siste handelsdag.">Δ 1d</th>
-            <th title="Prosentvis endring siste 5 handelsdager.">Δ 5d</th>
-            <th style="text-align:center;" title="Hvor managed money's netto-posisjon ligger i forhold til siste 52 uker. Rød sone (under 15 / over 85) = ekstrem.">MM 52u</th>
-            <th style="text-align:left;" title="Hva spekulant-aktøren (MM/hedgefond) gjorde denne uken: L▲ = bygger longs, L▼ = reduserer longs, S▲ = bygger shorts, S▼ = dekker shorts. Bakgrunn grønn = netto long, rød = netto short.">Hvem gjør hva</th>
-            <th title="COT-tolkning av flyt og posisjonering: Akkumulasjon, Markup, Distribusjon, Markdown, Squeeze eller Kapitulasjon.">Regime</th>
-            <th style="text-align:left;" title="Bedrock-motorens høyest-rangerte handelsoppsett. ⚠ = retningen motsier COT-tolkningen.">Beste setup</th>
-            <th title="Om COT-rapporten er fersk eller foreldet.">Friskhet</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
-}
-
-function renderMarketRow(sym){
-  const navn = INSTRUMENT_NAVN_NO[sym] || sym;
-  const p = D.prices?.[sym] || {};
-  const interp = D.interpretation?.assets?.[sym] || {};
-  const sig = signalFor(sym);
-  const bestBE = bestBedrockEntry(sym);
-
-  const last = p.value != null ? fmtPrice(p.value) : '—';
-  const c1 = p.chg1d;
-  const c5 = p.chg5d;
-  const hasTFF = !!D.tffBySymbol?.[sym];
-  // For TFF-instrumenter (SPX/NAS100/BTC/ETH) bruker vi spekulant-netto-percentil
-  // beregnet fra data/timeseries/<sym>_tff.json som proxy for MM-percentil.
-  const mmPct = interp.mm_pctile_52w != null ? interp.mm_pctile_52w
-              : (hasTFF ? D.tffBySymbol[sym].spec_net_pctile_52w : null);
-  const regime = interp.regime_label || (interp.data_quality === 'ingen_cot' ? (hasTFF ? 'TFF-posisjonering' : '— ingen COT —') : '—');
-  const farge = interp.regime_farge || 'grå';
-
-  // Beste setup: publisert signal først, så beste bedrock-entry
-  let setupCell = '—';
-  let setupDir = null;  // 'buy' | 'sell' | null
-  if(sig){
-    const dirNo = sig.action === 'BUY' ? 'KJØP' : sig.action === 'SELL' ? 'SALG' : sig.action;
-    const dirCls = sig.action === 'BUY' ? 'chg-pos' : 'chg-neg';
-    setupDir = sig.action === 'BUY' ? 'buy' : sig.action === 'SELL' ? 'sell' : null;
-    setupCell = `<span class="${dirCls}">${dirNo}</span> <span class="regime-pill" style="color:var(--brass);border-color:var(--brass-dim);">${sig.grade || '?'}</span> <span style="color:var(--ink-mute);font-size:11px;font-style:italic;">${sig.timeframe || sig.horizon || ''}</span>`;
-  } else if(bestBE){
-    const dirNo = bestBE.direction === 'buy' ? 'KJØP' : 'SALG';
-    const dirCls = bestBE.direction === 'buy' ? 'chg-pos' : 'chg-neg';
-    setupDir = bestBE.direction;
-    const ratio = bestBE.min_score_publish > 0 ? Math.round(100 * bestBE.score / bestBE.min_score_publish) : null;
-    const ratioTxt = ratio != null ? ` · ${ratio}%` : '';
-    setupCell = `<span class="${dirCls}">${dirNo}</span> <span class="regime-pill" style="color:var(--ink-mute);border-color:var(--ink-rule);">${bestBE.grade || '—'}</span> <span style="color:var(--ink-mute);font-size:11px;font-style:italic;">${bestBE.horizon}${ratioTxt}</span>`;
-  }
-  // Konflikt-flagging: setup-retning vs COT-prediksjon
-  const cotDir = interp?.prediksjon?.retning;  // 'opp' | 'ned' | 'nøytral'
-  if(setupDir && cotDir && cotDir !== 'nøytral'){
-    const conflict = (setupDir === 'buy' && cotDir === 'ned') || (setupDir === 'sell' && cotDir === 'opp');
-    if(conflict){
-      setupCell += `<span class="conflict-mark" title="Bedrock-motoren foreslår ${setupDir === 'buy' ? 'KJØP' : 'SALG'} men COT-tolkningen peker ${cotDir.toUpperCase()}. Vurder hvilken kilde du stoler mest på.">⚠ COT motsier</span>`;
-    }
-  }
-
-  // Fallback til TFF for instrumenter uten legacy/disagg COT (SPX/NAS100/BTC/ETH)
-  const tffRow = hasTFF ? D.tffBySymbol[sym] : null;
-  let fresh;
-  if(interp.data_quality === 'fresh'){
-    fresh = 'fersk';
-  } else if(interp.data_quality === 'ingen_cot' && tffRow?.date){
-    const ageDays = Math.floor((Date.now() - new Date(tffRow.date).getTime()) / 86400000);
-    fresh = ageDays >= 0 && ageDays <= 10 ? 'fersk' : 'foreldet';
-  } else {
-    fresh = interp.data_quality || '—';
-  }
-
-  // "Hvem gjør hva" mini-strip
-  let actorBoardForStrip = interp.actor_board;
-  if((!actorBoardForStrip || !actorBoardForStrip.length) && tffRow){
-    actorBoardForStrip = tffActorBoard(tffRow);
-  }
-  const whoStrip = renderWhoStrip(actorBoardForStrip);
-
-  return `
-    <tr class="market-row" data-symbol="${sym}">
-      <td><span class="inst-name">${navn}</span></td>
-      <td>${last}</td>
-      <td class="${pctClass(c1)}">${c1 != null ? chgPrefix(c1) + Number(c1).toFixed(2) + '%' : '—'}</td>
-      <td class="${pctClass(c5)}">${c5 != null ? chgPrefix(c5) + Number(c5).toFixed(2) + '%' : '—'}</td>
-      <td style="text-align:center;">${renderMMPctileBar(mmPct)}</td>
-      <td style="text-align:left;">${whoStrip}</td>
-      <td><span class="regime-pill farge-${farge}">${regime}</span></td>
-      <td style="text-align:left;">${setupCell}</td>
-      <td><span class="freshness-dot ${freshClass(fresh)}"></span>${freshLabel(fresh)}</td>
-    </tr>`;
-}
-
-/* ════════ INSTRUMENT PROFILE ════════ */
-function renderInstrumentProfile(symbol, subtab){
-  const root = $('#marketsRoot');
-  const navn = INSTRUMENT_NAVN_NO[symbol] || symbol;
-  const p = D.prices?.[symbol] || {};
-  const interp = D.interpretation?.assets?.[symbol] || {};
-
-  let html = '';
-  html += `<button class="profile-back" onclick="location.hash='#/markets'">← Tilbake til markeder</button>`;
-  html += `
-    <div class="profile-header">
-      <div>
-        <div class="inst-title">${navn} <span class="inst-en">${symbol}</span></div>
-      </div>
-      <div class="inst-price">${p.value != null ? fmtPrice(p.value) : '—'}</div>
-      <div class="chg-strip">
-        <span><span class="lbl">1d:</span> <span class="inst-chg ${pctClass(p.chg1d)}">${p.chg1d != null ? chgPrefix(p.chg1d) + Number(p.chg1d).toFixed(2) + '%' : '—'}</span></span>
-        <span><span class="lbl">5d:</span> <span class="inst-chg ${pctClass(p.chg5d)}">${p.chg5d != null ? chgPrefix(p.chg5d) + Number(p.chg5d).toFixed(2) + '%' : '—'}</span></span>
-        <span><span class="lbl">20d:</span> <span class="inst-chg ${pctClass(p.chg20d)}">${p.chg20d != null ? chgPrefix(p.chg20d) + Number(p.chg20d).toFixed(2) + '%' : '—'}</span></span>
-      </div>
-      <div style="margin-left:auto;">
-        ${interp.regime_label ? `<span class="regime-pill farge-${interp.regime_farge || 'grå'}">${interp.regime_label}</span>` : ''}
-      </div>
-    </div>`;
-
-  // Sub-tabs
-  const subtabs = ['oversikt','posisjonering','pris','domene','fundamentaler'];
-  const subtabLabels = {oversikt:'Oversikt', posisjonering:'Posisjonering', pris:'Pris', domene:'Domene', fundamentaler:'Fundamentaler'};
-  html += `<div class="sub-tabs">`;
-  for(const st of subtabs){
-    html += `<button class="sub-tab ${st === subtab ? 'active' : ''}" onclick="location.hash='#/markets/${encodeURIComponent(symbol)}/${st}'">${subtabLabels[st]}</button>`;
-  }
-  html += `</div>`;
-
-  html += `<div id="subPanelRoot"></div>`;
-  root.innerHTML = html;
-
-  // Render active sub-panel
-  const sub = $('#subPanelRoot');
-  if(subtab === 'oversikt')         sub.innerHTML = renderOversikt(symbol, interp, p);
-  else if(subtab === 'posisjonering') sub.innerHTML = renderPosisjonering(symbol, interp);
-  else if(subtab === 'pris')         renderPris(symbol, interp, p, sub);
-  else if(subtab === 'domene')       sub.innerHTML = renderDomene(symbol);
-  else if(subtab === 'fundamentaler') sub.innerHTML = renderFundamentaler(symbol);
-  else                                sub.innerHTML = renderOversikt(symbol, interp, p);
-}
-
-/* ════════ OVERSIKT-FANE ════════ */
-function renderOversikt(symbol, interp, p){
-  const sig = signalFor(symbol);
-  const setup = macroSetupFor(symbol);
-
-  // Headline call
-  let headlineHtml = '';
-  if(sig){
-    const actionNo = sig.action === 'BUY' ? 'KJØP (long)' : sig.action === 'SELL' ? 'SALG (short)' : sig.action;
-    const actionClass = sig.action === 'BUY' ? 'chg-pos' : 'chg-neg';
-    headlineHtml = `
-      <div class="headline-call">
-        <div class="eyebrow">Headline-kall · ${sig.timeframe || sig.horizon || ''}</div>
-        <div class="verdict"><span class="${actionClass}">${actionNo}</span> <span class="grade">${sig.grade || '?'}</span></div>
-        <div class="setup-summary">
-          ${sig.entry != null ? `<div class="setup-line"><span class="k">Inngang</span><span class="v">${fmtPrice(sig.entry)}</span></div>` : ''}
-          ${sig.sl != null ? `<div class="setup-line"><span class="k">Stopptap</span><span class="v">${fmtPrice(sig.sl)}</span></div>` : ''}
-          ${sig.t1 != null ? `<div class="setup-line"><span class="k">Mål 1 (R:R ${sig.rr_t1 != null ? Number(sig.rr_t1).toFixed(2) : '—'})</span><span class="v">${fmtPrice(sig.t1)}</span></div>` : ''}
-          ${sig.t2 != null ? `<div class="setup-line"><span class="k">Mål 2 (R:R ${sig.rr_t2 != null ? Number(sig.rr_t2).toFixed(2) : '—'})</span><span class="v">${fmtPrice(sig.t2)}</span></div>` : ''}
-          ${sig.score != null ? `<div class="setup-line"><span class="k">Skår</span><span class="v">${Number(sig.score).toFixed(2)} / ${sig.max_score != null ? Number(sig.max_score).toFixed(2) : '—'} (${sig.score_pct}%)</span></div>` : ''}
-        </div>
-      </div>`;
-  } else if(setup && (setup.long || setup.short)){
-    const s = setup.long || setup.short;
-    headlineHtml = `
-      <div class="headline-call">
-        <div class="eyebrow">Setup-forslag · overvåkning</div>
-        <div class="verdict">${setup.long ? 'Long-bias' : 'Short-bias'}</div>
-        <div class="setup-summary">
-          ${s?.entry != null ? `<div class="setup-line"><span class="k">Inngang</span><span class="v">${fmtPrice(s.entry)}</span></div>` : ''}
-          ${s?.sl != null ? `<div class="setup-line"><span class="k">Stopptap</span><span class="v">${fmtPrice(s.sl)}</span></div>` : ''}
-          ${s?.t1 != null ? `<div class="setup-line"><span class="k">Mål 1</span><span class="v">${fmtPrice(s.t1)}</span></div>` : ''}
-          ${s?.note ? `<div class="setup-line"><span class="k">Notat</span><span class="v" style="font-family:'Cormorant Garamond',serif;font-style:italic;">${s.note}</span></div>` : ''}
-        </div>
-      </div>`;
-  } else {
-    headlineHtml = `
-      <div class="headline-call">
-        <div class="eyebrow">Headline-kall</div>
-        <div class="verdict" style="color:var(--ink-bone-dim);">Ingen aktivt publisert setup</div>
-        <div class="setup-summary"><em>Posisjoneringen er ikke ekstrem nok eller mangler bekreftelse fra andre drivere.</em></div>
-      </div>`;
-  }
-
-  // Driver scorecard — bruk signals.json driver_groups først, falltilbake til bedrock families
-  let dg = sig?.driver_groups;
-  let driverSource = sig ? 'signal' : null;
-  if(!dg){
-    const be = bestBedrockEntry(symbol);
-    if(be?.families){
-      dg = familiesToDriverGroups(be.families);
-      driverSource = `bedrock (${be.horizon} ${be.direction}, score ${be.score.toFixed(2)}/${be.max_score || '—'})`;
-    }
-  }
-  let driverHtml = '<div class="driver-scorecard"><div class="ttl">Driver-scorecard';
-  if(driverSource && driverSource !== 'signal') driverHtml += ` · <em style="color:var(--ink-mute);font-size:11px;">${driverSource}</em>`;
-  driverHtml += '</div>';
-  if(dg){
-    const labels = { trend:'Trend', positioning:'Posisjon', macro:'Makro', fundamental:'Fundamental', risk:'Risiko', structure:'Struktur' };
-    for(const [k, item] of Object.entries(dg)){
-      const pct = Math.max(0, Math.min(100, (item.score / 1.0) * 100));
-      const drvList = Array.isArray(item.drivers) ? item.drivers.join(' · ') : '';
-      const contrib = item.weight ? (item.score * item.weight) : item.score;
-      driverHtml += `
-        <div class="driver-row">
-          <span class="nm">${labels[k] || k}</span>
-          <div class="meter"><div class="meter-fill" style="width:${pct}%"></div></div>
-          <span class="sc">${contrib.toFixed(2)}</span>
-          <div class="drv-list">${drvList}</div>
-        </div>`;
-    }
-  } else {
-    driverHtml += '<div class="skel" style="padding:8px 0;">Ingen driver-data tilgjengelig</div>';
-  }
-  driverHtml += '</div>';
-
-  // Horisont-stack (hvis interpretation har retning + analoger viser ulike tidsvinduer)
-  let horisontHtml = '<div class="horizon-stack"><div class="driver-scorecard" style="border:0;padding:0;"><div class="ttl">Horisont-stack</div></div>';
-  if(interp.prediksjon){
-    const pred = interp.prediksjon;
-    horisontHtml += `
-      <div class="horizon-row">
-        <span class="hz">${(sig?.timeframe || 'MAKRO').toUpperCase()}</span>
-        <span class="act ${pred.retning}">${pred.retning.toUpperCase()}</span>
-        <span class="sc">${(pred.sannsynlighet * 100).toFixed(0)}%</span>
-        <span class="why">${pred.tidsvindu} · ${pred.forventet_beveg_pct != null ? (pred.forventet_beveg_pct > 0 ? '+' : '') + pred.forventet_beveg_pct + '%' : '—'}</span>
-      </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:12px;color:var(--ink-bone-dim);padding:6px 4px 0;">${pred.begrunnelse || ''}</div>`;
-  } else {
-    horisontHtml += '<div class="skel">Ingen prediksjon — manglende COT-data</div>';
-  }
-  horisontHtml += '</div>';
-
-  return `
-    <div class="overview-grid">
-      ${headlineHtml}
-      ${driverHtml}
+  // hero
+  let h = `<div class="hero">
+    <div>
+      <div class="eyebrow">to motorer forsonet</div>
+      <h1>Konsensus-tavle</h1>
+      <p>Bedrock og cot-explorer scorer hvert instrument uavhengig. Her ser du hvor de er
+         <b style="color:var(--up)">enige</b> (sterkest signal), hvor de er
+         <b style="color:var(--down)">uenige</b> (konflikt), og hvor bare én motor har et syn.</p>
     </div>
-    ${horisontHtml}`;
-}
-
-/* ════════ AKTØR-TAVLE (visuell "hvem gjør hva") ════════ */
-function renderActorBoard(actors){
-  if(!actors?.length) return '';
-  return `<div class="actor-board">${actors.map(renderActorCard).join('')}</div>`;
-}
-
-function renderActorCard(a){
-  const pctRaw = a.net_pctile_52w;
-  const pctValid = pctRaw != null && Number.isFinite(Number(pctRaw));
-  const pct = pctValid ? Math.max(0, Math.min(100, Number(pctRaw))) : null;
-  const pctNum = pct != null ? pct.toFixed(0) : '—';
-  const markerStyle = pct != null ? `left:calc(${pct}% - 1.5px);` : 'display:none;';
-  const verdictCls = 'verdict-' + (a.verdict || 'STABIL').replace(/\s+/g, '-');
-
-  // Net-pos label
-  let posTekst;
-  if(a.posisjon === 'long') posTekst = 'NETTO LONG';
-  else if(a.posisjon === 'short') posTekst = 'NETTO SHORT';
-  else posTekst = 'BALANSERT';
-
-  const longArrow = arrowFor(a.long_delta);
-  const shortArrow = arrowFor(a.short_delta);
-
-  return `
-    <div class="actor-card">
-      <div class="actor-hd">
-        <span class="actor-nm">${a.navn}</span>
-        <span class="actor-role">${a.label}</span>
-      </div>
-      <div class="actor-desc">${a.forklaring}</div>
-
-      <div class="actor-pos">
-        <span class="pos-lbl">${posTekst}</span>
-        <span class="pos-val ${a.posisjon}">${fmtSignedK(a.net)}</span>
-      </div>
-
-      <div>
-        <div class="actor-pctile" title="Hvor netto-posisjonen ligger i forhold til siste 52 uker (0=mest short, 100=mest long)">
-          <div class="zone-low"></div>
-          <div class="zone-high"></div>
-          <div class="marker" style="${markerStyle}"></div>
-          <span class="pct-lbl">${pctNum}%</span>
-        </div>
-        <div class="actor-pctile-row"><span>short-side</span><span>52u percentil</span><span>long-side</span></div>
-      </div>
-
-      <div class="actor-flow">
-        <div class="flow-line">
-          <span class="who">Long-side denne uken</span>
-          <span class="v ${arrowCls(a.long_delta)}">${longArrow} ${fmtSignedK(a.long_delta)}</span>
-        </div>
-        <div class="flow-line">
-          <span class="who">Short-side denne uken</span>
-          <span class="v ${arrowCls(a.short_delta)}">${shortArrow} ${fmtSignedK(a.short_delta)}</span>
-        </div>
-      </div>
-
-      <span class="actor-verdict ${verdictCls}">${a.verdict}</span>
-    </div>`;
-}
-
-function arrowFor(d){
-  if(d == null) return '·';
-  if(d > 0) return '▲';
-  if(d < 0) return '▼';
-  return '·';
-}
-function arrowCls(d){
-  if(d == null) return 'zero';
-  if(d > 0) return 'up';
-  if(d < 0) return 'down';
-  return 'zero';
-}
-function fmtSignedK(n){
-  if(n == null) return '—';
-  const sign = n > 0 ? '+' : '';
-  if(Math.abs(n) >= 1000) return sign + (n/1000).toFixed(1) + 'k';
-  return sign + Math.round(n);
-}
-
-/* Kort visuell "hvem gjør hva" for Markeder-rader (én linje).
-   Viser spekulant-aktøren (alltid #1) + motparten (kommersiell / dealer / pensjonsfond — #2). */
-/* Bygger en aktør-board-strip fra TFF-rapport (én ukes snapshot).
-   Brukes for SPX/NAS100/BTC/ETH som ikke har legacy/disagg COT.
-   Vi har ikke uke-til-uke-deltaer per aktør i TFF-JSONen, så pilene
-   står som '·' (nøytral) — posisjon-fargen kommer fra netto. */
-function tffActorBoard(row){
-  const mk = (key, navn) => {
-    const g = row?.[key];
-    if(!g) return null;
-    const net = g.net || 0;
-    return {
-      navn,
-      posisjon: net > 0 ? 'long' : (net < 0 ? 'short' : 'balansert'),
-      long_delta: null,
-      short_delta: null,
-      verdict: 'TFF',
-    };
-  };
-  return [mk('spekulanter', 'Spekulanter'), mk('institusjoner', 'Institusjoner')].filter(Boolean);
-}
-
-function renderWhoStrip(actors){
-  if(!actors?.length) return '';
-  // Bygg liste: alltid første aktør (spekulant) + andre aktør (motpart).
-  const picks = actors.slice(0, 2);
-  return `<div class="who-strip">${picks.map(a => {
-    const longArrow = arrowFor(a.long_delta);
-    const shortArrow = arrowFor(a.short_delta);
-    const posCls = a.posisjon === 'long' ? 'is-long' : a.posisjon === 'short' ? 'is-short' : '';
-    // Kortform per gruppe — gjenkjennelig for trader
-    const shortNm =
-      /managed money|hedgefond|spekulant/i.test(a.navn) ? 'MM' :
-      /kommersiell/i.test(a.navn) ? 'Komm' :
-      /banker|megler|dealer/i.test(a.navn) ? 'Bank' :
-      /pensjon|asset mgr|institusjon/i.test(a.navn) ? 'Inst' :
-      a.navn.slice(0, 4);
-    return `<span class="who-pill ${posCls}" title="${a.navn} · ${a.verdict}">
-      <span class="nm">${shortNm}</span>
-      <span class="arrow ${arrowCls(a.long_delta)}">L${longArrow}</span>
-      <span class="arrow ${arrowCls(a.short_delta)}">S${shortArrow}</span>
-    </span>`;
-  }).join('')}</div>`;
-}
-
-/* MM-percentil visualisert som bar (for Markeder-tabellen) */
-function renderMMPctileBar(pct){
-  if(pct == null || !Number.isFinite(Number(pct))) return '<span style="color:var(--ink-mute);">—</span>';
-  const p = Math.max(0, Math.min(100, Number(pct)));
-  return `<div class="mm-bar-wrap" title="0=mest short på 52u, 100=mest long. Rød sone (under 15 / over 85) = ekstrem.">
-    <div class="mm-bar">
-      <div class="zone-low"></div>
-      <div class="zone-high"></div>
-      <div class="mm-marker" style="left:calc(${p}% - 1px);"></div>
+    <div class="hero-stats">
+      <div class="hstat agree"><div class="n">${nAgree}</div><div class="l">Enige</div></div>
+      <div class="hstat conflict"><div class="n">${nConf}</div><div class="l">Konflikter</div></div>
+      <div class="hstat single"><div class="n">${nSingle}</div><div class="l">Én kilde</div></div>
     </div>
-    <div class="mm-bar-lbl">${p.toFixed(0)}%</div>
+  </div>`;
+
+  // heatmap
+  h += `<div class="section-hd"><h2>Varmekart</h2><span class="sub">retning · konviksjon · enighet — klikk for dybde</span></div>`;
+  h += `<div>`;
+  for(const g of ASSET_GROUPS){
+    h += `<div class="heat-group"><div class="glabel">${g.label}</div><div class="heat-cells">`;
+    for(const sym of g.items){ h += heatCell(unifyInstrument(sym)); }
+    h += `</div></div>`;
+  }
+  h += `</div>`;
+  h += `<div class="legend">
+    <span><i style="background:var(--up)"></i>Long</span>
+    <span><i style="background:var(--down)"></i>Short</span>
+    <span><i style="background:var(--neu)"></i>Nøytral / kun én kilde</span>
+    <span>${adots({status:'ENIGHET',cot:{dir:'LONG'},bed:{dir:'LONG'}})} enige</span>
+    <span>${adots({status:'KONFLIKT',cot:{dir:'LONG'},bed:{dir:'SHORT'}})} uenige</span>
+  </div>`;
+
+  // konflikter
+  const conflicts = all.filter(u=>u.status==='KONFLIKT');
+  h += `<div class="section-hd"><h2>Konflikter</h2><span class="sub">motorene peker i hver sin retning</span></div>`;
+  if(conflicts.length){
+    h += `<div class="grid cards">` + conflicts.map(conflictCard).join('') + `</div>`;
+  } else {
+    h += `<div class="empty-note">Ingen direkte konflikter akkurat nå — der begge motorer har et syn er de samstemte.</div>`;
+  }
+
+  // sterkeste enighet
+  const agree = all.filter(u=>u.status==='ENIGHET' && u.verdict).sort((a,b)=>b.conviction-a.conviction);
+  h += `<div class="section-hd"><h2>Sterkeste enighet</h2><span class="sub">begge motorer samstemte, rangert etter konviksjon</span></div>`;
+  if(agree.length){
+    h += `<div class="grid cards">` + agree.map(agreeCard).join('') + `</div>`;
+  } else {
+    h += `<div class="empty-note">Ingen instrumenter har samstemt signal fra begge motorer akkurat nå.</div>`;
+  }
+  $('#panel-konsensus').innerHTML = h;
+}
+
+function heatCell(u){
+  const dc = u.status==='KONFLIKT' ? 'conflict'
+           : u.verdict==='LONG' ? 'long' : u.verdict==='SHORT' ? 'short'
+           : u.status==='NØYTRAL' ? 'empty' : 'neutral';
+  const dirTxt = u.status==='KONFLIKT' ? 'KONFLIKT'
+               : u.verdict ? dirNo(u.verdict)
+               : u.status==='NØYTRAL' ? '—' : 'NØYTRAL';
+  const dcol = u.verdict==='LONG'?'var(--up)':u.verdict==='SHORT'?'var(--down)':'var(--neu)';
+  const barW = u.status==='NØYTRAL'?0:clamp(u.conviction,0,100);
+  return `<a class="cell ${dc}" href="#/instrument/${u.symbol}">
+    <div class="csym">${u.symbol}</div>
+    <div class="cnav">${u.name}</div>
+    <div class="crow">
+      <span class="cdir ${dc}">${dirTxt}</span>
+      ${adots(u)}
+    </div>
+    <div class="cbar"><i style="width:${barW}%;background:${dcol}"></i></div>
+  </a>`;
+}
+
+function srcRow(tag, src, kind){
+  if(!src || !src.dir){
+    return `<div class="src-row"><span class="tag">${tag}</span><span class="pill none">ingen</span></div>`;
+  }
+  const meta = kind==='bed'
+    ? `${src.published?'publisert':'under terskel'} · ${src.horizon||''} · ×${src.ratio.toFixed(2)}`
+    : `score ${src.scorePct!=null?src.scorePct+'%':'—'}${src.grade?' · '+src.grade:''}`;
+  return `<div class="src-row"><span class="tag">${tag}</span>
+    <span class="pill ${dirClass(src.dir)}">${dirNo(src.dir)}</span>
+    <span class="meta">${meta}</span></div>`;
+}
+
+function conflictCard(u){
+  return `<a class="card click conflict" href="#/instrument/${u.symbol}">
+    <div class="card-hd">
+      <div><div class="nm">${u.symbol}</div><div class="nv">${u.name}</div></div>
+      <span class="badge conflict">Konflikt</span>
+    </div>
+    <div style="margin-top:10px">
+      ${srcRow('bedrock', u.bed, 'bed')}
+      ${srcRow('cot-expl.', u.cot, 'cot')}
+    </div>
+  </a>`;
+}
+
+function agreeCard(u){
+  const lvls = u.cot?.setup || u.bed?.setup || {};
+  const tp = lvls.t1 ?? lvls.tp;
+  return `<a class="card click ${dirClass(u.verdict)}" href="#/instrument/${u.symbol}">
+    <div class="card-hd">
+      <div><div class="nm">${u.symbol}</div><div class="nv">${u.name}</div></div>
+      ${adots(u)}
+    </div>
+    <div class="card-mid">
+      ${gauge(u.conviction, u.verdict, 120)}
+      <div>
+        <div class="verdict-big ${dirClass(u.verdict)}">${dirNo(u.verdict)}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--fg-mute);margin-top:4px">begge motorer</div>
+      </div>
+    </div>
+    ${lvls.entry!=null?`<div style="margin-top:8px">
+      <div class="kv"><span class="k">Entry</span><span class="v">${fmtPrice(lvls.entry)}</span></div>
+      <div class="kv"><span class="k">Stop</span><span class="v down">${fmtPrice(lvls.sl)}</span></div>
+      <div class="kv"><span class="k">Mål</span><span class="v up">${fmtPrice(tp)}</span></div>
+    </div>`:''}
+  </a>`;
+}
+
+/* ════════ INSTRUMENT DRILL-DOWN ════════ */
+async function renderInstrument(symbol){
+  const u = unifyInstrument(symbol);
+  const p = $('#panel-instrument');
+  let h = `<div class="back" onclick="location.hash='#/konsensus'">← Tilbake til konsensus</div>
+    <div class="dd-hd">
+      <h1>${u.symbol}</h1>
+      <span class="sub">${u.name} · ${STATUS_LBL[u.status]}</span>
+    </div>`;
+
+  // forent verdikt
+  h += `<div class="card ${u.status==='KONFLIKT'?'conflict':dirClass(u.verdict)}" style="margin:14px 0">
+    <div class="card-mid">
+      ${gauge(u.conviction, u.status==='KONFLIKT'?null:u.verdict, 150)}
+      <div>
+        <div class="eyebrow">forent verdikt</div>
+        <div class="verdict-big ${u.status==='KONFLIKT'?'neutral':dirClass(u.verdict)}">
+          ${u.status==='KONFLIKT'?'KONFLIKT':dirNo(u.verdict)}</div>
+        <div style="margin-top:6px">${adots(u)} <span style="font-size:12px;color:var(--fg-dim);margin-left:6px">${STATUS_LBL[u.status]}</span></div>
+      </div>
+    </div>
+  </div>`;
+
+  // to kilder side om side
+  h += `<div class="cols">
+    <div class="card">
+      <div class="eyebrow">bedrock</div>
+      ${u.bed ? srcDetail(u.bed,'bed') : '<div class="empty-note" style="margin-top:10px">Ingen bedrock-dekning.</div>'}
+    </div>
+    <div class="card">
+      <div class="eyebrow">cot-explorer</div>
+      ${u.cot ? srcDetail(u.cot,'cot') : '<div class="empty-note" style="margin-top:10px">Ingen cot-explorer-signal.</div>'}
+    </div>
+  </div>`;
+
+  // speilede driver-barer
+  const fam = famCompare(u);
+  if(fam){
+    h += `<div class="section-hd"><h2>Drivere</h2><span class="sub">cot-explorer ◀ · ▶ bedrock</span></div>
+      <div class="card">${fam}</div>`;
+  }
+
+  // bedrock-analog
+  if(u.bed?.analog){
+    const a=u.bed.analog;
+    h += `<div class="section-hd"><h2>Historiske analoger</h2><span class="sub">bedrock K-NN · ${a.n_neighbors||'—'} naboer</span></div>
+      <div class="cols-3">
+        <div class="card"><div class="eyebrow">treffrate</div><div class="verdict-big" style="color:var(--teal)">${a.hit_rate_pct!=null?a.hit_rate_pct.toFixed(0)+'%':'—'}</div></div>
+        <div class="card"><div class="eyebrow">snitt utfall (${a.horizon_days||'?'}d)</div><div class="verdict-big ${a.avg_return_pct>=0?'long':'short'}">${fmtPct(a.avg_return_pct)}</div></div>
+      </div>`;
+  }
+
+  // posisjonering-narrativ
+  if(u.interp?.narrative){
+    h += `<div class="section-hd"><h2>Posisjonering</h2><span class="sub">COT ${u.interp.cot_date||''}</span></div>
+      <div class="narr">${u.interp.narrative}</div>`;
+  }
+
+  // prischart
+  h += `<div class="section-hd"><h2>Pris</h2><span class="sub">ukentlig · setup-nivåer stiplet</span></div>
+    <div class="chart-box" id="chartBox"><div class="empty-note">laster pris…</div></div>`;
+
+  p.innerHTML = h;
+  drawChart(symbol, u);
+}
+
+function srcDetail(src, kind){
+  const dir = src.dir;
+  let h = `<div style="display:flex;align-items:center;gap:10px;margin:8px 0 12px">
+    <span class="badge ${dirClass(dir)}">${dirNo(dir)}</span>
+    ${gradeBadge(src.grade)}`;
+  if(kind==='bed') h += `<span class="meta" style="font-family:var(--mono);font-size:11px;color:var(--fg-mute)">${src.published?'publisert':'under terskel'} · ${src.horizon||''}</span>`;
+  else if(src.scorePct!=null) h += `<span class="meta" style="font-family:var(--mono);font-size:11px;color:var(--fg-mute)">score ${src.scorePct}%</span>`;
+  h += `</div>`;
+  const su = src.setup||{};
+  const tp = su.t1 ?? su.tp;
+  if(su.entry!=null || su.sl!=null){
+    h += `<div class="kv"><span class="k">Entry</span><span class="v">${fmtPrice(su.entry)}</span></div>
+      <div class="kv"><span class="k">Stop</span><span class="v down">${fmtPrice(su.sl)}</span></div>
+      <div class="kv"><span class="k">Mål</span><span class="v up">${fmtPrice(tp)}</span></div>`;
+  }
+  if(kind==='bed') h += `<div class="kv"><span class="k">Score / terskel</span><span class="v">×${src.ratio.toFixed(2)}</span></div>`;
+  return h;
+}
+
+const FAM_NO = { trend:'Trend', positioning:'Posisjonering', macro:'Makro', fundamental:'Fundamentalt', structure:'Struktur', risk:'Risiko', analog:'Analog' };
+function famCompare(u){
+  const cg = u.cot?.drivers || {};
+  const bf = u.bed?.families || {};
+  const keys = ['trend','positioning','macro','fundamental','structure','risk','analog'];
+  const rows = keys.filter(k=>cg[k]!=null || bf[k]!=null);
+  if(!rows.length) return null;
+  let h='';
+  for(const k of rows){
+    const cv = cg[k]?.score!=null ? clamp(cg[k].score,0,1) : null;       // 0..1
+    const bv = bf[k]?.score!=null ? clamp(bf[k].score,0,1) : null;       // 0..1
+    h += `<div class="fam-row">
+      <div class="fam-bar l">${cv!=null?`<i style="width:${(cv*100).toFixed(0)}%"></i>`:''}</div>
+      <div class="name">${FAM_NO[k]||k}</div>
+      <div class="fam-bar r">${bv!=null?`<i style="width:${(bv*100).toFixed(0)}%"></i>`:''}</div>
+    </div>`;
+  }
+  return h + `<div class="legend"><span><i style="background:var(--teal)"></i>cot-explorer</span><span><i style="background:var(--indigo)"></i>bedrock</span></div>`;
+}
+
+async function drawChart(symbol, u){
+  const stem = PRICE_FILE[symbol];
+  const box = $('#chartBox'); if(!box) return;
+  if(!stem){ box.innerHTML = `<div class="empty-note">Ingen prishistorikk for ${symbol}.</div>`; return; }
+  const j = await loadJSON('data/prices/'+stem+'.json');
+  const rows = (j?.data || j?.rows || (Array.isArray(j)?j:[])).slice(-260);
+  if(!rows.length){ box.innerHTML = `<div class="empty-note">Ingen prisdata.</div>`; return; }
+  const vals = rows.map(r=>r.price ?? r.close ?? r.c).filter(v=>v!=null);
+  const su = u.cot?.setup || u.bed?.setup || {};
+  const lvls = [
+    {v:su.entry, c:'var(--teal)', t:'Entry'},
+    {v:su.sl, c:'var(--down)', t:'Stop'},
+    {v:su.t1 ?? su.tp, c:'var(--up)', t:'Mål'},
+  ].filter(l=>l.v!=null && Number.isFinite(l.v));
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  for(const l of lvls){ lo=Math.min(lo,l.v); hi=Math.max(hi,l.v); }
+  const pad=(hi-lo)*0.06||1; lo-=pad; hi+=pad;
+  const W=1000,H=300,mL=8,mR=64,mT=10,mB=18;
+  const x=i=> mL + i*(W-mL-mR)/(vals.length-1);
+  const y=v=> mT + (1-(v-lo)/(hi-lo))*(H-mT-mB);
+  let path=''; vals.forEach((v,i)=>{ path += (i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)+' '; });
+  const area = path + `L ${x(vals.length-1).toFixed(1)} ${(H-mB).toFixed(1)} L ${mL} ${(H-mB).toFixed(1)} Z`;
+  let svg = `<svg class="price" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs><linearGradient id="parea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--teal)" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="var(--teal)" stop-opacity="0"/>
+    </linearGradient></defs>`;
+  for(let g=0; g<=4; g++){
+    const gy=mT+g*(H-mT-mB)/4, gv=hi-(g/4)*(hi-lo);
+    svg += `<line class="pl-grid" x1="${mL}" y1="${gy}" x2="${W-mR}" y2="${gy}"/>
+      <text class="pl-txt" x="${W-mR+5}" y="${gy+3}">${fmtPrice(gv)}</text>`;
+  }
+  svg += `<path class="pl-area" d="${area}"/><path class="pl-line" d="${path}"/>`;
+  for(const l of lvls){
+    const ly=y(l.v);
+    svg += `<line class="pl-lvl" x1="${mL}" y1="${ly}" x2="${W-mR}" y2="${ly}" stroke="${l.c}"/>
+      <text class="pl-txt" x="${mL+3}" y="${ly-3}" fill="${l.c}">${l.t} ${fmtPrice(l.v)}</text>`;
+  }
+  svg += `</svg>`;
+  box.innerHTML = svg;
+}
+
+/* ════════ MATRISE (bedrock power-view) ════════ */
+let mxFilter = { klasse:'alle', horisont:'alle', status:'alle' };
+function renderMatrise(){
+  const all = (D.bedrockSignals||[]).concat(D.bedrockAgriSignals||[]);
+  let h = `<div class="section-hd"><h2>Bedrock-matrise</h2><span class="sub">alle ${all.length} setup · horisont × retning</span></div>`;
+  h += `<div class="filters" id="mxFilters">
+    ${fgroup('klasse',[['alle','Alle'],['fx','Valuta'],['metal','Metall'],['energy','Energi'],['index','Indeks'],['ag','Landbruk'],['crypto','Krypto']])}
+  </div>
+  <div class="filters">
+    ${fgroup('horisont',[['alle','Alle horisonter'],['makro','Makro'],['swing','Swing'],['scalp','Scalp']])}
+    ${fgroup('status',[['alle','Alle'],['publisert','Publisert']])}
+  </div>`;
+  let rows = all.slice();
+  if(mxFilter.klasse!=='alle') rows = rows.filter(e=>classOf(e)===mxFilter.klasse);
+  if(mxFilter.horisont!=='alle') rows = rows.filter(e=>(e.horizon||'').toLowerCase()===mxFilter.horisont);
+  if(mxFilter.status==='publisert') rows = rows.filter(e=>e.published);
+  rows.sort((a,b)=>bedRatio(b)-bedRatio(a));
+  h += `<div class="grid cards">` + rows.map(mxCard).join('') + `</div>`;
+  $('#panel-matrise').innerHTML = h;
+  $$('#panel-matrise .fbtn').forEach(b=>b.addEventListener('click',()=>{
+    mxFilter[b.dataset.f]=b.dataset.v; renderMatrise();
+  }));
+}
+function classOf(e){
+  const c=(e.asset_class||'').toLowerCase();
+  if(['fx','currency'].includes(c)) return 'fx';
+  if(['metal','metals','precious'].includes(c)) return 'metal';
+  if(['energy','oilgas'].includes(c)) return 'energy';
+  if(['index','equity','indices'].includes(c)) return 'index';
+  if(['crypto'].includes(c)) return 'crypto';
+  if(['ag','agri','agriculture','grain','grains','soft','softs'].includes(c)) return 'ag';
+  return c || 'alle';
+}
+function fgroup(f, opts){
+  return opts.map(([v,l])=>`<span class="fbtn ${mxFilter[f]===v?'on':''}" data-f="${f}" data-v="${v}">${l}</span>`).join('');
+}
+function mxCard(e){
+  const dir=normDir(e.direction); const ratio=bedRatio(e);
+  const sym = e.instrument;
+  return `<div class="mx-card ${dirClass(dir)}">
+    <div class="mx-hd"><span class="nm">${sym}</span><span class="hz">${e.horizon||''}</span></div>
+    <div class="mx-dir">
+      <span class="mx-arrow ${dirClass(dir)}">${dir==='LONG'?'▲':dir==='SHORT'?'▼':'·'}</span>
+      <span class="badge ${dirClass(dir)}">${dirNo(dir)}</span>
+      ${gradeBadge(e.grade)}
+      ${e.published?'<span class="badge ghost" style="color:var(--up);border-color:rgba(52,211,153,.4)">publisert</span>':''}
+    </div>
+    <div class="mx-bar"><i style="width:${clamp(ratio/1.5*100,0,100).toFixed(0)}%"></i><span class="thr" style="left:66%"></span></div>
+    <div class="mx-meta"><span>score ${e.score?.toFixed(2)??'—'}</span><span>terskel ${e.min_score_publish??'—'}</span></div>
   </div>`;
 }
 
-function fundNoKpos(n){
-  if(n == null) return '—';
-  const sign = n > 0 ? '+' : (n < 0 ? '−' : '');
-  return sign + Math.abs(n).toLocaleString('nb-NO');
-}
-
-function renderTFFBoard(symbol){
-  const row = D.tffBySymbol?.[symbol];
-  if(!row) return '';
-  const navn = INSTRUMENT_NAVN_NO[symbol] || symbol;
-  const actors = [
-    { key:'spekulanter',  navn:'Spekulanter',  forklaring:'Hedge-fond og store spekulanter — leder ofte trender' },
-    { key:'institusjoner',navn:'Institusjoner', forklaring:'Pensjonsfond og asset managers — langsiktig, ofte motpart til spekulanter' },
-    { key:'meglere',      navn:'Banker/Meglere',forklaring:'Dealer-bord som balanserer markedet — primært risikoverter' },
-    { key:'smahandlere',  navn:'Småhandlere',   forklaring:'Ikke-rapporteringspliktige; mengden' },
-  ];
-  // Tolkning: stor netto-motvekt mellom spekulanter og institusjoner = klassisk hedge-mønster.
-  const sp = row.spekulanter || {};
-  const inst = row.institusjoner || {};
-  const totalNetGap = (Math.abs(sp.net || 0) + Math.abs(inst.net || 0));
-  let narr = '';
-  if(sp.net < 0 && inst.net > 0 && totalNetGap > 0){
-    narr = `Klassisk hedge-mønster: spekulantene (hedge-fond) er <strong>netto short</strong> mens institusjonene (pensjonsfond/asset managers) er <strong>netto long</strong>. Institusjonene bærer markedseksponeringen, spekulantene sikrer eller spekulerer mot.`;
-  } else if(sp.net > 0 && inst.net < 0){
-    narr = `Spekulantene er <strong>netto long</strong> mens institusjonene er <strong>netto short</strong>. Uvanlig — sjekk om dette er en spekulativ rally eller institusjonell hedging.`;
-  } else if(sp.net > 0 && inst.net > 0){
-    narr = `Både spekulanter og institusjoner er <strong>netto long</strong> — bred bullish posisjonering.`;
-  } else if(sp.net < 0 && inst.net < 0){
-    narr = `Både spekulanter og institusjoner er <strong>netto short</strong> — bred bearish posisjonering.`;
-  }
-  const actorRows = actors.map(a => {
-    const grp = row[a.key] || {};
-    const long = grp.long || 0, short = grp.short || 0, net = grp.net || 0;
-    const total = long + short;
-    const longPct = total > 0 ? (long / total) * 100 : 50;
-    const shortPct = total > 0 ? (short / total) * 100 : 50;
-    const netCls = net > 0 ? 'long' : (net < 0 ? 'short' : '');
-    const netLbl = net > 0 ? 'netto long' : (net < 0 ? 'netto short' : 'balansert');
-    return `
-      <div class="tff-actor">
-        <div class="head">
-          <span class="nm">${a.navn}<em>${a.forklaring}${grp.label ? ' — «' + grp.label + '»' : ''}</em></span>
-          <span><span class="net-lbl">${netLbl}</span><span class="net ${netCls}">${fundNoKpos(net)}</span></span>
-        </div>
-        <div class="tff-bars">
-          <span class="side l">L ${long.toLocaleString('nb-NO')}</span>
-          <div class="tff-split">
-            <div class="long-fill" style="width:${longPct}%;"></div>
-            <div class="short-fill" style="width:${shortPct}%;"></div>
-          </div>
-          <span class="side s">S ${short.toLocaleString('nb-NO')}</span>
-        </div>
-      </div>`;
-  }).join('');
-  return `
-    <div class="tff-board">
-      <div class="ttl">COT · Traders in Financial Futures (TFF)</div>
-      <div class="sub">${navn} dekkes av TFF-rapporten, ikke det vanlige legacy/disaggregated-feedet. Rapport pr. ${row.date}.</div>
-      <div class="tff-summary">
-        <div class="cell"><span class="k">Open interest</span><span class="v">${(row.open_interest || 0).toLocaleString('nb-NO')}</span></div>
-        <div class="cell"><span class="k">Δ OI denne uken</span><span class="v">${fundNoKpos(row.change_oi)}</span></div>
-        <div class="cell"><span class="k">Spekulant-skift</span><span class="v">${fundNoKpos(row.change_spec_net)}</span></div>
-        <div class="cell"><span class="k">Kategori</span><span class="v">${row.kategori || '—'}</span></div>
-      </div>
-      ${actorRows}
-      ${narr ? `<div class="tff-narrative">${narr}</div>` : ''}
-    </div>`;
-}
-
-/* ════════ POSISJONERING-FANE ════════ */
-function renderPosisjonering(symbol, interp){
-  if(interp.data_quality === 'ingen_cot'){
-    const tffHtml = renderTFFBoard(symbol);
-    if(tffHtml) return tffHtml;
-    return `<div class="alert-no-cot">
-      Det finnes ingen COT-rapport for <strong>${INSTRUMENT_NAVN_NO[symbol] || symbol}</strong>.
-      Bruk Domene-fanen for alternative posisjoneringsmål.
-    </div>`;
-  }
-  if(interp.data_quality !== 'fresh'){
-    return `<div class="alert-no-cot">Tolkning ikke tilgjengelig (${interp.data_quality || 'manglende data'}). ${interp.reason || ''}</div>`;
-  }
-
-  const pred = interp.prediksjon || {};
-  const flow = interp.flow_week || {};
-  const conv = interp.conviction || {};
-  const flags = interp.flag_labels || [];
-  const analogs = interp.analogs || [];
-  const agg = interp.analogs_aggregate || {};
-  const smc = interp.smart_money_crowd || {};
-
-  let html = '';
-
-  // 1. Aktør-tavle — VISUELL "HVEM GJØR HVA"
-  if(interp.actor_board?.length){
-    html += `
-      <div style="margin-bottom:6px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--brass);letter-spacing:.16em;text-transform:uppercase;">Hvem gjør hva</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:var(--ink-bone-dim);margin:2px 0 10px;">
-          Hver gruppe i COT-rapporten med sin posisjon, percentil mot siste 52 uker, og hva de gjorde denne uken.
-        </div>
-      </div>
-      ${renderActorBoard(interp.actor_board)}`;
-  }
-
-  // 2. Narrative
-  html += `
-    <div class="narrative-block">
-      <div class="eyebrow">Tolkning · norsk</div>
-      <div class="body">${interp.narrative || '—'}</div>
-    </div>`;
-
-  // 2. Prediksjons-blokk
-  const retnPil = pred.retning === 'opp' ? '↑' : pred.retning === 'ned' ? '↓' : '→';
-  html += `
-    <div class="prediction-block">
-      <div class="prediction-cell">
-        <div class="lbl">Forventet retning</div>
-        <div class="val ${pred.retning || 'nøytral'}">${retnPil} ${(pred.retning || 'nøytral').toUpperCase()}</div>
-      </div>
-      <div class="prediction-cell">
-        <div class="lbl">Tidsvindu</div>
-        <div class="val">${pred.tidsvindu || '—'}</div>
-      </div>
-      <div class="prediction-cell">
-        <div class="lbl">Sannsynlighet</div>
-        <div class="val">${pred.sannsynlighet != null ? (pred.sannsynlighet * 100).toFixed(0) + '%' : '—'}</div>
-      </div>
-      <div class="prediction-cell">
-        <div class="lbl">Median forventet beveg.</div>
-        <div class="val ${pred.forventet_beveg_pct == null || pred.forventet_beveg_pct === 0 ? '' : (pred.forventet_beveg_pct > 0 ? 'opp' : 'ned')}">${pred.forventet_beveg_pct != null ? (pred.forventet_beveg_pct > 0 ? '+' : '') + pred.forventet_beveg_pct + '%' : '—'}</div>
-        <div class="sub">${pred.begrunnelse || ''}</div>
-      </div>
-    </div>`;
-
-  // 3. Regime + Smart Money vs Mengden + flags i en grid
-  html += `<div class="split-grid">`;
-  html += `
-    <div class="plate" style="margin-bottom:0;">
-      <div class="plate-hd"><span class="num">A</span><span class="ttl">Smart Money vs Mengden</span></div>
-      <div class="plate-body">
-        <div class="smc-block">
-          <div class="smc-bar">
-            <div class="lbl">MM (Pengeforvaltere) — percentil 52u</div>
-            <div class="val">${smc.mm_pctile != null ? Number(smc.mm_pctile).toFixed(0) : '—'}</div>
-            <div class="meter"><div class="meter-fill" style="width:${Math.max(0, Math.min(100, Number(smc.mm_pctile) || 0))}%"></div></div>
-          </div>
-          <div class="smc-bar">
-            <div class="lbl">Kommersielle — percentil 52u</div>
-            <div class="val">${smc.commercial_pctile != null ? Number(smc.commercial_pctile).toFixed(0) : '—'}</div>
-            <div class="meter"><div class="meter-fill" style="width:${Math.max(0, Math.min(100, Number(smc.commercial_pctile) || 0))}%"></div></div>
-          </div>
-        </div>
-        ${smc.label ? `<div class="smc-label">${smc.label}</div>` : ''}
-      </div>
-    </div>`;
-  // Konviksjons-grid
-  html += `
-    <div class="plate" style="margin-bottom:0;">
-      <div class="plate-hd"><span class="num">B</span><span class="ttl">Konviksjon</span></div>
-      <div class="plate-body">
-        <div class="conviction-grid">
-          <div class="conviction-card long">
-            <div class="lbl">Long-side</div>
-            <div class="val">${conv.long != null ? conv.long.toFixed(1) : '—'} <span style="font-size:13px;color:var(--ink-mute);">/ 10</span></div>
-            <div class="conviction-bar"><div class="conviction-bar-fill" style="width:${Math.max(0, Math.min(100, (conv.long || 0) * 10))}%"></div></div>
-          </div>
-          <div class="conviction-card short">
-            <div class="lbl">Short-side</div>
-            <div class="val">${conv.short != null ? conv.short.toFixed(1) : '—'} <span style="font-size:13px;color:var(--ink-mute);">/ 10</span></div>
-            <div class="conviction-bar"><div class="conviction-bar-fill" style="width:${Math.max(0, Math.min(100, (conv.short || 0) * 10))}%"></div></div>
-          </div>
-        </div>
-        ${conv.begrunnelse ? `<div class="conviction-reasoning">${conv.begrunnelse}</div>` : ''}
-      </div>
-    </div>`;
-  html += `</div>`;
-
-  // 4. Flow-dekomponering
-  if(flow.available){
-    const oiPctStr = `${flow.oi_delta_pct > 0 ? '+' : ''}${flow.oi_delta_pct}%`;
-    const flowRow = (who, d) => {
-      const isPos = d >= 0;
-      const absMax = Math.max(
-        Math.abs(flow.mm_long_delta||0), Math.abs(flow.mm_short_delta||0),
-        Math.abs(flow.comm_long_delta||0), Math.abs(flow.comm_short_delta||0), 1
-      );
-      const w = Math.min(48, Math.abs(d) / absMax * 48);
-      return `
-        <div class="flow-row">
-          <span class="who">${who}</span>
-          <div class="bar">
-            <div class="bar-fill ${isPos ? 'pos' : 'neg'}" style="width:${w}%;"></div>
-          </div>
-          <span class="delta ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${fmtK(d)}</span>
-        </div>`;
-    };
-    html += `
-      <div class="plate" style="margin-top:18px;">
-        <div class="plate-hd"><span class="num">C</span><span class="ttl">Flyt denne uken</span><span class="sub">Endringer mellom siste og forrige COT-rapport</span></div>
-        <div class="plate-body">
-          <div class="flow-decomp">
-            ${flowRow('MM long', flow.mm_long_delta)}
-            ${flowRow('MM short', flow.mm_short_delta)}
-            ${flowRow('Kommersielle long', flow.comm_long_delta)}
-            ${flowRow('Kommersielle short', flow.comm_short_delta)}
-            <div class="flow-row" style="margin-top:8px;border-top:1px dotted var(--ink-rule);padding-top:10px;">
-              <span class="who" style="color:var(--ink-paper);font-weight:600;">Åpen interesse</span>
-              <div class="bar"></div>
-              <span class="delta ${flow.oi_delta_pct == null || flow.oi_delta_pct === 0 ? '' : (flow.oi_delta_pct > 0 ? 'pos' : 'neg')}">${oiPctStr}</span>
-            </div>
-          </div>
-          <div class="flow-attribution">${flow.attribusjon}</div>
-        </div>
-      </div>`;
-  }
-
-  // 5. Divergens-flags
-  if(flags.length){
-    html += `
-      <div class="plate" style="margin-top:18px;">
-        <div class="plate-hd"><span class="num">D</span><span class="ttl">Divergens-flags</span></div>
-        <div class="plate-body">
-          <div class="flag-list">
-            ${flags.map(f => {
-              let cls = '';
-              if(f.includes('ekstrem')) cls = 'flag-ekstrem';
-              else if(f.includes('divergens') || f.includes('konviksjon') || f.includes('dekking')) cls = 'flag-divergens';
-              return `<span class="flag-pill ${cls}">${f}</span>`;
-            }).join('')}
-          </div>
-        </div>
-      </div>`;
-  }
-
-  // 6. Historiske analoger
-  if(analogs.length || agg.available){
-    html += `
-      <div class="plate" style="margin-top:18px;">
-        <div class="plate-hd"><span class="num">E</span><span class="ttl">Historiske analoger</span><span class="sub">Tidligere uker med lignende konfigurasjon — fremoverkast</span></div>
-        <div class="plate-body">
-          <table class="analog-table">
-            <thead><tr><th>Dato</th><th>MM-percentil</th><th>OI 4u snitt</th><th>4u fremoverkast</th><th>8u fremoverkast</th></tr></thead>
-            <tbody>
-              ${analogs.map(a => `
-                <tr>
-                  <td>${a.dato}</td>
-                  <td>${a.mm_pctile != null ? Number(a.mm_pctile).toFixed(0) + '%' : '—'}</td>
-                  <td>${fmtK(a.oi_4w_avg)}</td>
-                  <td class="${pctClass(a.fwd_4u_pct)}">${a.fwd_4u_pct != null ? fmtPct(a.fwd_4u_pct) : '—'}</td>
-                  <td class="${pctClass(a.fwd_8u_pct)}">${a.fwd_8u_pct != null ? fmtPct(a.fwd_8u_pct) : '—'}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          ${agg.available ? `
-            <div class="analog-agg">
-              <span class="stat"><span class="lbl">Antall</span>${agg.count}</span>
-              ${agg.median_4u_pct != null ? `<span class="stat"><span class="lbl">Median 4u</span>${fmtPct(agg.median_4u_pct)}</span>` : ''}
-              ${agg.positive_rate_4u != null ? `<span class="stat"><span class="lbl">Positive 4u</span>${(agg.positive_rate_4u*100).toFixed(0)}%</span>` : ''}
-              ${agg.median_8u_pct != null ? `<span class="stat"><span class="lbl">Median 8u</span>${fmtPct(agg.median_8u_pct)}</span>` : ''}
-              ${agg.positive_rate_8u != null ? `<span class="stat"><span class="lbl">Positive 8u</span>${(agg.positive_rate_8u*100).toFixed(0)}%</span>` : ''}
-            </div>
-          ` : ''}
-        </div>
-      </div>`;
-  }
-
-  // 7. Råverdier
-  html += `
-    <div class="plate" style="margin-top:18px;">
-      <div class="plate-hd"><span class="num">F</span><span class="ttl">Råverdier</span><span class="sub">COT-rapport ${interp.cot_date} · ${interp.report_type}</span></div>
-      <div class="plate-body">
-        <div class="dom-kv"><span class="k">MM netto-posisjon</span><span class="v">${fmtK(interp.mm_net)}</span></div>
-        <div class="dom-kv"><span class="k">MM percentil 52u</span><span class="v">${interp.mm_pctile_52w != null ? Number(interp.mm_pctile_52w).toFixed(1) + '%' : '—'}</span></div>
-        <div class="dom-kv"><span class="k">Kommersiell netto</span><span class="v">${fmtK(interp.comm_net)}</span></div>
-        <div class="dom-kv"><span class="k">Kommersiell percentil 52u</span><span class="v">${interp.comm_pctile_52w != null ? Number(interp.comm_pctile_52w).toFixed(1) + '%' : '—'}</span></div>
-        <div class="dom-kv"><span class="k">Åpen interesse</span><span class="v">${fmtK(interp.open_interest)}</span></div>
-        <div class="dom-kv"><span class="k">OI-trend</span><span class="v">${interp.oi_trend === 'rising' ? 'stigende' : interp.oi_trend === 'falling' ? 'fallende' : 'flat'} (4u snitt ${fmtK(interp.oi_change_4w_avg)})</span></div>
-        <div class="dom-kv"><span class="k">Pris-trend</span><span class="v">${interp.price_trend === 'up' ? 'opp' : interp.price_trend === 'down' ? 'ned' : 'flat'} (4u ${interp.price_4w_change_pct != null ? fmtPct(interp.price_4w_change_pct) : '—'})</span></div>
-        <div class="dom-kv"><span class="k">Historikk</span><span class="v">${interp.history_weeks} uker</span></div>
-      </div>
-    </div>`;
-
-  return html;
-}
-
-/* ════════ PRIS-FANE ════════ */
-async function renderPris(symbol, interp, p, container){
-  const stem = PRICE_FILE[symbol];
-  if(!stem){
-    container.innerHTML = `<div class="alert-no-cot">Ingen pris-historikk-fil for ${INSTRUMENT_NAVN_NO[symbol] || symbol} (kun siste verdi tilgjengelig: ${p.value != null ? fmtPrice(p.value) : '—'}).</div>`;
-    return;
-  }
-  const priceData = await loadJSON(`data/prices/${stem}.json`);
-  if(!priceData || !priceData.data || !priceData.data.length){
-    container.innerHTML = `<div class="alert-no-cot">Kunne ikke laste pris-historikk for ${symbol}.</div>`;
-    return;
-  }
-
-  const sig = signalFor(symbol);
-  const setup = macroSetupFor(symbol);
-
-  // Render chart
-  const rows = priceData.data.slice(-260); // siste ~5 år ukentlig
-  container.innerHTML = `
-    <div class="price-chart-wrap">
-      <svg class="price-chart-svg" id="priceChart" viewBox="0 0 1000 380" preserveAspectRatio="none"></svg>
-      <div class="price-context">
-        <div class="cell"><div class="lbl">Siste pris</div><div class="val">${p.value != null ? fmtPrice(p.value) : '—'}</div></div>
-        <div class="cell"><div class="lbl">Δ 1 dag</div><div class="val ${pctClass(p.chg1d)}">${p.chg1d != null ? chgPrefix(p.chg1d) + Number(p.chg1d).toFixed(2) + '%' : '—'}</div></div>
-        <div class="cell"><div class="lbl">Δ 5 dager</div><div class="val ${pctClass(p.chg5d)}">${p.chg5d != null ? chgPrefix(p.chg5d) + Number(p.chg5d).toFixed(2) + '%' : '—'}</div></div>
-        <div class="cell"><div class="lbl">Δ 20 dager</div><div class="val ${pctClass(p.chg20d)}">${p.chg20d != null ? chgPrefix(p.chg20d) + Number(p.chg20d).toFixed(2) + '%' : '—'}</div></div>
-      </div>
-    </div>
-    <div class="plate" style="margin-top:14px;">
-      <div class="plate-hd"><span class="num">Σ</span><span class="ttl">Setup-nivåer (vises som stiplede linjer på chart-en)</span></div>
-      <div class="plate-body">
-        ${renderSetupLevels(sig, setup)}
-      </div>
-    </div>
-  `;
-
-  drawPriceChart(rows, sig, setup);
-}
-
-function renderSetupLevels(sig, setup){
-  const items = [];
-  if(sig){
-    const dir = sig.action === 'BUY' ? 'long' : 'short';
-    if(sig.entry != null) items.push({color:'var(--brass)', lbl:`Inngang (${dir})`, v:sig.entry});
-    if(sig.sl != null) items.push({color:'var(--sig-neg)', lbl:'Stopptap', v:sig.sl});
-    if(sig.t1 != null) items.push({color:'var(--sig-pos)', lbl:`Mål 1${sig.rr_t1 != null ? ' (R:R '+Number(sig.rr_t1).toFixed(2)+')' : ''}`, v:sig.t1});
-    if(sig.t2 != null) items.push({color:'var(--sig-pos)', lbl:`Mål 2${sig.rr_t2 != null ? ' (R:R '+Number(sig.rr_t2).toFixed(2)+')' : ''}`, v:sig.t2});
-  } else if(setup) {
-    const sides = [];
-    if(setup.long)  sides.push({s:setup.long,  dir:'long'});
-    if(setup.short) sides.push({s:setup.short, dir:'short'});
-    for(const {s, dir} of sides){
-      if(s?.entry != null) items.push({color:'var(--brass)', lbl:`Inngang (${dir})`, v:s.entry});
-      if(s?.sl != null) items.push({color:'var(--sig-neg)', lbl:`Stopptap (${dir})`, v:s.sl});
-      if(s?.t1 != null) items.push({color:'var(--sig-pos)', lbl:`Mål 1 (${dir})`, v:s.t1});
-      if(s?.t2 != null) items.push({color:'var(--sig-pos)', lbl:`Mål 2 (${dir})`, v:s.t2});
-    }
-  }
-  if(!items.length) return '<div class="skel" style="text-align:left;padding:4px 0;">Ingen aktive setup-nivåer.</div>';
-  return items.map(i => `
-    <div class="dom-kv">
-      <span class="k"><span style="display:inline-block;width:10px;height:2px;background:${i.color};margin-right:8px;vertical-align:middle;"></span>${i.lbl}</span>
-      <span class="v">${fmtPrice(i.v)}</span>
-    </div>
-  `).join('');
-}
-
-function drawPriceChart(rows, sig, setup){
-  const svg = $('#priceChart');
-  if(!svg || !rows.length) return;
-  const W = 1000, H = 380, padL = 50, padR = 60, padT = 16, padB = 22;
-  const minP = Math.min(...rows.map(r => r.price));
-  const maxP = Math.max(...rows.map(r => r.price));
-  // Inkluder setup-nivåer i range
-  const allLevels = [sig?.entry, sig?.sl, sig?.t1, sig?.t2,
-                     setup?.long?.entry, setup?.long?.sl, setup?.long?.t1, setup?.long?.t2,
-                     setup?.short?.entry, setup?.short?.sl, setup?.short?.t1, setup?.short?.t2].filter(v => v != null);
-  const lo = Math.min(minP, ...allLevels);
-  const hi = Math.max(maxP, ...allLevels);
-  const range = hi - lo;
-  const xScale = i => padL + (W - padL - padR) * (i / (rows.length - 1));
-  const yScale = v => padT + (H - padT - padB) * (1 - (v - lo) / range);
-
-  let svgContent = '';
-  // Grid
-  for(let i = 0; i <= 4; i++){
-    const y = padT + (H - padT - padB) * (i / 4);
-    const val = hi - range * (i / 4);
-    svgContent += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(42,51,74,0.3)" stroke-width="0.5"/>`;
-    svgContent += `<text x="${W-padR+6}" y="${y+3}" class="chart-axis-label">${fmtPrice(val)}</text>`;
-  }
-  // Price line
-  const path = rows.map((r, i) => `${i === 0 ? 'M' : 'L'}${xScale(i).toFixed(1)},${yScale(r.price).toFixed(1)}`).join(' ');
-  svgContent += `<path class="price-line" d="${path}"/>`;
-  // Setup levels overlaid
-  const drawLevel = (val, cls, lbl) => {
-    if(val == null) return '';
-    const y = yScale(val);
-    return `
-      <line class="${cls}" x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}"/>
-      <text x="${padL+4}" y="${y-3}" class="price-level-label">${lbl} ${fmtPrice(val)}</text>`;
-  };
-  if(sig){
-    svgContent += drawLevel(sig.entry, 'price-level-entry', 'Inngang');
-    svgContent += drawLevel(sig.sl, 'price-level-sl', 'SL');
-    svgContent += drawLevel(sig.t1, 'price-level-t1', 'T1');
-    svgContent += drawLevel(sig.t2, 'price-level-t2', 'T2');
-  } else if(setup){
-    const sides = [];
-    if(setup.long)  sides.push({s:setup.long,  suf:' L'});
-    if(setup.short) sides.push({s:setup.short, suf:' S'});
-    for(const {s, suf} of sides){
-      svgContent += drawLevel(s.entry, 'price-level-entry', 'Inngang' + suf);
-      svgContent += drawLevel(s.sl,    'price-level-sl',    'SL'      + suf);
-      svgContent += drawLevel(s.t1,    'price-level-t1',    'T1'      + suf);
-      svgContent += drawLevel(s.t2,    'price-level-t2',    'T2'      + suf);
-    }
-  }
-  // Dates on x-axis
-  const showDates = [0, Math.floor(rows.length/4), Math.floor(rows.length/2), Math.floor(rows.length*3/4), rows.length-1];
-  showDates.forEach(i => {
-    const r = rows[i]; if(!r) return;
-    svgContent += `<text x="${xScale(i)}" y="${H-6}" class="chart-axis-label" text-anchor="middle">${r.date.slice(0,7)}</text>`;
-  });
-  svg.innerHTML = svgContent;
-}
-
-/* ════════ DOMENE-FANE ════════ */
-function renderDomene(symbol){
-  const blocks = [];
-
-  // FX-spesifikt
-  if(['EURUSD','GBPUSD','USDJPY','AUDUSD'].includes(symbol)){
-    blocks.push(renderDomFX(symbol));
-  }
-  // Metaller
-  if(['Gold','Silver','Platinum','Copper'].includes(symbol)){
-    blocks.push(renderDomMetaller(symbol));
-  }
-  // Energi
-  if(['WTI','Brent'].includes(symbol)){
-    blocks.push(renderDomOlje(symbol));
-  }
-  if(symbol === 'NatGas'){
-    blocks.push(renderDomNaturgass());
-  }
-  // Korn
-  if(['Corn','Wheat','Soybean'].includes(symbol)){
-    blocks.push(renderDomKorn(symbol));
-  }
-  // Softs
-  if(['Cotton','Sugar','Coffee','Cocoa'].includes(symbol)){
-    blocks.push(renderDomSofts(symbol));
-  }
-  // Krypto
-  if(['BTC','ETH'].includes(symbol)){
-    blocks.push(renderDomKrypto(symbol));
-  }
-  // Indekser
-  if(['SPX','NAS100'].includes(symbol)){
-    blocks.push(renderDomIndekser(symbol));
-  }
-
-  if(!blocks.filter(b => b).length){
-    return `<div class="alert-no-cot">Ingen domene-spesifikke data registrert for ${INSTRUMENT_NAVN_NO[symbol] || symbol}.</div>`;
-  }
-  return blocks.filter(b => b).join('');
-}
-
-function renderDomFX(symbol){
-  const dxy = D.macro?.dollar_smile;
-  const rates = D.macro?.rates;
-  let body = '<div class="body">';
-  if(dxy){
-    body += `<div class="dom-kv"><span class="k">USD-regime</span><span class="v">${dxy.regime || dxy.bias || '—'}</span></div>`;
-    if(dxy.score != null) body += `<div class="dom-kv"><span class="k">Dollar-smile-score</span><span class="v">${Number(dxy.score).toFixed(2)}</span></div>`;
-    if(dxy.note) body += `<div class="dom-kv"><span class="k">Notat</span><span class="v" style="font-family:'Cormorant Garamond',serif;font-style:italic;">${dxy.note}</span></div>`;
-  }
-  body += '</div>';
-  return `<div class="dom-block"><div class="ttl">Valuta-makro · USD-bias</div>${body}</div>`;
-}
-
-function renderDomMetaller(symbol){
-  let body = '<div class="body">';
-  const comex = D.comex || [];
-  if(comex.length){
-    // Sjekk om vi har stress-tall
-    const stress = comex.find(c => c.metric === 'stress' || c.label?.includes('stress'));
-    if(stress) body += `<div class="dom-kv"><span class="k">COMEX-stress</span><span class="v">${stress.value || '—'}</span></div>`;
-    // Vis registered/eligible tall hvis tilgjengelig
-    const relevant = comex.filter(c => (c.symbol || c.metal || '').toLowerCase().includes(symbol.toLowerCase()));
-    relevant.slice(0, 6).forEach(c => {
-      const label = c.metric || c.label || c.field || 'data';
-      body += `<div class="dom-kv"><span class="k">${label}</span><span class="v">${c.value != null ? c.value : '—'}</span></div>`;
-    });
-  } else {
-    body += '<em style="color:var(--ink-mute);">Ingen COMEX-data tilgjengelig.</em>';
-  }
-  body += '</div>';
-
-  let macroBlock = '';
-  if(D.macro?.macro_indicators){
-    const m = D.macro.macro_indicators;
-    macroBlock = `
-      <div class="dom-block">
-        <div class="ttl">Makro-driver for metaller</div>
-        <div class="body">
-          ${m.real_yields != null ? `<div class="dom-kv"><span class="k">Reelle renter (10Y)</span><span class="v">${m.real_yields}</span></div>` : ''}
-          ${m.dxy != null ? `<div class="dom-kv"><span class="k">DXY</span><span class="v">${m.dxy}</span></div>` : ''}
-          ${m.inflation != null ? `<div class="dom-kv"><span class="k">Inflasjons-trend</span><span class="v">${m.inflation}</span></div>` : ''}
-        </div>
-      </div>`;
-  }
-
-  return `<div class="dom-block"><div class="ttl">COMEX-flyt · ${INSTRUMENT_NAVN_NO[symbol] || symbol}</div>${body}</div>${macroBlock}`;
-}
-
-function renderDomOlje(symbol){
-  let body = '<div class="body">';
-  const eia = D.eiaStorage || [];
-  if(eia.length){
-    eia.slice(0, 5).forEach(e => {
-      const lbl = e.product || e.label || e.metric || 'data';
-      body += `<div class="dom-kv"><span class="k">${lbl}</span><span class="v">${e.value || e.level || '—'}${e.change ? ` (Δ ${e.change})` : ''}</span></div>`;
-    });
-  } else {
-    body += '<em style="color:var(--ink-mute);">Ingen EIA-lager-data tilgjengelig.</em>';
-  }
-  body += '</div>';
-  return `<div class="dom-block"><div class="ttl">EIA-lager · ${INSTRUMENT_NAVN_NO[symbol] || symbol}</div>${body}</div>`;
-}
-
-function renderDomNaturgass(){
-  let body = '<div class="body">';
-  const eia = D.eiaStorage || [];
-  if(eia.length){
-    eia.slice(0, 6).forEach(e => {
-      const lbl = e.region || e.product || e.label || 'data';
-      body += `<div class="dom-kv"><span class="k">${lbl}</span><span class="v">${e.value || '—'}${e.change ? ` (Δ ${e.change})` : ''}</span></div>`;
-    });
-  } else {
-    body += '<em style="color:var(--ink-mute);">Ingen lager-data tilgjengelig.</em>';
-  }
-  body += '</div>';
-  return `<div class="dom-block"><div class="ttl">Naturgass-lager + vær</div>${body}</div>`;
-}
-
-function renderDomKorn(symbol){
-  let body = '<div class="body">';
-  const cp = D.cropProgress || [];
-  const enso = D.iriEnso || [];
-  if(cp.length){
-    cp.slice(0, 4).forEach(c => {
-      body += `<div class="dom-kv"><span class="k">${c.metric || c.label || 'felt'}</span><span class="v">${c.value || c.pct || '—'}</span></div>`;
-    });
-  }
-  if(enso.length){
-    const e = enso[0];
-    body += `<div class="dom-kv"><span class="k">ENSO-fase</span><span class="v">${e.phase || e.state || '—'}</span></div>`;
-    if(e.signal) body += `<div class="dom-kv"><span class="k">ENSO-signal</span><span class="v">${e.signal}</span></div>`;
-  }
-  body += '</div>';
-  return `<div class="dom-block"><div class="ttl">USDA-vekstrapport + ENSO · ${INSTRUMENT_NAVN_NO[symbol] || symbol}</div>${body}</div>`;
-}
-
-function renderDomSofts(symbol){
-  let body = '<div class="body">';
-  const disease = D.diseaseAlerts || [];
-  const exports = D.exportEvents || [];
-  if(disease.length){
-    disease.slice(0, 3).forEach(d => {
-      body += `<div class="news-row">
-        <span class="date">${(d.date || '').slice(0,10)}</span>
-        <span class="body">${d.summary || d.description || d.title || '—'}</span>
-      </div>`;
-    });
-  }
-  if(exports.length){
-    exports.slice(0, 3).forEach(e => {
-      body += `<div class="news-row">
-        <span class="date">${(e.date || '').slice(0,10)}</span>
-        <span class="body">${e.summary || e.description || e.title || '—'}</span>
-      </div>`;
-    });
-  }
-  if(!disease.length && !exports.length) body += '<em style="color:var(--ink-mute);">Ingen sykdoms-/eksportvarsler tilgjengelig.</em>';
-  body += '</div>';
-  return `<div class="dom-block"><div class="ttl">Sykdomsvarsler + eksporthendelser</div>${body}</div>`;
-}
-
-function renderDomKrypto(symbol){
-  let body = '<div class="body">';
-  const cs = D.cryptoSentiment || [];
-  if(cs.length){
-    const relevant = cs.filter(c => (c.symbol || '').toUpperCase() === symbol.toUpperCase());
-    (relevant.length ? relevant : cs.slice(0, 4)).forEach(c => {
-      body += `<div class="dom-kv"><span class="k">${c.metric || c.label || 'data'}</span><span class="v">${c.value || c.score || '—'}</span></div>`;
-    });
-  } else {
-    body += '<em style="color:var(--ink-mute);">Ingen krypto-sentiment-data.</em>';
-  }
-  body += '</div>';
-  return `<div class="dom-block"><div class="ttl">Krypto-sentiment</div>${body}</div>`;
-}
-
-function renderDomIndekser(symbol){
-  let body = '<div class="body">';
-  const m = D.macro?.macro_indicators || {};
-  if(m.vix != null) body += `<div class="dom-kv"><span class="k">VIX</span><span class="v">${m.vix}</span></div>`;
-  if(m.vvix != null) body += `<div class="dom-kv"><span class="k">VVIX</span><span class="v">${m.vvix}</span></div>`;
-  if(m.put_call != null) body += `<div class="dom-kv"><span class="k">Put/Call</span><span class="v">${m.put_call}</span></div>`;
-  const aaiiB = D.macro?.sentiment?.aaii_bull;
-  const aaiiB2 = D.macro?.sentiment?.aaii_bear;
-  if(aaiiB != null) body += `<div class="dom-kv"><span class="k">AAII bull</span><span class="v">${aaiiB}</span></div>`;
-  if(aaiiB2 != null) body += `<div class="dom-kv"><span class="k">AAII bear</span><span class="v">${aaiiB2}</span></div>`;
-  body += '</div>';
-  return `<div class="dom-block"><div class="ttl">Aksje-volatilitet og sentiment</div>${body}</div>`;
-}
-
-/* ════════ FUNDAMENTALER-FANE ════════ */
-
-function fundFmtDato(iso){
-  if(!iso) return '';
-  try{
-    const d = new Date(iso);
-    const md = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'][d.getUTCMonth()];
-    return `${d.getUTCDate()}. ${md}`;
-  }catch{ return (iso || '').slice(0,10); }
-}
-
-function fundBiasInfo(bias){
-  return FUND_BIAS_NO[bias] || { tekst: bias || 'ukjent', klasse: 'neu' };
-}
-
-function fundFmtTall(v, enhet){
-  if(v == null || Number.isNaN(v)) return '—';
-  const n = Number(v);
-  const abs = Math.abs(n);
-  let s;
-  if(abs >= 1000) s = n.toFixed(0);
-  else if(abs >= 100) s = n.toFixed(1);
-  else if(abs >= 10) s = n.toFixed(2);
-  else s = n.toFixed(2);
-  return enhet ? `${s} ${enhet}` : s;
-}
-
-function renderFundKompass(symbol){
-  const fund = D.fundamentals || {};
-  const sc = fund.instrument_scores?.[symbol];
-  const navn = INSTRUMENT_NAVN_NO[symbol] || symbol;
-  if(!sc){
-    return `
-      <div class="fund-block">
-        <div class="ttl">I·A Fundamentalkompass</div>
-        <div class="body">
-          <em style="color:var(--ink-mute);">${navn} er ikke direkte koblet til USD-makro­modellen. Se Domene-fanen for instrument­spesifikke fundamentaler. Den generelle USD-bakgrunnen nedenfor er likevel relevant som globalt risikobilde.</em>
-        </div>
-      </div>`;
-  }
-  const score = Number(sc.score);
-  const biasInfo = fundBiasInfo(sc.bias);
-  // Posisjon i prosent — score går fra −1 til +1, midt = 50%
-  const pos = Math.max(0, Math.min(100, (score + 1) * 50));
-  return `
-    <div class="fund-block">
-      <div class="ttl">I·A Fundamentalkompass · ${navn}</div>
-      <div class="fund-compass">
-        <div class="hdr">
-          <span class="sym">Fundamental retning</span>
-          <span class="bias ${biasInfo.klasse}">${biasInfo.tekst} · ${score > 0 ? '+' : ''}${score.toFixed(2).replace('.', ',')}</span>
-        </div>
-        <div class="fund-meter">
-          <div class="tick" style="left:25%;"></div>
-          <div class="mid"></div>
-          <div class="tick" style="left:75%;"></div>
-          <div class="needle" style="left:calc(${pos}% - 1.5px);"></div>
-        </div>
-        <div class="fund-meter-scale">
-          <span>−1 (svært bearish)</span>
-          <span>0</span>
-          <span>+1 (svært bullish)</span>
-        </div>
-      </div>
-    </div>`;
-}
-
-function renderFundUsdHelse(){
-  const u = D.fundamentals?.usd_fundamental;
-  const meta = D.fundamentals?._meta;
-  const oppd = D.fundamentals?.updated;
-  if(!u) return '';
-  const biasInfo = fundBiasInfo(u.bias);
-  const cm = D.fundamentals?.consensus_multi;
-  return `
-    <div class="fund-block">
-      <div class="ttl">I·B USD-helse — overordnet</div>
-      <div class="fund-summary">
-        USD-fundamentaler står som <strong class="${biasInfo.klasse}">${biasInfo.tekst}</strong>
-        (skår ${u.score > 0 ? '+' : ''}${Number(u.score).toFixed(2).replace('.', ',')} av ${u.n} indikatorer)
-        <span class="stamp">oppdatert ${fundFmtDato(oppd)}</span>
-        ${cm != null && cm !== 1 ? `<em style="color:var(--ink-mute);font-style:italic;margin-left:8px;">konsensus×${cm}</em>` : ''}
-      </div>
-    </div>`;
-}
-
-function renderFundKategorier(){
-  const cats = D.fundamentals?.category_scores;
-  if(!cats || !Object.keys(cats).length) return '';
-  let rows = '';
-  for(const [k, v] of Object.entries(cats)){
-    if(!v) continue;
-    const kInfo = FUND_KATEGORI_NO[k] || { navn:k, forklaring:'' };
-    const biasInfo = fundBiasInfo(v.bias);
-    const avg = Number(v.avg || 0);
-    // avg ligger typisk i [−2, +2]; mapp til [0, 100]
-    const pct = Math.max(0, Math.min(100, (avg + 2) * 25));
-    const midPct = 50;
-    const fillCls = avg === 0 ? '' : (avg > 0 ? 'pos' : 'neg');
-    const fillLeft = avg >= 0 ? midPct : pct;
-    const fillWidth = Math.abs(pct - midPct);
-    rows += `
-      <div class="fund-cat">
-        <div class="nm">${kInfo.navn}<em>${kInfo.forklaring}</em></div>
-        <div class="bar">
-          <div class="mid"></div>
-          <div class="fill ${fillCls}" style="left:${fillLeft}%;width:${fillWidth}%;"></div>
-        </div>
-        <div class="bias-lbl ${biasInfo.klasse}">${biasInfo.tekst}<br><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);">snitt ${avg > 0 ? '+' : ''}${avg.toFixed(2).replace('.', ',')}</span></div>
-      </div>`;
-  }
-  return `
-    <div class="fund-block">
-      <div class="ttl">I·C Kategorisk balanse</div>
-      <div class="fund-cats">${rows}</div>
-    </div>`;
-}
-
-function renderFundDrivere(){
-  const ind = D.fundamentals?.indicators;
-  if(!ind || !Object.keys(ind).length) return '';
-  const pos = [], neg = [], neu = [];
-  for(const [k, v] of Object.entries(ind)){
-    if(!v) continue;
-    const info = FUND_INDIKATOR_NO[k] || { navn:k, forklaring:'', enhet:'' };
-    const cur = v.current, prev = v.previous;
-    const score = Number(v.score || 0);
-    const enhet = info.enhet || '';
-    const delta = (cur != null && prev != null) ? (cur - prev) : null;
-    const deltaCls = delta == null ? 'flat' : (delta > 0 ? 'up' : (delta < 0 ? 'down' : 'flat'));
-    const deltaPil = delta == null ? '·' : (delta > 0 ? '↑' : (delta < 0 ? '↓' : '→'));
-    const deltaTekst = delta == null ? '' : `${deltaPil} ${Math.abs(delta).toFixed(2)}`;
-    const row = `
-      <div class="fund-driver">
-        <span class="nm">${info.navn}<em>${info.forklaring}</em></span>
-        <span class="val">${fundFmtTall(cur, enhet)}</span>
-        <span class="delta ${deltaCls}">${deltaTekst}</span>
-      </div>`;
-    if(score > 0) pos.push({ k, row, score });
-    else if(score < 0) neg.push({ k, row, score });
-    else neu.push({ k, info });
-  }
-  pos.sort((a,b) => b.score - a.score);
-  neg.sort((a,b) => a.score - b.score);
-
-  const posHtml = pos.length
-    ? pos.map(x => x.row).join('')
-    : '<em style="color:var(--ink-mute);font-style:italic;font-size:12px;">Ingen indikatorer trekker USD opp akkurat nå.</em>';
-  const negHtml = neg.length
-    ? neg.map(x => x.row).join('')
-    : '<em style="color:var(--ink-mute);font-style:italic;font-size:12px;">Ingen indikatorer trekker USD ned akkurat nå.</em>';
-  const neuHtml = neu.length
-    ? `<div class="fund-neutral-note">Nøytrale (ingen retning): ${neu.map(n => (FUND_INDIKATOR_NO[n.k]?.navn || n.k)).join(', ')}.</div>`
-    : '';
-
-  return `
-    <div class="fund-block compact-hide">
-      <div class="ttl">I·D Drivere — hvilke indikatorer trekker hvor</div>
-      <div class="fund-grid-two">
-        <div class="fund-col">
-          <h4 class="pos">Styrker USD (${pos.length})</h4>
-          ${posHtml}
-        </div>
-        <div class="fund-col">
-          <h4 class="neg">Svekker USD (${neg.length})</h4>
-          ${negHtml}
-        </div>
-      </div>
-      ${neuHtml}
-    </div>`;
-}
-
-function renderFundRenter(){
-  const mr = D.fundamentals?.market_rates;
-  if(!mr) return '';
-  function rateRow(nm, forklaring, obj){
-    if(obj == null) return '';
-    const v = obj.value, c = obj.chg_5d, dato = obj.date;
-    const cls = c == null ? 'flat' : (c > 0 ? 'up' : (c < 0 ? 'down' : 'flat'));
-    const pil = c == null ? '·' : (c > 0 ? '↑' : (c < 0 ? '↓' : '→'));
-    const stale = obj._fresh === false ? `<span class="fund-stale">(eldre data — ${dato || ''})</span>` : '';
-    return `
-      <div class="fund-rate">
-        <span class="nm">${nm}<em>${forklaring}</em></span>
-        <span class="val">${v != null ? Number(v).toFixed(2) + ' %' : '—'} ${stale}</span>
-        <span class="delta ${cls}">${pil} ${c != null ? Math.abs(c).toFixed(2) + ' (5d)' : ''}</span>
-      </div>`;
-  }
-  const ts = mr.term_spread;
-  const tsTekst = ts == null
-    ? ''
-    : (ts >= 0
-      ? `<em style="color:var(--sig-pos);">positiv kurve — normal vekstforventning</em>`
-      : `<em style="color:var(--sig-neg);">invertert — historisk et resesjonsvarsel</em>`);
-  return `
-    <div class="fund-block compact-hide">
-      <div class="ttl">I·E Markedsrenter</div>
-      <div class="fund-rates">
-        ${rateRow('10-års statsrente', 'nominell, USA', mr.dgs10)}
-        ${rateRow('10-års real-rente', 'inflasjonsjustert (TIPS)', mr.dfii10)}
-        ${rateRow('2-års statsrente', 'kortenden av kurven', mr.dgs2)}
-        ${ts != null ? `
-          <div class="fund-rate">
-            <span class="nm">Term-spread (10Y − 2Y)<em>kurveform</em></span>
-            <span class="val">${Number(ts).toFixed(2)} %-poeng</span>
-            <span class="delta flat">${tsTekst}</span>
-          </div>` : ''}
-      </div>
-    </div>`;
-}
-
-function fundNoTall(n, des){
-  if(n == null) return '—';
-  return Number(n).toFixed(des == null ? 2 : des).replace('.', ',');
-}
-
-function renderFundNarrativ(symbol){
-  const fund = D.fundamentals || {};
-  const u = fund.usd_fundamental;
-  const cats = fund.category_scores || {};
-  const mr = fund.market_rates || {};
-  const sc = fund.instrument_scores?.[symbol];
-  const navn = INSTRUMENT_NAVN_NO[symbol] || symbol;
-  if(!u) return '';
-  const usdBias = fundBiasInfo(u.bias);
-  const usdPos = u.score > 0;
-  const usdScore = u.score > 0 ? '+' + fundNoTall(u.score) : fundNoTall(u.score);
-  const realY = mr.dfii10?.value;
-  const fxUsd = ['EURUSD','GBPUSD','AUDUSD','USDJPY','DXY'].includes(symbol);
-  const metall = ['Gold','Silver'].includes(symbol);
-  const indeks = ['SPX','NAS100'].includes(symbol);
-  const olje = ['WTI','Brent'].includes(symbol);
-  let txt = '';
-
-  if(fxUsd){
-    const usdRetning = usdPos ? 'styrket' : (u.score < 0 ? 'svekket' : 'nøytralt stilt');
-    if(symbol === 'USDJPY' || symbol === 'DXY'){
-      const presset = usdPos ? 'oppover­press' : (u.score < 0 ? 'nedover­press' : 'lite retnings­press');
-      txt = `USD-bildet er <strong>${usdBias.tekst}</strong> (skår ${usdScore}). En ${usdRetning} dollar legger ${presset} på ${navn}.`;
-    } else {
-      const presset = usdPos ? 'nedover­press' : (u.score < 0 ? 'oppover­press' : 'lite retnings­press');
-      txt = `USD-bildet er <strong>${usdBias.tekst}</strong> (skår ${usdScore}). En ${usdRetning} dollar legger ${presset} på ${navn}.`;
-    }
-  } else if(metall){
-    const realTekst = realY != null ? `Real-renten på <strong>${fundNoTall(realY)} %</strong>` : 'Real-renten';
-    const usdDel = usdPos
-      ? `og en <strong>${usdBias.tekst}</strong> USD demper oppsiden`
-      : (u.score < 0
-        ? `og en <strong>${usdBias.tekst}</strong> USD åpner for oppside`
-        : `og en USD i balanse gir lite drahjelp`);
-    txt = `${realTekst} ${usdDel} for ${navn}. Metaller beveger seg typisk motsatt vei av real-renter og dollar.`;
-  } else if(indeks){
-    const infAvg = cats.inflation?.avg;
-    const jobAvg = cats.jobs?.avg;
-    const infTekst = infAvg == null ? 'uklart' : (infAvg > 1 ? 'klart over mål' : (infAvg > 0 ? 'noe over mål' : 'rolig'));
-    const jobTekst = jobAvg == null ? 'uklart' : (jobAvg > 0.5 ? 'sterkt' : (jobAvg < -0.5 ? 'svakt' : 'i balanse'));
-    txt = `Inflasjons­bildet er <strong>${infTekst}</strong> og arbeids­markedet <strong>${jobTekst}</strong>. For ${navn} betyr det at aksjer møter både medvind fra jobbtall og motvind fra prispress — sjekk om bildet er konsistent.`;
-  } else if(olje){
-    const vekstAvg = cats.econ_growth?.avg;
-    const vekstTekst = vekstAvg == null ? 'uklart' : (vekstAvg > 0 ? 'oppover' : 'nedover');
-    const usdDel = usdPos
-      ? 'mens en sterk USD demper prisen'
-      : (u.score < 0 ? 'og en svakere USD støtter prisen' : 'og USD er i balanse');
-    txt = `Økonomisk vekst peker <strong>${vekstTekst}</strong>, ${usdDel} for ${navn}. Olje følger global etterspørsel og dollarstyrke.`;
-  } else if(sc){
-    const biasInfo = fundBiasInfo(sc.bias);
-    const sScore = sc.score > 0 ? '+' + fundNoTall(sc.score) : fundNoTall(sc.score);
-    txt = `Fundamental­modellen klassifiserer ${navn} som <strong>${biasInfo.tekst}</strong> (skår ${sScore}). Det generelle USD-bildet er <strong>${usdBias.tekst}</strong>.`;
-  } else {
-    txt = `${navn} er ikke direkte koblet til USD-makro­modellen — se Domene-fanen for instrument­spesifikke fundamentaler. Den globale risiko­appetitten styres likevel av USD-bildet, som nå er <strong>${usdBias.tekst}</strong>.`;
-  }
-  return `
-    <div class="fund-block">
-      <div class="ttl">I·F Hva betyr dette for ${navn}?</div>
-      <p class="fund-narrative">${txt}</p>
-    </div>`;
-}
-
-function renderFundMakroProxy(){
-  const mi = D.macro?.macro_indicators || {};
-  if(!Object.keys(mi).length) return '';
-  let rows = '';
-  for(const [k, v] of Object.entries(mi)){
-    if(v == null) continue;
-    const info = FUND_MAKRO_PROXY_NO[k] || { navn:k, forklaring:'' };
-    // verdier kan være rene tall, eller {price, chg1d, chg5d, chg20d}
-    let pris = null, chg5 = null;
-    if(typeof v === 'number'){ pris = v; }
-    else if(typeof v === 'object'){
-      pris = v.price ?? v.value ?? v.latest ?? null;
-      chg5 = v.chg5d ?? v.chg_5d ?? null;
-    }
-    const cls = chg5 == null ? 'flat' : (chg5 > 0 ? 'up' : (chg5 < 0 ? 'down' : 'flat'));
-    const pil = chg5 == null ? '' : (chg5 > 0 ? '↑' : (chg5 < 0 ? '↓' : '→'));
-    const chgTekst = chg5 == null ? '' : `${pil} ${Math.abs(chg5).toFixed(2).replace('.', ',')} % (5d)`;
-    const prisTekst = pris == null ? '—' : Number(pris).toFixed(2).replace('.', ',');
-    rows += `
-      <div class="fund-rate">
-        <span class="nm">${info.navn}<em>${info.forklaring}</em></span>
-        <span class="val">${prisTekst}</span>
-        <span class="delta ${cls}">${chgTekst}</span>
-      </div>`;
-  }
-  return `<div class="fund-block compact-hide"><div class="ttl">I·G Globale makro-proksjer</div><div class="fund-rates">${rows}</div></div>`;
-}
-
-function renderFundamentaler(symbol){
-  const blocks = [];
-  blocks.push(renderFundKompass(symbol));
-  blocks.push(renderFundUsdHelse());
-  blocks.push(renderFundKategorier());
-  blocks.push(renderFundDrivere());
-  blocks.push(renderFundRenter());
-  blocks.push(renderFundNarrativ(symbol));
-  blocks.push(renderFundMakroProxy());
-
-  // I·H Nyhetsintel
-  const news = D.newsIntel || [];
-  if(news.length){
-    let body = '<div class="body">';
-    news.slice(0, 10).forEach(n => {
-      body += `<div class="news-row">
-        <span class="date">${(n.date || n.timestamp || '').slice(0,10)}</span>
-        <span class="body">${n.headline || n.title || n.summary || '—'}${n.sentiment ? ` <em style="color:var(--ink-mute);">(${n.sentiment})</em>` : ''}</span>
-      </div>`;
-    });
-    body += '</div>';
-    blocks.push(`<div class="fund-block compact-hide"><div class="ttl">I·H Nyhetsintel</div>${body}</div>`);
-  }
-
-  // I·I Kalender
-  const cal = D.macro?.calendar;
-  if(Array.isArray(cal) && cal.length){
-    let body = '<div class="body">';
-    cal.slice(0, 8).forEach(c => {
-      body += `<div class="news-row">
-        <span class="date">${(c.date || c.timestamp || '').slice(0,10)} ${c.time || ''}</span>
-        <span class="body">${c.event || c.title || '—'}${c.country ? ` <em style="color:var(--ink-mute);">(${c.country})</em>` : ''}${c.importance ? ` <em style="color:var(--brass);">${c.importance}</em>` : ''}</span>
-      </div>`;
-    });
-    body += '</div>';
-    blocks.push(`<div class="fund-block compact-hide"><div class="ttl">I·I Kalender</div>${body}</div>`);
-  }
-
-  const html = blocks.filter(Boolean).join('');
-  return html || `<div class="alert-no-cot">Ingen fundamentale data tilgjengelig.</div>`;
-}
-
-/* ════════ BEDROCK ════════ */
-let bedrockFilter = { c:'all', h:'all', st:'published' };
-
-/* Merge signals + agri_signals, dedup på (key, horizon|timeframe).
-   signals.json har horizon-info; agri_signals.json overlapper og brukes kun
-   for nøkler som ikke finnes i signals.json. */
-function allSignals(){
-  const seen = new Set();
-  const out = [];
-  for(const s of (D.signals?.signals || [])){
-    const h = s.timeframe || s.horizon || '';
-    const key = `${s.key}|${h}`;
-    if(seen.has(key)) continue;
-    seen.add(key);
-    out.push(s);
-  }
-  for(const s of (D.agri_signals?.signals || [])){
-    const h = s.timeframe || s.horizon || '';
-    // Hopp over hvis vi allerede har et signal for samme key (uavhengig av horizon i agri-fila)
-    const collidesKey = (D.signals?.signals || []).some(x => x.key === s.key);
-    if(collidesKey) continue;
-    const key = `${s.key}|${h}`;
-    if(seen.has(key)) continue;
-    seen.add(key);
-    out.push(s);
-  }
-  return out;
-}
-
-function renderBedrock(){
-  const list = $('#bedrockList');
-  // Kollaps til ett beste setup per instrument
-  let rows = bestEntriesByInstrument();
-
-  // Status-filter
-  if(bedrockFilter.st === 'published'){
-    rows = rows.filter(r => r.published);
-  } else if(bedrockFilter.st === 'near'){
-    rows = rows.filter(r => !r.published && r._ratio >= 0.6);
-  }
-  // Horisont-filter — filtrerer på instrumenter der det BESTE oppsettet er på valgt horisont.
-  // For å se setups på spesifikk horisont uavhengig av om det er beste, finnes "All".
-  if(bedrockFilter.h !== 'all'){
-    rows = rows.filter(r => (r.horizon || '').toLowerCase() === bedrockFilter.h);
-  }
-  // Klasse-filter
-  if(bedrockFilter.c !== 'all'){
-    const agriBedrock = ['Corn','Wheat','Soybean','Cotton','Sugar','Coffee','Cocoa'];
-    if(bedrockFilter.c === 'agri') rows = rows.filter(r => agriBedrock.includes(r.instrument));
-    else rows = rows.filter(r => !agriBedrock.includes(r.instrument));
-  }
-  $('#bedrockCount').textContent = `${rows.length} instrumenter`;
-
-  if(!rows.length){
-    list.innerHTML = '<div class="skel">Ingen instrumenter matcher filteret.</div>';
-    return;
-  }
-  rows.sort((a,b) => b._ratio - a._ratio);
-  const FAM_KEYS = ['trend','positioning','macro','fundamental','risk','structure'];
-  const textRows = rows.map(r => {
-    const ourSym = ourSymbol(r.instrument);
-    const navn = INSTRUMENT_NAVN_NO[ourSym] || r.instrument;
-    const dirLabel = r.direction === 'buy' ? 'KJØP' : r.direction === 'sell' ? 'SALG' : r.direction;
-    const dirClass = r.direction === 'buy' ? 'BUY' : 'SELL';
-    const pctOfPub = r.min_score_publish ? Math.round(100 * r.score / r.min_score_publish) : null;
-    const drvSummary = r.families ? Object.entries(r.families).filter(([k,v]) => v.score > 0.1).map(([k,v]) => `${k} ${v.score.toFixed(1)}`).join(' · ') : '';
-    const conflictHint = r._conflicts > 0 ? ` <span style="color:var(--sig-warn);font-style:italic;">⚠ ${r._conflicts} motstridende</span>` : '';
-    const otherCount = Math.max(0, (r._alternatives || 0) - (r._conflicts || 0));
-    const altHint = otherCount > 0 ? ` <span style="color:var(--ink-mute);font-size:11px;">+${otherCount} andre</span>` : '';
-    return `
-      <div class="bedrock-row" data-symbol="${ourSym}" style="cursor:pointer;">
-        <span class="nm">${navn} <span style="color:var(--ink-mute);font-size:11px;">${ourSym}</span></span>
-        <span class="hz">${(r.horizon || '').toUpperCase()}</span>
-        <span class="dir ${dirClass}">${dirLabel}</span>
-        <span class="sc">${r.score.toFixed(2)} / ${r.min_score_publish ? r.min_score_publish.toFixed(1) : '—'}${pctOfPub !== null ? ` (${pctOfPub}%)` : ''}${altHint}</span>
-        <span><span class="gr">${r.published ? r.grade || '?' : (r.grade ? r.grade + ' · ikke pub.' : 'ikke pub.')}</span>${conflictHint} <span style="color:var(--ink-mute);font-style:italic;margin-left:8px;font-size:12px;">${drvSummary}</span></span>
-      </div>
-    `;
-  }).join('');
-  const cards = rows.map(r => {
-    const ourSym = ourSymbol(r.instrument);
-    const navn = INSTRUMENT_NAVN_NO[ourSym] || r.instrument;
-    const dirLabel = r.direction === 'buy' ? 'KJØP' : r.direction === 'sell' ? 'SALG' : r.direction;
-    const dirCls = r.direction === 'buy' ? 'buy' : 'sell';
-    const arrow = r.direction === 'buy' ? '↑' : '↓';
-    const pctOfPub = r.min_score_publish ? Math.round(100 * r.score / r.min_score_publish) : 0;
-    // Bar-skala: når skår > terskel, strekk skalaen så pub-markøren flytter seg innover
-    // og fill-baren viser den faktiske skåren relativt til maks i feltet.
-    const barMax = Math.max(100, pctOfPub);
-    const barFill = Math.max(0, Math.min(100, (pctOfPub / barMax) * 100));
-    const pubPos = Math.max(0, Math.min(100, (100 / barMax) * 100));
-    const fams = FAM_KEYS.map(k => {
-      const fs = r.families?.[k]?.score || 0;
-      return `<span class="bk-fam-dot ${fs > 0.1 ? 'on' : ''}" title="${k}: ${fs.toFixed(2)}"></span>`;
-    }).join('');
-    const conflictBadge = r._conflicts > 0
-      ? `<span class="bk-conflict" title="${r._conflicts} motsatt retning på samme horisont (≥50 % av terskel)">⚠</span>`
-      : '';
-    return `
-      <div class="bk-card ${dirCls} ${r.published ? '' : 'not-pub'}" data-symbol="${ourSym}">
-        ${conflictBadge}
-        <div class="bk-hd">
-          <span class="bk-nm">${navn}</span>
-          <span class="bk-sym">${ourSym}</span>
-        </div>
-        <div class="bk-dir">
-          <span class="bk-arrow">${arrow}</span>
-          <span class="bk-action">${dirLabel}</span>
-        </div>
-        <div class="bk-bar" title="Skår ${r.score.toFixed(2)} av terskel ${r.min_score_publish?.toFixed?.(1) || '—'}">
-          <div class="bk-bar-fill" style="width:${barFill}%;"></div>
-          <div class="bk-bar-pub" style="left:${pubPos}%;"></div>
-        </div>
-        <div class="bk-meta">
-          <span class="bk-grade ${r.published ? '' : 'not-pub'}">${r.grade || (r.published ? '?' : 'ikke pub.')}</span>
-          <span>${(r.horizon || '').toUpperCase()}</span>
-          <span>${pctOfPub}%</span>
-        </div>
-        <div class="bk-fam">${fams}<span class="bk-fam-lbl">trnd · pos · mak · fnd · rsk · str</span></div>
-      </div>`;
-  }).join('');
-  list.innerHTML = textRows + `<div class="bedrock-grid">${cards}</div>`;
-  // Klikk en rad eller kort → drill ned i instrumentprofil
-  $$('.bedrock-row[data-symbol], .bk-card[data-symbol]').forEach(r => {
-    r.addEventListener('click', () => {
-      location.hash = '#/markets/' + encodeURIComponent(r.dataset.symbol);
-    });
-  });
-}
-function bindBedrockFilters(){
-  $$('#bedrockClassTabs .cat-btn').forEach(b => b.addEventListener('click', () => {
-    $$('#bedrockClassTabs .cat-btn').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    bedrockFilter.c = b.dataset.c;
-    renderBedrock();
-  }));
-  $$('#bedrockHorizonTabs .cat-btn').forEach(b => b.addEventListener('click', () => {
-    $$('#bedrockHorizonTabs .cat-btn').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    bedrockFilter.h = b.dataset.h;
-    renderBedrock();
-  }));
-  $$('#bedrockStatusTabs .cat-btn').forEach(b => b.addEventListener('click', () => {
-    $$('#bedrockStatusTabs .cat-btn').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    bedrockFilter.st = b.dataset.st;
-    renderBedrock();
-  }));
-}
-
 /* ════════ DATAKVALITET ════════ */
-function safeLen(x){
-  if(x == null) return 0;
-  if(Array.isArray(x)) return x.length;
-  if(typeof x === 'object') return Object.keys(x).length;
-  return 0;
-}
-
-function renderDatakvalitet(){
-  const cont = $('#pipeContainer');
-  try{
-    const sources = [
-      { nm:'Pris-feed (bedrock)', path:D.prices && Object.keys(D.prices).length ? 'data/bedrock/prices.json' : null, count:safeLen(D.prices) },
-      { nm:'COT-tolkning', path:'data/cot_interpretation/latest.json', count:safeLen(D.interpretation?.assets), ts:D.interpretation?.generated },
-      { nm:'Signaler (financial)', path:'data/signals.json', count:safeLen(D.signals?.signals), ts:D.signals?.generated },
-      { nm:'Signaler (landbruk)', path:'data/agri_signals.json', count:safeLen(D.agri_signals?.signals), ts:D.agri_signals?.generated },
-      { nm:'Makro/sentiment', path:'data/macro/latest.json', ts:D.macro?.date },
-      { nm:'Fundamentaler', path:'data/fundamentals/latest.json', count:safeLen(D.fundamentals?.indicators) },
-      { nm:'COMEX-flyt', path:'data/bedrock/comex.json', count:safeLen(D.comex) },
-      { nm:'EIA-lager', path:'data/bedrock/eia_storage.json', count:safeLen(D.eiaStorage) },
-      { nm:'USDA crop progress', path:'data/bedrock/crop_progress.json', count:safeLen(D.cropProgress) },
-      { nm:'IRI ENSO', path:'data/bedrock/iri_enso.json', count:safeLen(D.iriEnso) },
-      { nm:'Krypto-sentiment', path:'data/bedrock/crypto_sentiment.json', count:safeLen(D.cryptoSentiment) },
-      { nm:'Nyhetsintel', path:'data/bedrock/news_intel.json', count:safeLen(D.newsIntel) },
-      { nm:'Sykdomsvarsler', path:'data/bedrock/disease_alerts.json', count:safeLen(D.diseaseAlerts) },
-      { nm:'Eksporthendelser', path:'data/bedrock/export_events.json', count:safeLen(D.exportEvents) },
-      { nm:'BDI-indeks', path:'data/bedrock/bdi.json', count:safeLen(D.bdi) },
-    ];
-    cont.innerHTML = `
-      <div class="pipe-grid">
-        ${sources.map(s => {
-          const tom = s.count === 0;
-          const stCls = !s.path ? 'error' : (tom ? 'stale' : 'fresh');
-          const stTxt = !s.path ? 'mangler' : (tom ? 'tom' : 'fersk');
-          return `
-            <div class="pipe-cell">
-              <div class="nm">${s.nm}</div>
-              <div class="ts">${s.path || '—'}</div>
-              <span class="st ${stCls}">${stTxt}</span>
-              ${s.count != null ? `<span class="ts" style="margin-left:8px;">${s.count} rader</span>` : ''}
-            </div>`;
-        }).join('')}
-      </div>`;
-  }catch(e){
-    cont.innerHTML = `<div class="alert-no-cot">Klarte ikke bygge datakvalitets-oversikten: ${e.message}</div>`;
-    console.error('renderDatakvalitet feilet', e);
+function renderData(){
+  const now = Date.now();
+  const sources = [
+    {n:'cot-explorer signaler', t:D.signals?.generated, src:(D.signals?.signals||[]).length+' signaler'},
+    {n:'cot-explorer landbruk', t:D.agri_signals?.generated, src:(D.agri_signals?.signals||[]).length+' signaler'},
+    {n:'bedrock signaler', t:D.bedrockIndex?.generated, src:(D.bedrockSignals||[]).length+' setup'},
+    {n:'bedrock landbruk', t:D.bedrockIndex?.generated, src:(D.bedrockAgriSignals||[]).length+' setup'},
+    {n:'COT-tolkning', t:D.interpretation?.generated, src:Object.keys(D.interpretation?.assets||{}).length+' instrumenter'},
+    {n:'Makro / DXY', t:D.macro?.date, src:D.macro?.cot_date?('COT '+D.macro.cot_date):''},
+    {n:'COMEX-lager', t:null, src:(D.comex||[]).length+' rader'},
+    {n:'EIA energilager', t:null, src:(D.eiaStorage||[]).length+' rader'},
+    {n:'Avlingsfremgang', t:null, src:(D.cropProgress||[]).length+' rader'},
+    {n:'Sykdomsvarsler', t:null, src:(D.diseaseAlerts||[]).length+' varsler'},
+    {n:'Værstress', t:null, src:(D.exportEvents||[]).length+' hendelser'},
+    {n:'BDI frakt', t:null, src:(D.bdi||[]).length+' punkter'},
+  ];
+  let h = `<div class="section-hd"><h2>Datakvalitet</h2><span class="sub">friskhet og dekning per kilde</span></div><div class="pipe">`;
+  for(const s of sources){
+    let st='miss', lbl='—';
+    if(s.t){
+      const age = (now - new Date(s.t).getTime())/3600000;
+      if(Number.isFinite(age)){ st = age<30?'fresh':'stale'; lbl = age<1?'< 1t':age<48?Math.round(age)+'t':Math.round(age/24)+'d'; }
+    }
+    h += `<div class="pcell"><div class="pn">${s.n}</div>
+      <div class="pt">${s.src||'—'}</div>
+      <span class="ps ${st}">${st==='fresh'?'fersk · '+lbl:st==='stale'?'foreldet · '+lbl:'ukjent'}</span></div>`;
   }
+  h += `</div>`;
+  $('#panel-data').innerHTML = h;
 }
 
-/* ════════ MODUS-TOGGLE ════════ */
-function applyMode(m){
-  const mode = (m === 'visuelt') ? 'visuelt' : 'studium';
-  document.body.setAttribute('data-mode', mode);
-  $$('#modeToggle button').forEach(b => {
-    b.classList.toggle('on', b.dataset.mode === mode);
-  });
-  try{ localStorage.setItem('cot.mode', mode); }catch{}
+/* ════════ STATE STRIP ════════ */
+function renderState(){
+  const cells=[];
+  const cot = D.signals?.cot_date || D.macro?.cot_date;
+  if(cot) cells.push(['COT-rapport', cot, '']);
+  const ds = D.macro?.dollar_smile;
+  if(ds) cells.push(['USD-bias', ds.usd_bias||'—', ds.usd_color==='bull'?'up':ds.usd_color==='bear'?'down':'neu']);
+  const vix = D.macro?.vix_regime;
+  if(vix) cells.push(['VIX', (vix.value!=null?vix.value.toFixed(1):'—')+' · '+(vix.regime||''), vix.color==='bull'?'up':vix.color==='bear'?'down':'neu']);
+  const fg = D.macro?.sentiment?.fear_greed;
+  if(fg) cells.push(['Frykt/grådighet', (fg.score!=null?fg.score.toFixed(0):'—')+' '+(fg.rating||''), fg.score>=55?'up':fg.score<=45?'down':'neu']);
+  const geo = D.signals?.global_state?.geo_active;
+  if(geo!=null) cells.push(['Geo-risiko', geo?'aktiv':'rolig', geo?'down':'up']);
+  $('#state').innerHTML = cells.map(([l,v,c])=>`<div class="cell"><span class="lbl">${l}</span><span class="val ${c}">${v}</span></div>`).join('');
+  $('#colostamp').textContent = (D.signals?.generated||D.macro?.date||'—');
 }
-function bindModeToggle(){
-  $$('#modeToggle button').forEach(b => {
-    b.addEventListener('click', () => {
-      applyMode(b.dataset.mode);
-      // Re-render aktiv route så instrument-detalj-blokker også oppdaterer
-      navigate();
-    });
-  });
-  let saved = 'studium';
-  try{ saved = localStorage.getItem('cot.mode') || 'studium'; }catch{}
-  applyMode(saved);
+
+/* ════════ ROUTER ════════ */
+const TABS = ['konsensus','matrise','data'];
+function showPanel(tab){
+  $$('.panel').forEach(p=>p.classList.remove('on'));
+  $('#panel-'+tab).classList.add('on');
+  $$('#nav a').forEach(a=>a.classList.toggle('on', a.dataset.tab===tab));
 }
+function navigate(){
+  const h = location.hash || '#/konsensus';
+  const parts = h.replace(/^#\/?/,'').split('/').filter(Boolean);
+  if(parts[0]==='instrument' && parts[1]){
+    showPanel('instrument'); $$('#nav a').forEach(a=>a.classList.remove('on'));
+    renderInstrument(decodeURIComponent(parts[1]));
+    window.scrollTo({top:0});
+    return;
+  }
+  const tab = TABS.includes(parts[0]) ? parts[0] : 'konsensus';
+  showPanel(tab);
+  if(tab==='konsensus') renderKonsensus();
+  else if(tab==='matrise') renderMatrise();
+  else if(tab==='data') renderData();
+  window.scrollTo({top:0});
+}
+window.addEventListener('hashchange', navigate);
 
 /* ════════ INIT ════════ */
-(async function init(){
+(async()=>{
   await loadAll();
-  renderStateStrip();
-  bindBedrockFilters();
-  bindModeToggle();
-  // Initial route
-  if(!location.hash) location.hash = '#/markets';
+  renderState();
   navigate();
 })();
 </script>
