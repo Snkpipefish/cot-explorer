@@ -164,6 +164,10 @@ else
     echo "  UNICA: hopper over (ikke man/tor 00-04)" >> "$LOG"
 fi
 
+# COT-tolkning: per-instrument regime/prediksjon (data/cot_interpretation/latest.json).
+# Leser ferdig-hentet COT-data, så kjøres etter fetch_cot/build_combined over.
+python3 cot_interpreter.py >> "$LOG" 2>&1 && echo "  COT-tolkning OK" >> "$LOG" || echo "  COT-tolkning FEIL" >> "$LOG"
+
 # Push agri-signaler FØRST (skriver agri_signals.json som push_signals.py leser).
 # Tidligere kjørte push_signals.py først, men race-defense i push_signals flagget
 # da alltid forrige kjørings agri-fila som "stale" (eldre enn 8t) fordi den

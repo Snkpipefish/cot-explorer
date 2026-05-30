@@ -365,6 +365,7 @@ async function loadAll(){
   D.cryptoSentiment = cryptoSentiment?.data || []; D.newsIntel = newsIntel?.data || [];
   D.diseaseAlerts = diseaseAlerts?.data || []; D.exportEvents = exportEvents?.data || [];
   D.bdi = bdi?.data || [];
+  D.meta = { comex, eia:eiaStorage, crop:cropProgress, disease:diseaseAlerts, export:exportEvents, bdi };
 }
 
 /* ──── FORMAT ──── */
@@ -817,12 +818,12 @@ function renderData(){
     {n:'bedrock landbruk', t:D.bedrockIndex?.generated, src:(D.bedrockAgriSignals||[]).length+' setup'},
     {n:'COT-tolkning', t:D.interpretation?.generated, src:Object.keys(D.interpretation?.assets||{}).length+' instrumenter'},
     {n:'Makro / DXY', t:D.macro?.date, src:D.macro?.cot_date?('COT '+D.macro.cot_date):''},
-    {n:'COMEX-lager', t:null, src:(D.comex||[]).length+' rader'},
-    {n:'EIA energilager', t:null, src:(D.eiaStorage||[]).length+' rader'},
-    {n:'Avlingsfremgang', t:null, src:(D.cropProgress||[]).length+' rader'},
-    {n:'Sykdomsvarsler', t:null, src:(D.diseaseAlerts||[]).length+' varsler'},
-    {n:'Værstress', t:null, src:(D.exportEvents||[]).length+' hendelser'},
-    {n:'BDI frakt', t:null, src:(D.bdi||[]).length+' punkter'},
+    {n:'COMEX-lager', t:D.meta?.comex?.generated, src:(D.meta?.comex?.rows ?? 0)+' rader'},
+    {n:'EIA energilager', t:D.meta?.eia?.generated, src:(D.meta?.eia?.rows ?? 0)+' rader'},
+    {n:'Avlingsfremgang', t:D.meta?.crop?.generated, src:(D.cropProgress||[]).length+' rader'},
+    {n:'Sykdomsvarsler', t:D.meta?.disease?.generated, src:(D.diseaseAlerts||[]).length+' varsler'},
+    {n:'Værstress', t:D.meta?.export?.generated, src:(D.exportEvents||[]).length+' hendelser'},
+    {n:'BDI frakt', t:D.meta?.bdi?.generated, src:(D.bdi||[]).length+' punkter'},
   ];
   let h = `<div class="section-hd"><h2>Datakvalitet</h2><span class="sub">friskhet og dekning per kilde</span></div><div class="pipe">`;
   for(const s of sources){
