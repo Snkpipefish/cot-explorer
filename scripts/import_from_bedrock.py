@@ -464,6 +464,40 @@ def export_bdi(con: sqlite3.Connection) -> dict:
     }
 
 
+def export_shipping(con: sqlite3.Connection) -> dict:
+    """Bedrock shipping_indices — Baltic Capesize/Dry/Panamax/Supramax
+    indices, daily values from BDRY (Yahoo). Latest + 1d change +
+    ~6 weeks of history per index_code."""
+    rows = fetch_all(
+        con,
+        """
+        SELECT index_code, date, value, source
+        FROM shipping_indices
+        ORDER BY index_code, date DESC
+        """,
+    )
+    by_code: dict[str, list[dict]] = {}
+    for r in rows:
+        by_code.setdefault(r["index_code"], []).append(r)
+    out: dict[str, dict] = {}
+    for code, rs in by_code.items():
+        head = rs[0]
+        prev = rs[1] if len(rs) > 1 else None
+        out[code] = {
+            "date":    head["date"],
+            "value":   head["value"],
+            "source":  head["source"],
+            "chg_1d":  (head["value"] - prev["value"]) if prev else None,
+            "history": [{"date": h["date"], "value": h["value"]} for h in rs[:30]],
+        }
+    return {
+        "generated": now_iso(),
+        "source":    "Baltic indices (BCI/BDI/BPI/BSI) · daily, via BDRY",
+        "rows":      len(rows),
+        "data":      out if out else None,
+    }
+
+
 def export_analogs(con: sqlite3.Connection) -> dict:
     """K-NN analog matching — feed for the future analog panel."""
     n = fetch_count(con, "analog_outcomes")
@@ -537,6 +571,7 @@ EXPORTERS = {
     "crop_progress.json":   export_crop_progress,
     "wasde.json":           export_wasde,
     "bdi.json":             export_bdi,
+    "shipping.json":        export_shipping,
     "analogs.json":         export_analogs,
 }
 
