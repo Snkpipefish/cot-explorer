@@ -481,6 +481,9 @@ function unifyInstrument(symbol){
 const STATUS_LBL = {
   ENIGHET:'Enighet', KONFLIKT:'Konflikt', EN_KILDE:'Én kilde', 'NØYTRAL':'Nøytral'
 };
+// antall motorer som faktisk peker i verdikt-retningen (0–3)
+function nAgreeing(u){ return [u.cot,u.bed,u.reg].filter(e=>e&&e.dir===u.verdict).length; }
+function enginesWithView(u){ return [u.cot,u.bed,u.reg].filter(e=>e&&e.dir).length; }
 
 /* ──── VIZ-HJELPERE ──── */
 function color(dir){ return dir==='LONG'?'var(--up)':dir==='SHORT'?'var(--down)':'var(--neu)'; }
@@ -561,13 +564,15 @@ function renderKonsensus(){
     h += `<div class="empty-note">Ingen direkte konflikter akkurat nå — der begge motorer har et syn er de samstemte.</div>`;
   }
 
-  // sterkeste enighet
-  const agree = all.filter(u=>u.status==='ENIGHET' && u.verdict).sort((a,b)=>b.conviction-a.conviction);
-  h += `<div class="section-hd"><h2>Sterkeste enighet</h2><span class="sub">begge motorer samstemte, rangert etter konviksjon</span></div>`;
+  // sterkeste enighet — full 3-veis enighet først, deretter 2-av-3, så konviksjon
+  const agree = all.filter(u=>u.status==='ENIGHET' && u.verdict)
+    .sort((a,b)=> nAgreeing(b)-nAgreeing(a) || b.conviction-a.conviction);
+  const nFull = agree.filter(u=>nAgreeing(u)>=3).length;
+  h += `<div class="section-hd"><h2>Sterkeste enighet</h2><span class="sub">${nFull} med alle tre motorer · rangert etter antall enige motorer, så konviksjon</span></div>`;
   if(agree.length){
     h += `<div class="grid cards">` + agree.map(agreeCard).join('') + `</div>`;
   } else {
-    h += `<div class="empty-note">Ingen instrumenter har samstemt signal fra begge motorer akkurat nå.</div>`;
+    h += `<div class="empty-note">Ingen instrumenter har samstemt signal fra flere motorer akkurat nå.</div>`;
   }
   $('#panel-konsensus').innerHTML = h;
 }
@@ -623,6 +628,12 @@ function conflictCard(u){
 function agreeCard(u){
   const lvls = u.cot?.setup || u.reg?.setup || u.bed?.setup || {};
   const tp = lvls.t1 ?? lvls.tp;
+  const nAg = nAgreeing(u);
+  const silent = [['cot-expl.',u.cot],['bedrock',u.bed],['regnbue',u.reg]]
+    .filter(([n,e])=>!e||!e.dir).map(([n])=>n);
+  const full = nAg>=3;
+  const sub = full ? 'alle tre motorer enige'
+    : `${nAg} av 3 enige${silent.length?` · stille: ${silent.join(', ')}`:''}`;
   return `<a class="card click ${dirClass(u.verdict)}" href="#/instrument/${u.symbol}">
     <div class="card-hd">
       <div><div class="nm">${u.symbol}</div><div class="nv">${u.name}</div></div>
@@ -632,7 +643,8 @@ function agreeCard(u){
       ${gauge(u.conviction, u.verdict, 120)}
       <div>
         <div class="verdict-big ${dirClass(u.verdict)}">${dirNo(u.verdict)}</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--fg-mute);margin-top:4px">${[u.cot,u.bed,u.reg].filter(e=>e&&e.dir===u.verdict).length} motorer enige</div>
+        <div style="margin-top:6px"><span class="badge ${full?'long':'ghost'}">${nAg}/3 motorer</span></div>
+        <div style="font-family:var(--mono);font-size:10.5px;color:var(--fg-mute);margin-top:4px">${sub}</div>
       </div>
     </div>
     ${lvls.entry!=null?`<div style="margin-top:8px">
