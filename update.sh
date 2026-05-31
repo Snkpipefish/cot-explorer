@@ -40,6 +40,12 @@ python3 fetch_calendar.py >> "$LOG" 2>&1 && echo "  kalender OK" >> "$LOG"
 # 6 hours with Persistent=true. update.sh just commits whatever data/bedrock/*.json
 # files happen to be present when this script runs, so no in-line invocation here.
 
+# Regnbue import: mirror the base-rate-validated setups (~/prosjekter/setups) into
+# data/regnbue/*.json. Cheap local file copy, so run inline every cycle.
+python3 scripts/import_from_regnbue.py >> "$LOG" 2>&1 \
+    && echo "  regnbue import OK" >> "$LOG" \
+    || echo "  regnbue import FEIL" >> "$LOG"
+
 # ── ICE COT: fredag 20:00 (tidlig forsøk) + lørdag 00:00 (garantert ute) ────
 if [ "$DOW" -eq 5 ] && [ "$HOUR" -ge 20 ]; then
     python3 fetch_ice_cot.py >> "$LOG" 2>&1 \

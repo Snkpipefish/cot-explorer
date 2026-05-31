@@ -173,7 +173,13 @@ a{color:inherit;text-decoration:none}
 .dd-hd h1{font-family:var(--disp);font-weight:700;font-size:32px;letter-spacing:-.02em}
 .dd-hd .sub{color:var(--fg-mute);font-size:13px;padding-bottom:5px}
 .cols{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+.cols.tri{grid-template-columns:repeat(3,1fr)}
 .cols-3{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.br-evi{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:10px}
+.br-evi .ev{font-family:var(--mono);font-size:11px;color:var(--fg-mute)}
+.br-evi .ev b{color:var(--fg);font-weight:600}
+.br-pass{color:var(--up)} .br-fail{color:var(--neu)}
+.rg-note{font-family:var(--mono);font-size:10.5px;color:var(--fg-mute);margin-top:8px;line-height:1.4}
 
 /* mirrored driver bars */
 .fam-row{display:grid;grid-template-columns:1fr 120px 1fr;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dotted var(--line)}
@@ -256,11 +262,12 @@ footer .mono{font-size:11px}
   <div class="topbar-inner">
     <div class="brand">
       <span class="b1">COT · Konsensus</span>
-      <span class="b2">to motorer · ett verdikt</span>
+      <span class="b2">tre motorer · ett verdikt</span>
     </div>
     <nav class="nav" id="nav">
       <a href="#/konsensus" data-tab="konsensus">Konsensus</a>
       <a href="#/matrise" data-tab="matrise">Matrise</a>
+      <a href="#/regnbue" data-tab="regnbue">Regnbue</a>
       <a href="#/data" data-tab="data">Datakvalitet</a>
     </nav>
     <div class="state" id="state"></div>
@@ -271,11 +278,12 @@ footer .mono{font-size:11px}
   <section class="panel on" id="panel-konsensus"></section>
   <section class="panel" id="panel-instrument"></section>
   <section class="panel" id="panel-matrise"></section>
+  <section class="panel" id="panel-regnbue"></section>
   <section class="panel" id="panel-data"></section>
 </main>
 
 <footer>
-  <span id="colophon">COT-observatorium · bedrock × cot-explorer</span>
+  <span id="colophon">COT-observatorium · bedrock × cot-explorer × regnbue</span>
   <span class="mono" id="colostamp">— · —</span>
 </footer>
 
@@ -324,7 +332,7 @@ async function loadAll(){
          bedrockIndex, fundamentalsB, comex, eiaStorage, cropProgress, iriEnso,
          cryptoSentiment, newsIntel, diseaseAlerts, exportEvents,
          oilgas, shipping, geointel, calendar,
-         bedrockSignals, bedrockAgriSignals, bdi, tff] = await Promise.all([
+         bedrockSignals, bedrockAgriSignals, bdi, tff, regnbue] = await Promise.all([
     loadJSON('data/cot_interpretation/latest.json'),
     loadJSON('data/bedrock/prices.json'),
     loadJSON('data/signals.json'),
@@ -350,9 +358,12 @@ async function loadAll(){
     loadJSON('data/bedrock/agri_signals.json'),
     loadJSON('data/bedrock/bdi.json'),
     loadJSON('data/tff/latest.json'),
+    loadJSON('data/regnbue/setups.json'),
   ]);
   D.bedrockSignals = bedrockSignals?.raw || [];
   D.bedrockAgriSignals = bedrockAgriSignals?.raw || [];
+  D.regnbue = regnbue || null;
+  D.regnbueSignals = regnbue?.raw?.signals || [];
   D.interpretation = interpretation || {assets:{}};
   D.prices = prices?.data || {};
   D.signals = signals || {};
@@ -400,6 +411,14 @@ function bestBedrockEntry(symbol){
   if(pub.length) return pub.sort((a,b)=>bedRatio(b)-bedRatio(a))[0];
   return e.sort((a,b)=>bedRatio(b)-bedRatio(a))[0];
 }
+// Regnbue uses its own instrument labels for a handful of symbols
+const REGNBUE_SYMBOL_MAP = { 'SPX':'SP500','NAS100':'Nasdaq','BTC':'BTCUSD','ETH':'ETHUSD' };
+function regnbueSymbol(sym){ return REGNBUE_SYMBOL_MAP[sym]||sym; }
+function bestRegnbueEntry(symbol){
+  const rs = regnbueSymbol(symbol);
+  return (D.regnbueSignals||[]).find(e=>e.instrument===rs) || null;
+}
+const regGrade = g => (g && g!=='NONE') ? g : null;
 
 /* ──── FORENT DATAMODELL — kjernen ──── */
 function normDir(d){
@@ -412,6 +431,7 @@ function normDir(d){
 function unifyInstrument(symbol){
   const s = signalFor(symbol);
   const be = bestBedrockEntry(symbol);
+  const re = bestRegnbueEntry(symbol);
   const interp = D.interpretation?.assets?.[symbol] || null;
 
   let cot=null;
@@ -431,22 +451,35 @@ function unifyInstrument(symbol){
             setup:{entry:su.entry, sl:su.sl, tp:su.tp}, families:be.families||null,
             analog:be.analog||null, raw:be };
   }
+  let reg=null;
+  if(re){
+    reg = { dir:normDir(re.direction), score:re.score,
+            pct:clamp(Math.round(Math.abs(re.score||0)*100),0,100),
+            grade:regGrade(re.grade), published:!!re.published,
+            setup:{entry:re.entry, sl:re.sl, tp:re.tp, rr:re.rr},
+            baseRate:re.base_rate||null, drivers:re.drivers||null,
+            reject:re.reject_reason||null, raw:re };
+  }
 
+  // forsoning over de motorene som faktisk har et syn (1–3)
+  const engines = [cot, bed, reg].filter(Boolean);
+  const dirs = engines.map(e=>e.dir).filter(Boolean);
+  const uniq = [...new Set(dirs)];
   let status, verdict=null, conviction=0;
-  if(cot && bed){
-    if(cot.dir && bed.dir && cot.dir===bed.dir){ status='ENIGHET'; verdict=cot.dir; }
-    else if(cot.dir && bed.dir && cot.dir!==bed.dir){ status='KONFLIKT'; verdict=null; }
-    else { status='ENIGHET'; verdict=cot.dir||bed.dir; }
-    conviction = Math.round(((cot.scorePct??0)+(bed.pct??0))/2);
-  } else if(bed){ status='KUN_BEDROCK'; verdict=bed.dir; conviction=bed.pct??0; }
-  else if(cot){ status='KUN_COT'; verdict=cot.dir; conviction=cot.scorePct??0; }
-  else { status='NØYTRAL'; verdict=null; conviction=0; }
+  if(!engines.length){ status='NØYTRAL'; }
+  else {
+    if(dirs.length>=2 && uniq.length===1){ status='ENIGHET'; verdict=uniq[0]; }
+    else if(dirs.length>=2 && uniq.length>1){ status='KONFLIKT'; verdict=null; }
+    else if(dirs.length===1){ status='EN_KILDE'; verdict=dirs[0]; }
+    else { status='NØYTRAL'; }
+    const pcts = engines.map(e=>e.scorePct ?? e.pct ?? 0);
+    conviction = Math.round(pcts.reduce((a,b)=>a+b,0)/engines.length);
+  }
 
-  return { symbol, name:INSTRUMENT_NAVN_NO[symbol]||symbol, cot, bed, interp, status, verdict, conviction };
+  return { symbol, name:INSTRUMENT_NAVN_NO[symbol]||symbol, cot, bed, reg, interp, status, verdict, conviction };
 }
 const STATUS_LBL = {
-  ENIGHET:'Enighet', KONFLIKT:'Konflikt', KUN_BEDROCK:'Kun bedrock',
-  KUN_COT:'Kun cot-explorer', 'NØYTRAL':'Nøytral'
+  ENIGHET:'Enighet', KONFLIKT:'Konflikt', EN_KILDE:'Én kilde', 'NØYTRAL':'Nøytral'
 };
 
 /* ──── VIZ-HJELPERE ──── */
@@ -471,13 +504,11 @@ function gauge(pct, dir, size){
   </svg>`;
 }
 function adots(u){
-  // bedrock ●—● cot
+  // bedrock ●—● cot ●—● regnbue
   const cls = u.status==='ENIGHET'?'agree' : u.status==='KONFLIKT'?'conflict' : '';
-  const fill = d => d==='LONG'?'fill-up' : d==='SHORT'?'fill-down' : 'hollow';
-  const bd = u.bed ? fill(u.bed.dir) : 'hollow';
-  const cd = u.cot ? fill(u.cot.dir) : 'hollow';
-  return `<span class="adots ${cls}" title="bedrock · cot-explorer">
-    <span class="d ${bd}"></span><span class="ln"></span><span class="d ${cd}"></span></span>`;
+  const fill = e => e ? (e.dir==='LONG'?'fill-up' : e.dir==='SHORT'?'fill-down' : 'hollow') : 'hollow';
+  return `<span class="adots ${cls}" title="bedrock · cot-explorer · regnbue">
+    <span class="d ${fill(u.bed)}"></span><span class="ln"></span><span class="d ${fill(u.cot)}"></span><span class="ln"></span><span class="d ${fill(u.reg)}"></span></span>`;
 }
 function gradeBadge(g){ return g?`<span class="badge ghost">${g}</span>`:''; }
 
@@ -486,14 +517,14 @@ function renderKonsensus(){
   const all = ASSET_GROUPS.flatMap(g=>g.items).map(unifyInstrument);
   const nAgree = all.filter(u=>u.status==='ENIGHET').length;
   const nConf  = all.filter(u=>u.status==='KONFLIKT').length;
-  const nSingle= all.filter(u=>u.status==='KUN_BEDROCK'||u.status==='KUN_COT').length;
+  const nSingle= all.filter(u=>u.status==='EN_KILDE').length;
 
   // hero
   let h = `<div class="hero">
     <div>
-      <div class="eyebrow">to motorer forsonet</div>
+      <div class="eyebrow">tre motorer forsonet</div>
       <h1>Konsensus-tavle</h1>
-      <p>Bedrock og cot-explorer scorer hvert instrument uavhengig. Her ser du hvor de er
+      <p>Bedrock, cot-explorer og regnbue scorer hvert instrument uavhengig. Her ser du hvor de er
          <b style="color:var(--up)">enige</b> (sterkest signal), hvor de er
          <b style="color:var(--down)">uenige</b> (konflikt), og hvor bare én motor har et syn.</p>
     </div>
@@ -517,8 +548,8 @@ function renderKonsensus(){
     <span><i style="background:var(--up)"></i>Long</span>
     <span><i style="background:var(--down)"></i>Short</span>
     <span><i style="background:var(--neu)"></i>Nøytral / kun én kilde</span>
-    <span>${adots({status:'ENIGHET',cot:{dir:'LONG'},bed:{dir:'LONG'}})} enige</span>
-    <span>${adots({status:'KONFLIKT',cot:{dir:'LONG'},bed:{dir:'SHORT'}})} uenige</span>
+    <span>${adots({status:'ENIGHET',cot:{dir:'LONG'},bed:{dir:'LONG'},reg:{dir:'LONG'}})} enige</span>
+    <span>${adots({status:'KONFLIKT',cot:{dir:'LONG'},bed:{dir:'SHORT'},reg:{dir:'LONG'}})} uenige</span>
   </div>`;
 
   // konflikter
@@ -567,6 +598,8 @@ function srcRow(tag, src, kind){
   }
   const meta = kind==='bed'
     ? `${src.published?'publisert':'under terskel'} · ${src.horizon||''} · ×${src.ratio.toFixed(2)}`
+    : kind==='reg'
+    ? `${src.published?'publisert':'avvist'}${src.grade?' · '+src.grade:''}${src.baseRate?` · n=${src.baseRate.n}`:''}`
     : `score ${src.scorePct!=null?src.scorePct+'%':'—'}${src.grade?' · '+src.grade:''}`;
   return `<div class="src-row"><span class="tag">${tag}</span>
     <span class="pill ${dirClass(src.dir)}">${dirNo(src.dir)}</span>
@@ -582,12 +615,13 @@ function conflictCard(u){
     <div style="margin-top:10px">
       ${srcRow('bedrock', u.bed, 'bed')}
       ${srcRow('cot-expl.', u.cot, 'cot')}
+      ${srcRow('regnbue', u.reg, 'reg')}
     </div>
   </a>`;
 }
 
 function agreeCard(u){
-  const lvls = u.cot?.setup || u.bed?.setup || {};
+  const lvls = u.cot?.setup || u.reg?.setup || u.bed?.setup || {};
   const tp = lvls.t1 ?? lvls.tp;
   return `<a class="card click ${dirClass(u.verdict)}" href="#/instrument/${u.symbol}">
     <div class="card-hd">
@@ -598,7 +632,7 @@ function agreeCard(u){
       ${gauge(u.conviction, u.verdict, 120)}
       <div>
         <div class="verdict-big ${dirClass(u.verdict)}">${dirNo(u.verdict)}</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--fg-mute);margin-top:4px">begge motorer</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--fg-mute);margin-top:4px">${[u.cot,u.bed,u.reg].filter(e=>e&&e.dir===u.verdict).length} motorer enige</div>
       </div>
     </div>
     ${lvls.entry!=null?`<div style="margin-top:8px">
@@ -632,8 +666,8 @@ async function renderInstrument(symbol){
     </div>
   </div>`;
 
-  // to kilder side om side
-  h += `<div class="cols">
+  // tre kilder side om side
+  h += `<div class="cols tri">
     <div class="card">
       <div class="eyebrow">bedrock</div>
       ${u.bed ? srcDetail(u.bed,'bed') : '<div class="empty-note" style="margin-top:10px">Ingen bedrock-dekning.</div>'}
@@ -641,6 +675,10 @@ async function renderInstrument(symbol){
     <div class="card">
       <div class="eyebrow">cot-explorer</div>
       ${u.cot ? srcDetail(u.cot,'cot') : '<div class="empty-note" style="margin-top:10px">Ingen cot-explorer-signal.</div>'}
+    </div>
+    <div class="card">
+      <div class="eyebrow">regnbue</div>
+      ${u.reg ? srcDetail(u.reg,'reg') : '<div class="empty-note" style="margin-top:10px">Ingen regnbue-setup.</div>'}
     </div>
   </div>`;
 
@@ -681,6 +719,7 @@ function srcDetail(src, kind){
     <span class="badge ${dirClass(dir)}">${dirNo(dir)}</span>
     ${gradeBadge(src.grade)}`;
   if(kind==='bed') h += `<span class="meta" style="font-family:var(--mono);font-size:11px;color:var(--fg-mute)">${src.published?'publisert':'under terskel'} · ${src.horizon||''}</span>`;
+  else if(kind==='reg') h += `<span class="meta" style="font-family:var(--mono);font-size:11px;color:var(--fg-mute)">${src.published?'publisert':'avvist'} · score ${src.score!=null?src.score.toFixed(2):'—'}</span>`;
   else if(src.scorePct!=null) h += `<span class="meta" style="font-family:var(--mono);font-size:11px;color:var(--fg-mute)">score ${src.scorePct}%</span>`;
   h += `</div>`;
   const su = src.setup||{};
@@ -689,8 +728,28 @@ function srcDetail(src, kind){
     h += `<div class="kv"><span class="k">Entry</span><span class="v">${fmtPrice(su.entry)}</span></div>
       <div class="kv"><span class="k">Stop</span><span class="v down">${fmtPrice(su.sl)}</span></div>
       <div class="kv"><span class="k">Mål</span><span class="v up">${fmtPrice(tp)}</span></div>`;
+    if(kind==='reg' && su.rr!=null) h += `<div class="kv"><span class="k">R:R</span><span class="v">${su.rr.toFixed(2)}</span></div>`;
   }
   if(kind==='bed') h += `<div class="kv"><span class="k">Score / terskel</span><span class="v">×${src.ratio.toFixed(2)}</span></div>`;
+  if(kind==='reg') h += regBaseRate(src);
+  return h;
+}
+function regBaseRate(src){
+  const br = src.baseRate;
+  let h = '';
+  if(br){
+    const hr = br.hit_rate!=null ? (br.hit_rate*100).toFixed(0)+'%' : '—';
+    const hrci = br.hit_rate_ci ? `${(br.hit_rate_ci[0]*100).toFixed(0)}–${(br.hit_rate_ci[1]*100).toFixed(0)}%` : '';
+    const ex = br.expectancy_r!=null ? (br.expectancy_r>=0?'+':'')+br.expectancy_r.toFixed(2)+'R' : '—';
+    const exci = br.expectancy_ci ? `${br.expectancy_ci[0].toFixed(2)}…${br.expectancy_ci[1].toFixed(2)}` : '';
+    h += `<div class="br-evi">
+      <span class="ev">analoger <b>n=${br.n ?? '—'}</b></span>
+      <span class="ev ${br.passes?'br-pass':'br-fail'}">${br.passes?'består':'under terskel'}</span>
+      <span class="ev">treffrate <b>${hr}</b>${hrci?` <span style="opacity:.7">(${hrci})</span>`:''}</span>
+      <span class="ev">forventning <b>${ex}</b>${exci?` <span style="opacity:.7">(${exci})</span>`:''}</span>
+    </div>`;
+  }
+  if(!src.published && src.reject) h += `<div class="rg-note">⚠ ${src.reject}</div>`;
   return h;
 }
 
@@ -722,7 +781,7 @@ async function drawChart(symbol, u){
   const rows = (j?.data || j?.rows || (Array.isArray(j)?j:[])).slice(-260);
   if(!rows.length){ box.innerHTML = `<div class="empty-note">Ingen prisdata.</div>`; return; }
   const vals = rows.map(r=>r.price ?? r.close ?? r.c).filter(v=>v!=null);
-  const su = u.cot?.setup || u.bed?.setup || {};
+  const su = u.cot?.setup || u.reg?.setup || u.bed?.setup || {};
   const lvls = [
     {v:su.entry, c:'var(--teal)', t:'Entry'},
     {v:su.sl, c:'var(--down)', t:'Stop'},
@@ -808,6 +867,80 @@ function mxCard(e){
   </div>`;
 }
 
+/* ════════ REGNBUE (base-rate-setups) ════════ */
+const REGNBUE_TO_COT = Object.fromEntries(Object.entries(REGNBUE_SYMBOL_MAP).map(([c,r])=>[r,c]));
+function cotSymbolFor(regInstr){ return REGNBUE_TO_COT[regInstr] || regInstr; }
+let rgFilter = { grade:'alle', status:'alle' };
+function renderRegnbue(){
+  const sigs = (D.regnbueSignals||[]).slice();
+  const asof = D.regnbue?.raw?.as_of || '';
+  let h = `<div class="hero">
+    <div>
+      <div class="eyebrow">tredje motor</div>
+      <h1>Regnbue-setups</h1>
+      <p>Base-rate-validerte setups med nivåer (entry/stop/mål) på Skilling-feeden. Hver setup
+         må bestå en <b>base-rate-gate</b> — nok historiske analoger, treffrate og forventning med
+         konfidensintervall — før den publiseres. De fleste avvises ærlig; det er meningen.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat agree"><div class="n">${sigs.filter(s=>s.published).length}</div><div class="l">Publisert</div></div>
+      <div class="hstat single"><div class="n">${sigs.length}</div><div class="l">Vurdert</div></div>
+    </div>
+  </div>`;
+  if(!sigs.length){
+    h += `<div class="empty-note">Ingen regnbue-data lastet ennå (data/regnbue/setups.json mangler).</div>`;
+    $('#panel-regnbue').innerHTML = h; return;
+  }
+  if(asof) h += `<div class="section-hd"><h2>Setups</h2><span class="sub">per ${asof} · rangert etter styrke</span></div>`;
+  h += `<div class="filters">
+    ${rgFgroup('grade',[['alle','Alle'],['A+','A+'],['A','A'],['B','B']])}
+    ${rgFgroup('status',[['alle','Alle'],['publisert','Publisert']])}
+  </div>`;
+  let rows = sigs.slice();
+  if(rgFilter.grade!=='alle') rows = rows.filter(e=>e.grade===rgFilter.grade);
+  if(rgFilter.status==='publisert') rows = rows.filter(e=>e.published);
+  rows.sort((a,b)=>Math.abs(b.score||0)-Math.abs(a.score||0));
+  h += `<div class="grid cards">` + rows.map(rgCard).join('') + `</div>`;
+  $('#panel-regnbue').innerHTML = h;
+  $$('#panel-regnbue .fbtn').forEach(b=>b.addEventListener('click',()=>{
+    rgFilter[b.dataset.f]=b.dataset.v; renderRegnbue();
+  }));
+}
+function rgFgroup(f, opts){
+  return opts.map(([v,l])=>`<span class="fbtn ${rgFilter[f]===v?'on':''}" data-f="${f}" data-v="${v}">${l}</span>`).join('');
+}
+function rgCard(e){
+  const dir=normDir(e.direction); const sym=cotSymbolFor(e.instrument);
+  const grade=regGrade(e.grade); const br=e.base_rate;
+  const tp = e.tp;
+  let evi = '';
+  if(br){
+    const hr = br.hit_rate!=null ? (br.hit_rate*100).toFixed(0)+'%' : '—';
+    const ex = br.expectancy_r!=null ? (br.expectancy_r>=0?'+':'')+br.expectancy_r.toFixed(2)+'R' : '—';
+    evi = `<div class="br-evi">
+      <span class="ev">n=<b>${br.n ?? '—'}</b></span>
+      <span class="ev ${br.passes?'br-pass':'br-fail'}">${br.passes?'består gate':'under gate'}</span>
+      <span class="ev">treff <b>${hr}</b></span>
+      <span class="ev">forv. <b>${ex}</b></span>
+    </div>`;
+  }
+  return `<a class="mx-card ${dirClass(dir)}" href="#/instrument/${sym}">
+    <div class="mx-hd"><span class="nm">${sym}</span><span class="hz">${e.ticker||''}</span></div>
+    <div class="mx-dir">
+      <span class="mx-arrow ${dirClass(dir)}">${dir==='LONG'?'▲':dir==='SHORT'?'▼':'·'}</span>
+      <span class="badge ${dirClass(dir)}">${dirNo(dir)}</span>
+      ${gradeBadge(grade)}
+      ${e.published?'<span class="badge ghost" style="color:var(--up);border-color:rgba(52,211,153,.4)">publisert</span>':''}
+    </div>
+    ${(e.entry!=null||e.sl!=null)?`<div class="kv"><span class="k">Entry</span><span class="v">${fmtPrice(e.entry)}</span></div>
+      <div class="kv"><span class="k">Stop</span><span class="v down">${fmtPrice(e.sl)}</span></div>
+      <div class="kv"><span class="k">Mål</span><span class="v up">${fmtPrice(tp)}</span></div>
+      <div class="kv"><span class="k">R:R</span><span class="v">${e.rr!=null?e.rr.toFixed(2):'—'}</span></div>`:''}
+    ${evi}
+    <div class="mx-meta"><span>score ${e.score!=null?e.score.toFixed(2):'—'}</span><span>${e.published?'':'avvist'}</span></div>
+  </a>`;
+}
+
 /* ════════ DATAKVALITET ════════ */
 function renderData(){
   const now = Date.now();
@@ -816,6 +949,7 @@ function renderData(){
     {n:'cot-explorer landbruk', t:D.agri_signals?.generated, src:(D.agri_signals?.signals||[]).length+' signaler'},
     {n:'bedrock signaler', t:D.bedrockIndex?.generated, src:(D.bedrockSignals||[]).length+' setup'},
     {n:'bedrock landbruk', t:D.bedrockIndex?.generated, src:(D.bedrockAgriSignals||[]).length+' setup'},
+    {n:'regnbue setups', t:D.regnbue?.generated, src:(D.regnbueSignals||[]).length+' setup · '+(D.regnbueSignals||[]).filter(s=>s.published).length+' publ.'},
     {n:'COT-tolkning', t:D.interpretation?.generated, src:Object.keys(D.interpretation?.assets||{}).length+' instrumenter'},
     {n:'Makro / DXY', t:D.macro?.date, src:D.macro?.cot_date?('COT '+D.macro.cot_date):''},
     {n:'COMEX-lager', t:D.meta?.comex?.generated, src:(D.meta?.comex?.rows ?? 0)+' rader'},
@@ -858,7 +992,7 @@ function renderState(){
 }
 
 /* ════════ ROUTER ════════ */
-const TABS = ['konsensus','matrise','data'];
+const TABS = ['konsensus','matrise','regnbue','data'];
 function showPanel(tab){
   $$('.panel').forEach(p=>p.classList.remove('on'));
   $('#panel-'+tab).classList.add('on');
@@ -877,6 +1011,7 @@ function navigate(){
   showPanel(tab);
   if(tab==='konsensus') renderKonsensus();
   else if(tab==='matrise') renderMatrise();
+  else if(tab==='regnbue') renderRegnbue();
   else if(tab==='data') renderData();
   window.scrollTo({top:0});
 }
