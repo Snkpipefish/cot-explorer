@@ -1,12 +1,38 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-06-11 06:02 UTC",
+  "generated": "2026-06-11 13:59 UTC",
   "cot_date": "2026-06-10",
   "enso_phase": "Nøytral",
   "global_state": {
     "geo_active": true,
     "vix_regime": "elevated",
-    "usda_blackout": null
+    "usda_blackout": {
+      "Corn": {
+        "report": "WASDE",
+        "time_utc": "2026-06-11 16:00 UTC",
+        "hours_away": 2.0
+      },
+      "Wheat": {
+        "report": "WASDE",
+        "time_utc": "2026-06-11 16:00 UTC",
+        "hours_away": 2.0
+      },
+      "Soybean": {
+        "report": "WASDE",
+        "time_utc": "2026-06-11 16:00 UTC",
+        "hours_away": 2.0
+      },
+      "Cotton": {
+        "report": "WASDE",
+        "time_utc": "2026-06-11 16:00 UTC",
+        "hours_away": 2.0
+      },
+      "Sugar": {
+        "report": "WASDE",
+        "time_utc": "2026-06-11 16:00 UTC",
+        "hours_away": 2.0
+      }
+    }
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -15,264 +41,5 @@
     "min_rr": 1.33,
     "note": "Agri-signaler bruker fundamental analyse — ATR-nivåer er estimater. Boten bør bekrefte med live ATR."
   },
-  "signals": [
-    {
-      "key": "Soybean",
-      "name": "Soyabønner",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 6.8,
-      "current": 1123.5,
-      "entry": 1122.99,
-      "sl": 1099.4,
-      "t1": 1175.0,
-      "t2": 1200.0,
-      "rr_t1": 2.2,
-      "rr_t2": 3.26,
-      "sl_type": "atr_prosent",
-      "t1_source": "rn1175",
-      "atr_est": 11.8,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 14.8%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.29166666666666663,
-          "weight": 1.3,
-          "drivers": [
-            "Bedrock A BUY bekrefter (score 9.8)",
-            "COT: spekulanter øker long (net +15% av OI)",
-            "Yield svak — risiko for lav produksjon"
-          ]
-        },
-        "risk": {
-          "score": 0.75,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv",
-            "VIX elevert"
-          ]
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 2,
-      "group_drivers": [
-        "Bedrock A BUY bekrefter (score 9.8)",
-        "COT: spekulanter øker long (net +15% av OI)",
-        "Yield svak — risiko for lav produksjon",
-        "CONAB Brasil soja: +5.0% YoY (↑ vekst)",
-        "Bedrock: A BUY makro publisert (score 9.8)"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 14.8,
-      "cot_zscore": 0.66,
-      "source": "agri_fundamental",
-      "yield_score": 42,
-      "yield_quality": "Svak",
-      "weather_outlook": "normalt",
-      "growth_stage": "Tidlig vekst",
-      "season_pct": 44,
-      "drivers": [
-        "Bedrock A BUY bekrefter (score 9.8)",
-        "COT: spekulanter øker long (net +15% av OI)",
-        "Yield svak — risiko for lav produksjon",
-        "CONAB Brasil soja: +5.0% YoY (↑ vekst)"
-      ]
-    },
-    {
-      "key": "Sugar",
-      "name": "Sukker",
-      "action": "SELL",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 5.7,
-      "current": 13.91,
-      "entry": 13.93,
-      "sl": 14.67,
-      "t1": 12.5,
-      "t2": 12.0,
-      "rr_t1": 1.93,
-      "rr_t2": 2.61,
-      "sl_type": "atr_prosent",
-      "t1_source": "rn12.5",
-      "atr_est": 0.37,
-      "driver_groups": {
-        "trend": {
-          "score": 0.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bear -12.1%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.41666666666666663,
-          "weight": 1.3,
-          "drivers": [
-            "UNICA: crush YoY +74.6% → supply rikelig",
-            "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=0.3) → supply-overflod fortsetter",
-            "COT: spekulanter øker short (net -12% av OI)"
-          ]
-        },
-        "risk": {
-          "score": 0.75,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv",
-            "VIX elevert"
-          ]
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 2,
-      "group_drivers": [
-        "UNICA: crush YoY +74.6% → supply rikelig",
-        "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=0.3) → supply-overflod fortsetter",
-        "COT: spekulanter øker short (net -12% av OI)",
-        "UNICA: mix shifter mot etanol (45.2% → 38.2%) — mindre sukker-tilbud",
-        "UNICA: cane-crush +74.6% YoY — rikelig safra",
-        "Bedrock: A BUY makro publisert (score 9.3)"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bear",
-      "cot_pct": -12.1,
-      "cot_zscore": -1.46,
-      "source": "agri_fundamental",
-      "yield_score": 76,
-      "yield_quality": "God",
-      "weather_outlook": "normalt",
-      "growth_stage": "Vegetativ vekst",
-      "season_pct": 42,
-      "drivers": [
-        "UNICA: crush YoY +74.6% → supply rikelig",
-        "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=0.3) → supply-overflod fortsetter",
-        "COT: spekulanter øker short (net -12% av OI)",
-        "UNICA: mix shifter mot etanol (45.2% → 38.2%) — mindre sukker-tilbud"
-      ]
-    },
-    {
-      "key": "Corn",
-      "name": "Mais",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 5.4,
-      "current": 418.5,
-      "entry": 418.24,
-      "sl": 405.94,
-      "t1": 447.0,
-      "t2": 450.0,
-      "rr_t1": 2.34,
-      "rr_t2": 2.58,
-      "sl_type": "atr_prosent",
-      "t1_source": "4w_low",
-      "atr_est": 6.15,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 6.7%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.29166666666666663,
-          "weight": 1.3,
-          "drivers": [
-            "Bedrock A BUY bekrefter (score 11.4)",
-            "Værstress i Kina – Hebei / Henan (tørke)",
-            "2 risiko-regioner"
-          ]
-        },
-        "risk": {
-          "score": 0.75,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv",
-            "VIX elevert"
-          ]
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 2,
-      "group_drivers": [
-        "Bedrock A BUY bekrefter (score 11.4)",
-        "Værstress i Kina – Hebei / Henan (tørke)",
-        "2 risiko-regioner",
-        "COT: spekulanter øker long (net +7% av OI)",
-        "Yield svak — risiko for lav produksjon",
-        "CONAB Brasil mais: -0.7% YoY (↓ svikt)",
-        "Bedrock: A BUY makro publisert (score 11.4)"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 6.7,
-      "cot_zscore": 0.25,
-      "source": "agri_fundamental",
-      "yield_score": 41,
-      "yield_quality": "Svak",
-      "weather_outlook": "tørke",
-      "growth_stage": "Høsting",
-      "season_pct": 91,
-      "drivers": [
-        "Bedrock A BUY bekrefter (score 11.4)",
-        "Værstress i Kina – Hebei / Henan (tørke)",
-        "2 risiko-regioner",
-        "COT: spekulanter øker long (net +7% av OI)"
-      ]
-    }
-  ]
+  "signals": []
 }
