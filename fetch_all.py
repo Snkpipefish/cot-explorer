@@ -489,12 +489,24 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         "MAKRO":     1.5,
         "WATCHLIST": 1.0,
     }
+    # Risk-gulv/-tak i ATR(D1): gulv hindrer støy-SL (f.eks. MAKRO-setup med
+    # 0.3×ATRd SL som stoppes av intradag-støy), tak hindrer at et SCALP-setup
+    # arver en dyp sonebunn som SL og får intradag-uoppnåelig T1.
+    # Gulv: SL skyves ut til gulvet (markeres i sl_type). Tak: setup forkastes.
+    HORIZON_RISK_ATR = {
+        "SCALP":     (0.15, 1.0),
+        "SWING":     (0.30, 2.0),
+        "MAKRO":     (0.50, None),   # Ingen tak
+        "WATCHLIST": (0.15, 1.0),
+    }
     t1_cap_atr, t2_cap_atr = HORIZON_T_CAPS.get(horizon, (5.0, 8.0))
     min_rr = HORIZON_MIN_RR.get(horizon, min_rr)
+    risk_floor_atr, risk_cap_atr = HORIZON_RISK_ATR.get(horizon, (0.30, 2.0))
     if not atr_15m or atr_15m <= 0:
         return None
     if not atr_daily or atr_daily <= 0:
-        atr_daily = atr_15m * 5
+        # √tid-skalering: ATR(D1) ≈ √96 × ATR(15m) ≈ 10×
+        atr_daily = atr_15m * 10
 
     def structural_sl(entry_level, entry_obj, dir):
         """
@@ -652,6 +664,13 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         risk = entry_level - sl
         if risk <= 0:
             return None
+        if risk_cap_atr and risk > risk_cap_atr * atr_daily:
+            return None  # Strukturell SL for dyp for horisonten
+        sl_floored = False
+        if risk < risk_floor_atr * atr_daily:
+            sl = round(entry_level - risk_floor_atr * atr_daily, 5)
+            risk = entry_level - sl
+            sl_floored = True
         min_t1_dist = risk * min_rr
 
         max_t1_dist = t1_cap_atr * atr_daily if t1_cap_atr else None
@@ -674,6 +693,8 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
 
         at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
         sl_src   = "zone" if entry_obj.get("zone_bottom") else "struktur"
+        if sl_floored:
+            sl_src += "+floor"
         q        = t1_obj["t1_quality"]
         return {
             "entry":          round(entry_level, 5),
@@ -714,6 +735,13 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
         risk = sl - entry_level
         if risk <= 0:
             return None
+        if risk_cap_atr and risk > risk_cap_atr * atr_daily:
+            return None  # Strukturell SL for dyp for horisonten
+        sl_floored = False
+        if risk < risk_floor_atr * atr_daily:
+            sl = round(entry_level + risk_floor_atr * atr_daily, 5)
+            risk = sl - entry_level
+            sl_floored = True
         min_t1_dist = risk * min_rr
 
         max_t1_dist = t1_cap_atr * atr_daily if t1_cap_atr else None
@@ -736,6 +764,8 @@ def make_setup_l2l(curr, atr_15m, atr_daily, sup_tagged, res_tagged, direction, 
 
         at_level = is_at_level(curr, entry_level, atr_15m, entry_w)
         sl_src   = "zone" if entry_obj.get("zone_top") else "struktur"
+        if sl_floored:
+            sl_src += "+floor"
         q        = t1_obj["t1_quality"]
         return {
             "entry":          round(entry_level, 5),
@@ -1281,7 +1311,9 @@ for inst in INSTRUMENTS:
     for s in sup_15m:
         if s < curr: raw_sup.append({"price": s, "source": "15m", "weight": 1})
 
-    atr_for_merge = atr_15m if atr_15m else (atr_d * 0.4 if atr_d else None)
+    # Fallback ATR(15m) ≈ ATR(D1)/10 (√tid: √96 ≈ 9.8). Tidligere 0.4×ATR_d
+    # var ~4× for stort → "at level"-sjekk og merge-buffer ble alt for løse.
+    atr_for_merge = atr_15m if atr_15m else (atr_d / 10 if atr_d else None)
 
     # Merge: nivåer innen 0.5×ATR slås sammen, høyest weight vinner
     tagged_res = merge_tagged_levels(raw_res, curr, atr_for_merge)
@@ -1397,11 +1429,11 @@ for inst in INSTRUMENTS:
 
     # Pris ved nivå — kun for display, ikke brukt i horizon/score
     at_sup = any(
-        is_at_level(curr, l["price"], atr_for_merge or atr_d*0.4, l["weight"])
+        is_at_level(curr, l["price"], atr_for_merge or atr_d / 10, l["weight"])
         for l in tagged_sup
     ) if tagged_sup else False
     at_res = any(
-        is_at_level(curr, l["price"], atr_for_merge or atr_d*0.4, l["weight"])
+        is_at_level(curr, l["price"], atr_for_merge or atr_d / 10, l["weight"])
         for l in tagged_res
     ) if tagged_res else False
     at_level_now = at_sup or at_res
@@ -1466,14 +1498,20 @@ for inst in INSTRUMENTS:
             # EURUSD: sterk USD = bear → invers DXY
             dir_score += -0.5 if dxy_dir_color == "bull" else 0.5
 
-    # Hysterese: krever dir_score > 0.5 for bull, < -0.5 for bear
-    # Mellom -0.5 og 0.5: fall tilbake til SMA200
+    # Hysterese: krever dir_score > 0.5 for bull, < -0.5 for bear.
+    # I dødssonen (-0.5..0.5): behold FORRIGE retning hvis den finnes —
+    # ekte hysterese. SMA200-fallback (gammel logikk) flippet likevel hver
+    # kjøring når pris vaket rundt SMA200 med dir_score nær null.
     if dir_score > 0.5:
         dir_color = "bull"
     elif dir_score < -0.5:
         dir_color = "bear"
     else:
-        dir_color = "bull" if above_sma else "bear"
+        _prev_dc = _prev_signals.get(key, {}).get("dir_color")
+        if _prev_dc in ("bull", "bear"):
+            dir_color = _prev_dc
+        else:
+            dir_color = "bull" if above_sma else "bear"
 
     # ── Olje supply-disruption (runde 4: hard dir-flip fjernet) ────
     # dir_color reflekterer nå teknisk virkelighet selv ved disruption.
@@ -1762,7 +1800,7 @@ for inst in INSTRUMENTS:
     pos_size  = "Full" if vix_price<20 else "Halv" if vix_price<30 else "Kvart"
 
     # ── Setups med tagget nivåer ──────────────────────────
-    atr_for_setup = atr_15m if atr_15m else (atr_d * 0.4)
+    atr_for_setup = atr_15m if atr_15m else (atr_d / 10)
     setup_long  = make_setup_l2l(curr, atr_for_setup, atr_d, tagged_sup, tagged_res, "long",  klasse, horizon=horizon, kat=inst["kat"])
     setup_short = make_setup_l2l(curr, atr_for_setup, atr_d, tagged_sup, tagged_res, "short", klasse, horizon=horizon, kat=inst["kat"])
     for s in [setup_long, setup_short]:
@@ -1778,6 +1816,7 @@ for inst in INSTRUMENTS:
         max_age = _PERSIST_HOURS.get(prev_hz, 0)
         created = prev_stab.get("created", "")
         age_ok = True
+        age_h  = None
         if created and max_age:
             try:
                 from datetime import datetime as _dt
@@ -1787,22 +1826,33 @@ for inst in INSTRUMENTS:
                 age_ok = age_h < max_age
             except Exception:
                 age_ok = True  # Ved feil, behold
+
+        def _persist_valid(stp, dir):
+            """Geometrisk re-validering: setupet må fortsatt være gyldig.
+            LONG:  pris over SL, og innen [entry - 0.25×ATRd, entry + 2×ATRd]
+                   (pris under entry = nivået er brutt, ikke en pullback).
+            SHORT: speilvendt."""
+            pe = stp.get("entry", 0)
+            psl = stp.get("sl")
+            if not pe or psl is None:
+                return False
+            if dir == "long":
+                return (curr > psl
+                        and pe - atr_d * 0.25 <= curr <= pe + atr_d * 2)
+            return (curr < psl
+                    and pe - atr_d * 2 <= curr <= pe + atr_d * 0.25)
+
         if age_ok:
             prev_dir = prev_stab.get("setup_dir", "long")
             # Gjenbruk hvis ny kjøring ikke fant setup i samme retning
-            if prev_dir == "long" and setup_long is None:
-                # Verifiser at entry-nivå fortsatt er nært nok (innen 2×ATR(D1))
-                pe = prev_setup.get("entry", 0)
-                if abs(curr - pe) <= atr_d * 2:
-                    setup_long = prev_setup
-                    setup_long["persisted"] = True
-                    setup_long["persist_age_h"] = round(age_h, 1) if 'age_h' in dir() else 0
-            elif prev_dir == "short" and setup_short is None:
-                pe = prev_setup.get("entry", 0)
-                if abs(curr - pe) <= atr_d * 2:
-                    setup_short = prev_setup
-                    setup_short["persisted"] = True
-                    setup_short["persist_age_h"] = round(age_h, 1) if 'age_h' in dir() else 0
+            if prev_dir == "long" and setup_long is None and _persist_valid(prev_setup, "long"):
+                setup_long = prev_setup
+                setup_long["persisted"] = True
+                setup_long["persist_age_h"] = round(age_h, 1) if age_h is not None else 0
+            elif prev_dir == "short" and setup_short is None and _persist_valid(prev_setup, "short"):
+                setup_short = prev_setup
+                setup_short["persisted"] = True
+                setup_short["persist_age_h"] = round(age_h, 1) if age_h is not None else 0
 
     def fmt_level(tagged, typ, atr):
         out = []
@@ -1824,7 +1874,7 @@ for inst in INSTRUMENTS:
     # Ingen aktiv setup: vis nærmeste meningsfulle mål som potensielt (~T1)
     # Filtrer bort nivåer innen 1.5×ATR (for nære til å være nyttige mål)
     if t1_s is None:
-        min_dist = (atr_15m or atr_d * 0.4) * 1.5
+        min_dist = (atr_15m or atr_d / 10) * 1.5
         cands = tagged_res if dir_color == "bull" else tagged_sup
         cands = [l for l in cands if abs(l["price"] - curr) >= min_dist]
         pot = next((l for l in cands if l["weight"] >= 2), cands[0] if cands else None)

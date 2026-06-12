@@ -183,6 +183,10 @@ python3 push_agri_signals.py >> "$LOG" 2>&1 && echo "  agri-signals OK" >> "$LOG
 # Push signaler — kjøres alltid (skriver signals.json og signal_log.json)
 python3 push_signals.py >> "$LOG" 2>&1 && echo "  signals OK" >> "$LOG" || echo "  signals FEIL" >> "$LOG"
 
+# Outcome-tracking: registrer publiserte setups og evaluer åpne mot 1H-OHLC
+# (skriver data/setup_outcomes.json — kalibreringsgrunnlag for scoring-vekter)
+python3 track_setups.py >> "$LOG" 2>&1 && echo "  setup-outcomes OK" >> "$LOG" || echo "  setup-outcomes FEIL" >> "$LOG"
+
 # K5: Sync trade-log fra scalp_edge-boten før git-add.
 # Boten eier ~/scalp_edge/signal_log.json og oppdaterer den ved hver
 # trade-hendelse; vi kopierer den inn her slik at boten slipper å gjøre
