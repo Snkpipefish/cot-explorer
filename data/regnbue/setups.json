@@ -1,12 +1,12 @@
 {
-  "generated": "2026-06-12T22:00:12+00:00",
+  "generated": "2026-06-14T22:00:12+00:00",
   "source": "Regnbue \u00b7 base-rate-validated setups (Skilling-feed)",
-  "as_of": "2026-06-10",
+  "as_of": "2026-06-11",
   "rows": 22,
   "raw": {
     "schema_version": 1,
-    "generated": "2026-06-12T17:16:23Z",
-    "as_of": "2026-06-10",
+    "generated": "2026-06-14T18:12:08Z",
+    "as_of": "2026-06-11",
     "signals": [
       {
         "instrument": "NatGas",
@@ -64,12 +64,12 @@
         "grade": "A",
         "score": -0.5297,
         "published": false,
-        "entry": 261.82,
-        "sl": 271.65875,
-        "tp": 250,
-        "rr": 1.201,
-        "atr": 6.635,
-        "reject_reason": "R:R 1.20 < 1.5; base-rate: for f\u00e5 analoger (n=7 < 30); hit-rate nedre CI 3% < 55%; expectancy -0.57R < 0.30R; expectancy CI inkluderer \u22640 (-1.41R)",
+        "entry": 264.56,
+        "sl": 271.683393,
+        "tp": 260,
+        "rr": 0.64,
+        "atr": 6.733571,
+        "reject_reason": "R:R 0.64 < 1.5; base-rate: for f\u00e5 analoger (n=7 < 30); hit-rate nedre CI 3% < 55%; expectancy -0.57R < 0.30R; expectancy CI inkluderer \u22640 (-1.41R)",
         "base_rate": {
           "n": 7,
           "hit_rate": 0.1429,
@@ -117,35 +117,35 @@
         "ticker": "GOLD",
         "direction": "SHORT",
         "grade": "A",
-        "score": -0.5245,
+        "score": -0.4963,
         "published": false,
-        "entry": 4212.35,
-        "sl": 4274.843571,
+        "entry": 4218.51,
+        "sl": 4274.942321,
         "tp": 4169.97,
-        "rr": 0.678,
-        "atr": 119.334286,
-        "reject_reason": "R:R 0.68 < 1.5; base-rate: hit-rate nedre CI 20% < 55%; expectancy +0.08R < 0.30R; expectancy CI inkluderer \u22640 (-0.41R)",
+        "rr": 0.86,
+        "atr": 119.729286,
+        "reject_reason": "R:R 0.86 < 1.5; base-rate: hit-rate nedre CI 19% < 55%; expectancy +0.05R < 0.30R; expectancy CI inkluderer \u22640 (-0.43R)",
         "base_rate": {
-          "n": 33,
-          "hit_rate": 0.3333,
+          "n": 34,
+          "hit_rate": 0.3235,
           "hit_rate_ci": [
-            0.1975,
-            0.5039
+            0.1913,
+            0.4916
           ],
-          "expectancy_r": 0.0777,
+          "expectancy_r": 0.046,
           "expectancy_ci": [
-            -0.4069,
-            0.5623
+            -0.4282,
+            0.5202
           ],
           "passes": false,
-          "reason": "hit-rate nedre CI 20% < 55%; expectancy +0.08R < 0.30R; expectancy CI inkluderer \u22640 (-0.41R)"
+          "reason": "hit-rate nedre CI 19% < 55%; expectancy +0.05R < 0.30R; expectancy CI inkluderer \u22640 (-0.43R)"
         },
         "drivers": [
           {
             "name": "series_spread_percentile",
             "ok": true,
-            "score": -0.9769,
-            "detail": "DGS10-T10YIE = +2.21 (p99)"
+            "score": -0.8963,
+            "detail": "DGS10-T10YIE = +2.16 (p95)"
           },
           {
             "name": "momentum",
@@ -816,6 +816,61 @@
         ]
       },
       {
+        "instrument": "EURUSD",
+        "ticker": "EURUSD",
+        "direction": "LONG",
+        "grade": "NONE",
+        "score": 0.1424,
+        "published": false,
+        "entry": 1.15662,
+        "sl": 1.152737,
+        "tp": 1.16265,
+        "rr": 1.553,
+        "atr": 0.005614,
+        "reject_reason": "ingen grade (for svakt signal); base-rate: hit-rate nedre CI 26% < 55%; expectancy +0.11R < 0.30R; expectancy CI inkluderer \u22640 (-0.25R)",
+        "base_rate": {
+          "n": 65,
+          "hit_rate": 0.3692,
+          "hit_rate_ci": [
+            0.2623,
+            0.4908
+          ],
+          "expectancy_r": 0.1077,
+          "expectancy_ci": [
+            -0.247,
+            0.4624
+          ],
+          "passes": false,
+          "reason": "hit-rate nedre CI 26% < 55%; expectancy +0.11R < 0.30R; expectancy CI inkluderer \u22640 (-0.25R)"
+        },
+        "drivers": [
+          {
+            "name": "series_spread_percentile",
+            "ok": true,
+            "score": 0.1931,
+            "detail": "DGS10-IRLTLT01DEM156N = +1.45 (p40)"
+          },
+          {
+            "name": "momentum",
+            "ok": true,
+            "score": -0.1104,
+            "detail": "DGS2 21d-endring +0.05 (z=+0.11)"
+          },
+          {
+            "name": "cot_spec_net_percentile",
+            "ok": true,
+            "score": -0.141,
+            "detail": "EURUSD spec-net p43"
+          },
+          {
+            "name": "level_percentile",
+            "ok": true,
+            "score": 0.6532,
+            "detail": "VIXCLS niv\u00e5 15.7 = p17"
+          }
+        ]
+      },
+      {
         "instrument": "Wheat",
         "ticker": "Wheat",
         "direction": "SHORT",
@@ -971,61 +1026,6 @@
             "ok": true,
             "score": -0.8049,
             "detail": "OVX niv\u00e5 75.4 = p90"
-          }
-        ]
-      },
-      {
-        "instrument": "EURUSD",
-        "ticker": "EURUSD",
-        "direction": "SHORT",
-        "grade": "NONE",
-        "score": -0.0548,
-        "published": false,
-        "entry": 1.15773,
-        "sl": 1.164086,
-        "tp": 1.15414,
-        "rr": 0.565,
-        "atr": 0.005745,
-        "reject_reason": "ingen grade (for svakt signal); R:R 0.56 < 1.5; base-rate: hit-rate nedre CI 26% < 55%; expectancy +0.10R < 0.30R; expectancy CI inkluderer \u22640 (-0.27R)",
-        "base_rate": {
-          "n": 60,
-          "hit_rate": 0.3667,
-          "hit_rate_ci": [
-            0.2562,
-            0.4932
-          ],
-          "expectancy_r": 0.1,
-          "expectancy_ci": [
-            -0.2689,
-            0.4689
-          ],
-          "passes": false,
-          "reason": "hit-rate nedre CI 26% < 55%; expectancy +0.10R < 0.30R; expectancy CI inkluderer \u22640 (-0.27R)"
-        },
-        "drivers": [
-          {
-            "name": "series_spread_percentile",
-            "ok": true,
-            "score": -0.1758,
-            "detail": "DGS10-IRLTLT01DEM156N = +1.55 (p59)"
-          },
-          {
-            "name": "momentum",
-            "ok": true,
-            "score": -0.379,
-            "detail": "DGS2 21d-endring +0.18 (z=+0.40)"
-          },
-          {
-            "name": "cot_spec_net_percentile",
-            "ok": true,
-            "score": -0.141,
-            "detail": "EURUSD spec-net p43"
-          },
-          {
-            "name": "level_percentile",
-            "ok": true,
-            "score": 0.6484,
-            "detail": "VIXCLS niv\u00e5 15.7 = p18"
           }
         ]
       },
