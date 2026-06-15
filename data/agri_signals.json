@@ -1,12 +1,33 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-06-15 14:01 UTC",
+  "generated": "2026-06-15 18:01 UTC",
   "cot_date": "2026-06-10",
   "enso_phase": "Nøytral",
   "global_state": {
     "geo_active": true,
     "vix_regime": "normal",
-    "usda_blackout": null
+    "usda_blackout": {
+      "Corn": {
+        "report": "Crop Progress",
+        "time_utc": "2026-06-15 20:00 UTC",
+        "hours_away": 2.0
+      },
+      "Wheat": {
+        "report": "Crop Progress",
+        "time_utc": "2026-06-15 20:00 UTC",
+        "hours_away": 2.0
+      },
+      "Soybean": {
+        "report": "Crop Progress",
+        "time_utc": "2026-06-15 20:00 UTC",
+        "hours_away": 2.0
+      },
+      "Cotton": {
+        "report": "Crop Progress",
+        "time_utc": "2026-06-15 20:00 UTC",
+        "hours_away": 2.0
+      }
+    }
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -17,25 +38,25 @@
   },
   "signals": [
     {
-      "key": "Corn",
-      "name": "Mais",
-      "action": "BUY",
+      "key": "Sugar",
+      "name": "Sukker",
+      "action": "SELL",
       "timeframe": "SWING",
       "grade": "B",
-      "score": 6.5,
-      "current": 410.25,
-      "entry": 409.99,
-      "sl": 397.93,
-      "t1": 440.0,
-      "t2": 447.0,
-      "rr_t1": 2.49,
-      "rr_t2": 3.07,
+      "score": 5.3,
+      "current": 14.28,
+      "entry": 14.3,
+      "sl": 15.06,
+      "t1": 12.5,
+      "t2": 12.97,
+      "rr_t1": 2.37,
+      "rr_t2": 1.75,
       "sl_type": "atr_prosent",
-      "t1_source": "rn440",
-      "atr_est": 6.03,
+      "t1_source": "rn12.5",
+      "atr_est": 0.38,
       "driver_groups": {
         "trend": {
-          "score": 1.0,
+          "score": 0.0,
           "weight": 0.8,
           "drivers": []
         },
@@ -43,7 +64,7 @@
           "score": 0.0,
           "weight": 1.0,
           "drivers": [
-            "COT bull 0.3%"
+            "COT bear -12.3%"
           ]
         },
         "macro": {
@@ -52,12 +73,12 @@
           "drivers": []
         },
         "fundamental": {
-          "score": 0.29166666666666663,
+          "score": 0.41666666666666663,
           "weight": 1.3,
           "drivers": [
-            "Bedrock A BUY bekrefter (score 11.3)",
-            "Værstress i Ukraina / Svartehavs-regionen (tørt)",
-            "3 risiko-regioner"
+            "UNICA: crush YoY +74.6% → supply rikelig",
+            "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=1.0) → supply-overflod fortsetter",
+            "COT: spekulanter øker short (net -12% av OI)"
           ]
         },
         "risk": {
@@ -75,31 +96,30 @@
       },
       "active_driver_groups": 2,
       "group_drivers": [
-        "Bedrock A BUY bekrefter (score 11.3)",
-        "Værstress i Ukraina / Svartehavs-regionen (tørt)",
-        "3 risiko-regioner",
-        "COT: bull BLANDET (net +0%)",
-        "Yield svak — risiko for lav produksjon",
-        "CONAB Brasil mais: -0.7% YoY (↓ svikt)",
-        "Bedrock: A BUY makro publisert (score 11.3)"
+        "UNICA: crush YoY +74.6% → supply rikelig",
+        "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=1.0) → supply-overflod fortsetter",
+        "COT: spekulanter øker short (net -12% av OI)",
+        "UNICA: mix shifter mot etanol (45.2% → 38.2%) — mindre sukker-tilbud",
+        "UNICA: cane-crush +74.6% YoY — rikelig safra",
+        "Bedrock: A BUY makro publisert (score 9.8)"
       ],
       "data_quality": "fresh",
       "quality_notes": [],
       "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 0.3,
-      "cot_zscore": -0.23,
+      "cot_bias": "bear",
+      "cot_pct": -12.3,
+      "cot_zscore": -1.47,
       "source": "agri_fundamental",
-      "yield_score": 41,
-      "yield_quality": "Svak",
-      "weather_outlook": "tørt",
-      "growth_stage": "Høsting",
-      "season_pct": 91,
+      "yield_score": 76,
+      "yield_quality": "God",
+      "weather_outlook": "normalt",
+      "growth_stage": "Vegetativ vekst",
+      "season_pct": 42,
       "drivers": [
-        "Bedrock A BUY bekrefter (score 11.3)",
-        "Værstress i Ukraina / Svartehavs-regionen (tørt)",
-        "3 risiko-regioner",
-        "COT: bull BLANDET (net +0%)"
+        "UNICA: crush YoY +74.6% → supply rikelig",
+        "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=1.0) → supply-overflod fortsetter",
+        "COT: spekulanter øker short (net -12% av OI)",
+        "UNICA: mix shifter mot etanol (45.2% → 38.2%) — mindre sukker-tilbud"
       ]
     },
     {
@@ -109,16 +129,16 @@
       "timeframe": "SWING",
       "grade": "B",
       "score": 5.2,
-      "current": 257.200012,
-      "entry": 257.48,
-      "sl": 270.44,
+      "current": 258.899994,
+      "entry": 259.18,
+      "sl": 272.23,
       "t1": 230.0,
-      "t2": 220.0,
-      "rr_t1": 2.12,
-      "rr_t2": 2.89,
+      "t2": 236.35,
+      "rr_t1": 2.24,
+      "rr_t2": 1.75,
       "sl_type": "atr_prosent",
       "t1_source": "rn230",
-      "atr_est": 6.48,
+      "atr_est": 6.52,
       "driver_groups": {
         "trend": {
           "score": 0.0,
