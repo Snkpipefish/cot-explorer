@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-16 02:40 UTC",
+  "date": "2026-06-16 03:40 UTC",
   "cot_date": "2026-06-09",
   "prices": {
     "VIX": {
@@ -23,10 +23,10 @@
       "source": "bedrock"
     },
     "DXY": {
-      "price": 99.688,
-      "chg1d": -0.06,
-      "chg5d": -0.36,
-      "chg20d": 0.42
+      "price": 99.703,
+      "chg1d": -0.05,
+      "chg5d": -0.35,
+      "chg20d": 0.44
     },
     "EURUSD": {
       "price": 1.159555,
@@ -50,10 +50,10 @@
       "source": "bedrock"
     },
     "USDCHF": {
-      "price": 1.2581,
-      "chg1d": -0.12,
-      "chg5d": 0.42,
-      "chg20d": -1.31
+      "price": 1.2579,
+      "chg1d": -0.14,
+      "chg5d": 0.4,
+      "chg20d": -1.32
     },
     "AUDUSD": {
       "price": 0.707614,
@@ -64,9 +64,9 @@
     },
     "USDNOK": {
       "price": 0.1047,
-      "chg1d": -0.57,
-      "chg5d": -0.82,
-      "chg20d": -3.07
+      "chg1d": -0.62,
+      "chg5d": -0.88,
+      "chg20d": -3.13
     },
     "Brent": {
       "price": 83.510002,
@@ -227,7 +227,7 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 98.6516,
       "sma200_pos": "over",
@@ -855,7 +855,7 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 1.1677,
       "sma200_pos": "under",
@@ -1505,7 +1505,7 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 155.76,
       "sma200_pos": "over",
@@ -2143,18 +2143,18 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 1.3417,
       "sma200_pos": "under",
       "chg5d": 0.55,
       "chg20d": -0.19,
-      "dir_color": "bull",
+      "dir_color": "bear",
       "grade": "C",
       "grade_color": "bear",
-      "score": 1.62,
+      "score": 1.95,
       "max_score": 4.2,
-      "score_pct": 39,
+      "score_pct": 46,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -2171,27 +2171,31 @@
           "id": "group_positioning",
           "verdi": true,
           "vekt": 0.5,
-          "poeng": 0.38,
+          "poeng": 0.17,
           "drivers": [
-            "COT bias align (+7.7%)",
-            "OI stigende (bekrefter)"
+            "COT momentum +",
+            "OI stigende mot retning (advarsel)"
           ]
         },
         {
           "kryss": "Makrobilde (DXY/VIX/renter)",
           "id": "group_macro",
-          "verdi": false,
+          "verdi": true,
           "vekt": 0.7,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.35,
+          "drivers": [
+            "News risk_off (|s|=1.00) confirms"
+          ]
         },
         {
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
-          "verdi": false,
+          "verdi": true,
           "vekt": 0.5,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.25,
+          "drivers": [
+            "FRED fund -1.00"
+          ]
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
@@ -2206,10 +2210,9 @@
           "id": "group_structure",
           "verdi": true,
           "vekt": 1.3,
-          "poeng": 0.84,
+          "poeng": 0.78,
           "drivers": [
-            "HTF-nivå w3",
-            "SMC-bekreftelse"
+            "HTF-nivå w3"
           ]
         }
       ],
@@ -2222,22 +2225,26 @@
           ]
         },
         "positioning": {
-          "score": 0.75,
+          "score": 0.35,
           "weight": 0.5,
           "drivers": [
-            "COT bias align (+7.7%)",
-            "OI stigende (bekrefter)"
+            "COT momentum +",
+            "OI stigende mot retning (advarsel)"
           ]
         },
         "macro": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 0.7,
-          "drivers": []
+          "drivers": [
+            "News risk_off (|s|=1.00) confirms"
+          ]
         },
         "fundamental": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 0.5,
-          "drivers": []
+          "drivers": [
+            "FRED fund -1.00"
+          ]
         },
         "risk": {
           "score": 0.0,
@@ -2245,21 +2252,21 @@
           "drivers": []
         },
         "structure": {
-          "score": 0.65,
+          "score": 0.6,
           "weight": 1.3,
           "drivers": [
-            "HTF-nivå w3",
-            "SMC-bekreftelse"
+            "HTF-nivå w3"
           ]
         }
       },
-      "active_driver_groups": 3,
+      "active_driver_groups": 5,
       "group_drivers": [
-        "COT bias align (+7.7%)",
-        "OI stigende (bekrefter)",
+        "FRED fund -1.00",
+        "News risk_off (|s|=1.00) confirms",
+        "COT momentum +",
+        "OI stigende mot retning (advarsel)",
         "D1+4H kongruent",
-        "HTF-nivå w3",
-        "SMC-bekreftelse"
+        "HTF-nivå w3"
       ],
       "horizon": "WATCHLIST",
       "adr_utilization": {
@@ -2777,7 +2784,7 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 0.6843,
       "sma200_pos": "over",
@@ -3407,7 +3414,7 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 4424.17,
       "sma200_pos": "under",
@@ -4022,7 +4029,7 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 67.3426,
       "sma200_pos": "over",
@@ -4663,7 +4670,7 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 78.2373,
       "sma200_pos": "over",
@@ -5234,7 +5241,7 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 73.4936,
       "sma200_pos": "over",
@@ -5841,7 +5848,7 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 6887.36,
       "sma200_pos": "over",
@@ -6465,7 +6472,7 @@
       "session_now": {
         "active": false,
         "label": "Off-session",
-        "cet_hour": 4
+        "cet_hour": 5
       },
       "sma200": 25733.38,
       "sma200_pos": "over",
