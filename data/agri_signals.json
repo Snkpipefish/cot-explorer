@@ -1,12 +1,33 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-06-18 02:02 UTC",
+  "generated": "2026-06-18 10:41 UTC",
   "cot_date": "2026-06-17",
   "enso_phase": "Nøytral",
   "global_state": {
     "geo_active": true,
     "vix_regime": "normal",
-    "usda_blackout": null
+    "usda_blackout": {
+      "Corn": {
+        "report": "Export Sales",
+        "time_utc": "2026-06-18 12:30 UTC",
+        "hours_away": 1.8
+      },
+      "Wheat": {
+        "report": "Export Sales",
+        "time_utc": "2026-06-18 12:30 UTC",
+        "hours_away": 1.8
+      },
+      "Soybean": {
+        "report": "Export Sales",
+        "time_utc": "2026-06-18 12:30 UTC",
+        "hours_away": 1.8
+      },
+      "Cotton": {
+        "report": "Export Sales",
+        "time_utc": "2026-06-18 12:30 UTC",
+        "hours_away": 1.8
+      }
+    }
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -23,16 +44,16 @@
       "timeframe": "MAKRO",
       "grade": "A",
       "score": 7.2,
-      "current": 272.350006,
-      "entry": 272.64,
-      "sl": 293.23,
-      "t1": 240.0,
-      "t2": 248.62,
-      "rr_t1": 1.59,
-      "rr_t2": 1.17,
+      "current": 277.850006,
+      "entry": 278.15,
+      "sl": 299.16,
+      "t1": 260.65,
+      "t2": 260.0,
+      "rr_t1": 0.83,
+      "rr_t2": 0.86,
       "sl_type": "atr_prosent",
-      "t1_source": "rn240",
-      "atr_est": 6.86,
+      "t1_source": "atr_fallback",
+      "atr_est": 7.0,
       "driver_groups": {
         "trend": {
           "score": 0.0,
@@ -101,108 +122,22 @@
       ]
     },
     {
-      "key": "Corn",
-      "name": "Mais",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 6.5,
-      "current": 421.25,
-      "entry": 420.98,
-      "sl": 408.6,
-      "t1": 447.0,
-      "t2": 450.0,
-      "rr_t1": 2.1,
-      "rr_t2": 2.34,
-      "sl_type": "atr_prosent",
-      "t1_source": "4w_low",
-      "atr_est": 6.19,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 0.2%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.29166666666666663,
-          "weight": 1.3,
-          "drivers": [
-            "Bedrock A BUY bekrefter (score 11.3)",
-            "Værstress i USA Corn Belt (flom)",
-            "2 risiko-regioner"
-          ]
-        },
-        "risk": {
-          "score": 0.5,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv"
-          ]
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 2,
-      "group_drivers": [
-        "Bedrock A BUY bekrefter (score 11.3)",
-        "Værstress i USA Corn Belt (flom)",
-        "2 risiko-regioner",
-        "COT: bull BLANDET (net +0%)",
-        "Yield svak — risiko for lav produksjon",
-        "CONAB Brasil mais: -0.7% YoY (↓ svikt)",
-        "Bedrock: A BUY makro publisert (score 11.3)"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 0.2,
-      "cot_zscore": -0.23,
-      "source": "agri_fundamental",
-      "yield_score": 43,
-      "yield_quality": "Svak",
-      "weather_outlook": "flom",
-      "growth_stage": "Høsting",
-      "season_pct": 91,
-      "drivers": [
-        "Bedrock A BUY bekrefter (score 11.3)",
-        "Værstress i USA Corn Belt (flom)",
-        "2 risiko-regioner",
-        "COT: bull BLANDET (net +0%)"
-      ]
-    },
-    {
       "key": "Sugar",
       "name": "Sukker",
       "action": "SELL",
       "timeframe": "SWING",
       "grade": "B",
-      "score": 6.0,
-      "current": 14.37,
-      "entry": 14.39,
-      "sl": 15.15,
+      "score": 5.8,
+      "current": 13.85,
+      "entry": 13.87,
+      "sl": 14.61,
       "t1": 12.5,
-      "t2": 13.05,
-      "rr_t1": 2.49,
-      "rr_t2": 1.76,
+      "t2": 12.0,
+      "rr_t1": 1.85,
+      "rr_t2": 2.53,
       "sl_type": "atr_prosent",
       "t1_source": "rn12.5",
-      "atr_est": 0.38,
+      "atr_est": 0.37,
       "driver_groups": {
         "trend": {
           "score": 0.0,
@@ -226,7 +161,7 @@
           "weight": 1.3,
           "drivers": [
             "UNICA: crush YoY +74.6% → supply rikelig",
-            "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=0.7) → supply-overflod fortsetter",
+            "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=1.0) → supply-overflod fortsetter",
             "COT: spekulanter øker short (net -12% av OI)"
           ]
         },
@@ -246,7 +181,7 @@
       "active_driver_groups": 2,
       "group_drivers": [
         "UNICA: crush YoY +74.6% → supply rikelig",
-        "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=0.7) → supply-overflod fortsetter",
+        "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=1.0) → supply-overflod fortsetter",
         "COT: spekulanter øker short (net -12% av OI)",
         "UNICA: mix shifter mot etanol (45.2% → 38.2%) — mindre sukker-tilbud",
         "UNICA: cane-crush +74.6% YoY — rikelig safra",
@@ -266,94 +201,9 @@
       "season_pct": 42,
       "drivers": [
         "UNICA: crush YoY +74.6% → supply rikelig",
-        "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=0.7) → supply-overflod fortsetter",
+        "Krysssjekk: UNICA crush +74.6% YoY + benignt vær (wx_score=1.0) → supply-overflod fortsetter",
         "COT: spekulanter øker short (net -12% av OI)",
         "UNICA: mix shifter mot etanol (45.2% → 38.2%) — mindre sukker-tilbud"
-      ]
-    },
-    {
-      "key": "Soybean",
-      "name": "Soyabønner",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 5.3,
-      "current": 1150.5,
-      "entry": 1149.98,
-      "sl": 1125.82,
-      "t1": 1211.0,
-      "t2": 1225.0,
-      "rr_t1": 2.53,
-      "rr_t2": 3.11,
-      "sl_type": "atr_prosent",
-      "t1_source": "52w_high",
-      "atr_est": 12.08,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 9.6%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.29166666666666663,
-          "weight": 1.3,
-          "drivers": [
-            "Bedrock A BUY bekrefter (score 9.5)",
-            "Værstress i USA Corn Belt (flom)",
-            "COT: spekulanter øker long (net +10% av OI)"
-          ]
-        },
-        "risk": {
-          "score": 0.5,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv"
-          ]
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 2,
-      "group_drivers": [
-        "Bedrock A BUY bekrefter (score 9.5)",
-        "Værstress i USA Corn Belt (flom)",
-        "COT: spekulanter øker long (net +10% av OI)",
-        "Yield svak — risiko for lav produksjon",
-        "CONAB Brasil soja: +5.0% YoY (↑ vekst)",
-        "Bedrock: A BUY makro publisert (score 9.5)"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 9.6,
-      "cot_zscore": 0.24,
-      "source": "agri_fundamental",
-      "yield_score": 42,
-      "yield_quality": "Svak",
-      "weather_outlook": "flom",
-      "growth_stage": "Tidlig vekst",
-      "season_pct": 44,
-      "drivers": [
-        "Bedrock A BUY bekrefter (score 9.5)",
-        "Værstress i USA Corn Belt (flom)",
-        "COT: spekulanter øker long (net +10% av OI)",
-        "Yield svak — risiko for lav produksjon"
       ]
     }
   ]
