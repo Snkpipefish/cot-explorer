@@ -334,9 +334,12 @@
    "source": "technical",
    "atr_d1": 2.42957,
    "first_seen": "2026-06-26T14:02:03Z",
-   "status": "pending",
+   "status": "active",
    "entry_weight": 2,
-   "t1_quality": "htf"
+   "t1_quality": "htf",
+   "activated_at": "2026-06-26T20:00:00Z",
+   "mfe": 0.095,
+   "mae": 0.64
   },
   {
    "id": "Gold|SELL|4377.00000|4429.87135|4031.00000",
@@ -466,28 +469,6 @@
    "mae": 13.24
   },
   {
-   "id": "Corn|BUY|439.97000|420.55000|470.00000",
-   "key": "Corn",
-   "direction": "BUY",
-   "entry": 439.97,
-   "sl": 420.55,
-   "t1": 470.0,
-   "t2": 480.0,
-   "rr_t1": 1.55,
-   "horizon": "MAKRO",
-   "grade": "A",
-   "score": 7.5,
-   "t1_source": "rn470",
-   "sl_type": "atr_prosent",
-   "source": "agri_fundamental",
-   "atr_d1": 6.47,
-   "first_seen": "2026-06-23T22:02:00Z",
-   "status": "active",
-   "activated_at": "2026-06-26T07:00:00Z",
-   "mfe": 5.53,
-   "mae": 17.72
-  },
-  {
    "id": "Corn|BUY|436.97000|417.69000|453.04000",
    "key": "Corn",
    "direction": "BUY",
@@ -507,7 +488,7 @@
    "status": "active",
    "activated_at": "2026-06-26T07:00:00Z",
    "mfe": 8.53,
-   "mae": 14.72
+   "mae": 16.97
   },
   {
    "id": "Corn|BUY|412.74000|400.60000|440.00000",
@@ -972,7 +953,7 @@
    "entry_weight": 4,
    "t1_quality": "htf",
    "activated_at": "2026-06-26T14:00:00Z",
-   "mfe": 0.18998,
+   "mfe": 0.194,
    "mae": 0.01401
   },
   {
@@ -1164,8 +1145,29 @@
    "entry_weight": 3,
    "t1_quality": "weak",
    "activated_at": "2026-06-26T12:00:00Z",
-   "mfe": 0.00402,
+   "mfe": 0.00428,
    "mae": 0.00067
+  },
+  {
+   "id": "EURUSD|SELL|1.14339|1.14544|1.13549",
+   "key": "EURUSD",
+   "direction": "SELL",
+   "entry": 1.14339,
+   "sl": 1.14544,
+   "t1": 1.13549,
+   "t2": 1.13366,
+   "rr_t1": 3.86,
+   "horizon": "SWING",
+   "grade": "A",
+   "score": 2.84,
+   "t1_source": "PDL",
+   "sl_type": "struktur+floor",
+   "source": "technical",
+   "atr_d1": 0.00683,
+   "first_seen": "2026-06-26T22:02:33Z",
+   "status": "pending",
+   "entry_weight": 4,
+   "t1_quality": "htf"
   },
   {
    "id": "GBPUSD|SELL|1.34611|1.34877|1.31638",
@@ -1280,6 +1282,27 @@
    "activated_at": "2026-06-25T14:00:00Z",
    "mfe": 0.00282,
    "mae": 0.00208
+  },
+  {
+   "id": "GBPUSD|SELL|1.32321|1.32570|1.31811",
+   "key": "GBPUSD",
+   "direction": "SELL",
+   "entry": 1.32321,
+   "sl": 1.3257,
+   "t1": 1.31811,
+   "t2": 1.31811,
+   "rr_t1": 2.04,
+   "horizon": "SWING",
+   "grade": "A",
+   "score": 2.84,
+   "t1_source": "PDL",
+   "sl_type": "struktur",
+   "source": "technical",
+   "atr_d1": 0.0083,
+   "first_seen": "2026-06-26T22:02:33Z",
+   "status": "pending",
+   "entry_weight": 4,
+   "t1_quality": "htf"
   },
   {
    "id": "Soybean|BUY|1122.24000|1098.66000|1175.00000",
@@ -4719,10 +4742,33 @@
    "mfe": 2.78,
    "mae": 20.47,
    "closed_at": "2026-06-26T17:00:00Z"
+  },
+  {
+   "id": "Corn|BUY|439.97000|420.55000|470.00000",
+   "key": "Corn",
+   "direction": "BUY",
+   "entry": 439.97,
+   "sl": 420.55,
+   "t1": 470.0,
+   "t2": 480.0,
+   "rr_t1": 1.55,
+   "horizon": "MAKRO",
+   "grade": "A",
+   "score": 7.5,
+   "t1_source": "rn470",
+   "sl_type": "atr_prosent",
+   "source": "agri_fundamental",
+   "atr_d1": 6.47,
+   "first_seen": "2026-06-23T22:02:00Z",
+   "status": "sl",
+   "activated_at": "2026-06-26T07:00:00Z",
+   "mfe": 5.53,
+   "mae": 19.97,
+   "closed_at": "2026-06-26T18:00:00Z"
   }
  ],
  "stats": {
-  "n_closed": 140,
+  "n_closed": 141,
   "by_horizon": {
    "SWING": {
     "t1": 9,
@@ -4744,23 +4790,23 @@
    },
    "MAKRO": {
     "t1": 4,
-    "sl": 11,
+    "sl": 12,
     "ambiguous": 0,
     "timeout": 0,
     "expired": 0,
-    "hit_rate_pct": 26.7,
-    "n_decided": 15
+    "hit_rate_pct": 25.0,
+    "n_decided": 16
    }
   },
   "by_grade": {
    "A": {
     "t1": 5,
-    "sl": 25,
+    "sl": 26,
     "ambiguous": 1,
     "timeout": 2,
     "expired": 27,
-    "hit_rate_pct": 16.1,
-    "n_decided": 31
+    "hit_rate_pct": 15.6,
+    "n_decided": 32
    },
    "B": {
     "t1": 8,
@@ -4964,12 +5010,12 @@
    },
    "rn470": {
     "t1": 0,
-    "sl": 1,
+    "sl": 2,
     "ambiguous": 0,
     "timeout": 0,
     "expired": 0,
     "hit_rate_pct": 0.0,
-    "n_decided": 1
+    "n_decided": 2
    }
   },
   "by_source": {
@@ -4984,12 +5030,12 @@
    },
    "agri_fundamental": {
     "t1": 10,
-    "sl": 20,
+    "sl": 21,
     "ambiguous": 0,
     "timeout": 17,
     "expired": 1,
-    "hit_rate_pct": 33.3,
-    "n_decided": 30
+    "hit_rate_pct": 32.3,
+    "n_decided": 31
    }
   },
   "by_key": {
@@ -5094,12 +5140,12 @@
    },
    "Corn": {
     "t1": 9,
-    "sl": 4,
+    "sl": 5,
     "ambiguous": 0,
     "timeout": 4,
     "expired": 1,
-    "hit_rate_pct": 69.2,
-    "n_decided": 13
+    "hit_rate_pct": 64.3,
+    "n_decided": 14
    },
    "SPX": {
     "t1": 0,
@@ -5121,5 +5167,5 @@
    }
   }
  },
- "updated": "2026-06-26T18:02:04Z"
+ "updated": "2026-06-26T22:02:35Z"
 }
