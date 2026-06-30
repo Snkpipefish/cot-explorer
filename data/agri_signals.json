@@ -1,33 +1,12 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-06-30 15:23 UTC",
+  "generated": "2026-06-30 17:57 UTC",
   "cot_date": "2026-06-24",
   "enso_phase": "Nøytral",
   "global_state": {
     "geo_active": true,
     "vix_regime": "normal",
-    "usda_blackout": {
-      "Corn": {
-        "report": "Acreage",
-        "time_utc": "2026-06-30 16:00 UTC",
-        "hours_away": 0.6
-      },
-      "Wheat": {
-        "report": "Acreage",
-        "time_utc": "2026-06-30 16:00 UTC",
-        "hours_away": 0.6
-      },
-      "Soybean": {
-        "report": "Acreage",
-        "time_utc": "2026-06-30 16:00 UTC",
-        "hours_away": 0.6
-      },
-      "Cotton": {
-        "report": "Acreage",
-        "time_utc": "2026-06-30 16:00 UTC",
-        "hours_away": 0.6
-      }
-    }
+    "usda_blackout": null
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -43,17 +22,17 @@
       "action": "SELL",
       "timeframe": "SWING",
       "grade": "B",
-      "score": 6.2,
-      "current": 14.8,
-      "entry": 14.82,
-      "sl": 15.61,
+      "score": 6.0,
+      "current": 14.88,
+      "entry": 14.9,
+      "sl": 15.69,
       "t1": 13.0,
-      "t2": 13.44,
-      "rr_t1": 2.3,
-      "rr_t2": 1.75,
+      "t2": 13.51,
+      "rr_t1": 2.41,
+      "rr_t2": 1.76,
       "sl_type": "atr_prosent",
       "t1_source": "rn13",
-      "atr_est": 0.39,
+      "atr_est": 0.4,
       "driver_groups": {
         "trend": {
           "score": 0.0,
@@ -77,8 +56,8 @@
           "weight": 1.3,
           "drivers": [
             "UNICA: crush YoY +15.8% → supply rikelig",
-            "Krysssjekk: UNICA crush +15.8% YoY + benignt vær (wx_score=0.3) → supply-overflod fortsetter",
-            "COT: spekulanter øker short (net -18% av OI)"
+            "Krysssjekk: UNICA crush +15.8% YoY + benignt vær (wx_score=0.7) → supply-overflod fortsetter",
+            "Værstress i Thailand – Suphanburi/Lopburi (sukker) (vått)"
           ]
         },
         "risk": {
@@ -97,7 +76,8 @@
       "active_driver_groups": 2,
       "group_drivers": [
         "UNICA: crush YoY +15.8% → supply rikelig",
-        "Krysssjekk: UNICA crush +15.8% YoY + benignt vær (wx_score=0.3) → supply-overflod fortsetter",
+        "Krysssjekk: UNICA crush +15.8% YoY + benignt vær (wx_score=0.7) → supply-overflod fortsetter",
+        "Værstress i Thailand – Suphanburi/Lopburi (sukker) (vått)",
         "COT: spekulanter øker short (net -18% av OI)",
         "UNICA: mix shifter mot etanol (50.1% → 41.4%) — mindre sukker-tilbud",
         "UNICA: cane-crush +15.8% YoY — rikelig safra",
@@ -117,9 +97,95 @@
       "season_pct": 42,
       "drivers": [
         "UNICA: crush YoY +15.8% → supply rikelig",
-        "Krysssjekk: UNICA crush +15.8% YoY + benignt vær (wx_score=0.3) → supply-overflod fortsetter",
-        "COT: spekulanter øker short (net -18% av OI)",
-        "UNICA: mix shifter mot etanol (50.1% → 41.4%) — mindre sukker-tilbud"
+        "Krysssjekk: UNICA crush +15.8% YoY + benignt vær (wx_score=0.7) → supply-overflod fortsetter",
+        "Værstress i Thailand – Suphanburi/Lopburi (sukker) (vått)",
+        "COT: spekulanter øker short (net -18% av OI)"
+      ]
+    },
+    {
+      "key": "Corn",
+      "name": "Mais",
+      "action": "BUY",
+      "timeframe": "SWING",
+      "grade": "B",
+      "score": 5.5,
+      "current": 428.5,
+      "entry": 428.23,
+      "sl": 415.63,
+      "t1": 450.0,
+      "t2": 460.0,
+      "rr_t1": 1.73,
+      "rr_t2": 2.52,
+      "sl_type": "atr_prosent",
+      "t1_source": "rn450",
+      "atr_est": 6.3,
+      "driver_groups": {
+        "trend": {
+          "score": 1.0,
+          "weight": 0.8,
+          "drivers": []
+        },
+        "positioning": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": [
+            "COT bear -3.6%"
+          ]
+        },
+        "macro": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "fundamental": {
+          "score": 0.41666666666666663,
+          "weight": 1.3,
+          "drivers": [
+            "Bedrock A BUY bekrefter (score 10.9)",
+            "Værstress i Kina – Hebei / Henan (tørke)",
+            "4 risiko-regioner"
+          ]
+        },
+        "risk": {
+          "score": 0.5,
+          "weight": 1.0,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
+          "score": 0.0,
+          "weight": 0.5,
+          "drivers": []
+        }
+      },
+      "active_driver_groups": 3,
+      "group_drivers": [
+        "Bedrock A BUY bekrefter (score 10.9)",
+        "Værstress i Kina – Hebei / Henan (tørke)",
+        "4 risiko-regioner",
+        "COT: bear BLANDET (net -4%)",
+        "Yield svak — risiko for lav produksjon",
+        "CONAB Brasil mais: -0.7% YoY (↓ svikt)",
+        "Bedrock: A BUY makro publisert (score 11.0)"
+      ],
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "atr_source": "estimated",
+      "cot_bias": "bear",
+      "cot_pct": -3.6,
+      "cot_zscore": -0.52,
+      "source": "agri_fundamental",
+      "yield_score": 45,
+      "yield_quality": "Svak",
+      "weather_outlook": "tørke",
+      "growth_stage": "Høsting",
+      "season_pct": 91,
+      "drivers": [
+        "Bedrock A BUY bekrefter (score 10.9)",
+        "Værstress i Kina – Hebei / Henan (tørke)",
+        "4 risiko-regioner",
+        "COT: bear BLANDET (net -4%)"
       ]
     }
   ]
