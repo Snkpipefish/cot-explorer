@@ -1,11 +1,11 @@
 {
-  "generated": "2026-06-30T18:00:11+00:00",
+  "generated": "2026-06-30T22:00:12+00:00",
   "source": "Regnbue \u00b7 base-rate-validated setups (Skilling-feed)",
   "as_of": "2026-06-28",
   "rows": 22,
   "raw": {
     "schema_version": 1,
-    "generated": "2026-06-30T17:15:53Z",
+    "generated": "2026-06-30T18:26:20Z",
     "as_of": "2026-06-28",
     "signals": [
       {
@@ -394,85 +394,6 @@
             "ok": false,
             "score": 0.0,
             "detail": "mangler data: btc"
-          }
-        ]
-      },
-      {
-        "instrument": "Coffee",
-        "ticker": "Coffee",
-        "direction": "SHORT",
-        "grade": "A",
-        "score": -0.4265,
-        "published": false,
-        "entry": 287.49,
-        "sl": 297.714643,
-        "tp": 276.93,
-        "rr": 1.033,
-        "atr": 10.058571,
-        "reject_reason": "R:R 1.03 < 1.5; base-rate: for f\u00e5 uavhengige analoger (n_eff=5 < 30; n=8); hit-rate nedre CI 11% < 55%; expectancy -0.25R < 0.30R; expectancy CI inkluderer \u22640 (-1.17R)",
-        "base_rate": {
-          "n": 8,
-          "hit_rate": 0.375,
-          "hit_rate_ci": [
-            0.1056,
-            0.753
-          ],
-          "expectancy_r": -0.2501,
-          "expectancy_ci": [
-            -1.1736,
-            0.6734
-          ],
-          "passes": false,
-          "reason": "for f\u00e5 uavhengige analoger (n_eff=5 < 30; n=8); hit-rate nedre CI 11% < 55%; expectancy -0.25R < 0.30R; expectancy CI inkluderer \u22640 (-1.17R)",
-          "n_eff": 5
-        },
-        "scenario": {
-          "engine": "scenario",
-          "n_paths": 2000,
-          "prob_tp": 0.469,
-          "prob_sl": 0.5275,
-          "prob_time": 0.0035,
-          "expectancy_r": -0.0574,
-          "expectancy_ci": [
-            -0.1018,
-            -0.013
-          ],
-          "horizon": 30,
-          "cone": {
-            "p05": -0.1576,
-            "p25": -0.0625,
-            "median": 0.011,
-            "p75": 0.0868,
-            "p95": 0.2193,
-            "prob_up": 0.545
-          }
-        },
-        "data_quality": "kort_historikk",
-        "history_years": 5.1,
-        "drivers": [
-          {
-            "name": "frost_anomaly",
-            "ok": true,
-            "score": 0.0,
-            "detail": "brazil_sul_minas kaldeste natt 9.2\u00b0C (z=+0.08)"
-          },
-          {
-            "name": "rainfall_anomaly",
-            "ok": true,
-            "score": -0.5817,
-            "detail": "brazil_sul_minas 30d-nedb\u00f8r v\u00e5tt z=+0.33"
-          },
-          {
-            "name": "momentum",
-            "ok": true,
-            "score": -0.574,
-            "detail": "DEXBZUS 21d-endring +0.0966 (z=+0.65)"
-          },
-          {
-            "name": "cot_spec_net_percentile",
-            "ok": true,
-            "score": -0.6667,
-            "detail": "Coffee spec-net p17"
           }
         ]
       },
@@ -1105,6 +1026,85 @@
             "ok": true,
             "score": 0.8077,
             "detail": "Cotton spec-net p90"
+          }
+        ]
+      },
+      {
+        "instrument": "Coffee",
+        "ticker": "Coffee",
+        "direction": "SHORT",
+        "grade": "NONE",
+        "score": -0.1793,
+        "published": false,
+        "entry": 287.49,
+        "sl": 297.714643,
+        "tp": 276.93,
+        "rr": 1.033,
+        "atr": 10.058571,
+        "reject_reason": "ingen grade (for svakt signal); R:R 1.03 < 1.5; base-rate: for f\u00e5 uavhengige analoger (n_eff=10 < 30; n=14); hit-rate nedre CI 41% < 55%; expectancy CI inkluderer \u22640 (-0.15R)",
+        "base_rate": {
+          "n": 14,
+          "hit_rate": 0.7143,
+          "hit_rate_ci": [
+            0.4095,
+            0.9001
+          ],
+          "expectancy_r": 0.4434,
+          "expectancy_ci": [
+            -0.1478,
+            1.0346
+          ],
+          "passes": false,
+          "reason": "for f\u00e5 uavhengige analoger (n_eff=10 < 30; n=14); hit-rate nedre CI 41% < 55%; expectancy CI inkluderer \u22640 (-0.15R)",
+          "n_eff": 10
+        },
+        "scenario": {
+          "engine": "scenario",
+          "n_paths": 2000,
+          "prob_tp": 0.469,
+          "prob_sl": 0.5275,
+          "prob_time": 0.0035,
+          "expectancy_r": -0.0574,
+          "expectancy_ci": [
+            -0.1018,
+            -0.013
+          ],
+          "horizon": 30,
+          "cone": {
+            "p05": -0.1576,
+            "p25": -0.0625,
+            "median": 0.011,
+            "p75": 0.0868,
+            "p95": 0.2193,
+            "prob_up": 0.545
+          }
+        },
+        "data_quality": "kort_historikk",
+        "history_years": 5.1,
+        "drivers": [
+          {
+            "name": "frost_anomaly",
+            "ok": true,
+            "score": 0.0,
+            "detail": "brazil_sul_minas kaldeste natt 9.2\u00b0C (z=+0.22)"
+          },
+          {
+            "name": "rainfall_anomaly",
+            "ok": true,
+            "score": 0.6543,
+            "detail": "brazil_sul_minas 30d-nedb\u00f8r v\u00e5tt z=+1.78"
+          },
+          {
+            "name": "momentum",
+            "ok": true,
+            "score": -0.574,
+            "detail": "DEXBZUS 21d-endring +0.0966 (z=+0.65)"
+          },
+          {
+            "name": "cot_spec_net_percentile",
+            "ok": true,
+            "score": -0.6667,
+            "detail": "Coffee spec-net p17"
           }
         ]
       },
