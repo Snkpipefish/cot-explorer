@@ -1,12 +1,12 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-07-10 02:03 UTC",
-  "cot_date": "2026-06-23",
+  "generated": "2026-07-19 23:43 UTC",
+  "cot_date": "2026-07-14",
   "global_state": {
     "geo_active": true,
     "vix_regime": "normal",
     "oil_geo_warning": true,
-    "oil_warning_reason": "krig/angrep i nyheter"
+    "oil_warning_reason": "Brent +14% 20d · krig/angrep i nyheter"
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -18,15 +18,15 @@
   },
   "signals": [
     {
-      "key": "EURUSD",
-      "name": "EUR/USD",
+      "key": "NAS100",
+      "name": "Nasdaq",
       "action": "SELL",
       "timeframe": "SWING",
       "horizon": "SWING",
       "grade": "B",
-      "score": 3.24,
+      "score": 2.73,
       "max_score": 5.0,
-      "score_pct": 65,
+      "score_pct": 55,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -35,7 +35,7 @@
           "vekt": 1.0,
           "poeng": 0.67,
           "drivers": [
-            "Momentum 20d +",
+            "SMA200-align",
             "D1+4H kongruent"
           ]
         },
@@ -44,9 +44,11 @@
           "id": "group_positioning",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 1.0,
+          "poeng": 0.97,
           "drivers": [
-            "COT momentum +"
+            "COT bias align (-22.5%)",
+            "COT momentum +",
+            "COT sterk (23% net)"
           ]
         },
         {
@@ -62,12 +64,10 @@
         {
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
-          "verdi": true,
+          "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.72,
-          "drivers": [
-            "FRED fund -1.44"
-          ]
+          "poeng": 0.0,
+          "drivers": []
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
@@ -95,15 +95,17 @@
           "score": 0.67,
           "weight": 1.0,
           "drivers": [
-            "Momentum 20d +",
+            "SMA200-align",
             "D1+4H kongruent"
           ]
         },
         "positioning": {
-          "score": 1.0,
+          "score": 0.97,
           "weight": 1.0,
           "drivers": [
-            "COT momentum +"
+            "COT bias align (-22.5%)",
+            "COT momentum +",
+            "COT sterk (23% net)"
           ]
         },
         "macro": {
@@ -114,11 +116,9 @@
           ]
         },
         "fundamental": {
-          "score": 0.72,
+          "score": 0.0,
           "weight": 1.0,
-          "drivers": [
-            "FRED fund -1.44"
-          ]
+          "drivers": []
         },
         "risk": {
           "score": 0.5,
@@ -135,27 +135,27 @@
           ]
         }
       },
-      "active_driver_groups": 5,
+      "active_driver_groups": 4,
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 1.14508,
-      "entry": 1.14717,
-      "sl": 1.14903,
-      "t1": 1.14213,
-      "t2": 1.14213,
-      "rr_t1": 2.71,
-      "rr_t2": 2.71,
+      "current": 28592.66,
+      "entry": 29333.06055,
+      "sl": 29514.5649,
+      "t1": 28567.16016,
+      "t2": 28510.30448,
+      "rr_t1": 4.22,
+      "rr_t2": 4.53,
       "sl_type": "struktur+floor",
-      "cot_bias": "NØYTRAL",
-      "cot_pct": 2.0,
-      "correlation_group": "usd_pairs",
+      "cot_bias": "SHORT",
+      "cot_pct": 22.5,
+      "correlation_group": "us_indices",
       "adr_utilization": {
-        "pct": 44.4,
-        "ok_for_scalp": true,
+        "pct": 103.3,
+        "ok_for_scalp": false,
         "available": true
       },
-      "atr_d1": 0.00619,
+      "atr_d1": 605.01451,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -192,9 +192,9 @@
       "timeframe": "SWING",
       "horizon": "SWING",
       "grade": "B",
-      "score": 2.92,
+      "score": 2.6,
       "max_score": 5.0,
-      "score_pct": 58,
+      "score_pct": 52,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -213,10 +213,9 @@
           "id": "group_positioning",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.75,
+          "poeng": 1.0,
           "drivers": [
-            "MM percentile 6 + net short — crowded short, contra-bull",
-            "OI stigende (bekrefter)"
+            "MM percentile 8 + net short — crowded short, contra-bull"
           ]
         },
         {
@@ -230,12 +229,10 @@
         {
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
-          "verdi": true,
+          "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.72,
-          "drivers": [
-            "FRED fund +1.44"
-          ]
+          "poeng": 0.0,
+          "drivers": []
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
@@ -252,8 +249,9 @@
           "id": "group_structure",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.7,
+          "poeng": 0.85,
           "drivers": [
+            "HTF-nivå w5",
             "SMC-bekreftelse"
           ]
         }
@@ -269,11 +267,10 @@
           ]
         },
         "positioning": {
-          "score": 0.75,
+          "score": 1.0,
           "weight": 1.0,
           "drivers": [
-            "MM percentile 6 + net short — crowded short, contra-bull",
-            "OI stigende (bekrefter)"
+            "MM percentile 8 + net short — crowded short, contra-bull"
           ]
         },
         "macro": {
@@ -282,11 +279,9 @@
           "drivers": []
         },
         "fundamental": {
-          "score": 0.72,
+          "score": 0.0,
           "weight": 1.0,
-          "drivers": [
-            "FRED fund +1.44"
-          ]
+          "drivers": []
         },
         "risk": {
           "score": 0.5,
@@ -296,34 +291,35 @@
           ]
         },
         "structure": {
-          "score": 0.7,
+          "score": 0.85,
           "weight": 1.0,
           "drivers": [
+            "HTF-nivå w5",
             "SMC-bekreftelse"
           ]
         }
       },
-      "active_driver_groups": 4,
+      "active_driver_groups": 3,
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 161.73,
-      "entry": 160.62,
-      "sl": 159.77167,
-      "t1": 162.565,
-      "t2": 162.565,
-      "rr_t1": 2.29,
-      "rr_t2": 2.29,
-      "sl_type": "struktur",
+      "current": 162.53,
+      "entry": 162.147,
+      "sl": 161.89914,
+      "t1": 162.82765,
+      "t2": 162.82765,
+      "rr_t1": 2.75,
+      "rr_t2": 2.75,
+      "sl_type": "struktur+floor",
       "cot_bias": "SHORT",
-      "cot_pct": 22.5,
+      "cot_pct": 22.8,
       "correlation_group": "usd_pairs",
       "adr_utilization": {
-        "pct": 103.9,
-        "ok_for_scalp": false,
+        "pct": 25.9,
+        "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": 0.76879,
+      "atr_d1": 0.82621,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -360,14 +356,14 @@
       "timeframe": "SWING",
       "horizon": "SWING",
       "grade": "B",
-      "score": 6.8,
+      "score": 6.4,
       "max_score": 18,
-      "current": 15.15,
-      "entry": 15.17,
-      "sl": 15.98,
+      "current": 15.12,
+      "entry": 15.14,
+      "sl": 15.94,
       "t1": 13.5,
       "t2": 13.0,
-      "rr_t1": 2.06,
+      "rr_t1": 2.05,
       "rr_t2": 2.68,
       "sl_type": "atr_prosent",
       "cot_bias": "bear",
@@ -404,36 +400,36 @@
       },
       "data_quality": "fresh",
       "quality_notes": [],
-      "yield_score": 75,
-      "weather_outlook": "tørt",
+      "yield_score": 79,
+      "weather_outlook": "normalt",
       "drivers": [
         "UNICA: crush YoY +15.8% → supply rikelig",
-        "Krysssjekk: UNICA crush +15.8% YoY + benignt vær (wx_score=0.3) → supply-overflod fortsetter",
-        "COT: spekulanter øker short (net -18% av OI)",
+        "Krysssjekk: UNICA crush +15.8% YoY + benignt vær (wx_score=0) → supply-overflod fortsetter",
+        "COT: spekulanter øker short (net -10% av OI)",
         "UNICA: mix shifter mot etanol (50.1% → 41.4%) — mindre sukker-tilbud"
       ]
     },
     {
-      "key": "Wheat",
-      "name": "Hvete",
+      "key": "Coffee",
+      "name": "Kaffe",
       "action": "SELL",
       "timeframe": "SWING",
       "horizon": "SWING",
       "grade": "B",
-      "score": 5.1,
+      "score": 5.4,
       "max_score": 18,
-      "current": 619.0,
-      "entry": 619.48,
-      "sl": 642.01,
-      "t1": 570.0,
-      "t2": 560.0,
-      "rr_t1": 2.2,
-      "rr_t2": 2.64,
+      "current": 356.950012,
+      "entry": 357.34,
+      "sl": 375.33,
+      "t1": 320.0,
+      "t2": 309.75,
+      "rr_t1": 2.08,
+      "rr_t2": 2.65,
       "sl_type": "atr_prosent",
-      "cot_bias": "bear",
-      "atr_d1": 11.27,
+      "cot_bias": "bull",
+      "atr_d1": 9.0,
       "source": "agri_fundamental",
-      "correlation_group": "grains",
+      "correlation_group": "softs",
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -464,20 +460,20 @@
       },
       "data_quality": "fresh",
       "quality_notes": [],
-      "yield_score": 86,
-      "weather_outlook": "tørt",
+      "yield_score": 80,
+      "weather_outlook": "normalt",
       "drivers": [
-        "Analog: bearish -4.2% 90d (n=3, range -14.7..+5.9%, år: 2015(-4.2%), 2019(+5.9%), 2017(-14.7%))",
-        "Værstress i Canada – Prærier (tørt)",
-        "2 risiko-regioner",
-        "COT: bear BLANDET (net -15%)"
+        "Bedrock A SELL bekrefter (score 9.1)",
+        "COT: spekulanter øker long (net +20% av OI)",
+        "CONAB Brasil kaffe: +18.0% YoY (↑ vekst)",
+        "Bedrock: A SELL makro publisert (score 9.1)"
       ]
     }
   ],
   "_meta": {
-    "generated_at": "2026-07-10T02:03:38Z",
+    "generated_at": "2026-07-19T23:43:07Z",
     "script": "push_signals.py",
-    "macro_date": "2026-07-10 02:01 UTC",
-    "cot_date": "2026-06-23"
+    "macro_date": "2026-07-19 23:41 UTC",
+    "cot_date": "2026-07-14"
   }
 }
