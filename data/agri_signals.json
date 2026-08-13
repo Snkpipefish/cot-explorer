@@ -1,33 +1,12 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-08-13 12:54 UTC",
+  "generated": "2026-08-13 14:01 UTC",
   "cot_date": "2026-08-12",
   "enso_phase": "El Niño",
   "global_state": {
     "geo_active": true,
     "vix_regime": "normal",
-    "usda_blackout": {
-      "Corn": {
-        "report": "Export Sales",
-        "time_utc": "2026-08-13 12:30 UTC",
-        "hours_away": -0.4
-      },
-      "Wheat": {
-        "report": "Export Sales",
-        "time_utc": "2026-08-13 12:30 UTC",
-        "hours_away": -0.4
-      },
-      "Soybean": {
-        "report": "Export Sales",
-        "time_utc": "2026-08-13 12:30 UTC",
-        "hours_away": -0.4
-      },
-      "Cotton": {
-        "report": "Export Sales",
-        "time_utc": "2026-08-13 12:30 UTC",
-        "hours_away": -0.4
-      }
-    }
+    "usda_blackout": null
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -36,5 +15,92 @@
     "min_rr": 1.33,
     "note": "Agri-signaler bruker fundamental analyse — ATR-nivåer er estimater. Boten bør bekrefte med live ATR."
   },
-  "signals": []
+  "signals": [
+    {
+      "key": "Wheat",
+      "name": "Hvete",
+      "action": "SELL",
+      "timeframe": "SWING",
+      "grade": "B",
+      "score": 5.3,
+      "current": 653.5,
+      "entry": 654.01,
+      "sl": 677.8,
+      "t1": 595.25,
+      "t2": 590.0,
+      "rr_t1": 2.47,
+      "rr_t2": 2.69,
+      "sl_type": "atr_prosent",
+      "t1_source": "4w_low",
+      "atr_est": 11.89,
+      "driver_groups": {
+        "trend": {
+          "score": 0.0,
+          "weight": 0.8,
+          "drivers": []
+        },
+        "positioning": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": [
+            "COT bull 5.4%"
+          ]
+        },
+        "macro": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "fundamental": {
+          "score": 0.375,
+          "weight": 1.3,
+          "drivers": [
+            "Bedrock A SELL bekrefter (score 8.8)",
+            "Værstress i Ukraina / Svartehavs-regionen (tørt)",
+            "4 risiko-regioner"
+          ]
+        },
+        "risk": {
+          "score": 0.5,
+          "weight": 1.0,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
+          "score": 0.0,
+          "weight": 0.5,
+          "drivers": []
+        }
+      },
+      "active_driver_groups": 2,
+      "group_drivers": [
+        "Bedrock A SELL bekrefter (score 8.8)",
+        "Værstress i Ukraina / Svartehavs-regionen (tørt)",
+        "4 risiko-regioner",
+        "COT: bull BLANDET (net +5%)",
+        "Yield utmerket — god produksjon holder prisene nede",
+        "Bedrock: A SELL makro publisert (score 8.8)",
+        "El Niño: Gunstig regn"
+      ],
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "atr_source": "estimated",
+      "cot_bias": "bull",
+      "cot_pct": 5.4,
+      "cot_zscore": 1.89,
+      "source": "agri_fundamental",
+      "yield_score": 91,
+      "yield_quality": "Utmerket",
+      "weather_outlook": "tørt",
+      "growth_stage": "Aksing",
+      "season_pct": 57,
+      "drivers": [
+        "Bedrock A SELL bekrefter (score 8.8)",
+        "Værstress i Ukraina / Svartehavs-regionen (tørt)",
+        "4 risiko-regioner",
+        "COT: bull BLANDET (net +5%)"
+      ]
+    }
+  ]
 }
