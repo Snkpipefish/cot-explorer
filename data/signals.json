@@ -1,6 +1,6 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-08-26 22:02 UTC",
+  "generated": "2026-08-27 02:03 UTC",
   "cot_date": "2026-08-18",
   "global_state": {
     "geo_active": true,
@@ -18,24 +18,23 @@
   },
   "signals": [
     {
-      "key": "USDJPY",
-      "name": "USD/JPY",
-      "action": "SELL",
+      "key": "Silver",
+      "name": "Sølv",
+      "action": "BUY",
       "timeframe": "SWING",
       "horizon": "SWING",
       "grade": "A",
-      "score": 2.77,
+      "score": 2.94,
       "max_score": 5.0,
-      "score_pct": 55,
+      "score_pct": 59,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.67,
+          "poeng": 0.33,
           "drivers": [
-            "SMA200-align",
             "D1+4H kongruent"
           ]
         },
@@ -44,29 +43,30 @@
           "id": "group_positioning",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 1.0,
+          "poeng": 0.83,
           "drivers": [
-            "COT bias align (-17.8%)",
-            "COT momentum +"
+            "COT bias align (+9.7%)",
+            "COT momentum +",
+            "OI stigende (bekrefter)"
           ]
         },
         {
           "kryss": "Makrobilde (DXY/VIX/renter)",
           "id": "group_macro",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.5,
-          "drivers": [
-            "News risk_off (|s|=1.00) confirms"
-          ]
-        },
-        {
-          "kryss": "Fundamentalt (asset-spesifikt)",
-          "id": "group_fundamental",
           "verdi": false,
           "vekt": 1.0,
           "poeng": 0.0,
           "drivers": []
+        },
+        {
+          "kryss": "Fundamentalt (asset-spesifikt)",
+          "id": "group_fundamental",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.77,
+          "drivers": [
+            "COMEX stress 62"
+          ]
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
@@ -83,40 +83,40 @@
           "id": "group_structure",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.6,
+          "poeng": 1.0,
           "drivers": [
-            "HTF-nivå w3"
+            "HTF-nivå w5"
           ]
         }
       ],
       "driver_groups": {
         "trend": {
-          "score": 0.67,
+          "score": 0.33,
           "weight": 1.0,
           "drivers": [
-            "SMA200-align",
             "D1+4H kongruent"
           ]
         },
         "positioning": {
-          "score": 1.0,
+          "score": 0.83,
           "weight": 1.0,
           "drivers": [
-            "COT bias align (-17.8%)",
-            "COT momentum +"
+            "COT bias align (+9.7%)",
+            "COT momentum +",
+            "OI stigende (bekrefter)"
           ]
         },
         "macro": {
-          "score": 0.5,
-          "weight": 1.0,
-          "drivers": [
-            "News risk_off (|s|=1.00) confirms"
-          ]
-        },
-        "fundamental": {
           "score": 0.0,
           "weight": 1.0,
           "drivers": []
+        },
+        "fundamental": {
+          "score": 0.77,
+          "weight": 1.0,
+          "drivers": [
+            "COMEX stress 62"
+          ]
         },
         "risk": {
           "score": 0.5,
@@ -126,10 +126,10 @@
           ]
         },
         "structure": {
-          "score": 0.6,
+          "score": 1.0,
           "weight": 1.0,
           "drivers": [
-            "HTF-nivå w3"
+            "HTF-nivå w5"
           ]
         }
       },
@@ -137,23 +137,23 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 159.26,
-      "entry": 159.438,
-      "sl": 159.68132,
-      "t1": 158.88,
-      "t2": 158.839,
-      "rr_t1": 2.29,
-      "rr_t2": 2.46,
-      "sl_type": "struktur+floor",
-      "cot_bias": "SHORT",
-      "cot_pct": 17.8,
-      "correlation_group": "usd_pairs",
+      "current": 69.525,
+      "entry": 68.12,
+      "sl": 66.9447,
+      "t1": 70.95,
+      "t2": 71.51869,
+      "rr_t1": 2.41,
+      "rr_t2": 2.89,
+      "sl_type": "struktur",
+      "cot_bias": "LONG",
+      "cot_pct": 9.7,
+      "correlation_group": "precious_metals",
       "adr_utilization": {
-        "pct": 24.9,
-        "ok_for_scalp": true,
+        "pct": 94.0,
+        "ok_for_scalp": false,
         "available": true
       },
-      "atr_d1": 0.81107,
+      "atr_d1": 1.76122,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -350,6 +350,66 @@
       }
     },
     {
+      "key": "Cotton",
+      "name": "Bomull",
+      "action": "BUY",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "B",
+      "score": 5.9,
+      "max_score": 18,
+      "current": 88.660004,
+      "entry": 88.58,
+      "sl": 84.98,
+      "t1": 93.08,
+      "t2": 94.88,
+      "rr_t1": 1.25,
+      "rr_t2": 1.75,
+      "sl_type": "atr_prosent",
+      "cot_bias": "bull",
+      "atr_d1": 1.8,
+      "source": "agri_fundamental",
+      "correlation_group": "cotton",
+      "horizon_config": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {
+          "fx": 3.0,
+          "gold": 4.0,
+          "silver": 4.0,
+          "oil": 3.5,
+          "index": 3.0
+        },
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
+      },
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "yield_score": 74,
+      "weather_outlook": "tørke",
+      "drivers": [
+        "Bedrock A BUY bekrefter (score 10.1)",
+        "Værstress i Brazil – Mato Grosso (tørke)",
+        "2 risiko-regioner",
+        "COT: spekulanter øker long (net +20% av OI)"
+      ]
+    },
+    {
       "key": "Sugar",
       "name": "Sukker",
       "action": "BUY",
@@ -358,16 +418,16 @@
       "grade": "B",
       "score": 5.0,
       "max_score": 18,
-      "current": 17.360001,
-      "entry": 17.34,
-      "sl": 16.42,
+      "current": 17.620001,
+      "entry": 17.6,
+      "sl": 16.66,
       "t1": 19.5,
-      "t2": 18.96,
-      "rr_t1": 2.35,
-      "rr_t2": 1.76,
+      "t2": 20.0,
+      "rr_t1": 2.02,
+      "rr_t2": 2.55,
       "sl_type": "atr_prosent",
       "cot_bias": "bull",
-      "atr_d1": 0.46,
+      "atr_d1": 0.47,
       "source": "agri_fundamental",
       "correlation_group": "softs",
       "horizon_config": {
@@ -400,20 +460,20 @@
       },
       "data_quality": "fresh",
       "quality_notes": [],
-      "yield_score": 78,
+      "yield_score": 76,
       "weather_outlook": "tørt",
       "drivers": [
         "UNICA: mix sukker 42.5% (-8.5pp) → tight supply",
         "Analog: bullish +5.7% 90d (n=3, range -2.2..+46.5%, år: 2012(-2.2%), 2013(+5.7%), 2015(+46.5%))",
         "Bedrock A+ BUY bekrefter (score 11.9)",
-        "Værstress i India – Punjab / Haryana (tørt)"
+        "COT: bull FALLER (net +12%)"
       ]
     }
   ],
   "_meta": {
-    "generated_at": "2026-08-26T22:02:08Z",
+    "generated_at": "2026-08-27T02:03:25Z",
     "script": "push_signals.py",
-    "macro_date": "2026-08-26 22:00 UTC",
+    "macro_date": "2026-08-27 02:01 UTC",
     "cot_date": "2026-08-18"
   }
 }
