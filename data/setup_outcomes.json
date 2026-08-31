@@ -615,6 +615,27 @@
    "t1_quality": "4h"
   },
   {
+   "id": "Brent|BUY|86.08000|84.62036|94.81000",
+   "key": "Brent",
+   "direction": "BUY",
+   "entry": 86.08,
+   "sl": 84.62036,
+   "t1": 94.81,
+   "t2": 102.01,
+   "rr_t1": 5.98,
+   "horizon": "SWING",
+   "grade": "A",
+   "score": 3.28,
+   "t1_source": "PWH",
+   "sl_type": "struktur",
+   "source": "technical",
+   "atr_d1": 2.91929,
+   "first_seen": "2026-08-31T10:01:58Z",
+   "status": "pending",
+   "entry_weight": 3,
+   "t1_quality": "htf"
+  },
+  {
    "id": "WTI|BUY|84.37000|83.38696|89.00000",
    "key": "WTI",
    "direction": "BUY",
@@ -636,25 +657,25 @@
    "t1_quality": "htf"
   },
   {
-   "id": "EURUSD|SELL|1.15979|1.16065|1.15825",
-   "key": "EURUSD",
-   "direction": "SELL",
-   "entry": 1.15979,
-   "sl": 1.16065,
-   "t1": 1.15825,
-   "t2": 1.15825,
-   "rr_t1": 1.79,
-   "horizon": "SCALP",
-   "grade": "B",
-   "score": 2.2,
-   "t1_source": "SMC15m",
-   "sl_type": "zone",
+   "id": "WTI|BUY|86.35000|84.14714|93.50000",
+   "key": "WTI",
+   "direction": "BUY",
+   "entry": 86.35,
+   "sl": 84.14714,
+   "t1": 93.5,
+   "t2": 97.0,
+   "rr_t1": 3.25,
+   "horizon": "SWING",
+   "grade": "A",
+   "score": 3.33,
+   "t1_source": "D1",
+   "sl_type": "struktur",
    "source": "technical",
-   "atr_d1": 0.00551,
-   "first_seen": "2026-08-31T07:24:59Z",
+   "atr_d1": 2.93143,
+   "first_seen": "2026-08-31T10:01:58Z",
    "status": "pending",
-   "entry_weight": 1,
-   "t1_quality": "weak"
+   "entry_weight": 3,
+   "t1_quality": "htf"
   },
   {
    "id": "USDJPY|BUY|159.55800|159.40199|160.05200",
@@ -673,9 +694,12 @@
    "source": "technical",
    "atr_d1": 0.76014,
    "first_seen": "2026-08-31T07:24:59Z",
-   "status": "pending",
+   "status": "active",
    "entry_weight": 1,
-   "t1_quality": "htf"
+   "t1_quality": "htf",
+   "activated_at": "2026-08-31T08:00:00Z",
+   "mfe": 0.209,
+   "mae": 0.088
   }
  ],
  "closed": [
@@ -14451,10 +14475,35 @@
    "first_seen": "2026-08-26T05:00:27Z",
    "status": "expired",
    "closed_at": "2026-08-31T07:25:01Z"
+  },
+  {
+   "id": "EURUSD|SELL|1.15979|1.16065|1.15825",
+   "key": "EURUSD",
+   "direction": "SELL",
+   "entry": 1.15979,
+   "sl": 1.16065,
+   "t1": 1.15825,
+   "t2": 1.15825,
+   "rr_t1": 1.79,
+   "horizon": "SCALP",
+   "grade": "B",
+   "score": 2.2,
+   "t1_source": "SMC15m",
+   "sl_type": "zone",
+   "source": "technical",
+   "atr_d1": 0.00551,
+   "first_seen": "2026-08-31T07:24:59Z",
+   "status": "sl",
+   "entry_weight": 1,
+   "t1_quality": "weak",
+   "activated_at": "2026-08-31T08:00:00Z",
+   "mfe": 0.0001,
+   "mae": 0.00111,
+   "closed_at": "2026-08-31T08:00:00Z"
   }
  ],
  "stats": {
-  "n_closed": 590,
+  "n_closed": 591,
   "by_horizon": {
    "SWING": {
     "t1": 31,
@@ -14467,12 +14516,12 @@
    },
    "SCALP": {
     "t1": 5,
-    "sl": 20,
+    "sl": 21,
     "ambiguous": 0,
     "timeout": 10,
     "expired": 18,
-    "hit_rate_pct": 20.0,
-    "n_decided": 25
+    "hit_rate_pct": 19.2,
+    "n_decided": 26
    },
    "MAKRO": {
     "t1": 9,
@@ -14496,12 +14545,12 @@
    },
    "B": {
     "t1": 18,
-    "sl": 90,
+    "sl": 91,
     "ambiguous": 1,
     "timeout": 99,
     "expired": 100,
-    "hit_rate_pct": 16.5,
-    "n_decided": 109
+    "hit_rate_pct": 16.4,
+    "n_decided": 110
    }
   },
   "by_t1_source": {
@@ -14624,12 +14673,12 @@
    },
    "SMC15m": {
     "t1": 0,
-    "sl": 1,
+    "sl": 2,
     "ambiguous": 0,
     "timeout": 1,
     "expired": 6,
     "hit_rate_pct": 0.0,
-    "n_decided": 1
+    "n_decided": 2
    },
    "4w_low": {
     "t1": 1,
@@ -14923,12 +14972,12 @@
   "by_source": {
    "technical": {
     "t1": 32,
-    "sl": 154,
+    "sl": 155,
     "ambiguous": 3,
     "timeout": 55,
     "expired": 171,
-    "hit_rate_pct": 16.9,
-    "n_decided": 189
+    "hit_rate_pct": 16.8,
+    "n_decided": 190
    },
    "agri_fundamental": {
     "t1": 13,
@@ -15060,12 +15109,12 @@
    },
    "EURUSD": {
     "t1": 6,
-    "sl": 16,
+    "sl": 17,
     "ambiguous": 0,
     "timeout": 12,
     "expired": 27,
-    "hit_rate_pct": 27.3,
-    "n_decided": 22
+    "hit_rate_pct": 26.1,
+    "n_decided": 23
    },
    "Cocoa": {
     "t1": 0,
@@ -15096,5 +15145,5 @@
    }
   }
  },
- "updated": "2026-08-31T07:25:03Z"
+ "updated": "2026-08-31T10:02:02Z"
 }
