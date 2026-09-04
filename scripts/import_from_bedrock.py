@@ -161,7 +161,7 @@ def export_ism_pmi():        return export_manual_csv("ism_pmi.csv",         "IS
 def export_iri_enso():       return export_manual_csv("iri_enso_forecast.csv","IRI Columbia · ENSO probability forecast")
 def export_crypto_sent():    return export_manual_csv("crypto_sentiment.csv","Crypto sentiment (manual aggregate)")
 # Manual fallbacks for DB tables that aren't yet populated by bedrock fetchers
-def export_cot_ice_manual():       return export_manual_csv("cot_ice.csv",          "ICE COT (manual fallback — bedrock cot_ice table empty)")
+def export_cot_ice_manual():       return export_manual_csv("cot_ice.csv",          "ICE COT (manual CSV supplement — primary source is bedrock cot_ice table → ice_cot.json)")
 def export_shipping_manual():      return export_manual_csv("shipping_indices.csv", "Baltic indices (manual fallback — bedrock bdi table empty)")
 
 
@@ -268,6 +268,40 @@ def export_cot_euronext(con: sqlite3.Connection) -> dict:
     return {
         "generated": now_iso(),
         "source":    "Euronext · MiFID II COT",
+        "rows":      len(rows),
+        "data":      out if out else None,
+    }
+
+
+def export_cot_ice(con: sqlite3.Connection) -> dict:
+    """ICE Futures Europe COT (Brent, Gasoil, London softs) — bedrock cot_ice table.
+    Same shape as export_cot_euronext so the UI can treat them alike."""
+    rows = fetch_all(
+        con,
+        """
+        SELECT report_date, contract, mm_long, mm_short, open_interest
+        FROM cot_ice
+        ORDER BY contract, report_date DESC
+        """,
+    )
+    by_contract: dict[str, list[dict]] = {}
+    for r in rows:
+        by_contract.setdefault(r["contract"], []).append(r)
+    out = {}
+    for c, rs in by_contract.items():
+        head = rs[0]
+        history = [(r["mm_long"] or 0) - (r["mm_short"] or 0) for r in rs[:52]]
+        out[c] = {
+            "report_date":   head["report_date"],
+            "mm_long":       head["mm_long"],
+            "mm_short":      head["mm_short"],
+            "mm_net":        (head["mm_long"] or 0) - (head["mm_short"] or 0),
+            "open_interest": head["open_interest"],
+            "spec_net_history": list(reversed(history)),
+        }
+    return {
+        "generated": now_iso(),
+        "source":    "ICE Futures Europe · COT (bedrock cot_ice)",
         "rows":      len(rows),
         "data":      out if out else None,
     }
@@ -561,6 +595,7 @@ EXPORTERS = {
     "eia_storage.json":     export_eia_storage,
     "seismic.json":         export_seismic,
     "cot_euronext.json":    export_cot_euronext,
+    "ice_cot.json":         export_cot_ice,
     "comex.json":           export_comex,
     "conab.json":           export_conab,
     "unica.json":           export_unica,

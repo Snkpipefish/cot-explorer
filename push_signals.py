@@ -9,6 +9,7 @@ Miljøvariabler (valgfritt):
   TELEGRAM_TOKEN   + TELEGRAM_CHAT_ID  → Telegram-bot
   DISCORD_WEBHOOK                      → Discord webhook
   PUSH_MAX_SIGNALS = 5                 → maks antall signaler per kjøring
+  FLASK_PUSH       = 1 for å aktivere push til Flask (av som standard — ingen bot)
   FLASK_URL        = http://localhost:5000  → signal_server.py for /push-alert
   SCALP_API_KEY                        → API-nøkkel til Flask-server
 """
@@ -573,6 +574,12 @@ def _flush_outbox():
 
 # ── Push til Flask /push-alert ────────────────────────────
 def push_flask(signals):
+    # Det finnes ingen trading-bot / signal_server lenger. Pushen er derfor av
+    # med mindre FLASK_PUSH=1 er satt eksplisitt — ellers fylte hver kjøring
+    # data/outbox/ med payloads som aldri kunne leveres.
+    if os.environ.get("FLASK_PUSH", "0") != "1":
+        print("Flask push deaktivert (ingen bot; sett FLASK_PUSH=1 for å slå på)")
+        return
     if not SCALP_API_KEY:
         return
     payload = json.dumps({
