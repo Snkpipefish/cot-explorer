@@ -1,12 +1,12 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-09-07 18:02 UTC",
+  "generated": "2026-09-07 22:01 UTC",
   "cot_date": "2026-09-01",
   "global_state": {
-    "geo_active": false,
+    "geo_active": true,
     "vix_regime": "normal",
-    "oil_geo_warning": false,
-    "oil_warning_reason": ""
+    "oil_geo_warning": true,
+    "oil_warning_reason": "krig/angrep i nyheter"
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -73,10 +73,12 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -122,9 +124,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
           "score": 0.75,
@@ -238,10 +242,12 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -283,9 +289,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
           "score": 0.7,
@@ -352,9 +360,9 @@
       "timeframe": "SWING",
       "horizon": "SWING",
       "grade": "B",
-      "score": 2.57,
+      "score": 2.62,
       "max_score": 5.0,
-      "score_pct": 51,
+      "score_pct": 52,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -399,19 +407,20 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.65,
+          "poeng": 0.7,
           "drivers": [
-            "HTF-nivå w3",
             "SMC-bekreftelse"
           ]
         }
@@ -446,15 +455,16 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "structure": {
-          "score": 0.65,
+          "score": 0.5,
           "weight": 1.0,
           "drivers": [
-            "HTF-nivå w3",
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
+          "score": 0.7,
+          "weight": 1.0,
+          "drivers": [
             "SMC-bekreftelse"
           ]
         }
@@ -463,23 +473,23 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 154.35,
-      "entry": 156.717,
-      "sl": 157.15935,
-      "t1": 154.35201,
-      "t2": 154.27,
-      "rr_t1": 5.35,
-      "rr_t2": 5.53,
+      "current": 154.34,
+      "entry": 156.246,
+      "sl": 156.97705,
+      "t1": 154.064,
+      "t2": 152.853,
+      "rr_t1": 2.98,
+      "rr_t2": 4.64,
       "sl_type": "struktur",
       "cot_bias": "SHORT",
       "cot_pct": 24.8,
       "correlation_group": "usd_pairs",
       "adr_utilization": {
-        "pct": 39.6,
+        "pct": 11.3,
         "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": 1.4745,
+      "atr_d1": 1.50036,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -571,9 +581,9 @@
     }
   ],
   "_meta": {
-    "generated_at": "2026-09-07T18:02:13Z",
+    "generated_at": "2026-09-07T22:01:54Z",
     "script": "push_signals.py",
-    "macro_date": "2026-09-07 18:00 UTC",
+    "macro_date": "2026-09-07 22:00 UTC",
     "cot_date": "2026-09-01"
   }
 }
