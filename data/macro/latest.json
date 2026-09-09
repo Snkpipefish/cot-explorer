@@ -1,12 +1,12 @@
 {
-  "date": "2026-09-09 10:40 UTC",
+  "date": "2026-09-09 11:40 UTC",
   "cot_date": "2026-09-01",
   "prices": {
     "VIX": {
-      "price": 16.14,
-      "chg1d": 2.67,
-      "chg5d": 6.18,
-      "chg20d": 10.93
+      "price": 16.29,
+      "chg1d": 3.63,
+      "chg5d": 7.17,
+      "chg20d": 11.96
     },
     "SPX": {
       "price": 7677.5,
@@ -23,10 +23,10 @@
       "source": "bedrock"
     },
     "DXY": {
-      "price": 98.821,
-      "chg1d": -0.02,
-      "chg5d": -0.85,
-      "chg20d": -1.0
+      "price": 98.642,
+      "chg1d": -0.2,
+      "chg5d": -1.03,
+      "chg20d": -1.18
     },
     "EURUSD": {
       "price": 1.163603,
@@ -50,10 +50,10 @@
       "source": "bedrock"
     },
     "USDCHF": {
-      "price": 1.2354,
-      "chg1d": -0.06,
-      "chg5d": 0.28,
-      "chg20d": 0.19
+      "price": 1.2372,
+      "chg1d": 0.09,
+      "chg5d": 0.43,
+      "chg20d": 0.34
     },
     "AUDUSD": {
       "price": 0.722335,
@@ -63,10 +63,10 @@
       "source": "bedrock"
     },
     "USDNOK": {
-      "price": 0.1086,
-      "chg1d": 0.66,
-      "chg5d": 1.32,
-      "chg20d": 3.08
+      "price": 0.1088,
+      "chg1d": 0.79,
+      "chg5d": 1.45,
+      "chg20d": 3.22
     },
     "Brent": {
       "price": 100.550003,
@@ -173,7 +173,7 @@
     }
   },
   "vix_regime": {
-    "value": 16.14,
+    "value": 16.29,
     "label": "Normalt – full størrelse",
     "color": "bull",
     "regime": "normal"
@@ -225,9 +225,9 @@
       "m15_regime": "BULLISH",
       "regime_align": "bear",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 99.1553,
       "sma200_pos": "under",
@@ -876,9 +876,9 @@
       "m15_regime": "BEARISH",
       "regime_align": "mixed",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 1.1633,
       "sma200_pos": "under",
@@ -1549,9 +1549,9 @@
       "m15_regime": "BULLISH",
       "regime_align": "bear",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 158.43,
       "sma200_pos": "under",
@@ -2208,9 +2208,9 @@
       "m15_regime": "BEARISH",
       "regime_align": "bear",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 1.3447,
       "sma200_pos": "over",
@@ -2817,9 +2817,9 @@
       "m15_regime": "BEARISH",
       "regime_align": "mixed",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 0.6991,
       "sma200_pos": "over",
@@ -3450,9 +3450,9 @@
       "m15_regime": "BEARISH",
       "regime_align": "bear",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 4523.93,
       "sma200_pos": "under",
@@ -3461,9 +3461,9 @@
       "dir_color": "bull",
       "grade": "C",
       "grade_color": "bear",
-      "score": 1.12,
+      "score": 1.07,
       "max_score": 4.2,
-      "score_pct": 27,
+      "score_pct": 25,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -3491,8 +3491,9 @@
           "id": "group_macro",
           "verdi": true,
           "vekt": 0.7,
-          "poeng": 0.35,
+          "poeng": 0.3,
           "drivers": [
+            "DXY svak -1.0%",
             "News risk_off (|s|=1.00) confirms"
           ]
         },
@@ -3538,9 +3539,10 @@
           ]
         },
         "macro": {
-          "score": 0.5,
+          "score": 0.42,
           "weight": 0.7,
           "drivers": [
+            "DXY svak -1.0%",
             "News risk_off (|s|=1.00) confirms"
           ]
         },
@@ -3562,6 +3564,7 @@
       },
       "active_driver_groups": 3,
       "group_drivers": [
+        "DXY svak -1.0%",
         "News risk_off (|s|=1.00) confirms",
         "COT bias align (+32.9%)",
         "OI stigende (bekrefter)",
@@ -3577,7 +3580,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": true,
-      "in_session": false,
+      "in_session": true,
       "news_headwind": false,
       "news_sentiment_label": "risk_off",
       "open_interest": 415196,
@@ -4098,9 +4101,9 @@
       "m15_regime": "BEARISH",
       "regime_align": "bull",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 72.0641,
       "sma200_pos": "under",
@@ -4109,16 +4112,16 @@
       "dir_color": "bull",
       "grade": "B",
       "grade_color": "warn",
-      "score": 2.54,
-      "max_score": 5.0,
-      "score_pct": 51,
+      "score": 1.55,
+      "max_score": 4.2,
+      "score_pct": 37,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.33,
+          "vekt": 1.2,
+          "poeng": 0.4,
           "drivers": [
             "D1+4H kongruent"
           ]
@@ -4127,8 +4130,8 @@
           "kryss": "COT-posisjonering",
           "id": "group_positioning",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 1.0,
+          "vekt": 0.5,
+          "poeng": 0.5,
           "drivers": [
             "COT bias align (+12.1%)"
           ]
@@ -4137,9 +4140,10 @@
           "kryss": "Makrobilde (DXY/VIX/renter)",
           "id": "group_macro",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.5,
+          "vekt": 0.7,
+          "poeng": 0.3,
           "drivers": [
+            "DXY svak -1.0%",
             "News risk_off (|s|=1.00) confirms"
           ]
         },
@@ -4147,8 +4151,8 @@
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.71,
+          "vekt": 0.5,
+          "poeng": 0.35,
           "drivers": [
             "COMEX stress 56"
           ]
@@ -4157,7 +4161,7 @@
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
           "verdi": false,
-          "vekt": 1.0,
+          "vekt": 0.8,
           "poeng": 0.0,
           "drivers": []
         },
@@ -4165,7 +4169,7 @@
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
           "verdi": false,
-          "vekt": 1.0,
+          "vekt": 1.3,
           "poeng": 0.0,
           "drivers": []
         }
@@ -4173,51 +4177,53 @@
       "driver_groups": {
         "trend": {
           "score": 0.33,
-          "weight": 1.0,
+          "weight": 1.2,
           "drivers": [
             "D1+4H kongruent"
           ]
         },
         "positioning": {
           "score": 1.0,
-          "weight": 1.0,
+          "weight": 0.5,
           "drivers": [
             "COT bias align (+12.1%)"
           ]
         },
         "macro": {
-          "score": 0.5,
-          "weight": 1.0,
+          "score": 0.42,
+          "weight": 0.7,
           "drivers": [
+            "DXY svak -1.0%",
             "News risk_off (|s|=1.00) confirms"
           ]
         },
         "fundamental": {
           "score": 0.71,
-          "weight": 1.0,
+          "weight": 0.5,
           "drivers": [
             "COMEX stress 56"
           ]
         },
         "risk": {
           "score": 0.0,
-          "weight": 1.0,
+          "weight": 0.8,
           "drivers": []
         },
         "structure": {
           "score": 0.0,
-          "weight": 1.0,
+          "weight": 1.3,
           "drivers": []
         }
       },
       "active_driver_groups": 4,
       "group_drivers": [
         "COMEX stress 56",
+        "DXY svak -1.0%",
         "News risk_off (|s|=1.00) confirms",
         "COT bias align (+12.1%)",
         "D1+4H kongruent"
       ],
-      "horizon": "SWING",
+      "horizon": "SCALP",
       "adr_utilization": {
         "pct": 48.4,
         "ok_for_scalp": true,
@@ -4227,7 +4233,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": true,
-      "in_session": false,
+      "in_session": true,
       "news_headwind": false,
       "news_sentiment_label": "risk_off",
       "open_interest": 104362,
@@ -4723,9 +4729,9 @@
       "m15_regime": "BULLISH",
       "regime_align": "bull",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 84.1961,
       "sma200_pos": "over",
@@ -4734,16 +4740,16 @@
       "dir_color": "bull",
       "grade": "A",
       "grade_color": "bull",
-      "score": 3.47,
-      "max_score": 5.0,
-      "score_pct": 69,
+      "score": 3.9,
+      "max_score": 5.2,
+      "score_pct": 75,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 1.0,
+          "vekt": 0.8,
+          "poeng": 0.8,
           "drivers": [
             "SMA200-align",
             "Momentum 20d +",
@@ -4754,8 +4760,8 @@
           "kryss": "COT-posisjonering",
           "id": "group_positioning",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 1.0,
+          "vekt": 1.3,
+          "poeng": 1.3,
           "drivers": [
             "COT bias align (+6.9%)",
             "COT momentum +"
@@ -4764,17 +4770,19 @@
         {
           "kryss": "Makrobilde (DXY/VIX/renter)",
           "id": "group_macro",
-          "verdi": false,
-          "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "verdi": true,
+          "vekt": 1.3,
+          "poeng": 0.45,
+          "drivers": [
+            "DXY svak -1.0%"
+          ]
         },
         {
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.77,
+          "vekt": 1.3,
+          "poeng": 1.0,
           "drivers": [
             "Supply disruption aktiv",
             "Shipping risiko HIGH",
@@ -4785,7 +4793,7 @@
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
           "verdi": false,
-          "vekt": 1.0,
+          "vekt": 0.8,
           "poeng": 0.0,
           "drivers": []
         },
@@ -4793,8 +4801,8 @@
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.7,
+          "vekt": 0.5,
+          "poeng": 0.35,
           "drivers": [
             "SMC-bekreftelse"
           ]
@@ -4803,7 +4811,7 @@
       "driver_groups": {
         "trend": {
           "score": 1.0,
-          "weight": 1.0,
+          "weight": 0.8,
           "drivers": [
             "SMA200-align",
             "Momentum 20d +",
@@ -4812,20 +4820,22 @@
         },
         "positioning": {
           "score": 1.0,
-          "weight": 1.0,
+          "weight": 1.3,
           "drivers": [
             "COT bias align (+6.9%)",
             "COT momentum +"
           ]
         },
         "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
+          "score": 0.34,
+          "weight": 1.3,
+          "drivers": [
+            "DXY svak -1.0%"
+          ]
         },
         "fundamental": {
           "score": 0.77,
-          "weight": 1.0,
+          "weight": 1.3,
           "drivers": [
             "Supply disruption aktiv",
             "Shipping risiko HIGH",
@@ -4834,29 +4844,29 @@
         },
         "risk": {
           "score": 0.0,
-          "weight": 1.0,
+          "weight": 0.8,
           "drivers": []
         },
         "structure": {
           "score": 0.7,
-          "weight": 1.0,
+          "weight": 0.5,
           "drivers": [
             "SMC-bekreftelse"
           ]
         }
       },
-      "active_driver_groups": 4,
+      "active_driver_groups": 5,
       "group_drivers": [
         "Supply disruption aktiv",
         "Shipping risiko HIGH",
         "Brent-WTI spread +5.5 (tight)",
+        "DXY svak -1.0%",
         "COT bias align (+6.9%)",
         "COT momentum +",
         "SMA200-align",
-        "Momentum 20d +",
-        "D1+4H kongruent"
+        "Momentum 20d +"
       ],
-      "horizon": "SWING",
+      "horizon": "MAKRO",
       "adr_utilization": {
         "pct": 53.5,
         "ok_for_scalp": true,
@@ -4866,7 +4876,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": false,
-      "in_session": false,
+      "in_session": true,
       "news_headwind": false,
       "news_sentiment_label": "risk_off",
       "open_interest": 3459910,
@@ -5325,27 +5335,27 @@
       "m15_regime": "BULLISH",
       "regime_align": "bull",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 79.1546,
       "sma200_pos": "over",
       "chg5d": 5.39,
       "chg20d": 14.28,
       "dir_color": "bull",
-      "grade": "C",
-      "grade_color": "bear",
-      "score": 2.5,
-      "max_score": 4.2,
-      "score_pct": 60,
+      "grade": "A",
+      "grade_color": "bull",
+      "score": 2.81,
+      "max_score": 5.0,
+      "score_pct": 56,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
           "verdi": true,
-          "vekt": 1.2,
-          "poeng": 1.2,
+          "vekt": 1.0,
+          "poeng": 1.0,
           "drivers": [
             "SMA200-align",
             "Momentum 20d +",
@@ -5356,24 +5366,26 @@
           "kryss": "COT-posisjonering",
           "id": "group_positioning",
           "verdi": false,
-          "vekt": 0.5,
+          "vekt": 1.0,
           "poeng": 0.0,
           "drivers": []
         },
         {
           "kryss": "Makrobilde (DXY/VIX/renter)",
           "id": "group_macro",
-          "verdi": false,
-          "vekt": 0.7,
-          "poeng": 0.0,
-          "drivers": []
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.34,
+          "drivers": [
+            "DXY svak -1.0%"
+          ]
         },
         {
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
           "verdi": true,
-          "vekt": 0.5,
-          "poeng": 0.39,
+          "vekt": 1.0,
+          "poeng": 0.77,
           "drivers": [
             "Supply disruption aktiv",
             "Shipping risiko HIGH",
@@ -5384,7 +5396,7 @@
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
           "verdi": false,
-          "vekt": 0.8,
+          "vekt": 1.0,
           "poeng": 0.0,
           "drivers": []
         },
@@ -5392,8 +5404,8 @@
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
           "verdi": true,
-          "vekt": 1.3,
-          "poeng": 0.91,
+          "vekt": 1.0,
+          "poeng": 0.7,
           "drivers": [
             "SMC-bekreftelse"
           ]
@@ -5402,7 +5414,7 @@
       "driver_groups": {
         "trend": {
           "score": 1.0,
-          "weight": 1.2,
+          "weight": 1.0,
           "drivers": [
             "SMA200-align",
             "Momentum 20d +",
@@ -5411,17 +5423,19 @@
         },
         "positioning": {
           "score": 0.0,
-          "weight": 0.5,
+          "weight": 1.0,
           "drivers": []
         },
         "macro": {
-          "score": 0.0,
-          "weight": 0.7,
-          "drivers": []
+          "score": 0.34,
+          "weight": 1.0,
+          "drivers": [
+            "DXY svak -1.0%"
+          ]
         },
         "fundamental": {
           "score": 0.77,
-          "weight": 0.5,
+          "weight": 1.0,
           "drivers": [
             "Supply disruption aktiv",
             "Shipping risiko HIGH",
@@ -5430,28 +5444,29 @@
         },
         "risk": {
           "score": 0.0,
-          "weight": 0.8,
+          "weight": 1.0,
           "drivers": []
         },
         "structure": {
           "score": 0.7,
-          "weight": 1.3,
+          "weight": 1.0,
           "drivers": [
             "SMC-bekreftelse"
           ]
         }
       },
-      "active_driver_groups": 3,
+      "active_driver_groups": 4,
       "group_drivers": [
         "Supply disruption aktiv",
         "Shipping risiko HIGH",
         "Brent-WTI spread +5.5 (tight)",
+        "DXY svak -1.0%",
         "SMA200-align",
         "Momentum 20d +",
         "D1+4H kongruent",
         "SMC-bekreftelse"
       ],
-      "horizon": "WATCHLIST",
+      "horizon": "SWING",
       "adr_utilization": {
         "pct": 42.1,
         "ok_for_scalp": true,
@@ -5461,7 +5476,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": true,
-      "in_session": false,
+      "in_session": true,
       "news_headwind": false,
       "news_sentiment_label": "risk_off",
       "open_interest": 767357,
@@ -5899,9 +5914,9 @@
       "m15_regime": "BEARISH",
       "regime_align": "bear",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 7147.05,
       "sma200_pos": "over",
@@ -6021,7 +6036,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": true,
-      "in_session": false,
+      "in_session": true,
       "news_headwind": false,
       "news_sentiment_label": "risk_off",
       "open_interest": 2079148,
@@ -6477,17 +6492,17 @@
       "m15_regime": "BEARISH",
       "regime_align": "bull",
       "session_now": {
-        "active": false,
-        "label": "Off-session",
-        "cet_hour": 12
+        "active": true,
+        "label": "NY Overlap",
+        "cet_hour": 13
       },
       "sma200": 27054.51,
       "sma200_pos": "over",
       "chg5d": 0.17,
       "chg20d": -0.39,
       "dir_color": "bull",
-      "grade": "C",
-      "grade_color": "bear",
+      "grade": "B",
+      "grade_color": "warn",
       "score": 2.14,
       "max_score": 4.2,
       "score_pct": 51,
@@ -6594,7 +6609,7 @@
         "D1+4H kongruent",
         "HTF-nivå w4"
       ],
-      "horizon": "WATCHLIST",
+      "horizon": "SCALP",
       "adr_utilization": {
         "pct": 68.3,
         "ok_for_scalp": true,
@@ -6604,7 +6619,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": true,
-      "in_session": false,
+      "in_session": true,
       "news_headwind": true,
       "news_sentiment_label": "risk_off",
       "open_interest": 300140,
