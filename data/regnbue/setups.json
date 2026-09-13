@@ -1,11 +1,11 @@
 {
-  "generated": "2026-09-11T22:00:13+00:00",
+  "generated": "2026-09-13T22:00:12+00:00",
   "source": "Regnbue \u00b7 base-rate-validated setups (Skilling-feed)",
   "as_of": "2026-09-10",
   "rows": 22,
   "raw": {
     "schema_version": 1,
-    "generated": "2026-09-11T21:20:26Z",
+    "generated": "2026-09-13T20:00:14Z",
     "as_of": "2026-09-10",
     "signals": [
       {
@@ -315,6 +315,85 @@
             "ok": false,
             "score": 0.0,
             "detail": "mangler data: btc"
+          }
+        ]
+      },
+      {
+        "instrument": "EURUSD",
+        "ticker": "EURUSD",
+        "direction": "SHORT",
+        "grade": "A",
+        "score": -0.4061,
+        "published": false,
+        "entry": 1.1596,
+        "sl": 1.163196,
+        "tp": 1.15763,
+        "rr": 0.548,
+        "atr": 0.004224,
+        "reject_reason": "R:R 0.55 < 1.5; base-rate: hit-rate nedre CI 44% < 55%; expectancy -0.09R < 0.30R; expectancy CI inkluderer \u22640 (-0.33R)",
+        "base_rate": {
+          "n": 71,
+          "hit_rate": 0.5915,
+          "hit_rate_ci": [
+            0.4378,
+            0.7293
+          ],
+          "expectancy_r": -0.0885,
+          "expectancy_ci": [
+            -0.3263,
+            0.1492
+          ],
+          "passes": false,
+          "reason": "hit-rate nedre CI 44% < 55%; expectancy -0.09R < 0.30R; expectancy CI inkluderer \u22640 (-0.33R)",
+          "n_eff": 40
+        },
+        "scenario": {
+          "engine": "scenario",
+          "n_paths": 2000,
+          "prob_tp": 0.578,
+          "prob_sl": 0.422,
+          "prob_time": 0.0,
+          "expectancy_r": -0.1172,
+          "expectancy_ci": [
+            -0.1507,
+            -0.0836
+          ],
+          "horizon": 30,
+          "cone": {
+            "p05": -0.0243,
+            "p25": -0.0106,
+            "median": -0.0013,
+            "p75": 0.0092,
+            "p95": 0.0235,
+            "prob_up": 0.464
+          }
+        },
+        "data_quality": "ok",
+        "history_years": 15.3,
+        "drivers": [
+          {
+            "name": "series_spread_percentile",
+            "ok": true,
+            "score": -0.9884,
+            "detail": "DGS10-IRLTLT01DEM156N = +1.98 (p99)"
+          },
+          {
+            "name": "momentum",
+            "ok": true,
+            "score": -0.6383,
+            "detail": "DGS2 21d-endring +0.34 (z=+0.76)"
+          },
+          {
+            "name": "cot_spec_net_percentile",
+            "ok": true,
+            "score": -0.141,
+            "detail": "EURUSD spec-net p43"
+          },
+          {
+            "name": "level_percentile",
+            "ok": true,
+            "score": 0.6383,
+            "detail": "VIXCLS niv\u00e5 15.7 = p18"
           }
         ]
       },
@@ -647,85 +726,6 @@
         ]
       },
       {
-        "instrument": "EURUSD",
-        "ticker": "EURUSD",
-        "direction": "SHORT",
-        "grade": "B",
-        "score": -0.2927,
-        "published": false,
-        "entry": 1.1596,
-        "sl": 1.163196,
-        "tp": 1.15763,
-        "rr": 0.548,
-        "atr": 0.004224,
-        "reject_reason": "R:R 0.55 < 1.5; base-rate: hit-rate nedre CI 34% < 55%; expectancy -0.26R < 0.30R; expectancy CI inkluderer \u22640 (-0.50R)",
-        "base_rate": {
-          "n": 60,
-          "hit_rate": 0.4833,
-          "hit_rate_ci": [
-            0.3369,
-            0.6327
-          ],
-          "expectancy_r": -0.2562,
-          "expectancy_ci": [
-            -0.4981,
-            -0.0143
-          ],
-          "passes": false,
-          "reason": "hit-rate nedre CI 34% < 55%; expectancy -0.26R < 0.30R; expectancy CI inkluderer \u22640 (-0.50R)",
-          "n_eff": 40
-        },
-        "scenario": {
-          "engine": "scenario",
-          "n_paths": 2000,
-          "prob_tp": 0.578,
-          "prob_sl": 0.422,
-          "prob_time": 0.0,
-          "expectancy_r": -0.1172,
-          "expectancy_ci": [
-            -0.1507,
-            -0.0836
-          ],
-          "horizon": 30,
-          "cone": {
-            "p05": -0.0243,
-            "p25": -0.0106,
-            "median": -0.0013,
-            "p75": 0.0092,
-            "p95": 0.0235,
-            "prob_up": 0.464
-          }
-        },
-        "data_quality": "ok",
-        "history_years": 15.3,
-        "drivers": [
-          {
-            "name": "series_spread_percentile",
-            "ok": true,
-            "score": -0.8493,
-            "detail": "DGS10-IRLTLT01DEM156N = +1.86 (p92)"
-          },
-          {
-            "name": "momentum",
-            "ok": true,
-            "score": -0.3798,
-            "detail": "DGS2 21d-endring +0.18 (z=+0.40)"
-          },
-          {
-            "name": "cot_spec_net_percentile",
-            "ok": true,
-            "score": -0.141,
-            "detail": "EURUSD spec-net p43"
-          },
-          {
-            "name": "level_percentile",
-            "ok": true,
-            "score": 0.6383,
-            "detail": "VIXCLS niv\u00e5 15.7 = p18"
-          }
-        ]
-      },
-      {
         "instrument": "Silver",
         "ticker": "SILVER",
         "direction": "SHORT",
@@ -809,7 +809,7 @@
         "ticker": "GOLD",
         "direction": "SHORT",
         "grade": "NONE",
-        "score": -0.2335,
+        "score": -0.2355,
         "published": false,
         "entry": 4348.36,
         "sl": 4408.978929,
@@ -860,8 +860,8 @@
           {
             "name": "series_spread_percentile",
             "ok": true,
-            "score": -0.9942,
-            "detail": "DGS10-T10YIE = +2.46 (p100)"
+            "score": -1.0,
+            "detail": "DGS10-T10YIE = +2.55 (p100)"
           },
           {
             "name": "momentum",
