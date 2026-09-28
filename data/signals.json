@@ -1,12 +1,12 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-09-27 22:05 UTC",
+  "generated": "2026-09-28 02:02 UTC",
   "cot_date": "2026-09-22",
   "global_state": {
     "geo_active": true,
     "vix_regime": "normal",
     "oil_geo_warning": true,
-    "oil_warning_reason": "krig/angrep i nyheter"
+    "oil_warning_reason": "Brent +10% 20d · krig/angrep i nyheter"
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -18,192 +18,25 @@
   },
   "signals": [
     {
-      "key": "Brent",
-      "name": "Brent",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "horizon": "SWING",
-      "grade": "B",
-      "score": 2.68,
-      "max_score": 5.0,
-      "score_pct": 54,
-      "score_details": [
-        {
-          "kryss": "Trendbildet (SMA/momentum/align)",
-          "id": "group_trend",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 1.0,
-          "drivers": [
-            "SMA200-align",
-            "Momentum 20d +",
-            "D1+4H kongruent"
-          ]
-        },
-        {
-          "kryss": "COT-posisjonering",
-          "id": "group_positioning",
-          "verdi": false,
-          "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
-        },
-        {
-          "kryss": "Makrobilde (DXY/VIX/renter)",
-          "id": "group_macro",
-          "verdi": false,
-          "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
-        },
-        {
-          "kryss": "Fundamentalt (asset-spesifikt)",
-          "id": "group_fundamental",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.68,
-          "drivers": [
-            "Supply disruption aktiv",
-            "Shipping risiko HIGH",
-            "Oilgas: BULLISH"
-          ]
-        },
-        {
-          "kryss": "Event-risiko (kalender/geo)",
-          "id": "group_risk",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.5,
-          "drivers": [
-            "Geo aktiv"
-          ]
-        },
-        {
-          "kryss": "Teknisk struktur (HTF/SMC)",
-          "id": "group_structure",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 1.0,
-          "drivers": [
-            "HTF-nivå w5"
-          ]
-        }
-      ],
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 1.0,
-          "drivers": [
-            "SMA200-align",
-            "Momentum 20d +",
-            "D1+4H kongruent"
-          ]
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.68,
-          "weight": 1.0,
-          "drivers": [
-            "Supply disruption aktiv",
-            "Shipping risiko HIGH",
-            "Oilgas: BULLISH"
-          ]
-        },
-        "risk": {
-          "score": 0.5,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv"
-          ]
-        },
-        "structure": {
-          "score": 1.0,
-          "weight": 1.0,
-          "drivers": [
-            "HTF-nivå w5"
-          ]
-        }
-      },
-      "active_driver_groups": 3,
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "dir_override_reason": null,
-      "current": 97.44,
-      "entry": 97.36,
-      "sl": 95.68814,
-      "t1": 102.01,
-      "t2": 102.01,
-      "rr_t1": 2.78,
-      "rr_t2": 2.78,
-      "sl_type": "struktur+floor",
-      "cot_bias": "LONG",
-      "cot_pct": 6.5,
-      "correlation_group": "energy",
-      "adr_utilization": {
-        "pct": 58.5,
-        "ok_for_scalp": true,
-        "available": true
-      },
-      "atr_d1": 5.57286,
-      "horizon_config": {
-        "confirmation_tf": "15min",
-        "confirmation_max_candles": 8,
-        "confirmation_escape_atr_factor": 0.7,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0025,
-        "entry_zone_margin_atr": 0.7,
-        "exit_t1_close_pct": 0.33,
-        "exit_t2_close_pct": 0.33,
-        "exit_trail_tf": "1H",
-        "exit_trail_atr_mult": {
-          "fx": 3.0,
-          "gold": 4.0,
-          "silver": 4.0,
-          "oil": 3.5,
-          "index": 3.0
-        },
-        "exit_ema_tf": "1H",
-        "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 96,
-        "exit_timeout_partial_pct": 0.5,
-        "exit_timeout_full_hours": 120,
-        "exit_be_timeout_hours": 48,
-        "exit_event_close_hours": 2,
-        "exit_geo_spike_atr_mult": 3.0,
-        "sizing_base_risk_usd": 40
-      }
-    },
-    {
       "key": "WTI",
       "name": "WTI",
       "action": "BUY",
       "timeframe": "SWING",
       "horizon": "SWING",
-      "grade": "B",
-      "score": 2.68,
+      "grade": "A",
+      "score": 2.95,
       "max_score": 5.0,
-      "score_pct": 54,
+      "score_pct": 59,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 1.0,
+          "poeng": 0.67,
           "drivers": [
             "SMA200-align",
-            "Momentum 20d +",
-            "D1+4H kongruent"
+            "Momentum 20d +"
           ]
         },
         {
@@ -249,20 +82,21 @@
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.6,
+          "drivers": [
+            "HTF-nivå w3"
+          ]
         }
       ],
       "driver_groups": {
         "trend": {
-          "score": 1.0,
+          "score": 0.67,
           "weight": 1.0,
           "drivers": [
             "SMA200-align",
-            "Momentum 20d +",
-            "D1+4H kongruent"
+            "Momentum 20d +"
           ]
         },
         "positioning": {
@@ -294,170 +128,10 @@
           ]
         },
         "structure": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 3,
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "dir_override_reason": null,
-      "current": 92.41,
-      "entry": 91.23,
-      "sl": 89.23571,
-      "t1": 95.58803,
-      "t2": 95.58803,
-      "rr_t1": 2.19,
-      "rr_t2": 2.19,
-      "sl_type": "struktur",
-      "cot_bias": "NØYTRAL",
-      "cot_pct": 0.7,
-      "correlation_group": "energy",
-      "adr_utilization": {
-        "pct": 52.9,
-        "ok_for_scalp": true,
-        "available": true
-      },
-      "atr_d1": 5.13714,
-      "horizon_config": {
-        "confirmation_tf": "15min",
-        "confirmation_max_candles": 8,
-        "confirmation_escape_atr_factor": 0.7,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0025,
-        "entry_zone_margin_atr": 0.7,
-        "exit_t1_close_pct": 0.33,
-        "exit_t2_close_pct": 0.33,
-        "exit_trail_tf": "1H",
-        "exit_trail_atr_mult": {
-          "fx": 3.0,
-          "gold": 4.0,
-          "silver": 4.0,
-          "oil": 3.5,
-          "index": 3.0
-        },
-        "exit_ema_tf": "1H",
-        "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 96,
-        "exit_timeout_partial_pct": 0.5,
-        "exit_timeout_full_hours": 120,
-        "exit_be_timeout_hours": 48,
-        "exit_event_close_hours": 2,
-        "exit_geo_spike_atr_mult": 3.0,
-        "sizing_base_risk_usd": 40
-      }
-    },
-    {
-      "key": "GBPUSD",
-      "name": "GBP/USD",
-      "action": "SELL",
-      "timeframe": "SWING",
-      "horizon": "SWING",
-      "grade": "B",
-      "score": 2.53,
-      "max_score": 5.0,
-      "score_pct": 51,
-      "score_details": [
-        {
-          "kryss": "Trendbildet (SMA/momentum/align)",
-          "id": "group_trend",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.33,
-          "drivers": [
-            "Momentum 20d +"
-          ]
-        },
-        {
-          "kryss": "COT-posisjonering",
-          "id": "group_positioning",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 1.0,
-          "drivers": [
-            "COT momentum +"
-          ]
-        },
-        {
-          "kryss": "Makrobilde (DXY/VIX/renter)",
-          "id": "group_macro",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.5,
-          "drivers": [
-            "News risk_off (|s|=1.00) confirms"
-          ]
-        },
-        {
-          "kryss": "Fundamentalt (asset-spesifikt)",
-          "id": "group_fundamental",
-          "verdi": false,
-          "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
-        },
-        {
-          "kryss": "Event-risiko (kalender/geo)",
-          "id": "group_risk",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.5,
-          "drivers": [
-            "Geo aktiv"
-          ]
-        },
-        {
-          "kryss": "Teknisk struktur (HTF/SMC)",
-          "id": "group_structure",
-          "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.7,
-          "drivers": [
-            "SMC-bekreftelse"
-          ]
-        }
-      ],
-      "driver_groups": {
-        "trend": {
-          "score": 0.33,
+          "score": 0.6,
           "weight": 1.0,
           "drivers": [
-            "Momentum 20d +"
-          ]
-        },
-        "positioning": {
-          "score": 1.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT momentum +"
-          ]
-        },
-        "macro": {
-          "score": 0.5,
-          "weight": 1.0,
-          "drivers": [
-            "News risk_off (|s|=1.00) confirms"
-          ]
-        },
-        "fundamental": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "risk": {
-          "score": 0.5,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv"
-          ]
-        },
-        "structure": {
-          "score": 0.7,
-          "weight": 1.0,
-          "drivers": [
-            "SMC-bekreftelse"
+            "HTF-nivå w3"
           ]
         }
       },
@@ -465,23 +139,23 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 1.32464,
-      "entry": 1.32635,
-      "sl": 1.33069,
-      "t1": 1.31612,
-      "t2": 1.31612,
-      "rr_t1": 2.36,
-      "rr_t2": 2.36,
+      "current": 93.42,
+      "entry": 91.51,
+      "sl": 89.94982,
+      "t1": 94.75,
+      "t2": 95.58958,
+      "rr_t1": 2.08,
+      "rr_t2": 2.61,
       "sl_type": "struktur",
-      "cot_bias": "LONG",
-      "cot_pct": 5.4,
-      "correlation_group": "usd_pairs",
+      "cot_bias": "NØYTRAL",
+      "cot_pct": 0.7,
+      "correlation_group": "energy",
       "adr_utilization": {
-        "pct": 45.2,
+        "pct": 34.9,
         "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": 0.00707,
+      "atr_d1": 4.96071,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -512,26 +186,140 @@
       }
     },
     {
-      "key": "Coffee",
-      "name": "Kaffe",
+      "key": "Gold",
+      "name": "Gull",
       "action": "SELL",
       "timeframe": "SWING",
       "horizon": "SWING",
-      "grade": "B",
-      "score": 6.4,
-      "max_score": 18,
-      "current": 278.100006,
-      "entry": 278.4,
-      "sl": 292.42,
-      "t1": 250.0,
-      "t2": 240.0,
-      "rr_t1": 2.03,
-      "rr_t2": 2.74,
-      "sl_type": "atr_prosent",
-      "cot_bias": "bull",
-      "atr_d1": 7.01,
-      "source": "agri_fundamental",
-      "correlation_group": "softs",
+      "grade": "A",
+      "score": 2.94,
+      "max_score": 5.0,
+      "score_pct": 59,
+      "score_details": [
+        {
+          "kryss": "Trendbildet (SMA/momentum/align)",
+          "id": "group_trend",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.67,
+          "drivers": [
+            "Momentum 20d +",
+            "D1+4H kongruent"
+          ]
+        },
+        {
+          "kryss": "COT-posisjonering",
+          "id": "group_positioning",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0,
+          "drivers": [
+            "COT momentum +"
+          ]
+        },
+        {
+          "kryss": "Makrobilde (DXY/VIX/renter)",
+          "id": "group_macro",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.68,
+          "drivers": [
+            "Real yields høye (2.85%)"
+          ]
+        },
+        {
+          "kryss": "Fundamentalt (asset-spesifikt)",
+          "id": "group_fundamental",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        },
+        {
+          "kryss": "Event-risiko (kalender/geo)",
+          "id": "group_risk",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        {
+          "kryss": "Teknisk struktur (HTF/SMC)",
+          "id": "group_structure",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.6,
+          "drivers": [
+            "HTF-nivå w3"
+          ]
+        }
+      ],
+      "driver_groups": {
+        "trend": {
+          "score": 0.67,
+          "weight": 1.0,
+          "drivers": [
+            "Momentum 20d +",
+            "D1+4H kongruent"
+          ]
+        },
+        "positioning": {
+          "score": 1.0,
+          "weight": 1.0,
+          "drivers": [
+            "COT momentum +"
+          ]
+        },
+        "macro": {
+          "score": 0.68,
+          "weight": 1.0,
+          "drivers": [
+            "Real yields høye (2.85%)"
+          ]
+        },
+        "fundamental": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "risk": {
+          "score": 0.5,
+          "weight": 1.0,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
+          "score": 0.6,
+          "weight": 1.0,
+          "drivers": [
+            "HTF-nivå w3"
+          ]
+        }
+      },
+      "active_driver_groups": 4,
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "dir_override_reason": null,
+      "current": 4244.7,
+      "entry": 4351.6001,
+      "sl": 4397.76437,
+      "t1": 4100.0,
+      "t2": 4076.3999,
+      "rr_t1": 5.45,
+      "rr_t2": 5.96,
+      "sl_type": "struktur",
+      "cot_bias": "LONG",
+      "cot_pct": 30.9,
+      "correlation_group": "precious_metals",
+      "adr_utilization": {
+        "pct": 100.8,
+        "ok_for_scalp": false,
+        "available": true
+      },
+      "atr_d1": 92.32854,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -559,17 +347,7 @@
         "exit_event_close_hours": 2,
         "exit_geo_spike_atr_mult": 3.0,
         "sizing_base_risk_usd": 40
-      },
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "yield_score": 87,
-      "weather_outlook": "normalt",
-      "drivers": [
-        "Krysssjekk: yield_score 87 + Conab YoY +19.6% → supply-overflod bekreftet",
-        "Struktur: Conab YoY +19.6% (cafe_total) → overflod vs forrige safra",
-        "COT: spekulanter øker long (net +10% av OI)",
-        "Yield utmerket — god produksjon holder prisene nede"
-      ]
+      }
     },
     {
       "key": "Sugar",
@@ -622,20 +400,20 @@
       },
       "data_quality": "fresh",
       "quality_notes": [],
-      "yield_score": 75,
-      "weather_outlook": "tørke",
+      "yield_score": 80,
+      "weather_outlook": "tørt",
       "drivers": [
         "UNICA: mix sukker 44.7% (-7.4pp) → tight supply",
         "Analog: bullish +4.4% 90d (n=3, range -4.2..+22.1%, år: 2017(+4.4%), 2013(-4.2%), 2019(+22.1%))",
         "Bedrock A+ BUY bekrefter (score 13.6)",
-        "Værstress i India – Punjab / Haryana (tørke)"
+        "Værstress i India – Punjab / Haryana (tørt)"
       ]
     }
   ],
   "_meta": {
-    "generated_at": "2026-09-27T22:05:10Z",
+    "generated_at": "2026-09-28T02:02:15Z",
     "script": "push_signals.py",
-    "macro_date": "2026-09-27 22:03 UTC",
+    "macro_date": "2026-09-28 02:00 UTC",
     "cot_date": "2026-09-22"
   }
 }
