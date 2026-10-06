@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-06 16:53 UTC",
+  "generated": "2026-10-06 16:58 UTC",
   "cot_date": "2026-09-30",
   "source": "CFTC · Euronext · Open-Meteo · NOAA ENSO · IRI Columbia · ECMWF SEAS5",
   "month": 10,
@@ -13,9 +13,9 @@
     "seas5_sst": [
       {
         "month": "2026-10",
-        "sst": 31.06,
+        "sst": 31.07,
         "climatology": 26.0,
-        "anomaly": 5.06
+        "anomaly": 5.07
       },
       {
         "month": "2026-11",
@@ -60,17 +60,132 @@
   },
   "crop_summary": [
     {
+      "crop_key": "cotton",
+      "navn": "Bomull",
+      "ikon": "☁️",
+      "outlook": {
+        "signal": "BULLISH",
+        "color": "bull",
+        "total_score": 1.4
+      },
+      "avg_wx_score": 2.0,
+      "cot_score": 1,
+      "risk_regions": 2,
+      "total_regions": 2,
+      "cot": {
+        "market": "Cotton No. 2",
+        "net": 67837,
+        "net_pct": 17.4,
+        "change": -8345,
+        "bias": "bull",
+        "momentum": "ØKER",
+        "cot_score": 1,
+        "cot_zscore": 0.72,
+        "date": "2026-09-29",
+        "source": "CFTC"
+      },
+      "drivers": [
+        "Værstress i Brazil – Mato Grosso (tørt)",
+        "2 risiko-regioner",
+        "COT: spekulanter øker long (net +17% av OI)",
+        "CONAB Brasil bomull: +1.5% YoY (↑ vekst)",
+        "Bedrock: A SELL makro publisert (score 8.1)",
+        "El Niño: Gunstig regn"
+      ],
+      "worst_region": {
+        "region": "brazil_mato_grosso",
+        "region_name": "Brazil – Mato Grosso",
+        "weather_score": 2,
+        "weather_outlook": "tørt",
+        "weather_summary": "Noe tørt: 9mm nedbør",
+        "precip_7d": 9.2,
+        "temp_max_avg": 35.9,
+        "season_mult": 1.5,
+        "growth_stage": {
+          "stage": "planting",
+          "stage_no": "Såing",
+          "icon": "🌱",
+          "season_pct": 33,
+          "in_season": true,
+          "season_months": "jul–mar",
+          "harvest_window": "feb–mar",
+          "season_start_month": 7,
+          "season_end_month": 3
+        },
+        "season_metrics": {
+          "gdd_accumulated": 1281,
+          "gdd_required": 2200,
+          "gdd_pct": 58.2,
+          "season_precip_mm": 112,
+          "ideal_precip_mm": 600,
+          "precip_pct": 18.6,
+          "stress_days": 49,
+          "days_measured": 97
+        },
+        "yield_score": 70,
+        "yield_rating": "God (tidlig)",
+        "yield_hint": "Tidlig i sesongen — normal produksjon → moderate priser",
+        "enso_impact": "El Niño: Gunstig regn",
+        "enso_adj": -0.3
+      },
+      "regions": [
+        {
+          "name": "Brazil – Mato Grosso",
+          "id": "brazil_mato_grosso",
+          "weather_score": 2,
+          "weather_outlook": "tørt",
+          "weather_summary": "Noe tørt: 9mm nedbør",
+          "precip_7d": 9.2,
+          "temp_max_avg": 35.9,
+          "in_season": true,
+          "stage": "Såing",
+          "yield_rating": "God (tidlig)",
+          "enso_impact": "El Niño: Gunstig regn"
+        },
+        {
+          "name": "USA Delta – Bomull & Ris",
+          "id": "us_delta_cotton",
+          "weather_score": 2,
+          "weather_outlook": "vått",
+          "weather_summary": "Mye nedbør: 82mm på 7 dager",
+          "precip_7d": 81.8,
+          "temp_max_avg": 30.4,
+          "in_season": true,
+          "stage": "Høsting",
+          "yield_rating": "Middels",
+          "enso_impact": null
+        }
+      ],
+      "growth_stage": "Høsting",
+      "growth_stage_icon": "🚜",
+      "growth_stage_pct": 86,
+      "in_season": true,
+      "season_months": "apr–okt",
+      "harvest_window": "sep–okt",
+      "gdd_accumulated": 2102,
+      "gdd_required": 2200,
+      "gdd_pct": 95.5,
+      "season_precip_mm": 447,
+      "ideal_precip_mm": 600,
+      "precip_pct": 74.5,
+      "stress_days": 40,
+      "yield_quality": "Middels",
+      "yield_score": 69,
+      "yield_hint": "Noen utfordringer → mulig prispress oppover",
+      "price": null
+    },
+    {
       "crop_key": "sugar",
       "navn": "Sukker",
       "ikon": "🍬",
       "outlook": {
         "signal": "BULLISH",
         "color": "bull",
-        "total_score": 2.0
+        "total_score": 1.8
       },
-      "avg_wx_score": 1.0,
+      "avg_wx_score": 0.7,
       "cot_score": 2,
-      "risk_regions": 1,
+      "risk_regions": 0,
       "total_regions": 3,
       "cot": {
         "market": "Sugar No. 11",
@@ -85,7 +200,6 @@
         "source": "CFTC"
       },
       "drivers": [
-        "Værstress i India – Punjab / Haryana (tørt)",
         "COT: bull FALLER (net +20%)",
         "UNICA: mix shifter mot etanol (52.1% → 44.7%) — mindre sukker-tilbud",
         "Bedrock: A+ BUY makro publisert (score 12.3)",
@@ -94,11 +208,11 @@
       "worst_region": {
         "region": "india_punjab",
         "region_name": "India – Punjab / Haryana",
-        "weather_score": 2,
+        "weather_score": 1,
         "weather_outlook": "tørt",
-        "weather_summary": "Tørt og varmt: 6mm / 30°C maks",
-        "precip_7d": 6.3,
-        "temp_max_avg": 30.3,
+        "weather_summary": "Noe tørt: 8mm nedbør",
+        "precip_7d": 8.1,
+        "temp_max_avg": 30.2,
         "season_mult": 1.0,
         "growth_stage": {
           "stage": "growing",
@@ -112,14 +226,14 @@
           "season_end_month": 5
         },
         "season_metrics": {
-          "gdd_accumulated": 1352,
+          "gdd_accumulated": 1366,
           "gdd_required": 3500,
-          "gdd_pct": 38.6,
+          "gdd_pct": 39.0,
           "season_precip_mm": 359,
           "ideal_precip_mm": 1500,
           "precip_pct": 23.9,
           "stress_days": 1,
-          "days_measured": 96
+          "days_measured": 97
         },
         "yield_score": 92,
         "yield_rating": "Utmerket (tidlig)",
@@ -131,11 +245,11 @@
         {
           "name": "India – Punjab / Haryana",
           "id": "india_punjab",
-          "weather_score": 2,
+          "weather_score": 1,
           "weather_outlook": "tørt",
-          "weather_summary": "Tørt og varmt: 6mm / 30°C maks",
-          "precip_7d": 6.3,
-          "temp_max_avg": 30.3,
+          "weather_summary": "Noe tørt: 8mm nedbør",
+          "precip_7d": 8.1,
+          "temp_max_avg": 30.2,
           "in_season": true,
           "stage": "Vegetativ vekst",
           "yield_rating": "Utmerket (tidlig)",
@@ -146,9 +260,9 @@
           "id": "thailand_sugar",
           "weather_score": 1,
           "weather_outlook": "vått",
-          "weather_summary": "Over normalt nedbør: 65mm",
-          "precip_7d": 65.1,
-          "temp_max_avg": 30.3,
+          "weather_summary": "Over normalt nedbør: 64mm",
+          "precip_7d": 63.5,
+          "temp_max_avg": 30.5,
           "in_season": true,
           "stage": "Modning",
           "yield_rating": "Middels",
@@ -159,9 +273,9 @@
           "id": "brazil_sao_paulo",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 29mm nedbør, 26°C maks",
-          "precip_7d": 29.4,
-          "temp_max_avg": 26.4,
+          "weather_summary": "Normalt: 40mm nedbør, 27°C maks",
+          "precip_7d": 39.7,
+          "temp_max_avg": 27.4,
           "in_season": true,
           "stage": "Høsting",
           "yield_rating": "God",
@@ -174,23 +288,17 @@
       "in_season": true,
       "season_months": "jan–des",
       "harvest_window": "jan–des",
-      "gdd_accumulated": 4104,
+      "gdd_accumulated": 4118,
       "gdd_required": 3500,
-      "gdd_pct": 117.2,
-      "season_precip_mm": 1052,
+      "gdd_pct": 117.7,
+      "season_precip_mm": 1058,
       "ideal_precip_mm": 1500,
-      "precip_pct": 70.1,
+      "precip_pct": 70.6,
       "stress_days": 125,
       "yield_quality": "God",
       "yield_score": 77,
       "yield_hint": "Normal produksjon → moderate priser",
-      "price": {
-        "value": 20.780001,
-        "chg1d": 0.241,
-        "chg5d": 16.611,
-        "chg20d": 14.934,
-        "source": "bedrock"
-      }
+      "price": null
     },
     {
       "crop_key": "coffee",
@@ -199,11 +307,11 @@
       "outlook": {
         "signal": "BULLISH",
         "color": "bull",
-        "total_score": 1.7
+        "total_score": 2.6
       },
-      "avg_wx_score": 0.5,
+      "avg_wx_score": 1.5,
       "cot_score": 1,
-      "risk_regions": 0,
+      "risk_regions": 1,
       "total_regions": 2,
       "cot": {
         "market": "Coffee C",
@@ -228,9 +336,9 @@
         "region_name": "Vietnam – Dak Lak (robusta-belte)",
         "weather_score": 1,
         "weather_outlook": "vått",
-        "weather_summary": "Over normalt nedbør: 59mm",
-        "precip_7d": 58.8,
-        "temp_max_avg": 28.7,
+        "weather_summary": "Over normalt nedbør: 70mm",
+        "precip_7d": 69.7,
+        "temp_max_avg": 28.6,
         "season_mult": 1.0,
         "growth_stage": {
           "stage": "main-harvest",
@@ -244,14 +352,14 @@
           "season_end_month": 12
         },
         "season_metrics": {
-          "gdd_accumulated": 4437,
+          "gdd_accumulated": 4452,
           "gdd_required": 3000,
-          "gdd_pct": 147.9,
-          "season_precip_mm": 1390,
+          "gdd_pct": 148.4,
+          "season_precip_mm": 1399,
           "ideal_precip_mm": 1400,
-          "precip_pct": 99.3,
+          "precip_pct": 99.9,
           "stress_days": 20,
-          "days_measured": 277
+          "days_measured": 278
         },
         "yield_score": 62,
         "yield_rating": "Middels",
@@ -263,11 +371,11 @@
         {
           "name": "Brasil – Kafferegionen",
           "id": "brazil_coffee",
-          "weather_score": 0,
-          "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 24mm nedbør, 28°C maks",
-          "precip_7d": 24.5,
-          "temp_max_avg": 27.7,
+          "weather_score": 2,
+          "weather_outlook": "tørt",
+          "weather_summary": "Noe tørt: 12mm nedbør",
+          "precip_7d": 12.0,
+          "temp_max_avg": 28.6,
           "in_season": false,
           "stage": "Etter høst",
           "yield_rating": null,
@@ -278,9 +386,9 @@
           "id": "vietnam_robusta",
           "weather_score": 1,
           "weather_outlook": "vått",
-          "weather_summary": "Over normalt nedbør: 59mm",
-          "precip_7d": 58.8,
-          "temp_max_avg": 28.7,
+          "weather_summary": "Over normalt nedbør: 70mm",
+          "precip_7d": 69.7,
+          "temp_max_avg": 28.6,
           "in_season": true,
           "stage": "Main Harvest",
           "yield_rating": "Middels",
@@ -293,23 +401,17 @@
       "in_season": true,
       "season_months": "jan–des",
       "harvest_window": "sep",
-      "gdd_accumulated": 4437,
+      "gdd_accumulated": 4452,
       "gdd_required": 3000,
-      "gdd_pct": 147.9,
-      "season_precip_mm": 1390,
+      "gdd_pct": 148.4,
+      "season_precip_mm": 1399,
       "ideal_precip_mm": 1400,
-      "precip_pct": 99.3,
+      "precip_pct": 99.9,
       "stress_days": 20,
       "yield_quality": "Middels",
       "yield_score": 62,
       "yield_hint": "Noen utfordringer → mulig prispress oppover",
-      "price": {
-        "value": 292.549988,
-        "chg1d": 1.316,
-        "chg5d": 1.316,
-        "chg20d": 0.792,
-        "source": "bedrock"
-      }
+      "price": null
     },
     {
       "crop_key": "corn",
@@ -354,46 +456,46 @@
         "agrees": true
       },
       "drivers": [
-        "Værstress i Argentina – Pampas (vått)",
+        "Værstress i Brazil – Mato Grosso (tørt)",
         "2 risiko-regioner",
         "COT: spekulanter øker long (net +20% av OI)",
         "CONAB Brasil mais: +2.0% YoY (↑ vekst)",
-        "Bedrock: B BUY makro publisert (score 8.9)",
+        "Bedrock: B BUY makro publisert (score 9.0)",
         "El Niño: Gunstig regn"
       ],
       "worst_region": {
-        "region": "argentina_pampas",
-        "region_name": "Argentina – Pampas",
+        "region": "brazil_mato_grosso",
+        "region_name": "Brazil – Mato Grosso",
         "weather_score": 2,
-        "weather_outlook": "vått",
-        "weather_summary": "Over normalt nedbør: 49mm",
-        "precip_7d": 49.4,
-        "temp_max_avg": 19.4,
+        "weather_outlook": "tørt",
+        "weather_summary": "Noe tørt: 9mm nedbør",
+        "precip_7d": 9.2,
+        "temp_max_avg": 35.9,
         "season_mult": 1.5,
         "growth_stage": {
           "stage": "planting",
           "stage_no": "Såing",
           "icon": "🌱",
-          "season_pct": 25,
+          "season_pct": 33,
           "in_season": true,
-          "season_months": "aug–mar",
+          "season_months": "jul–mar",
           "harvest_window": "feb–mar",
-          "season_start_month": 8,
+          "season_start_month": 7,
           "season_end_month": 3
         },
         "season_metrics": {
-          "gdd_accumulated": 230,
+          "gdd_accumulated": 1766,
           "gdd_required": 2700,
-          "gdd_pct": 8.5,
-          "season_precip_mm": 99,
+          "gdd_pct": 65.4,
+          "season_precip_mm": 112,
           "ideal_precip_mm": 500,
-          "precip_pct": 19.8,
-          "stress_days": 18,
-          "days_measured": 65
+          "precip_pct": 22.3,
+          "stress_days": 49,
+          "days_measured": 97
         },
-        "yield_score": 89,
-        "yield_rating": "Utmerket (tidlig)",
-        "yield_hint": "Tidlig i sesongen — høy produksjon → stabilt prisnivå",
+        "yield_score": 70,
+        "yield_rating": "God (tidlig)",
+        "yield_hint": "Tidlig i sesongen — normal produksjon → moderate priser",
         "enso_impact": "El Niño: Gunstig regn",
         "enso_adj": -0.3
       },
@@ -403,9 +505,9 @@
           "id": "us_cornbelt",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 0mm nedbør, 23°C maks",
-          "precip_7d": 0.2,
-          "temp_max_avg": 23.5,
+          "weather_summary": "Normalt: 3mm nedbør, 23°C maks",
+          "precip_7d": 3.2,
+          "temp_max_avg": 23.0,
           "in_season": true,
           "stage": "Høsting",
           "yield_rating": "Svak",
@@ -414,11 +516,11 @@
         {
           "name": "Brazil – Mato Grosso",
           "id": "brazil_mato_grosso",
-          "weather_score": 0,
-          "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 23mm nedbør, 34°C maks",
-          "precip_7d": 22.8,
-          "temp_max_avg": 34.4,
+          "weather_score": 2,
+          "weather_outlook": "tørt",
+          "weather_summary": "Noe tørt: 9mm nedbør",
+          "precip_7d": 9.2,
+          "temp_max_avg": 35.9,
           "in_season": true,
           "stage": "Såing",
           "yield_rating": "God (tidlig)",
@@ -427,11 +529,11 @@
         {
           "name": "Argentina – Pampas",
           "id": "argentina_pampas",
-          "weather_score": 2,
-          "weather_outlook": "vått",
-          "weather_summary": "Over normalt nedbør: 49mm",
-          "precip_7d": 49.4,
-          "temp_max_avg": 19.4,
+          "weather_score": 0,
+          "weather_outlook": "normalt",
+          "weather_summary": "Normalt: 39mm nedbør, 19°C maks",
+          "precip_7d": 38.7,
+          "temp_max_avg": 18.7,
           "in_season": true,
           "stage": "Såing",
           "yield_rating": "Utmerket (tidlig)",
@@ -442,9 +544,9 @@
           "id": "ukraine_blacksea",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 2mm nedbør, 20°C maks",
-          "precip_7d": 1.5,
-          "temp_max_avg": 19.7,
+          "weather_summary": "Normalt: 25mm nedbør, 20°C maks",
+          "precip_7d": 24.6,
+          "temp_max_avg": 20.4,
           "in_season": true,
           "stage": "Spiring",
           "yield_rating": "Utmerket (tidlig)",
@@ -470,9 +572,9 @@
       "in_season": true,
       "season_months": "feb–okt",
       "harvest_window": "sep–okt",
-      "gdd_accumulated": 1898,
+      "gdd_accumulated": 1903,
       "gdd_required": 2700,
-      "gdd_pct": 70.3,
+      "gdd_pct": 70.5,
       "season_precip_mm": 1164,
       "ideal_precip_mm": 500,
       "precip_pct": 232.8,
@@ -480,13 +582,7 @@
       "yield_quality": "God",
       "yield_score": 81,
       "yield_hint": "Normal produksjon → moderate priser",
-      "price": {
-        "value": 497.0,
-        "chg1d": 0.05,
-        "chg5d": -0.05,
-        "chg20d": -4.744,
-        "source": "bedrock"
-      }
+      "price": null
     },
     {
       "crop_key": "wheat",
@@ -495,11 +591,11 @@
       "outlook": {
         "signal": "NØYTRAL",
         "color": "neutral",
-        "total_score": -0.3
+        "total_score": -0.6
       },
-      "avg_wx_score": 1.0,
+      "avg_wx_score": 0.6,
       "cot_score": 1,
-      "risk_regions": 4,
+      "risk_regions": 2,
       "total_regions": 8,
       "cot": {
         "market": "Milling Wheat (Euronext EBM) + Wheat",
@@ -532,10 +628,10 @@
       },
       "drivers": [
         "Værstress i USA Great Plains – Vinterhvete (tørt)",
-        "4 risiko-regioner",
+        "2 risiko-regioner",
         "COT: bull BLANDET (net +10%)",
         "Yield utmerket — god produksjon holder prisene nede",
-        "Bedrock: A BUY makro publisert (score 8.7)",
+        "Bedrock: A BUY makro publisert (score 8.8)",
         "El Niño: Gunstig regn"
       ],
       "worst_region": {
@@ -545,7 +641,7 @@
         "weather_outlook": "tørt",
         "weather_summary": "Tørt og varmt: 0mm / 29°C maks",
         "precip_7d": 0.0,
-        "temp_max_avg": 28.8,
+        "temp_max_avg": 28.9,
         "season_mult": 1.0,
         "growth_stage": {
           "stage": "emergence",
@@ -559,14 +655,14 @@
           "season_end_month": 6
         },
         "season_metrics": {
-          "gdd_accumulated": 1701,
+          "gdd_accumulated": 1718,
           "gdd_required": 2000,
-          "gdd_pct": 85.1,
+          "gdd_pct": 85.9,
           "season_precip_mm": 124,
           "ideal_precip_mm": 450,
           "precip_pct": 27.7,
           "stress_days": 21,
-          "days_measured": 65
+          "days_measured": 66
         },
         "yield_score": 79,
         "yield_rating": "God (tidlig)",
@@ -582,7 +678,7 @@
           "weather_outlook": "tørt",
           "weather_summary": "Tørt og varmt: 0mm / 29°C maks",
           "precip_7d": 0.0,
-          "temp_max_avg": 28.8,
+          "temp_max_avg": 28.9,
           "in_season": true,
           "stage": "Spiring",
           "yield_rating": "God (tidlig)",
@@ -591,11 +687,11 @@
         {
           "name": "Argentina – Pampas",
           "id": "argentina_pampas",
-          "weather_score": 2,
-          "weather_outlook": "vått",
-          "weather_summary": "Over normalt nedbør: 49mm",
-          "precip_7d": 49.4,
-          "temp_max_avg": 19.4,
+          "weather_score": 0,
+          "weather_outlook": "normalt",
+          "weather_summary": "Normalt: 39mm nedbør, 19°C maks",
+          "precip_7d": 38.7,
+          "temp_max_avg": 18.7,
           "in_season": true,
           "stage": "Såing",
           "yield_rating": "Utmerket (tidlig)",
@@ -606,9 +702,9 @@
           "id": "ukraine_blacksea",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 2mm nedbør, 20°C maks",
-          "precip_7d": 1.5,
-          "temp_max_avg": 19.7,
+          "weather_summary": "Normalt: 25mm nedbør, 20°C maks",
+          "precip_7d": 24.6,
+          "temp_max_avg": 20.4,
           "in_season": true,
           "stage": "Spiring",
           "yield_rating": "Utmerket (tidlig)",
@@ -619,9 +715,9 @@
           "id": "eu_northern",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 27mm nedbør, 18°C maks",
-          "precip_7d": 27.0,
-          "temp_max_avg": 18.3,
+          "weather_summary": "Normalt: 35mm nedbør, 18°C maks",
+          "precip_7d": 34.7,
+          "temp_max_avg": 18.1,
           "in_season": true,
           "stage": "Spiring",
           "yield_rating": "Utmerket (tidlig)",
@@ -632,9 +728,9 @@
           "id": "canada_prairie",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 1mm nedbør, 16°C maks",
-          "precip_7d": 0.6,
-          "temp_max_avg": 16.0,
+          "weather_summary": "Normalt: 2mm nedbør, 14°C maks",
+          "precip_7d": 1.7,
+          "temp_max_avg": 13.6,
           "in_season": true,
           "stage": "Høsting",
           "yield_rating": "Utmerket",
@@ -645,9 +741,9 @@
           "id": "australia_wheat",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 8mm nedbør, 21°C maks",
-          "precip_7d": 8.0,
-          "temp_max_avg": 21.2,
+          "weather_summary": "Normalt: 4mm nedbør, 20°C maks",
+          "precip_7d": 4.1,
+          "temp_max_avg": 19.5,
           "in_season": true,
           "stage": "Aksing",
           "yield_rating": "Utmerket",
@@ -656,11 +752,11 @@
         {
           "name": "India – Punjab / Haryana",
           "id": "india_punjab",
-          "weather_score": 2,
+          "weather_score": 1,
           "weather_outlook": "tørt",
-          "weather_summary": "Tørt og varmt: 6mm / 30°C maks",
-          "precip_7d": 6.3,
-          "temp_max_avg": 30.3,
+          "weather_summary": "Noe tørt: 8mm nedbør",
+          "precip_7d": 8.1,
+          "temp_max_avg": 30.2,
           "in_season": true,
           "stage": "Vegetativ vekst",
           "yield_rating": "Utmerket (tidlig)",
@@ -686,9 +782,9 @@
       "in_season": true,
       "season_months": "apr–okt",
       "harvest_window": "sep–okt",
-      "gdd_accumulated": 2652,
+      "gdd_accumulated": 2663,
       "gdd_required": 2000,
-      "gdd_pct": 132.6,
+      "gdd_pct": 133.1,
       "season_precip_mm": 449,
       "ideal_precip_mm": 450,
       "precip_pct": 99.7,
@@ -696,13 +792,7 @@
       "yield_quality": "Utmerket",
       "yield_score": 95,
       "yield_hint": "Høy produksjon → stabilt prisnivå",
-      "price": {
-        "value": 690.75,
-        "chg1d": -0.036,
-        "chg5d": -0.217,
-        "chg20d": -0.072,
-        "source": "bedrock"
-      }
+      "price": null
     },
     {
       "crop_key": "soybeans",
@@ -730,152 +820,20 @@
         "source": "CFTC"
       },
       "drivers": [
-        "Værstress i Argentina – Pampas (vått)",
+        "Værstress i Brazil – Mato Grosso (tørt)",
         "COT: spekulanter øker long (net +23% av OI)",
         "CONAB Brasil soja: +5.2% YoY (↑ vekst)",
-        "Bedrock: A SELL makro publisert (score 9.4)",
-        "El Niño: Gunstig regn"
-      ],
-      "worst_region": {
-        "region": "argentina_pampas",
-        "region_name": "Argentina – Pampas",
-        "weather_score": 2,
-        "weather_outlook": "vått",
-        "weather_summary": "Over normalt nedbør: 49mm",
-        "precip_7d": 49.4,
-        "temp_max_avg": 19.4,
-        "season_mult": 1.5,
-        "growth_stage": {
-          "stage": "planting",
-          "stage_no": "Såing",
-          "icon": "🌱",
-          "season_pct": 25,
-          "in_season": true,
-          "season_months": "aug–mar",
-          "harvest_window": "feb–mar",
-          "season_start_month": 8,
-          "season_end_month": 3
-        },
-        "season_metrics": {
-          "gdd_accumulated": 230,
-          "gdd_required": 2500,
-          "gdd_pct": 9.2,
-          "season_precip_mm": 99,
-          "ideal_precip_mm": 500,
-          "precip_pct": 19.8,
-          "stress_days": 18,
-          "days_measured": 65
-        },
-        "yield_score": 92,
-        "yield_rating": "Utmerket (tidlig)",
-        "yield_hint": "Tidlig i sesongen — høy produksjon → stabilt prisnivå",
-        "enso_impact": "El Niño: Gunstig regn",
-        "enso_adj": -0.3
-      },
-      "regions": [
-        {
-          "name": "USA Corn Belt",
-          "id": "us_cornbelt",
-          "weather_score": 0,
-          "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 0mm nedbør, 23°C maks",
-          "precip_7d": 0.2,
-          "temp_max_avg": 23.5,
-          "in_season": true,
-          "stage": "Høsting",
-          "yield_rating": "Svak",
-          "enso_impact": null
-        },
-        {
-          "name": "Brazil – Mato Grosso",
-          "id": "brazil_mato_grosso",
-          "weather_score": 0,
-          "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 23mm nedbør, 34°C maks",
-          "precip_7d": 22.8,
-          "temp_max_avg": 34.4,
-          "in_season": true,
-          "stage": "Såing",
-          "yield_rating": "God (tidlig)",
-          "enso_impact": "El Niño: Gunstig regn"
-        },
-        {
-          "name": "Argentina – Pampas",
-          "id": "argentina_pampas",
-          "weather_score": 2,
-          "weather_outlook": "vått",
-          "weather_summary": "Over normalt nedbør: 49mm",
-          "precip_7d": 49.4,
-          "temp_max_avg": 19.4,
-          "in_season": true,
-          "stage": "Såing",
-          "yield_rating": "Utmerket (tidlig)",
-          "enso_impact": "El Niño: Gunstig regn"
-        }
-      ],
-      "growth_stage": "Høsting",
-      "growth_stage_icon": "🚜",
-      "growth_stage_pct": 89,
-      "in_season": true,
-      "season_months": "feb–okt",
-      "harvest_window": "sep–okt",
-      "gdd_accumulated": 1898,
-      "gdd_required": 2500,
-      "gdd_pct": 75.9,
-      "season_precip_mm": 1164,
-      "ideal_precip_mm": 500,
-      "precip_pct": 232.8,
-      "stress_days": 71,
-      "yield_quality": "God",
-      "yield_score": 71,
-      "yield_hint": "Normal produksjon → moderate priser",
-      "price": {
-        "value": 1280.75,
-        "chg1d": 0.137,
-        "chg5d": 0.0,
-        "chg20d": -1.139,
-        "source": "bedrock"
-      }
-    },
-    {
-      "crop_key": "cotton",
-      "navn": "Bomull",
-      "ikon": "☁️",
-      "outlook": {
-        "signal": "NØYTRAL",
-        "color": "neutral",
-        "total_score": -0.2
-      },
-      "avg_wx_score": 0.0,
-      "cot_score": 1,
-      "risk_regions": 0,
-      "total_regions": 2,
-      "cot": {
-        "market": "Cotton No. 2",
-        "net": 67837,
-        "net_pct": 17.4,
-        "change": -8345,
-        "bias": "bull",
-        "momentum": "ØKER",
-        "cot_score": 1,
-        "cot_zscore": 0.72,
-        "date": "2026-09-29",
-        "source": "CFTC"
-      },
-      "drivers": [
-        "COT: spekulanter øker long (net +17% av OI)",
-        "CONAB Brasil bomull: +1.5% YoY (↑ vekst)",
-        "Bedrock: A SELL makro publisert (score 8.2)",
+        "Bedrock: A SELL makro publisert (score 9.0)",
         "El Niño: Gunstig regn"
       ],
       "worst_region": {
         "region": "brazil_mato_grosso",
         "region_name": "Brazil – Mato Grosso",
-        "weather_score": 0,
-        "weather_outlook": "normalt",
-        "weather_summary": "Normalt: 23mm nedbør, 34°C maks",
-        "precip_7d": 22.8,
-        "temp_max_avg": 34.4,
+        "weather_score": 2,
+        "weather_outlook": "tørt",
+        "weather_summary": "Noe tørt: 9mm nedbør",
+        "precip_7d": 9.2,
+        "temp_max_avg": 35.9,
         "season_mult": 1.5,
         "growth_stage": {
           "stage": "planting",
@@ -889,16 +847,16 @@
           "season_end_month": 3
         },
         "season_metrics": {
-          "gdd_accumulated": 1270,
-          "gdd_required": 2200,
-          "gdd_pct": 57.7,
-          "season_precip_mm": 99,
-          "ideal_precip_mm": 600,
-          "precip_pct": 16.4,
+          "gdd_accumulated": 1766,
+          "gdd_required": 2500,
+          "gdd_pct": 70.6,
+          "season_precip_mm": 112,
+          "ideal_precip_mm": 500,
+          "precip_pct": 22.3,
           "stress_days": 49,
-          "days_measured": 96
+          "days_measured": 97
         },
-        "yield_score": 72,
+        "yield_score": 70,
         "yield_rating": "God (tidlig)",
         "yield_hint": "Tidlig i sesongen — normal produksjon → moderate priser",
         "enso_impact": "El Niño: Gunstig regn",
@@ -906,55 +864,62 @@
       },
       "regions": [
         {
-          "name": "Brazil – Mato Grosso",
-          "id": "brazil_mato_grosso",
+          "name": "USA Corn Belt",
+          "id": "us_cornbelt",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 23mm nedbør, 34°C maks",
-          "precip_7d": 22.8,
-          "temp_max_avg": 34.4,
+          "weather_summary": "Normalt: 3mm nedbør, 23°C maks",
+          "precip_7d": 3.2,
+          "temp_max_avg": 23.0,
+          "in_season": true,
+          "stage": "Høsting",
+          "yield_rating": "Svak",
+          "enso_impact": null
+        },
+        {
+          "name": "Brazil – Mato Grosso",
+          "id": "brazil_mato_grosso",
+          "weather_score": 2,
+          "weather_outlook": "tørt",
+          "weather_summary": "Noe tørt: 9mm nedbør",
+          "precip_7d": 9.2,
+          "temp_max_avg": 35.9,
           "in_season": true,
           "stage": "Såing",
           "yield_rating": "God (tidlig)",
           "enso_impact": "El Niño: Gunstig regn"
         },
         {
-          "name": "USA Delta – Bomull & Ris",
-          "id": "us_delta_cotton",
+          "name": "Argentina – Pampas",
+          "id": "argentina_pampas",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 22mm nedbør, 31°C maks",
-          "precip_7d": 21.6,
-          "temp_max_avg": 30.7,
+          "weather_summary": "Normalt: 39mm nedbør, 19°C maks",
+          "precip_7d": 38.7,
+          "temp_max_avg": 18.7,
           "in_season": true,
-          "stage": "Høsting",
-          "yield_rating": "Middels",
-          "enso_impact": null
+          "stage": "Såing",
+          "yield_rating": "Utmerket (tidlig)",
+          "enso_impact": "El Niño: Gunstig regn"
         }
       ],
       "growth_stage": "Høsting",
       "growth_stage_icon": "🚜",
-      "growth_stage_pct": 86,
+      "growth_stage_pct": 89,
       "in_season": true,
-      "season_months": "apr–okt",
+      "season_months": "feb–okt",
       "harvest_window": "sep–okt",
-      "gdd_accumulated": 2092,
-      "gdd_required": 2200,
-      "gdd_pct": 95.1,
-      "season_precip_mm": 447,
-      "ideal_precip_mm": 600,
-      "precip_pct": 74.5,
-      "stress_days": 40,
-      "yield_quality": "God",
-      "yield_score": 70,
-      "yield_hint": "Normal produksjon → moderate priser",
-      "price": {
-        "value": 77.129997,
-        "chg1d": 2.635,
-        "chg5d": -2.441,
-        "chg20d": -10.74,
-        "source": "bedrock"
-      }
+      "gdd_accumulated": 1903,
+      "gdd_required": 2500,
+      "gdd_pct": 76.1,
+      "season_precip_mm": 1164,
+      "ideal_precip_mm": 500,
+      "precip_pct": 232.8,
+      "stress_days": 71,
+      "yield_quality": "Middels",
+      "yield_score": 69,
+      "yield_hint": "Noen utfordringer → mulig prispress oppover",
+      "price": null
     },
     {
       "crop_key": "cocoa",
@@ -963,11 +928,11 @@
       "outlook": {
         "signal": "NØYTRAL",
         "color": "neutral",
-        "total_score": 0.2
+        "total_score": -0.3
       },
-      "avg_wx_score": 1.5,
+      "avg_wx_score": 1.0,
       "cot_score": -2,
-      "risk_regions": 1,
+      "risk_regions": 0,
       "total_regions": 2,
       "cot": {
         "market": "Cocoa",
@@ -982,41 +947,40 @@
         "source": "CFTC"
       },
       "drivers": [
-        "Værstress i Ghana – Ashanti / Western (kakao) (vått)",
         "COT: spekulanter øker short (net -9% av OI)",
         "Yield utmerket — god produksjon holder prisene nede",
         "Bedrock: B BUY makro publisert (score 7.7)",
         "El Niño: Tørrere enn normalt"
       ],
       "worst_region": {
-        "region": "ghana_cocoa",
-        "region_name": "Ghana – Ashanti / Western (kakao)",
-        "weather_score": 2,
+        "region": "ivory_coast_cocoa",
+        "region_name": "Côte d'Ivoire – Daloa (kakao-belte)",
+        "weather_score": 1,
         "weather_outlook": "vått",
-        "weather_summary": "Mye nedbør: 82mm på 7 dager",
-        "precip_7d": 81.8,
+        "weather_summary": "Over normalt nedbør: 66mm",
+        "precip_7d": 65.8,
         "temp_max_avg": 28.7,
         "season_mult": 1.0,
         "growth_stage": {
           "stage": "growing",
           "stage_no": "Vegetativ vekst",
           "icon": "🌿",
-          "season_pct": 50,
+          "season_pct": 45,
           "in_season": true,
-          "season_months": "mai–feb",
+          "season_months": "mai–mar",
           "harvest_window": null,
           "season_start_month": 5,
-          "season_end_month": 2
+          "season_end_month": 3
         },
         "season_metrics": {
-          "gdd_accumulated": 1256,
+          "gdd_accumulated": 1250,
           "gdd_required": 2500,
-          "gdd_pct": 50.2,
-          "season_precip_mm": 807,
+          "gdd_pct": 50.0,
+          "season_precip_mm": 842,
           "ideal_precip_mm": 1500,
-          "precip_pct": 53.8,
+          "precip_pct": 56.1,
           "stress_days": 0,
-          "days_measured": 157
+          "days_measured": 158
         },
         "yield_score": 100,
         "yield_rating": "Utmerket",
@@ -1030,9 +994,9 @@
           "id": "ivory_coast_cocoa",
           "weather_score": 1,
           "weather_outlook": "vått",
-          "weather_summary": "Over normalt nedbør: 63mm",
-          "precip_7d": 62.7,
-          "temp_max_avg": 28.8,
+          "weather_summary": "Over normalt nedbør: 66mm",
+          "precip_7d": 65.8,
+          "temp_max_avg": 28.7,
           "in_season": true,
           "stage": "Vegetativ vekst",
           "yield_rating": "Utmerket",
@@ -1041,11 +1005,11 @@
         {
           "name": "Ghana – Ashanti / Western (kakao)",
           "id": "ghana_cocoa",
-          "weather_score": 2,
+          "weather_score": 1,
           "weather_outlook": "vått",
-          "weather_summary": "Mye nedbør: 82mm på 7 dager",
-          "precip_7d": 81.8,
-          "temp_max_avg": 28.7,
+          "weather_summary": "Over normalt nedbør: 57mm",
+          "precip_7d": 57.4,
+          "temp_max_avg": 29.0,
           "in_season": true,
           "stage": "Vegetativ vekst",
           "yield_rating": "Utmerket",
@@ -1058,23 +1022,17 @@
       "in_season": true,
       "season_months": "mai–mar",
       "harvest_window": null,
-      "gdd_accumulated": 1243,
+      "gdd_accumulated": 1250,
       "gdd_required": 2500,
-      "gdd_pct": 49.7,
-      "season_precip_mm": 836,
+      "gdd_pct": 50.0,
+      "season_precip_mm": 842,
       "ideal_precip_mm": 1500,
-      "precip_pct": 55.7,
+      "precip_pct": 56.1,
       "stress_days": 0,
       "yield_quality": "Utmerket",
       "yield_score": 100,
       "yield_hint": "Høy produksjon → stabilt prisnivå",
-      "price": {
-        "value": 5867.0,
-        "chg1d": 3.474,
-        "chg5d": 4.974,
-        "chg20d": -1.129,
-        "source": "bedrock"
-      }
+      "price": null
     },
     {
       "crop_key": "palm",
@@ -1083,9 +1041,9 @@
       "outlook": {
         "signal": "NØYTRAL",
         "color": "neutral",
-        "total_score": -0.2
+        "total_score": 0.8
       },
-      "avg_wx_score": 0.0,
+      "avg_wx_score": 1.0,
       "cot_score": 0,
       "risk_regions": 0,
       "total_regions": 1,
@@ -1097,11 +1055,11 @@
       "worst_region": {
         "region": "sea_palm",
         "region_name": "Sørøst-Asia – Palmeolje",
-        "weather_score": 0,
-        "weather_outlook": "normalt",
-        "weather_summary": "Normalt: 22mm nedbør, 30°C maks",
-        "precip_7d": 22.4,
-        "temp_max_avg": 29.9,
+        "weather_score": 1,
+        "weather_outlook": "vått",
+        "weather_summary": "Over normalt nedbør: 55mm",
+        "precip_7d": 54.8,
+        "temp_max_avg": 30.2,
         "season_mult": 1.0,
         "growth_stage": {
           "stage": "moderate",
@@ -1115,14 +1073,14 @@
           "season_end_month": 12
         },
         "season_metrics": {
-          "gdd_accumulated": 2380,
+          "gdd_accumulated": 2388,
           "gdd_required": null,
           "gdd_pct": null,
-          "season_precip_mm": 1562,
+          "season_precip_mm": 1564,
           "ideal_precip_mm": 2000,
-          "precip_pct": 78.1,
+          "precip_pct": 78.2,
           "stress_days": 1,
-          "days_measured": 277
+          "days_measured": 278
         },
         "yield_score": 96,
         "yield_rating": "Utmerket",
@@ -1134,11 +1092,11 @@
         {
           "name": "Sørøst-Asia – Palmeolje",
           "id": "sea_palm",
-          "weather_score": 0,
-          "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 22mm nedbør, 30°C maks",
-          "precip_7d": 22.4,
-          "temp_max_avg": 29.9,
+          "weather_score": 1,
+          "weather_outlook": "vått",
+          "weather_summary": "Over normalt nedbør: 55mm",
+          "precip_7d": 54.8,
+          "temp_max_avg": 30.2,
           "in_season": true,
           "stage": "Moderat",
           "yield_rating": "Utmerket",
@@ -1151,12 +1109,12 @@
       "in_season": true,
       "season_months": "jan–des",
       "harvest_window": null,
-      "gdd_accumulated": 2380,
+      "gdd_accumulated": 2388,
       "gdd_required": null,
       "gdd_pct": null,
-      "season_precip_mm": 1562,
+      "season_precip_mm": 1564,
       "ideal_precip_mm": 2000,
-      "precip_pct": 78.1,
+      "precip_pct": 78.2,
       "stress_days": 1,
       "yield_quality": "Utmerket",
       "yield_score": 96,
@@ -1170,9 +1128,9 @@
       "outlook": {
         "signal": "NØYTRAL",
         "color": "neutral",
-        "total_score": 0.3
+        "total_score": 0.6
       },
-      "avg_wx_score": 1.0,
+      "avg_wx_score": 1.5,
       "cot_score": 2,
       "risk_regions": 1,
       "total_regions": 2,
@@ -1189,56 +1147,56 @@
         "source": "CFTC"
       },
       "drivers": [
-        "Værstress i India – Punjab / Haryana (tørt)",
+        "Værstress i USA Delta – Bomull & Ris (vått)",
         "COT: bull FALLER (net +15%)",
         "Yield utmerket — god produksjon holder prisene nede",
         "El Niño: Tørkerisiko"
       ],
       "worst_region": {
-        "region": "india_punjab",
-        "region_name": "India – Punjab / Haryana",
+        "region": "us_delta_cotton",
+        "region_name": "USA Delta – Bomull & Ris",
         "weather_score": 2,
-        "weather_outlook": "tørt",
-        "weather_summary": "Tørt og varmt: 6mm / 30°C maks",
-        "precip_7d": 6.3,
-        "temp_max_avg": 30.3,
+        "weather_outlook": "vått",
+        "weather_summary": "Mye nedbør: 82mm på 7 dager",
+        "precip_7d": 81.8,
+        "temp_max_avg": 30.4,
         "season_mult": 1.0,
         "growth_stage": {
-          "stage": "growing",
-          "stage_no": "Vegetativ vekst",
-          "icon": "🌿",
-          "season_pct": 27,
+          "stage": "harvest",
+          "stage_no": "Høsting",
+          "icon": "🚜",
+          "season_pct": 86,
           "in_season": true,
-          "season_months": "jul–mai",
-          "harvest_window": "mai",
-          "season_start_month": 7,
-          "season_end_month": 5
+          "season_months": "apr–okt",
+          "harvest_window": "sep–okt",
+          "season_start_month": 4,
+          "season_end_month": 10
         },
         "season_metrics": {
-          "gdd_accumulated": 1832,
+          "gdd_accumulated": 3041,
           "gdd_required": 2500,
-          "gdd_pct": 73.3,
-          "season_precip_mm": 359,
+          "gdd_pct": 121.7,
+          "season_precip_mm": 447,
           "ideal_precip_mm": 1000,
-          "precip_pct": 35.9,
-          "stress_days": 1,
-          "days_measured": 96
+          "precip_pct": 44.7,
+          "stress_days": 34,
+          "days_measured": 188
         },
-        "yield_score": 92,
-        "yield_rating": "Utmerket (tidlig)",
-        "yield_hint": "Tidlig i sesongen — høy produksjon → stabilt prisnivå",
-        "enso_impact": "El Niño: Tørkerisiko",
-        "enso_adj": 0.5
+        "yield_score": 78,
+        "yield_rating": "God",
+        "yield_hint": "Normal produksjon → moderate priser",
+        "enso_impact": null,
+        "enso_adj": 0
       },
       "regions": [
         {
           "name": "India – Punjab / Haryana",
           "id": "india_punjab",
-          "weather_score": 2,
+          "weather_score": 1,
           "weather_outlook": "tørt",
-          "weather_summary": "Tørt og varmt: 6mm / 30°C maks",
-          "precip_7d": 6.3,
-          "temp_max_avg": 30.3,
+          "weather_summary": "Noe tørt: 8mm nedbør",
+          "precip_7d": 8.1,
+          "temp_max_avg": 30.2,
           "in_season": true,
           "stage": "Vegetativ vekst",
           "yield_rating": "Utmerket (tidlig)",
@@ -1247,11 +1205,11 @@
         {
           "name": "USA Delta – Bomull & Ris",
           "id": "us_delta_cotton",
-          "weather_score": 0,
-          "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 22mm nedbør, 31°C maks",
-          "precip_7d": 21.6,
-          "temp_max_avg": 30.7,
+          "weather_score": 2,
+          "weather_outlook": "vått",
+          "weather_summary": "Mye nedbør: 82mm på 7 dager",
+          "precip_7d": 81.8,
+          "temp_max_avg": 30.4,
           "in_season": true,
           "stage": "Høsting",
           "yield_rating": "God",
@@ -1264,9 +1222,9 @@
       "in_season": true,
       "season_months": "apr–okt",
       "harvest_window": "sep–okt",
-      "gdd_accumulated": 3027,
+      "gdd_accumulated": 3041,
       "gdd_required": 2500,
-      "gdd_pct": 121.1,
+      "gdd_pct": 121.7,
       "season_precip_mm": 447,
       "ideal_precip_mm": 1000,
       "precip_pct": 44.7,
@@ -1328,9 +1286,9 @@
         "region_name": "Nordvest-Europa – Hvete & Raps",
         "weather_score": 0,
         "weather_outlook": "normalt",
-        "weather_summary": "Normalt: 27mm nedbør, 18°C maks",
-        "precip_7d": 27.0,
-        "temp_max_avg": 18.3,
+        "weather_summary": "Normalt: 35mm nedbør, 18°C maks",
+        "precip_7d": 34.7,
+        "temp_max_avg": 18.1,
         "season_mult": 1.0,
         "growth_stage": {
           "stage": "emergence",
@@ -1344,14 +1302,14 @@
           "season_end_month": 6
         },
         "season_metrics": {
-          "gdd_accumulated": 1032,
+          "gdd_accumulated": 1045,
           "gdd_required": 1500,
-          "gdd_pct": 68.8,
+          "gdd_pct": 69.7,
           "season_precip_mm": 58,
           "ideal_precip_mm": 400,
           "precip_pct": 14.5,
           "stress_days": 2,
-          "days_measured": 65
+          "days_measured": 66
         },
         "yield_score": 100,
         "yield_rating": "Utmerket (tidlig)",
@@ -1365,9 +1323,9 @@
           "id": "eu_northern",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 27mm nedbør, 18°C maks",
-          "precip_7d": 27.0,
-          "temp_max_avg": 18.3,
+          "weather_summary": "Normalt: 35mm nedbør, 18°C maks",
+          "precip_7d": 34.7,
+          "temp_max_avg": 18.1,
           "in_season": true,
           "stage": "Spiring",
           "yield_rating": "Utmerket (tidlig)",
@@ -1378,9 +1336,9 @@
           "id": "canada_prairie",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 1mm nedbør, 16°C maks",
-          "precip_7d": 0.6,
-          "temp_max_avg": 16.0,
+          "weather_summary": "Normalt: 2mm nedbør, 14°C maks",
+          "precip_7d": 1.7,
+          "temp_max_avg": 13.6,
           "in_season": true,
           "stage": "Høsting",
           "yield_rating": "God",
@@ -1391,9 +1349,9 @@
           "id": "australia_wheat",
           "weather_score": 0,
           "weather_outlook": "normalt",
-          "weather_summary": "Normalt: 8mm nedbør, 21°C maks",
-          "precip_7d": 8.0,
-          "temp_max_avg": 21.2,
+          "weather_summary": "Normalt: 4mm nedbør, 20°C maks",
+          "precip_7d": 4.1,
+          "temp_max_avg": 19.5,
           "in_season": true,
           "stage": "Aksing",
           "yield_rating": "Utmerket",
@@ -1406,9 +1364,9 @@
       "in_season": true,
       "season_months": "apr–okt",
       "harvest_window": "sep–okt",
-      "gdd_accumulated": 1816,
+      "gdd_accumulated": 1822,
       "gdd_required": 1500,
-      "gdd_pct": 121.1,
+      "gdd_pct": 121.5,
       "season_precip_mm": 449,
       "ideal_precip_mm": 400,
       "precip_pct": 112.2,
@@ -1447,12 +1405,12 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 0.2,
-            "precip_8_14d": 46.2,
-            "temp_max_avg": 23.5,
-            "temp_min_avg": 11.5,
+            "precip_7d": 3.2,
+            "precip_8_14d": 42.0,
+            "temp_max_avg": 23.0,
+            "temp_min_avg": 12.7,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 0mm nedbør, 23°C maks"
+            "summary": "Normalt: 3mm nedbør, 23°C maks"
           },
           "cot": {
             "market": "Corn/Maize (Euronext EMA) + Corn",
@@ -1489,14 +1447,14 @@
             "total_score": 1.5
           },
           "season_metrics": {
-            "gdd_accumulated": 1898,
+            "gdd_accumulated": 1903,
             "gdd_required": 2700,
-            "gdd_pct": 70.3,
+            "gdd_pct": 70.5,
             "season_precip_mm": 1164,
             "ideal_precip_mm": 500,
             "precip_pct": 232.8,
             "stress_days": 71,
-            "days_measured": 246
+            "days_measured": 247
           },
           "yield_quality": "Svak",
           "yield_score": 45,
@@ -1508,12 +1466,12 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 0.2,
-            "precip_8_14d": 46.2,
-            "temp_max_avg": 23.5,
-            "temp_min_avg": 11.5,
+            "precip_7d": 3.2,
+            "precip_8_14d": 42.0,
+            "temp_max_avg": 23.0,
+            "temp_min_avg": 12.7,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 0mm nedbør, 23°C maks"
+            "summary": "Normalt: 3mm nedbør, 23°C maks"
           },
           "cot": {
             "market": "Soybeans",
@@ -1533,14 +1491,14 @@
             "total_score": 1.5
           },
           "season_metrics": {
-            "gdd_accumulated": 1898,
+            "gdd_accumulated": 1903,
             "gdd_required": 2500,
-            "gdd_pct": 75.9,
+            "gdd_pct": 76.1,
             "season_precip_mm": 1164,
             "ideal_precip_mm": 500,
             "precip_pct": 232.8,
             "stress_days": 71,
-            "days_measured": 246
+            "days_measured": 247
           },
           "yield_quality": "Svak",
           "yield_score": 45,
@@ -1549,10 +1507,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 23.1,
+        "temp": 21.4,
         "precip": 0.0,
-        "wind": 11.8,
-        "humidity": 33
+        "wind": 28.1,
+        "humidity": 45
       }
     },
     {
@@ -1582,9 +1540,9 @@
             "season_mult": 1.0,
             "outlook": "tørt",
             "precip_7d": 0.0,
-            "precip_8_14d": 48.7,
-            "temp_max_avg": 28.8,
-            "temp_min_avg": 15.8,
+            "precip_8_14d": 32.1,
+            "temp_max_avg": 28.9,
+            "temp_min_avg": 16.6,
             "extended_outlook": "normalt",
             "summary": "Tørt og varmt: 0mm / 29°C maks"
           },
@@ -1623,14 +1581,14 @@
             "total_score": 0.4
           },
           "season_metrics": {
-            "gdd_accumulated": 1701,
+            "gdd_accumulated": 1718,
             "gdd_required": 2000,
-            "gdd_pct": 85.1,
+            "gdd_pct": 85.9,
             "season_precip_mm": 124,
             "ideal_precip_mm": 450,
             "precip_pct": 27.7,
             "stress_days": 21,
-            "days_measured": 65
+            "days_measured": 66
           },
           "yield_quality": "God (tidlig)",
           "yield_score": 79,
@@ -1641,8 +1599,8 @@
       "current_weather": {
         "temp": 24.3,
         "precip": 0.0,
-        "wind": 18.4,
-        "humidity": 27
+        "wind": 24.2,
+        "humidity": 47
       }
     },
     {
@@ -1669,16 +1627,16 @@
       "crops_outlook": {
         "soybeans": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 2,
+            "raw_score": 1,
             "season_mult": 1.5,
-            "outlook": "normalt",
-            "precip_7d": 22.8,
-            "precip_8_14d": 54.3,
-            "temp_max_avg": 34.4,
-            "temp_min_avg": 22.6,
-            "extended_outlook": "normalt",
-            "summary": "Normalt: 23mm nedbør, 34°C maks"
+            "outlook": "tørt",
+            "precip_7d": 9.2,
+            "precip_8_14d": 63.0,
+            "temp_max_avg": 35.9,
+            "temp_min_avg": 23.3,
+            "extended_outlook": "vått",
+            "summary": "Noe tørt: 9mm nedbør"
           },
           "cot": {
             "market": "Soybeans",
@@ -1693,36 +1651,36 @@
             "source": "CFTC"
           },
           "outlook": {
-            "signal": "NØYTRAL",
-            "color": "neutral",
-            "total_score": -0.8
+            "signal": "BULLISH",
+            "color": "bull",
+            "total_score": 1.7
           },
           "season_metrics": {
-            "gdd_accumulated": 1750,
+            "gdd_accumulated": 1766,
             "gdd_required": 2500,
-            "gdd_pct": 70.0,
-            "season_precip_mm": 99,
+            "gdd_pct": 70.6,
+            "season_precip_mm": 112,
             "ideal_precip_mm": 500,
-            "precip_pct": 19.7,
+            "precip_pct": 22.3,
             "stress_days": 49,
-            "days_measured": 96
+            "days_measured": 97
           },
           "yield_quality": "God (tidlig)",
-          "yield_score": 75,
+          "yield_score": 70,
           "yield_hint": "Tidlig i sesongen — normal produksjon → moderate priser"
         },
         "corn": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 2,
+            "raw_score": 1,
             "season_mult": 1.5,
-            "outlook": "normalt",
-            "precip_7d": 22.8,
-            "precip_8_14d": 54.3,
-            "temp_max_avg": 34.4,
-            "temp_min_avg": 22.6,
-            "extended_outlook": "normalt",
-            "summary": "Normalt: 23mm nedbør, 34°C maks"
+            "outlook": "tørt",
+            "precip_7d": 9.2,
+            "precip_8_14d": 63.0,
+            "temp_max_avg": 35.9,
+            "temp_min_avg": 23.3,
+            "extended_outlook": "vått",
+            "summary": "Noe tørt: 9mm nedbør"
           },
           "cot": {
             "market": "Corn/Maize (Euronext EMA) + Corn",
@@ -1754,36 +1712,36 @@
             "agrees": true
           },
           "outlook": {
-            "signal": "NØYTRAL",
-            "color": "neutral",
-            "total_score": -0.8
+            "signal": "BULLISH",
+            "color": "bull",
+            "total_score": 1.7
           },
           "season_metrics": {
-            "gdd_accumulated": 1750,
+            "gdd_accumulated": 1766,
             "gdd_required": 2700,
-            "gdd_pct": 64.8,
-            "season_precip_mm": 99,
+            "gdd_pct": 65.4,
+            "season_precip_mm": 112,
             "ideal_precip_mm": 500,
-            "precip_pct": 19.7,
+            "precip_pct": 22.3,
             "stress_days": 49,
-            "days_measured": 96
+            "days_measured": 97
           },
           "yield_quality": "God (tidlig)",
-          "yield_score": 75,
+          "yield_score": 70,
           "yield_hint": "Tidlig i sesongen — normal produksjon → moderate priser"
         },
         "cotton": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 2,
+            "raw_score": 1,
             "season_mult": 1.5,
-            "outlook": "normalt",
-            "precip_7d": 22.8,
-            "precip_8_14d": 54.3,
-            "temp_max_avg": 34.4,
-            "temp_min_avg": 22.6,
-            "extended_outlook": "normalt",
-            "summary": "Normalt: 23mm nedbør, 34°C maks"
+            "outlook": "tørt",
+            "precip_7d": 9.2,
+            "precip_8_14d": 63.0,
+            "temp_max_avg": 35.9,
+            "temp_min_avg": 23.3,
+            "extended_outlook": "vått",
+            "summary": "Noe tørt: 9mm nedbør"
           },
           "cot": {
             "market": "Cotton No. 2",
@@ -1798,31 +1756,31 @@
             "source": "CFTC"
           },
           "outlook": {
-            "signal": "NØYTRAL",
-            "color": "neutral",
-            "total_score": 0.2
+            "signal": "BULLISH",
+            "color": "bull",
+            "total_score": 1.7
           },
           "season_metrics": {
-            "gdd_accumulated": 1270,
+            "gdd_accumulated": 1281,
             "gdd_required": 2200,
-            "gdd_pct": 57.7,
-            "season_precip_mm": 99,
+            "gdd_pct": 58.2,
+            "season_precip_mm": 112,
             "ideal_precip_mm": 600,
-            "precip_pct": 16.4,
+            "precip_pct": 18.6,
             "stress_days": 49,
-            "days_measured": 96
+            "days_measured": 97
           },
           "yield_quality": "God (tidlig)",
-          "yield_score": 72,
+          "yield_score": 70,
           "yield_hint": "Tidlig i sesongen — normal produksjon → moderate priser"
         }
       },
       "enso_impact": "El Niño: Gunstig regn",
       "current_weather": {
-        "temp": 25.7,
-        "precip": 0.1,
-        "wind": 10.6,
-        "humidity": 83
+        "temp": 31.3,
+        "precip": 0.0,
+        "wind": 5.4,
+        "humidity": 53
       }
     },
     {
@@ -1849,16 +1807,16 @@
       "crops_outlook": {
         "soybeans": {
           "weather": {
-            "score": 2,
-            "raw_score": 1,
+            "score": 0,
+            "raw_score": 0,
             "season_mult": 1.5,
-            "outlook": "vått",
-            "precip_7d": 49.4,
-            "precip_8_14d": 4.2,
-            "temp_max_avg": 19.4,
-            "temp_min_avg": 12.4,
+            "outlook": "normalt",
+            "precip_7d": 38.7,
+            "precip_8_14d": 9.6,
+            "temp_max_avg": 18.7,
+            "temp_min_avg": 12.2,
             "extended_outlook": "normalt",
-            "summary": "Over normalt nedbør: 49mm"
+            "summary": "Normalt: 39mm nedbør, 19°C maks"
           },
           "cot": {
             "market": "Soybeans",
@@ -1873,19 +1831,19 @@
             "source": "CFTC"
           },
           "outlook": {
-            "signal": "NØYTRAL",
-            "color": "neutral",
-            "total_score": -0.9
+            "signal": "BEARISH",
+            "color": "bear",
+            "total_score": -1.8
           },
           "season_metrics": {
-            "gdd_accumulated": 230,
+            "gdd_accumulated": 238,
             "gdd_required": 2500,
-            "gdd_pct": 9.2,
-            "season_precip_mm": 99,
+            "gdd_pct": 9.5,
+            "season_precip_mm": 100,
             "ideal_precip_mm": 500,
-            "precip_pct": 19.8,
+            "precip_pct": 19.9,
             "stress_days": 18,
-            "days_measured": 65
+            "days_measured": 66
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 92,
@@ -1893,16 +1851,16 @@
         },
         "wheat": {
           "weather": {
-            "score": 2,
-            "raw_score": 1,
+            "score": 0,
+            "raw_score": 0,
             "season_mult": 1.5,
-            "outlook": "vått",
-            "precip_7d": 49.4,
-            "precip_8_14d": 4.2,
-            "temp_max_avg": 19.4,
-            "temp_min_avg": 12.4,
+            "outlook": "normalt",
+            "precip_7d": 38.7,
+            "precip_8_14d": 9.6,
+            "temp_max_avg": 18.7,
+            "temp_min_avg": 12.2,
             "extended_outlook": "normalt",
-            "summary": "Over normalt nedbør: 49mm"
+            "summary": "Normalt: 39mm nedbør, 19°C maks"
           },
           "cot": {
             "market": "Milling Wheat (Euronext EBM) + Wheat",
@@ -1934,19 +1892,19 @@
             "agrees": false
           },
           "outlook": {
-            "signal": "NØYTRAL",
-            "color": "neutral",
-            "total_score": -0.9
+            "signal": "BEARISH",
+            "color": "bear",
+            "total_score": -1.8
           },
           "season_metrics": {
-            "gdd_accumulated": 843,
+            "gdd_accumulated": 861,
             "gdd_required": 2000,
-            "gdd_pct": 42.1,
-            "season_precip_mm": 99,
+            "gdd_pct": 43.0,
+            "season_precip_mm": 100,
             "ideal_precip_mm": 450,
-            "precip_pct": 22.0,
+            "precip_pct": 22.2,
             "stress_days": 0,
-            "days_measured": 65
+            "days_measured": 66
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 100,
@@ -1954,16 +1912,16 @@
         },
         "corn": {
           "weather": {
-            "score": 2,
-            "raw_score": 1,
+            "score": 0,
+            "raw_score": 0,
             "season_mult": 1.5,
-            "outlook": "vått",
-            "precip_7d": 49.4,
-            "precip_8_14d": 4.2,
-            "temp_max_avg": 19.4,
-            "temp_min_avg": 12.4,
+            "outlook": "normalt",
+            "precip_7d": 38.7,
+            "precip_8_14d": 9.6,
+            "temp_max_avg": 18.7,
+            "temp_min_avg": 12.2,
             "extended_outlook": "normalt",
-            "summary": "Over normalt nedbør: 49mm"
+            "summary": "Normalt: 39mm nedbør, 19°C maks"
           },
           "cot": {
             "market": "Corn/Maize (Euronext EMA) + Corn",
@@ -1995,31 +1953,31 @@
             "agrees": true
           },
           "outlook": {
-            "signal": "NØYTRAL",
-            "color": "neutral",
-            "total_score": 0.1
+            "signal": "BEARISH",
+            "color": "bear",
+            "total_score": -1.8
           },
           "season_metrics": {
-            "gdd_accumulated": 230,
+            "gdd_accumulated": 238,
             "gdd_required": 2700,
-            "gdd_pct": 8.5,
-            "season_precip_mm": 99,
+            "gdd_pct": 8.8,
+            "season_precip_mm": 100,
             "ideal_precip_mm": 500,
-            "precip_pct": 19.8,
+            "precip_pct": 19.9,
             "stress_days": 18,
-            "days_measured": 65
+            "days_measured": 66
           },
           "yield_quality": "Utmerket (tidlig)",
-          "yield_score": 89,
+          "yield_score": 92,
           "yield_hint": "Tidlig i sesongen — høy produksjon → stabilt prisnivå"
         }
       },
       "enso_impact": "El Niño: Gunstig regn",
       "current_weather": {
-        "temp": 17.9,
+        "temp": 21.4,
         "precip": 0.0,
-        "wind": 5.6,
-        "humidity": 73
+        "wind": 13.1,
+        "humidity": 53
       }
     },
     {
@@ -2049,12 +2007,12 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 1.5,
+            "precip_7d": 24.6,
             "precip_8_14d": 1.8,
-            "temp_max_avg": 19.7,
-            "temp_min_avg": 8.0,
+            "temp_max_avg": 20.4,
+            "temp_min_avg": 10.9,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 2mm nedbør, 20°C maks"
+            "summary": "Normalt: 25mm nedbør, 20°C maks"
           },
           "cot": {
             "market": "Milling Wheat (Euronext EBM) + Wheat",
@@ -2091,14 +2049,14 @@
             "total_score": -1.5
           },
           "season_metrics": {
-            "gdd_accumulated": 1246,
+            "gdd_accumulated": 1259,
             "gdd_required": 2000,
-            "gdd_pct": 62.3,
+            "gdd_pct": 63.0,
             "season_precip_mm": 141,
             "ideal_precip_mm": 450,
             "precip_pct": 31.4,
             "stress_days": 1,
-            "days_measured": 65
+            "days_measured": 66
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 100,
@@ -2110,12 +2068,12 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 1.5,
+            "precip_7d": 24.6,
             "precip_8_14d": 1.8,
-            "temp_max_avg": 19.7,
-            "temp_min_avg": 8.0,
+            "temp_max_avg": 20.4,
+            "temp_min_avg": 10.9,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 2mm nedbør, 20°C maks"
+            "summary": "Normalt: 25mm nedbør, 20°C maks"
           },
           "cot": {
             "market": "Corn/Maize (Euronext EMA) + Corn",
@@ -2152,14 +2110,14 @@
             "total_score": -1.5
           },
           "season_metrics": {
-            "gdd_accumulated": 596,
+            "gdd_accumulated": 599,
             "gdd_required": 2700,
-            "gdd_pct": 22.1,
+            "gdd_pct": 22.2,
             "season_precip_mm": 141,
             "ideal_precip_mm": 500,
-            "precip_pct": 28.2,
+            "precip_pct": 28.3,
             "stress_days": 1,
-            "days_measured": 65
+            "days_measured": 66
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 100,
@@ -2168,10 +2126,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 10.2,
+        "temp": 14.8,
         "precip": 0.0,
-        "wind": 3.6,
-        "humidity": 86
+        "wind": 4.3,
+        "humidity": 65
       }
     },
     {
@@ -2201,12 +2159,12 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 27.0,
-            "precip_8_14d": 0.6,
-            "temp_max_avg": 18.3,
-            "temp_min_avg": 9.2,
+            "precip_7d": 34.7,
+            "precip_8_14d": 8.8,
+            "temp_max_avg": 18.1,
+            "temp_min_avg": 7.7,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 27mm nedbør, 18°C maks"
+            "summary": "Normalt: 35mm nedbør, 18°C maks"
           },
           "cot": {
             "market": "Milling Wheat (Euronext EBM) + Wheat",
@@ -2243,14 +2201,14 @@
             "total_score": -1.5
           },
           "season_metrics": {
-            "gdd_accumulated": 1357,
+            "gdd_accumulated": 1375,
             "gdd_required": 2000,
-            "gdd_pct": 67.8,
+            "gdd_pct": 68.7,
             "season_precip_mm": 58,
             "ideal_precip_mm": 450,
             "precip_pct": 12.9,
             "stress_days": 2,
-            "days_measured": 65
+            "days_measured": 66
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 100,
@@ -2262,12 +2220,12 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 27.0,
-            "precip_8_14d": 0.6,
-            "temp_max_avg": 18.3,
-            "temp_min_avg": 9.2,
+            "precip_7d": 34.7,
+            "precip_8_14d": 8.8,
+            "temp_max_avg": 18.1,
+            "temp_min_avg": 7.7,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 27mm nedbør, 18°C maks"
+            "summary": "Normalt: 35mm nedbør, 18°C maks"
           },
           "cot": {
             "market": "Rapeseed (Euronext ECO) + Canola",
@@ -2304,14 +2262,14 @@
             "total_score": -1.5
           },
           "season_metrics": {
-            "gdd_accumulated": 1032,
+            "gdd_accumulated": 1045,
             "gdd_required": 1500,
-            "gdd_pct": 68.8,
+            "gdd_pct": 69.7,
             "season_precip_mm": 58,
             "ideal_precip_mm": 400,
             "precip_pct": 14.5,
             "stress_days": 2,
-            "days_measured": 65
+            "days_measured": 66
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 100,
@@ -2320,10 +2278,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 12.6,
+        "temp": 22.4,
         "precip": 0.0,
-        "wind": 4.8,
-        "humidity": 80
+        "wind": 7.4,
+        "humidity": 52
       }
     },
     {
@@ -2353,12 +2311,12 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 0.6,
-            "precip_8_14d": 0.0,
-            "temp_max_avg": 16.0,
-            "temp_min_avg": 5.8,
+            "precip_7d": 1.7,
+            "precip_8_14d": 2.4,
+            "temp_max_avg": 13.6,
+            "temp_min_avg": 3.3,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 1mm nedbør, 16°C maks"
+            "summary": "Normalt: 2mm nedbør, 14°C maks"
           },
           "cot": {
             "market": "Milling Wheat (Euronext EBM) + Wheat",
@@ -2395,14 +2353,14 @@
             "total_score": -1.5
           },
           "season_metrics": {
-            "gdd_accumulated": 2652,
+            "gdd_accumulated": 2663,
             "gdd_required": 2000,
-            "gdd_pct": 132.6,
+            "gdd_pct": 133.1,
             "season_precip_mm": 449,
             "ideal_precip_mm": 450,
             "precip_pct": 99.7,
             "stress_days": 13,
-            "days_measured": 187
+            "days_measured": 188
           },
           "yield_quality": "Utmerket",
           "yield_score": 95,
@@ -2414,12 +2372,12 @@
             "raw_score": 0,
             "season_mult": 1.0,
             "outlook": "normalt",
-            "precip_7d": 0.6,
-            "precip_8_14d": 0.0,
-            "temp_max_avg": 16.0,
-            "temp_min_avg": 5.8,
+            "precip_7d": 1.7,
+            "precip_8_14d": 2.4,
+            "temp_max_avg": 13.6,
+            "temp_min_avg": 3.3,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 1mm nedbør, 16°C maks"
+            "summary": "Normalt: 2mm nedbør, 14°C maks"
           },
           "cot": {
             "market": "Rapeseed (Euronext ECO) + Canola",
@@ -2456,14 +2414,14 @@
             "total_score": -0.5
           },
           "season_metrics": {
-            "gdd_accumulated": 1816,
+            "gdd_accumulated": 1822,
             "gdd_required": 1500,
-            "gdd_pct": 121.1,
+            "gdd_pct": 121.5,
             "season_precip_mm": 449,
             "ideal_precip_mm": 400,
             "precip_pct": 112.2,
             "stress_days": 30,
-            "days_measured": 187
+            "days_measured": 188
           },
           "yield_quality": "God",
           "yield_score": 81,
@@ -2472,10 +2430,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 22.4,
+        "temp": 13.7,
         "precip": 0.0,
-        "wind": 19.8,
-        "humidity": 34
+        "wind": 21.1,
+        "humidity": 50
       }
     },
     {
@@ -2505,12 +2463,12 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 8.0,
-            "precip_8_14d": 0.6,
-            "temp_max_avg": 21.2,
-            "temp_min_avg": 10.2,
+            "precip_7d": 4.1,
+            "precip_8_14d": 8.4,
+            "temp_max_avg": 19.5,
+            "temp_min_avg": 10.0,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 8mm nedbør, 21°C maks"
+            "summary": "Normalt: 4mm nedbør, 20°C maks"
           },
           "cot": {
             "market": "Milling Wheat (Euronext EBM) + Wheat",
@@ -2547,14 +2505,14 @@
             "total_score": -1.0
           },
           "season_metrics": {
-            "gdd_accumulated": 2093,
+            "gdd_accumulated": 2110,
             "gdd_required": 2000,
-            "gdd_pct": 104.6,
+            "gdd_pct": 105.5,
             "season_precip_mm": 207,
             "ideal_precip_mm": 450,
             "precip_pct": 46.1,
             "stress_days": 0,
-            "days_measured": 157
+            "days_measured": 158
           },
           "yield_quality": "Utmerket",
           "yield_score": 100,
@@ -2566,12 +2524,12 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 8.0,
-            "precip_8_14d": 0.6,
-            "temp_max_avg": 21.2,
-            "temp_min_avg": 10.2,
+            "precip_7d": 4.1,
+            "precip_8_14d": 8.4,
+            "temp_max_avg": 19.5,
+            "temp_min_avg": 10.0,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 8mm nedbør, 21°C maks"
+            "summary": "Normalt: 4mm nedbør, 20°C maks"
           },
           "cot": {
             "market": "Rapeseed (Euronext ECO) + Canola",
@@ -2608,14 +2566,14 @@
             "total_score": -1.0
           },
           "season_metrics": {
-            "gdd_accumulated": 1308,
+            "gdd_accumulated": 1320,
             "gdd_required": 1500,
-            "gdd_pct": 87.2,
+            "gdd_pct": 88.0,
             "season_precip_mm": 207,
             "ideal_precip_mm": 400,
             "precip_pct": 51.9,
             "stress_days": 0,
-            "days_measured": 157
+            "days_measured": 158
           },
           "yield_quality": "Utmerket",
           "yield_score": 100,
@@ -2624,10 +2582,10 @@
       },
       "enso_impact": "El Niño: Tørkerisiko",
       "current_weather": {
-        "temp": 12.1,
+        "temp": 18.5,
         "precip": 0.0,
-        "wind": 10.8,
-        "humidity": 76
+        "wind": 15.9,
+        "humidity": 67
       }
     },
     {
@@ -2654,16 +2612,16 @@
       "crops_outlook": {
         "wheat": {
           "weather": {
-            "score": 2,
-            "raw_score": 2,
+            "score": 1,
+            "raw_score": 1,
             "season_mult": 1.0,
             "outlook": "tørt",
-            "precip_7d": 6.3,
+            "precip_7d": 8.1,
             "precip_8_14d": 0.0,
-            "temp_max_avg": 30.3,
-            "temp_min_avg": 21.6,
+            "temp_max_avg": 30.2,
+            "temp_min_avg": 22.3,
             "extended_outlook": "tørke",
-            "summary": "Tørt og varmt: 6mm / 30°C maks"
+            "summary": "Noe tørt: 8mm nedbør"
           },
           "cot": {
             "market": "Milling Wheat (Euronext EBM) + Wheat",
@@ -2697,17 +2655,17 @@
           "outlook": {
             "signal": "NØYTRAL",
             "color": "neutral",
-            "total_score": 0.9
+            "total_score": 0.6
           },
           "season_metrics": {
-            "gdd_accumulated": 2792,
+            "gdd_accumulated": 2821,
             "gdd_required": 2000,
-            "gdd_pct": 139.6,
+            "gdd_pct": 141.0,
             "season_precip_mm": 359,
             "ideal_precip_mm": 450,
             "precip_pct": 79.8,
             "stress_days": 1,
-            "days_measured": 96
+            "days_measured": 97
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 89,
@@ -2715,16 +2673,16 @@
         },
         "rice": {
           "weather": {
-            "score": 2,
-            "raw_score": 2,
+            "score": 1,
+            "raw_score": 1,
             "season_mult": 1.0,
             "outlook": "tørt",
-            "precip_7d": 6.3,
+            "precip_7d": 8.1,
             "precip_8_14d": 0.0,
-            "temp_max_avg": 30.3,
-            "temp_min_avg": 21.6,
+            "temp_max_avg": 30.2,
+            "temp_min_avg": 22.3,
             "extended_outlook": "tørke",
-            "summary": "Tørt og varmt: 6mm / 30°C maks"
+            "summary": "Noe tørt: 8mm nedbør"
           },
           "cot": {
             "market": "Rough Rice",
@@ -2741,17 +2699,17 @@
           "outlook": {
             "signal": "NØYTRAL",
             "color": "neutral",
-            "total_score": -0.1
+            "total_score": -0.4
           },
           "season_metrics": {
-            "gdd_accumulated": 1832,
+            "gdd_accumulated": 1851,
             "gdd_required": 2500,
-            "gdd_pct": 73.3,
+            "gdd_pct": 74.0,
             "season_precip_mm": 359,
             "ideal_precip_mm": 1000,
             "precip_pct": 35.9,
             "stress_days": 1,
-            "days_measured": 96
+            "days_measured": 97
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 92,
@@ -2759,16 +2717,16 @@
         },
         "sugar": {
           "weather": {
-            "score": 2,
-            "raw_score": 2,
+            "score": 1,
+            "raw_score": 1,
             "season_mult": 1.0,
             "outlook": "tørt",
-            "precip_7d": 6.3,
+            "precip_7d": 8.1,
             "precip_8_14d": 0.0,
-            "temp_max_avg": 30.3,
-            "temp_min_avg": 21.6,
+            "temp_max_avg": 30.2,
+            "temp_min_avg": 22.3,
             "extended_outlook": "tørke",
-            "summary": "Tørt og varmt: 6mm / 30°C maks"
+            "summary": "Noe tørt: 8mm nedbør"
           },
           "cot": {
             "market": "Sugar No. 11",
@@ -2785,17 +2743,17 @@
           "outlook": {
             "signal": "NØYTRAL",
             "color": "neutral",
-            "total_score": -0.1
+            "total_score": -0.4
           },
           "season_metrics": {
-            "gdd_accumulated": 1352,
+            "gdd_accumulated": 1366,
             "gdd_required": 3500,
-            "gdd_pct": 38.6,
+            "gdd_pct": 39.0,
             "season_precip_mm": 359,
             "ideal_precip_mm": 1500,
             "precip_pct": 23.9,
             "stress_days": 1,
-            "days_measured": 96
+            "days_measured": 97
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 92,
@@ -2804,10 +2762,10 @@
       },
       "enso_impact": "El Niño: Tørkerisiko",
       "current_weather": {
-        "temp": 24.8,
+        "temp": 25.6,
         "precip": 0.0,
-        "wind": 6.3,
-        "humidity": 81
+        "wind": 11.8,
+        "humidity": 80
       }
     },
     {
@@ -2832,32 +2790,32 @@
       "crops_outlook": {
         "palm": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 1,
+            "raw_score": 1,
             "season_mult": 1.0,
-            "outlook": "normalt",
-            "precip_7d": 22.4,
-            "precip_8_14d": 62.8,
-            "temp_max_avg": 29.9,
-            "temp_min_avg": 23.0,
+            "outlook": "vått",
+            "precip_7d": 54.8,
+            "precip_8_14d": 75.6,
+            "temp_max_avg": 30.2,
+            "temp_min_avg": 23.1,
             "extended_outlook": "vått",
-            "summary": "Normalt: 22mm nedbør, 30°C maks"
+            "summary": "Over normalt nedbør: 55mm"
           },
           "cot": null,
           "outlook": {
             "signal": "NØYTRAL",
             "color": "neutral",
-            "total_score": -0.2
+            "total_score": 0.8
           },
           "season_metrics": {
-            "gdd_accumulated": 2380,
+            "gdd_accumulated": 2388,
             "gdd_required": null,
             "gdd_pct": null,
-            "season_precip_mm": 1562,
+            "season_precip_mm": 1564,
             "ideal_precip_mm": 2000,
-            "precip_pct": 78.1,
+            "precip_pct": 78.2,
             "stress_days": 1,
-            "days_measured": 277
+            "days_measured": 278
           },
           "yield_quality": "Utmerket",
           "yield_score": 96,
@@ -2866,9 +2824,9 @@
       },
       "enso_impact": "El Niño: Tørkerisiko",
       "current_weather": {
-        "temp": 23.7,
+        "temp": 24.3,
         "precip": 0.0,
-        "wind": 3.1,
+        "wind": 0.8,
         "humidity": 96
       }
     },
@@ -2898,12 +2856,12 @@
             "raw_score": 1,
             "season_mult": 1.0,
             "outlook": "vått",
-            "precip_7d": 62.7,
-            "precip_8_14d": 50.3,
-            "temp_max_avg": 28.8,
-            "temp_min_avg": 22.4,
-            "extended_outlook": "normalt",
-            "summary": "Over normalt nedbør: 63mm"
+            "precip_7d": 65.8,
+            "precip_8_14d": 72.5,
+            "temp_max_avg": 28.7,
+            "temp_min_avg": 22.6,
+            "extended_outlook": "vått",
+            "summary": "Over normalt nedbør: 66mm"
           },
           "cot": {
             "market": "Cocoa",
@@ -2923,14 +2881,14 @@
             "total_score": -0.8
           },
           "season_metrics": {
-            "gdd_accumulated": 1243,
+            "gdd_accumulated": 1250,
             "gdd_required": 2500,
-            "gdd_pct": 49.7,
-            "season_precip_mm": 836,
+            "gdd_pct": 50.0,
+            "season_precip_mm": 842,
             "ideal_precip_mm": 1500,
-            "precip_pct": 55.7,
+            "precip_pct": 56.1,
             "stress_days": 0,
-            "days_measured": 157
+            "days_measured": 158
           },
           "yield_quality": "Utmerket",
           "yield_score": 100,
@@ -2939,10 +2897,10 @@
       },
       "enso_impact": "El Niño: Tørrere enn normalt",
       "current_weather": {
-        "temp": 23.1,
-        "precip": 0.0,
-        "wind": 7.5,
-        "humidity": 97
+        "temp": 25.3,
+        "precip": 0.5,
+        "wind": 4.4,
+        "humidity": 89
       }
     },
     {
@@ -2967,16 +2925,16 @@
       "crops_outlook": {
         "cocoa": {
           "weather": {
-            "score": 2,
-            "raw_score": 2,
+            "score": 1,
+            "raw_score": 1,
             "season_mult": 1.0,
             "outlook": "vått",
-            "precip_7d": 81.8,
-            "precip_8_14d": 67.2,
-            "temp_max_avg": 28.7,
-            "temp_min_avg": 22.3,
+            "precip_7d": 57.4,
+            "precip_8_14d": 63.0,
+            "temp_max_avg": 29.0,
+            "temp_min_avg": 22.4,
             "extended_outlook": "vått",
-            "summary": "Mye nedbør: 82mm på 7 dager"
+            "summary": "Over normalt nedbør: 57mm"
           },
           "cot": {
             "market": "Cocoa",
@@ -2993,17 +2951,17 @@
           "outlook": {
             "signal": "NØYTRAL",
             "color": "neutral",
-            "total_score": -0.3
+            "total_score": -0.8
           },
           "season_metrics": {
-            "gdd_accumulated": 1256,
+            "gdd_accumulated": 1263,
             "gdd_required": 2500,
-            "gdd_pct": 50.2,
-            "season_precip_mm": 807,
+            "gdd_pct": 50.5,
+            "season_precip_mm": 812,
             "ideal_precip_mm": 1500,
-            "precip_pct": 53.8,
+            "precip_pct": 54.1,
             "stress_days": 0,
-            "days_measured": 157
+            "days_measured": 158
           },
           "yield_quality": "Utmerket",
           "yield_score": 100,
@@ -3012,10 +2970,10 @@
       },
       "enso_impact": "El Niño: Tørrere enn normalt",
       "current_weather": {
-        "temp": 23.4,
-        "precip": 0.0,
-        "wind": 6.3,
-        "humidity": 99
+        "temp": 25.3,
+        "precip": 0.5,
+        "wind": 4.3,
+        "humidity": 87
       }
     },
     {
@@ -3040,16 +2998,16 @@
       "crops_outlook": {
         "coffee": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 2,
+            "raw_score": 1,
             "season_mult": 1.5,
-            "outlook": "normalt",
-            "precip_7d": 24.5,
-            "precip_8_14d": 47.0,
-            "temp_max_avg": 27.7,
-            "temp_min_avg": 18.2,
+            "outlook": "tørt",
+            "precip_7d": 12.0,
+            "precip_8_14d": 34.2,
+            "temp_max_avg": 28.6,
+            "temp_min_avg": 18.0,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 24mm nedbør, 28°C maks"
+            "summary": "Noe tørt: 12mm nedbør"
           },
           "cot": {
             "market": "Coffee C",
@@ -3066,7 +3024,7 @@
           "outlook": {
             "signal": "BULLISH",
             "color": "bull",
-            "total_score": 1
+            "total_score": 2.5
           },
           "season_metrics": null,
           "yield_quality": null,
@@ -3076,10 +3034,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 20.4,
-        "precip": 0.3,
-        "wind": 5.3,
-        "humidity": 98
+        "temp": 26.3,
+        "precip": 0.1,
+        "wind": 15.0,
+        "humidity": 67
       }
     },
     {
@@ -3108,12 +3066,12 @@
             "raw_score": 1,
             "season_mult": 1.0,
             "outlook": "vått",
-            "precip_7d": 58.8,
-            "precip_8_14d": 22.2,
-            "temp_max_avg": 28.7,
-            "temp_min_avg": 22.6,
+            "precip_7d": 69.7,
+            "precip_8_14d": 19.2,
+            "temp_max_avg": 28.6,
+            "temp_min_avg": 22.5,
             "extended_outlook": "normalt",
-            "summary": "Over normalt nedbør: 59mm"
+            "summary": "Over normalt nedbør: 70mm"
           },
           "cot": {
             "market": "Coffee C",
@@ -3133,14 +3091,14 @@
             "total_score": 2.4
           },
           "season_metrics": {
-            "gdd_accumulated": 4437,
+            "gdd_accumulated": 4452,
             "gdd_required": 3000,
-            "gdd_pct": 147.9,
-            "season_precip_mm": 1390,
+            "gdd_pct": 148.4,
+            "season_precip_mm": 1399,
             "ideal_precip_mm": 1400,
-            "precip_pct": 99.3,
+            "precip_pct": 99.9,
             "stress_days": 20,
-            "days_measured": 277
+            "days_measured": 278
           },
           "yield_quality": "Middels",
           "yield_score": 62,
@@ -3149,10 +3107,10 @@
       },
       "enso_impact": "El Niño: Tørke ved blomstring",
       "current_weather": {
-        "temp": 23.0,
+        "temp": 22.6,
         "precip": 0.0,
-        "wind": 10.0,
-        "humidity": 90
+        "wind": 9.9,
+        "humidity": 95
       }
     },
     {
@@ -3181,12 +3139,12 @@
             "raw_score": 1,
             "season_mult": 1.0,
             "outlook": "vått",
-            "precip_7d": 65.1,
-            "precip_8_14d": 84.4,
-            "temp_max_avg": 30.3,
-            "temp_min_avg": 24.0,
-            "extended_outlook": "vått",
-            "summary": "Over normalt nedbør: 65mm"
+            "precip_7d": 63.5,
+            "precip_8_14d": 53.2,
+            "temp_max_avg": 30.5,
+            "temp_min_avg": 24.1,
+            "extended_outlook": "normalt",
+            "summary": "Over normalt nedbør: 64mm"
           },
           "cot": {
             "market": "Sugar No. 11",
@@ -3206,14 +3164,14 @@
             "total_score": 2.5
           },
           "season_metrics": {
-            "gdd_accumulated": 4104,
+            "gdd_accumulated": 4118,
             "gdd_required": 3500,
-            "gdd_pct": 117.2,
-            "season_precip_mm": 1052,
+            "gdd_pct": 117.7,
+            "season_precip_mm": 1058,
             "ideal_precip_mm": 1500,
-            "precip_pct": 70.1,
+            "precip_pct": 70.6,
             "stress_days": 125,
-            "days_measured": 277
+            "days_measured": 278
           },
           "yield_quality": "Middels",
           "yield_score": 62,
@@ -3222,10 +3180,10 @@
       },
       "enso_impact": "El Niño: Tørke under vekst",
       "current_weather": {
-        "temp": 24.4,
+        "temp": 24.5,
         "precip": 0.0,
-        "wind": 4.3,
-        "humidity": 94
+        "wind": 7.3,
+        "humidity": 96
       }
     },
     {
@@ -3254,12 +3212,12 @@
             "raw_score": 0,
             "season_mult": 1.5,
             "outlook": "normalt",
-            "precip_7d": 29.4,
-            "precip_8_14d": 90.0,
-            "temp_max_avg": 26.4,
-            "temp_min_avg": 17.4,
+            "precip_7d": 39.7,
+            "precip_8_14d": 85.4,
+            "temp_max_avg": 27.4,
+            "temp_min_avg": 18.0,
             "extended_outlook": "vått",
-            "summary": "Normalt: 29mm nedbør, 26°C maks"
+            "summary": "Normalt: 40mm nedbør, 27°C maks"
           },
           "cot": {
             "market": "Sugar No. 11",
@@ -3279,14 +3237,14 @@
             "total_score": 0.4
           },
           "season_metrics": {
-            "gdd_accumulated": 1392,
+            "gdd_accumulated": 1396,
             "gdd_required": 3500,
-            "gdd_pct": 39.8,
-            "season_precip_mm": 1021,
+            "gdd_pct": 39.9,
+            "season_precip_mm": 1025,
             "ideal_precip_mm": 1500,
-            "precip_pct": 68.0,
+            "precip_pct": 68.3,
             "stress_days": 13,
-            "days_measured": 277
+            "days_measured": 278
           },
           "yield_quality": "God",
           "yield_score": 78,
@@ -3295,10 +3253,10 @@
       },
       "enso_impact": "El Niño: Logistikk-flom (Santos-køer)",
       "current_weather": {
-        "temp": 18.7,
-        "precip": 0.0,
-        "wind": 6.9,
-        "humidity": 94
+        "temp": 23.0,
+        "precip": 0.2,
+        "wind": 18.9,
+        "humidity": 74
       }
     },
     {
@@ -3324,16 +3282,16 @@
       "crops_outlook": {
         "cotton": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 2,
+            "raw_score": 2,
             "season_mult": 1.0,
-            "outlook": "normalt",
-            "precip_7d": 21.6,
-            "precip_8_14d": 25.8,
-            "temp_max_avg": 30.7,
-            "temp_min_avg": 18.2,
+            "outlook": "vått",
+            "precip_7d": 81.8,
+            "precip_8_14d": 5.7,
+            "temp_max_avg": 30.4,
+            "temp_min_avg": 19.1,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 22mm nedbør, 31°C maks"
+            "summary": "Mye nedbør: 82mm på 7 dager"
           },
           "cot": {
             "market": "Cotton No. 2",
@@ -3348,19 +3306,19 @@
             "source": "CFTC"
           },
           "outlook": {
-            "signal": "NØYTRAL",
-            "color": "neutral",
-            "total_score": 0.5
+            "signal": "BULLISH",
+            "color": "bull",
+            "total_score": 2.0
           },
           "season_metrics": {
-            "gdd_accumulated": 2092,
+            "gdd_accumulated": 2102,
             "gdd_required": 2200,
-            "gdd_pct": 95.1,
+            "gdd_pct": 95.5,
             "season_precip_mm": 447,
             "ideal_precip_mm": 600,
             "precip_pct": 74.5,
             "stress_days": 40,
-            "days_measured": 187
+            "days_measured": 188
           },
           "yield_quality": "Middels",
           "yield_score": 68,
@@ -3368,16 +3326,16 @@
         },
         "rice": {
           "weather": {
-            "score": 0,
-            "raw_score": 0,
+            "score": 2,
+            "raw_score": 2,
             "season_mult": 1.0,
-            "outlook": "normalt",
-            "precip_7d": 21.6,
-            "precip_8_14d": 25.8,
-            "temp_max_avg": 30.7,
-            "temp_min_avg": 18.2,
+            "outlook": "vått",
+            "precip_7d": 81.8,
+            "precip_8_14d": 5.7,
+            "temp_max_avg": 30.4,
+            "temp_min_avg": 19.1,
             "extended_outlook": "normalt",
-            "summary": "Normalt: 22mm nedbør, 31°C maks"
+            "summary": "Mye nedbør: 82mm på 7 dager"
           },
           "cot": {
             "market": "Rough Rice",
@@ -3394,17 +3352,17 @@
           "outlook": {
             "signal": "NØYTRAL",
             "color": "neutral",
-            "total_score": 0.0
+            "total_score": 0.9
           },
           "season_metrics": {
-            "gdd_accumulated": 3027,
+            "gdd_accumulated": 3041,
             "gdd_required": 2500,
-            "gdd_pct": 121.1,
+            "gdd_pct": 121.7,
             "season_precip_mm": 447,
             "ideal_precip_mm": 1000,
             "precip_pct": 44.7,
             "stress_days": 34,
-            "days_measured": 187
+            "days_measured": 188
           },
           "yield_quality": "God",
           "yield_score": 78,
@@ -3413,10 +3371,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 30.6,
+        "temp": 28.2,
         "precip": 0.0,
-        "wind": 22.7,
-        "humidity": 19
+        "wind": 9.2,
+        "humidity": 43
       }
     },
     {
@@ -3447,9 +3405,9 @@
             "season_mult": 1.0,
             "outlook": "tørt",
             "precip_7d": 2.1,
-            "precip_8_14d": 3.3,
+            "precip_8_14d": 1.2,
             "temp_max_avg": 26.3,
-            "temp_min_avg": 14.3,
+            "temp_min_avg": 14.5,
             "extended_outlook": "normalt",
             "summary": "Tørt og varmt: 2mm / 26°C maks"
           },
@@ -3488,14 +3446,14 @@
             "total_score": -0.6
           },
           "season_metrics": {
-            "gdd_accumulated": 1580,
+            "gdd_accumulated": 1597,
             "gdd_required": 2000,
-            "gdd_pct": 79.0,
+            "gdd_pct": 79.8,
             "season_precip_mm": 186,
             "ideal_precip_mm": 450,
             "precip_pct": 41.4,
             "stress_days": 0,
-            "days_measured": 65
+            "days_measured": 66
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 98,
@@ -3508,9 +3466,9 @@
             "season_mult": 1.0,
             "outlook": "tørt",
             "precip_7d": 2.1,
-            "precip_8_14d": 3.3,
+            "precip_8_14d": 1.2,
             "temp_max_avg": 26.3,
-            "temp_min_avg": 14.3,
+            "temp_min_avg": 14.5,
             "extended_outlook": "normalt",
             "summary": "Tørt og varmt: 2mm / 26°C maks"
           },
@@ -3549,14 +3507,14 @@
             "total_score": -0.6
           },
           "season_metrics": {
-            "gdd_accumulated": 930,
+            "gdd_accumulated": 937,
             "gdd_required": 2700,
-            "gdd_pct": 34.4,
+            "gdd_pct": 34.7,
             "season_precip_mm": 186,
             "ideal_precip_mm": 500,
             "precip_pct": 37.2,
             "stress_days": 0,
-            "days_measured": 65
+            "days_measured": 66
           },
           "yield_quality": "Utmerket (tidlig)",
           "yield_score": 98,
@@ -3565,10 +3523,10 @@
       },
       "enso_impact": null,
       "current_weather": {
-        "temp": 13.3,
+        "temp": 14.3,
         "precip": 0.0,
-        "wind": 12.3,
-        "humidity": 63
+        "wind": 7.9,
+        "humidity": 61
       }
     }
   ]
