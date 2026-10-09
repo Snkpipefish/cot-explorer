@@ -1,12 +1,38 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-10-09 08:07 UTC",
+  "generated": "2026-10-09 13:42 UTC",
   "cot_date": "2026-10-07",
   "enso_phase": "El Niño",
   "global_state": {
     "geo_active": true,
     "vix_regime": "normal",
-    "usda_blackout": null
+    "usda_blackout": {
+      "Corn": {
+        "report": "WASDE",
+        "time_utc": "2026-10-09 16:00 UTC",
+        "hours_away": 2.3
+      },
+      "Wheat": {
+        "report": "WASDE",
+        "time_utc": "2026-10-09 16:00 UTC",
+        "hours_away": 2.3
+      },
+      "Soybean": {
+        "report": "WASDE",
+        "time_utc": "2026-10-09 16:00 UTC",
+        "hours_away": 2.3
+      },
+      "Cotton": {
+        "report": "WASDE",
+        "time_utc": "2026-10-09 16:00 UTC",
+        "hours_away": 2.3
+      },
+      "Sugar": {
+        "report": "WASDE",
+        "time_utc": "2026-10-09 16:00 UTC",
+        "hours_away": 2.3
+      }
+    }
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -15,263 +41,5 @@
     "min_rr": 1.33,
     "note": "Agri-signaler bruker fundamental analyse — ATR-nivåer er estimater. Boten bør bekrefte med live ATR."
   },
-  "signals": [
-    {
-      "key": "Sugar",
-      "name": "Sukker",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 6.3,
-      "current": 20.190001,
-      "entry": 20.17,
-      "sl": 19.1,
-      "t1": 22.5,
-      "t2": 23.0,
-      "rr_t1": 2.18,
-      "rr_t2": 2.64,
-      "sl_type": "atr_prosent",
-      "t1_source": "rn22.5",
-      "atr_est": 0.54,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 19.9%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.5,
-          "weight": 1.3,
-          "drivers": [
-            "UNICA: mix sukker 44.7% (-7.4pp) → tight supply",
-            "Bedrock A+ BUY bekrefter (score 12.4)",
-            "Værstress i India – Punjab / Haryana (tørke)"
-          ]
-        },
-        "risk": {
-          "score": 0.5,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv"
-          ]
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 3,
-      "group_drivers": [
-        "UNICA: mix sukker 44.7% (-7.4pp) → tight supply",
-        "Bedrock A+ BUY bekrefter (score 12.4)",
-        "Værstress i India – Punjab / Haryana (tørke)",
-        "3 risiko-regioner",
-        "COT: bull FALLER (net +20%)",
-        "UNICA: mix shifter mot etanol (52.1% → 44.7%) — mindre sukker-tilbud",
-        "Bedrock: A+ BUY makro publisert (score 12.4)",
-        "El Niño: Tørkerisiko"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 19.9,
-      "cot_zscore": 0.86,
-      "source": "agri_fundamental",
-      "yield_score": 76,
-      "yield_quality": "God",
-      "weather_outlook": "tørke",
-      "growth_stage": "Modning",
-      "season_pct": 75,
-      "drivers": [
-        "UNICA: mix sukker 44.7% (-7.4pp) → tight supply",
-        "Bedrock A+ BUY bekrefter (score 12.4)",
-        "Værstress i India – Punjab / Haryana (tørke)",
-        "3 risiko-regioner"
-      ]
-    },
-    {
-      "key": "Cotton",
-      "name": "Bomull",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 5.4,
-      "current": 80.110001,
-      "entry": 80.04,
-      "sl": 76.79,
-      "t1": 84.11,
-      "t2": 85.73,
-      "rr_t1": 1.25,
-      "rr_t2": 1.75,
-      "sl_type": "atr_prosent",
-      "t1_source": "atr_fallback",
-      "atr_est": 1.63,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 17.4%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.3333333333333333,
-          "weight": 1.3,
-          "drivers": [
-            "Bedrock A BUY bekrefter (score 8.0)",
-            "Værstress i USA Delta – Bomull & Ris (tørke)",
-            "2 risiko-regioner"
-          ]
-        },
-        "risk": {
-          "score": 0.5,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv"
-          ]
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 3,
-      "group_drivers": [
-        "Bedrock A BUY bekrefter (score 8.0)",
-        "Værstress i USA Delta – Bomull & Ris (tørke)",
-        "2 risiko-regioner",
-        "COT: spekulanter øker long (net +17% av OI)",
-        "CONAB Brasil bomull: +1.5% YoY (↑ vekst)",
-        "Bedrock: A BUY makro publisert (score 8.0)",
-        "El Niño: Gunstig regn"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 17.4,
-      "cot_zscore": 0.72,
-      "source": "agri_fundamental",
-      "yield_score": 66,
-      "yield_quality": "Middels",
-      "weather_outlook": "tørke",
-      "growth_stage": "Høsting",
-      "season_pct": 86,
-      "drivers": [
-        "Bedrock A BUY bekrefter (score 8.0)",
-        "Værstress i USA Delta – Bomull & Ris (tørke)",
-        "2 risiko-regioner",
-        "COT: spekulanter øker long (net +17% av OI)"
-      ]
-    },
-    {
-      "key": "Coffee",
-      "name": "Kaffe",
-      "action": "BUY",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 5.1,
-      "current": 287.850006,
-      "entry": 287.54,
-      "sl": 273.03,
-      "t1": 320.0,
-      "t2": 330.0,
-      "rr_t1": 2.24,
-      "rr_t2": 2.93,
-      "sl_type": "atr_prosent",
-      "t1_source": "rn320",
-      "atr_est": 7.25,
-      "driver_groups": {
-        "trend": {
-          "score": 1.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 10.5%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.3333333333333333,
-          "weight": 1.3,
-          "drivers": [
-            "Bedrock A BUY bekrefter (score 10.4)",
-            "COT: spekulanter øker long (net +10% av OI)",
-            "CONAB Brasil kaffe: +19.6% YoY (↑ vekst)"
-          ]
-        },
-        "risk": {
-          "score": 0.5,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv"
-          ]
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 3,
-      "group_drivers": [
-        "Bedrock A BUY bekrefter (score 10.4)",
-        "COT: spekulanter øker long (net +10% av OI)",
-        "CONAB Brasil kaffe: +19.6% YoY (↑ vekst)",
-        "Bedrock: A BUY makro publisert (score 10.4)",
-        "El Niño: Tørke ved blomstring"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 10.5,
-      "cot_zscore": -0.45,
-      "source": "agri_fundamental",
-      "yield_score": 62,
-      "yield_quality": "Middels",
-      "weather_outlook": "normalt",
-      "growth_stage": "Main Harvest",
-      "season_pct": 75,
-      "drivers": [
-        "Bedrock A BUY bekrefter (score 10.4)",
-        "COT: spekulanter øker long (net +10% av OI)",
-        "CONAB Brasil kaffe: +19.6% YoY (↑ vekst)",
-        "Bedrock: A BUY makro publisert (score 10.4)"
-      ]
-    }
-  ]
+  "signals": []
 }
