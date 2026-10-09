@@ -466,9 +466,12 @@
    "source": "technical",
    "atr_d1": 0.00533,
    "first_seen": "2026-10-07T18:10:36Z",
-   "status": "pending",
+   "status": "active",
    "entry_weight": 4,
-   "t1_quality": "htf"
+   "t1_quality": "htf",
+   "activated_at": "2026-10-09T20:00:00Z",
+   "mfe": 0.0004,
+   "mae": 9e-05
   },
   {
    "id": "AUDUSD|SELL|0.69818|0.69975|0.69052",
@@ -492,7 +495,7 @@
    "t1_quality": "htf",
    "activated_at": "2026-10-09T06:00:00Z",
    "mfe": 0.00112,
-   "mae": 0.00053
+   "mae": 0.00093
   },
   {
    "id": "AUDUSD|SELL|0.69944|0.70103|0.69555",
@@ -855,28 +858,6 @@
    "t1_quality": "htf"
   },
   {
-   "id": "Coffee|BUY|290.44000|275.79000|320.00000",
-   "key": "Coffee",
-   "direction": "BUY",
-   "entry": 290.44,
-   "sl": 275.79,
-   "t1": 320.0,
-   "t2": 330.0,
-   "rr_t1": 2.02,
-   "horizon": "SWING",
-   "grade": "B",
-   "score": 5.6,
-   "t1_source": "rn320",
-   "sl_type": "atr_prosent",
-   "source": "agri_fundamental",
-   "atr_d1": 7.33,
-   "first_seen": "2026-10-04T22:03:44Z",
-   "status": "active",
-   "activated_at": "2026-10-08T08:00:00Z",
-   "mfe": 4.45999,
-   "mae": 6.19
-  },
-  {
    "id": "Coffee|BUY|292.23000|277.49000|320.00000",
    "key": "Coffee",
    "direction": "BUY",
@@ -1216,6 +1197,27 @@
    "t1_quality": "htf"
   },
   {
+   "id": "SPX|BUY|7731.25977|7705.97376|7844.52002",
+   "key": "SPX",
+   "direction": "BUY",
+   "entry": 7731.25977,
+   "sl": 7705.97376,
+   "t1": 7844.52002,
+   "t2": 7844.52002,
+   "rr_t1": 4.48,
+   "horizon": "SWING",
+   "grade": "B",
+   "score": 2.55,
+   "t1_source": "PWH",
+   "sl_type": "struktur",
+   "source": "technical",
+   "atr_d1": 63.21502,
+   "first_seen": "2026-10-09T22:03:43Z",
+   "status": "pending",
+   "entry_weight": 4,
+   "t1_quality": "htf"
+  },
+  {
    "id": "Cotton|BUY|80.06000|76.81000|84.13000",
    "key": "Cotton",
    "direction": "BUY",
@@ -1357,7 +1359,7 @@
    "entry_weight": 4,
    "t1_quality": "htf",
    "activated_at": "2026-10-09T13:00:00Z",
-   "mfe": 0.14299,
+   "mfe": 0.206,
    "mae": 0.076
   }
  ],
@@ -27245,16 +27247,39 @@
    "mfe": 0.26381,
    "mae": 0.66619,
    "closed_at": "2026-10-09T13:00:00Z"
+  },
+  {
+   "id": "Coffee|BUY|290.44000|275.79000|320.00000",
+   "key": "Coffee",
+   "direction": "BUY",
+   "entry": 290.44,
+   "sl": 275.79,
+   "t1": 320.0,
+   "t2": 330.0,
+   "rr_t1": 2.02,
+   "horizon": "SWING",
+   "grade": "B",
+   "score": 5.6,
+   "t1_source": "rn320",
+   "sl_type": "atr_prosent",
+   "source": "agri_fundamental",
+   "atr_d1": 7.33,
+   "first_seen": "2026-10-04T22:03:44Z",
+   "status": "timeout",
+   "activated_at": "2026-10-08T08:00:00Z",
+   "mfe": 4.45999,
+   "mae": 6.19,
+   "closed_at": "2026-10-09T22:03:44Z"
   }
  ],
  "stats": {
-  "n_closed": 1107,
+  "n_closed": 1108,
   "by_horizon": {
    "SWING": {
     "t1": 54,
     "sl": 292,
     "ambiguous": 3,
-    "timeout": 191,
+    "timeout": 192,
     "expired": 368,
     "hit_rate_pct": 15.5,
     "n_decided": 349
@@ -27292,7 +27317,7 @@
     "t1": 27,
     "sl": 164,
     "ambiguous": 1,
-    "timeout": 148,
+    "timeout": 149,
     "expired": 190,
     "hit_rate_pct": 14.1,
     "n_decided": 192
@@ -27645,7 +27670,7 @@
     "t1": 0,
     "sl": 0,
     "ambiguous": 0,
-    "timeout": 0,
+    "timeout": 1,
     "expired": 2,
     "hit_rate_pct": null,
     "n_decided": 0
@@ -27809,7 +27834,7 @@
     "t1": 28,
     "sl": 67,
     "ambiguous": 0,
-    "timeout": 114,
+    "timeout": 115,
     "expired": 73,
     "hit_rate_pct": 29.5,
     "n_decided": 95
@@ -27874,7 +27899,7 @@
     "t1": 1,
     "sl": 18,
     "ambiguous": 0,
-    "timeout": 4,
+    "timeout": 5,
     "expired": 2,
     "hit_rate_pct": 5.3,
     "n_decided": 19
@@ -27971,5 +27996,5 @@
    }
   }
  },
- "updated": "2026-10-09T18:10:40Z"
+ "updated": "2026-10-09T22:03:45Z"
 }
