@@ -1,6 +1,6 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-10-14 18:10 UTC",
+  "generated": "2026-10-14 22:10 UTC",
   "cot_date": "2026-10-06",
   "global_state": {
     "geo_active": true,
@@ -24,9 +24,9 @@
       "timeframe": "SWING",
       "horizon": "SWING",
       "grade": "A",
-      "score": 3.42,
+      "score": 3.02,
       "max_score": 5.0,
-      "score_pct": 68,
+      "score_pct": 60,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -62,12 +62,10 @@
         {
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
-          "verdi": true,
+          "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.4,
-          "drivers": [
-            "GS-ratio Z +2.6 (gold expensive)"
-          ]
+          "poeng": 0.0,
+          "drivers": []
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
@@ -115,11 +113,9 @@
           ]
         },
         "fundamental": {
-          "score": 0.4,
+          "score": 0.0,
           "weight": 1.0,
-          "drivers": [
-            "GS-ratio Z +2.6 (gold expensive)"
-          ]
+          "drivers": []
         },
         "risk": {
           "score": 0.5,
@@ -137,11 +133,11 @@
           ]
         }
       },
-      "active_driver_groups": 5,
+      "active_driver_groups": 4,
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 4103.1,
+      "current": 4127.3,
       "entry": 4171.3999,
       "sl": 4197.29443,
       "t1": 4091.19995,
@@ -153,8 +149,8 @@
       "cot_pct": 28.0,
       "correlation_group": "precious_metals",
       "adr_utilization": {
-        "pct": 106.2,
-        "ok_for_scalp": false,
+        "pct": 41.0,
+        "ok_for_scalp": true,
         "available": true
       },
       "atr_d1": 79.9785,
@@ -188,15 +184,15 @@
       }
     },
     {
-      "key": "EURUSD",
-      "name": "EUR/USD",
+      "key": "Silver",
+      "name": "Sølv",
       "action": "SELL",
       "timeframe": "SWING",
       "horizon": "SWING",
-      "grade": "A",
-      "score": 2.77,
+      "grade": "B",
+      "score": 2.72,
       "max_score": 5.0,
-      "score_pct": 55,
+      "score_pct": 54,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -214,10 +210,10 @@
           "id": "group_positioning",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 1.0,
+          "poeng": 0.35,
           "drivers": [
-            "COT bias align (-5.1%)",
-            "COT momentum +"
+            "COT momentum +",
+            "OI stigende mot retning (advarsel)"
           ]
         },
         {
@@ -225,18 +221,20 @@
           "id": "group_macro",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.5,
+          "poeng": 0.71,
           "drivers": [
-            "News risk_off (|s|=1.00) confirms"
+            "Real yields høye (2.91%)"
           ]
         },
         {
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 1.0,
+          "drivers": [
+            "Registered oz +593,776"
+          ]
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
@@ -251,12 +249,10 @@
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
-          "verdi": true,
+          "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.6,
-          "drivers": [
-            "HTF-nivå w3"
-          ]
+          "poeng": 0.0,
+          "drivers": []
         }
       ],
       "driver_groups": {
@@ -269,24 +265,26 @@
           ]
         },
         "positioning": {
-          "score": 1.0,
+          "score": 0.35,
           "weight": 1.0,
           "drivers": [
-            "COT bias align (-5.1%)",
-            "COT momentum +"
+            "COT momentum +",
+            "OI stigende mot retning (advarsel)"
           ]
         },
         "macro": {
-          "score": 0.5,
+          "score": 0.71,
           "weight": 1.0,
           "drivers": [
-            "News risk_off (|s|=1.00) confirms"
+            "Real yields høye (2.91%)"
           ]
         },
         "fundamental": {
-          "score": 0.0,
+          "score": 1.0,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "Registered oz +593,776"
+          ]
         },
         "risk": {
           "score": 0.5,
@@ -296,34 +294,32 @@
           ]
         },
         "structure": {
-          "score": 0.6,
+          "score": 0.0,
           "weight": 1.0,
-          "drivers": [
-            "HTF-nivå w3"
-          ]
+          "drivers": []
         }
       },
       "active_driver_groups": 4,
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 1.11408,
-      "entry": 1.12057,
-      "sl": 1.12273,
-      "t1": 1.11181,
-      "t2": 1.11181,
-      "rr_t1": 4.06,
-      "rr_t2": 4.06,
-      "sl_type": "struktur+floor",
-      "cot_bias": "SHORT",
-      "cot_pct": 5.1,
-      "correlation_group": "usd_pairs",
+      "current": 55.8,
+      "entry": 59.161,
+      "sl": 59.95016,
+      "t1": 55.015,
+      "t2": 48.125,
+      "rr_t1": 5.25,
+      "rr_t2": 13.98,
+      "sl_type": "struktur",
+      "cot_bias": "LONG",
+      "cot_pct": 7.2,
+      "correlation_group": "precious_metals",
       "adr_utilization": {
-        "pct": 116.1,
+        "pct": 74.6,
         "ok_for_scalp": false,
         "available": true
       },
-      "atr_d1": 0.00719,
+      "atr_d1": 1.42064,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -415,9 +411,9 @@
     }
   ],
   "_meta": {
-    "generated_at": "2026-10-14T18:10:29Z",
+    "generated_at": "2026-10-14T22:10:23Z",
     "script": "push_signals.py",
-    "macro_date": "2026-10-14 18:06 UTC",
+    "macro_date": "2026-10-14 22:06 UTC",
     "cot_date": "2026-10-06"
   }
 }
