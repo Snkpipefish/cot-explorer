@@ -2,28 +2,6 @@
  "schema_version": "1.0",
  "open": [
   {
-   "id": "Sugar|BUY|20.98000|19.86000|23.50000",
-   "key": "Sugar",
-   "direction": "BUY",
-   "entry": 20.98,
-   "sl": 19.86,
-   "t1": 23.5,
-   "t2": 24.0,
-   "rr_t1": 2.25,
-   "horizon": "SWING",
-   "grade": "B",
-   "score": 5.1,
-   "t1_source": "rn23.5",
-   "sl_type": "atr_prosent",
-   "source": "agri_fundamental",
-   "atr_d1": 0.56,
-   "first_seen": "2026-10-14T18:10:29Z",
-   "status": "active",
-   "activated_at": "2026-10-15T12:00:00Z",
-   "mfe": 0.24,
-   "mae": 0.51
-  },
-  {
    "id": "Sugar|BUY|20.86000|19.75000|23.50000",
    "key": "Sugar",
    "direction": "BUY",
@@ -107,6 +85,25 @@
    "activated_at": "2026-10-19T08:00:00Z",
    "mfe": 0.24,
    "mae": 0.12
+  },
+  {
+   "id": "Sugar|BUY|20.58000|19.48000|23.00000",
+   "key": "Sugar",
+   "direction": "BUY",
+   "entry": 20.58,
+   "sl": 19.48,
+   "t1": 23.0,
+   "t2": 23.5,
+   "rr_t1": 2.2,
+   "horizon": "SWING",
+   "grade": "B",
+   "score": 5.0,
+   "t1_source": "rn23",
+   "sl_type": "atr_prosent",
+   "source": "agri_fundamental",
+   "atr_d1": 0.55,
+   "first_seen": "2026-10-19T18:10:50Z",
+   "status": "pending"
   },
   {
    "id": "Silver|SELL|61.61500|62.95525|55.01500",
@@ -314,9 +311,12 @@
    "source": "technical",
    "atr_d1": 0.00761,
    "first_seen": "2026-10-19T15:45:47Z",
-   "status": "pending",
+   "status": "active",
    "entry_weight": 1,
-   "t1_quality": "htf"
+   "t1_quality": "htf",
+   "activated_at": "2026-10-19T17:00:00Z",
+   "mfe": 0.001,
+   "mae": 0.0
   },
   {
    "id": "SPX|SELL|7754.14990|7785.35941|7638.16992",
@@ -499,7 +499,7 @@
    "entry_weight": 4,
    "t1_quality": "htf",
    "activated_at": "2026-10-19T07:00:00Z",
-   "mfe": 1.82,
+   "mfe": 2.86,
    "mae": 0.13
   },
   {
@@ -29034,16 +29034,39 @@
    "entry_weight": 5,
    "t1_quality": "weak",
    "closed_at": "2026-10-19T15:45:48Z"
+  },
+  {
+   "id": "Sugar|BUY|20.98000|19.86000|23.50000",
+   "key": "Sugar",
+   "direction": "BUY",
+   "entry": 20.98,
+   "sl": 19.86,
+   "t1": 23.5,
+   "t2": 24.0,
+   "rr_t1": 2.25,
+   "horizon": "SWING",
+   "grade": "B",
+   "score": 5.1,
+   "t1_source": "rn23.5",
+   "sl_type": "atr_prosent",
+   "source": "agri_fundamental",
+   "atr_d1": 0.56,
+   "first_seen": "2026-10-14T18:10:29Z",
+   "status": "timeout",
+   "activated_at": "2026-10-15T12:00:00Z",
+   "mfe": 0.24,
+   "mae": 0.51,
+   "closed_at": "2026-10-19T18:10:50Z"
   }
  ],
  "stats": {
-  "n_closed": 1220,
+  "n_closed": 1221,
   "by_horizon": {
    "SWING": {
     "t1": 60,
     "sl": 308,
     "ambiguous": 3,
-    "timeout": 215,
+    "timeout": 216,
     "expired": 418,
     "hit_rate_pct": 16.2,
     "n_decided": 371
@@ -29081,7 +29104,7 @@
     "t1": 34,
     "sl": 175,
     "ambiguous": 1,
-    "timeout": 172,
+    "timeout": 173,
     "expired": 213,
     "hit_rate_pct": 16.2,
     "n_decided": 210
@@ -29605,7 +29628,7 @@
     "t1": 0,
     "sl": 0,
     "ambiguous": 0,
-    "timeout": 6,
+    "timeout": 7,
     "expired": 0,
     "hit_rate_pct": null,
     "n_decided": 0
@@ -29634,7 +29657,7 @@
     "t1": 28,
     "sl": 68,
     "ambiguous": 0,
-    "timeout": 134,
+    "timeout": 135,
     "expired": 81,
     "hit_rate_pct": 29.2,
     "n_decided": 96
@@ -29726,7 +29749,7 @@
     "t1": 16,
     "sl": 20,
     "ambiguous": 0,
-    "timeout": 80,
+    "timeout": 81,
     "expired": 17,
     "hit_rate_pct": 44.4,
     "n_decided": 36
@@ -29796,5 +29819,5 @@
    }
   }
  },
- "updated": "2026-10-19T15:45:49Z"
+ "updated": "2026-10-19T18:10:52Z"
 }
