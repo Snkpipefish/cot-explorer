@@ -1,92 +1,13 @@
 {
-  "generated": "2026-10-19T22:00:12+00:00",
+  "generated": "2026-10-20T02:00:12+00:00",
   "source": "Regnbue \u00b7 base-rate-validated setups (Skilling-feed)",
-  "as_of": "2026-10-15",
+  "as_of": "2026-10-18",
   "rows": 22,
   "raw": {
     "schema_version": 1,
-    "generated": "2026-10-19T17:17:45Z",
-    "as_of": "2026-10-15",
+    "generated": "2026-10-19T23:14:20Z",
+    "as_of": "2026-10-18",
     "signals": [
-      {
-        "instrument": "Gold",
-        "ticker": "GOLD",
-        "direction": "SHORT",
-        "grade": "A",
-        "score": -0.5351,
-        "published": false,
-        "entry": 4165.61,
-        "sl": 4200.973214,
-        "tp": 4110.83,
-        "rr": 1.549,
-        "atr": 70.726429,
-        "reject_reason": "base-rate: for f\u00e5 uavhengige analoger (n_eff=20 < 30; n=35); hit-rate nedre CI 20% < 55%; expectancy -0.06R < 0.30R; expectancy CI inkluderer \u22640 (-0.61R)",
-        "base_rate": {
-          "n": 35,
-          "hit_rate": 0.3714,
-          "hit_rate_ci": [
-            0.1971,
-            0.5872
-          ],
-          "expectancy_r": -0.0581,
-          "expectancy_ci": [
-            -0.6057,
-            0.4895
-          ],
-          "passes": false,
-          "reason": "for f\u00e5 uavhengige analoger (n_eff=20 < 30; n=35); hit-rate nedre CI 20% < 55%; expectancy -0.06R < 0.30R; expectancy CI inkluderer \u22640 (-0.61R)",
-          "n_eff": 20
-        },
-        "scenario": {
-          "engine": "scenario",
-          "n_paths": 2000,
-          "prob_tp": 0.416,
-          "prob_sl": 0.584,
-          "prob_time": 0.0,
-          "expectancy_r": 0.0547,
-          "expectancy_ci": [
-            -0.0004,
-            0.1097
-          ],
-          "horizon": 30,
-          "cone": {
-            "p05": -0.1192,
-            "p25": -0.0395,
-            "median": 0.0137,
-            "p75": 0.0691,
-            "p95": 0.1526,
-            "prob_up": 0.565
-          }
-        },
-        "data_quality": "ok",
-        "history_years": 15.4,
-        "drivers": [
-          {
-            "name": "series_spread_percentile",
-            "ok": true,
-            "score": -0.9191,
-            "detail": "DGS10-T10YIE = +2.78 (p96)"
-          },
-          {
-            "name": "momentum",
-            "ok": true,
-            "score": -0.9644,
-            "detail": "DTWEXBGS 21d-endring +3.52 (z=+2.01)"
-          },
-          {
-            "name": "etf_flow",
-            "ok": true,
-            "score": -0.1537,
-            "detail": "gld 63d-beholdning -4.3% (z=-0.15)"
-          },
-          {
-            "name": "cot_spec_net_percentile",
-            "ok": true,
-            "score": 0.0897,
-            "detail": "Gold spec-net p54"
-          }
-        ]
-      },
       {
         "instrument": "NatGas",
         "ticker": "Natural Gas",
@@ -157,6 +78,85 @@
             "ok": true,
             "score": -0.641,
             "detail": "NatGas spec-net p18"
+          }
+        ]
+      },
+      {
+        "instrument": "Gold",
+        "ticker": "GOLD",
+        "direction": "SHORT",
+        "grade": "A",
+        "score": -0.5156,
+        "published": false,
+        "entry": 4140.83,
+        "sl": 4183.25125,
+        "tp": 4110.83,
+        "rr": 0.707,
+        "atr": 69.445,
+        "reject_reason": "R:R 0.71 < 1.5; base-rate: for f\u00e5 uavhengige analoger (n_eff=23 < 30; n=37); hit-rate nedre CI 35% < 55%; expectancy -0.08R < 0.30R; expectancy CI inkluderer \u22640 (-0.43R)",
+        "base_rate": {
+          "n": 37,
+          "hit_rate": 0.5405,
+          "hit_rate_ci": [
+            0.3461,
+            0.7234
+          ],
+          "expectancy_r": -0.0806,
+          "expectancy_ci": [
+            -0.4331,
+            0.2719
+          ],
+          "passes": false,
+          "reason": "for f\u00e5 uavhengige analoger (n_eff=23 < 30; n=37); hit-rate nedre CI 35% < 55%; expectancy -0.08R < 0.30R; expectancy CI inkluderer \u22640 (-0.43R)",
+          "n_eff": 23
+        },
+        "scenario": {
+          "engine": "scenario",
+          "n_paths": 2000,
+          "prob_tp": 0.4995,
+          "prob_sl": 0.5005,
+          "prob_time": 0.0,
+          "expectancy_r": -0.1516,
+          "expectancy_ci": [
+            -0.189,
+            -0.1141
+          ],
+          "horizon": 30,
+          "cone": {
+            "p05": -0.102,
+            "p25": -0.0367,
+            "median": 0.0122,
+            "p75": 0.0673,
+            "p95": 0.1482,
+            "prob_up": 0.559
+          }
+        },
+        "data_quality": "ok",
+        "history_years": 15.4,
+        "drivers": [
+          {
+            "name": "series_spread_percentile",
+            "ok": true,
+            "score": -0.9072,
+            "detail": "DGS10-T10YIE = +2.74 (p95)"
+          },
+          {
+            "name": "momentum",
+            "ok": true,
+            "score": -0.8882,
+            "detail": "DTWEXBGS 21d-endring +2.48 (z=+1.41)"
+          },
+          {
+            "name": "etf_flow",
+            "ok": true,
+            "score": -0.1537,
+            "detail": "gld 63d-beholdning -4.3% (z=-0.15)"
+          },
+          {
+            "name": "cot_spec_net_percentile",
+            "ok": true,
+            "score": 0.0897,
+            "detail": "Gold spec-net p54"
           }
         ]
       },
@@ -955,49 +955,49 @@
         "ticker": "EURUSD",
         "direction": "SHORT",
         "grade": "NONE",
-        "score": -0.1847,
+        "score": -0.1263,
         "published": false,
-        "entry": 1.12381,
-        "sl": 1.149104,
+        "entry": 1.12113,
+        "sl": 1.149093,
         "tp": 1.1161,
-        "rr": 0.305,
-        "atr": 0.007576,
-        "reject_reason": "ingen grade (for svakt signal); R:R 0.30 < 1.5; base-rate: expectancy +0.07R < 0.30R; expectancy CI inkluderer \u22640 (-0.08R)",
+        "rr": 0.18,
+        "atr": 0.007531,
+        "reject_reason": "ingen grade (for svakt signal); R:R 0.18 < 1.5; base-rate: expectancy +0.06R < 0.30R; expectancy CI inkluderer \u22640 (-0.04R)",
         "base_rate": {
-          "n": 78,
-          "hit_rate": 0.7821,
+          "n": 91,
+          "hit_rate": 0.8791,
           "hit_rate_ci": [
-            0.6402,
-            0.8786
+            0.7636,
+            0.9424
           ],
-          "expectancy_r": 0.0666,
+          "expectancy_r": 0.0569,
           "expectancy_ci": [
-            -0.079,
-            0.2122
+            -0.0358,
+            0.1495
           ],
           "passes": false,
-          "reason": "expectancy +0.07R < 0.30R; expectancy CI inkluderer \u22640 (-0.08R)",
-          "n_eff": 44
+          "reason": "expectancy +0.06R < 0.30R; expectancy CI inkluderer \u22640 (-0.04R)",
+          "n_eff": 52
         },
         "scenario": {
           "engine": "scenario",
           "n_paths": 2000,
-          "prob_tp": 0.6405,
-          "prob_sl": 0.173,
-          "prob_time": 0.1865,
-          "expectancy_r": -0.049,
+          "prob_tp": 0.7435,
+          "prob_sl": 0.114,
+          "prob_time": 0.1425,
+          "expectancy_r": -0.0469,
           "expectancy_ci": [
-            -0.0719,
-            -0.0262
+            -0.0654,
+            -0.0284
           ],
           "horizon": 30,
           "cone": {
-            "p05": -0.0338,
-            "p25": -0.0141,
-            "median": -0.0009,
-            "p75": 0.0119,
-            "p95": 0.0326,
-            "prob_up": 0.478
+            "p05": -0.0313,
+            "p25": -0.0152,
+            "median": -0.0021,
+            "p75": 0.0118,
+            "p95": 0.0329,
+            "prob_up": 0.459
           }
         },
         "data_quality": "ok",
@@ -1006,14 +1006,14 @@
           {
             "name": "series_spread_percentile",
             "ok": true,
-            "score": -0.6358,
-            "detail": "DGS10-IRLTLT01DEM156N = +1.63 (p82)"
+            "score": -0.6232,
+            "detail": "DGS10-IRLTLT01DEM156N = +1.62 (p81)"
           },
           {
             "name": "momentum",
             "ok": true,
-            "score": -0.2185,
-            "detail": "DGS2 21d-endring +0.1 (z=+0.22)"
+            "score": -0.0,
+            "detail": "DGS2 21d-endring +0 (z=+0.00)"
           },
           {
             "name": "cot_spec_net_percentile",
@@ -1024,7 +1024,7 @@
           {
             "name": "level_percentile",
             "ok": true,
-            "score": 0.6031,
+            "score": 0.6,
             "detail": "VIXCLS niv\u00e5 15.7 = p20"
           }
         ]
@@ -1034,49 +1034,49 @@
         "ticker": "Coffee",
         "direction": "LONG",
         "grade": "NONE",
-        "score": 0.1632,
+        "score": 0.0865,
         "published": false,
-        "entry": 315.17,
-        "sl": 310.042857,
-        "tp": 318.33,
-        "rr": 0.616,
-        "atr": 10.254286,
-        "reject_reason": "ingen grade (for svakt signal); R:R 0.62 < 1.5; base-rate: for f\u00e5 uavhengige analoger (n_eff=20 < 30; n=34); hit-rate nedre CI 35% < 55%; expectancy -0.11R < 0.30R; expectancy CI inkluderer \u22640 (-0.46R)",
+        "entry": 323.52,
+        "sl": 316.23625,
+        "tp": 330.55,
+        "rr": 0.965,
+        "atr": 10.335,
+        "reject_reason": "ingen grade (for svakt signal); R:R 0.97 < 1.5; base-rate: for f\u00e5 uavhengige analoger (n_eff=21 < 30; n=36); hit-rate nedre CI 33% < 55%; expectancy +0.02R < 0.30R; expectancy CI inkluderer \u22640 (-0.40R)",
         "base_rate": {
-          "n": 34,
-          "hit_rate": 0.5588,
+          "n": 36,
+          "hit_rate": 0.5278,
           "hit_rate_ci": [
-            0.3498,
-            0.7489
+            0.3271,
+            0.7198
           ],
-          "expectancy_r": -0.1074,
+          "expectancy_r": 0.0243,
           "expectancy_ci": [
-            -0.4648,
-            0.2501
+            -0.4007,
+            0.4493
           ],
           "passes": false,
-          "reason": "for f\u00e5 uavhengige analoger (n_eff=20 < 30; n=34); hit-rate nedre CI 35% < 55%; expectancy -0.11R < 0.30R; expectancy CI inkluderer \u22640 (-0.46R)",
-          "n_eff": 20
+          "reason": "for f\u00e5 uavhengige analoger (n_eff=21 < 30; n=36); hit-rate nedre CI 33% < 55%; expectancy +0.02R < 0.30R; expectancy CI inkluderer \u22640 (-0.40R)",
+          "n_eff": 21
         },
         "scenario": {
           "engine": "scenario",
           "n_paths": 2000,
-          "prob_tp": 0.558,
-          "prob_sl": 0.442,
+          "prob_tp": 0.506,
+          "prob_sl": 0.494,
           "prob_time": 0.0,
-          "expectancy_r": -0.1175,
+          "expectancy_r": -0.0286,
           "expectancy_ci": [
-            -0.1528,
-            -0.0823
+            -0.0717,
+            0.0145
           ],
           "horizon": 30,
           "cone": {
-            "p05": -0.1393,
-            "p25": -0.0598,
-            "median": 0.0135,
-            "p75": 0.0875,
-            "p95": 0.2183,
-            "prob_up": 0.555
+            "p05": -0.1453,
+            "p25": -0.0524,
+            "median": 0.0175,
+            "p75": 0.0908,
+            "p95": 0.2198,
+            "prob_up": 0.574
           }
         },
         "data_quality": "kort_historikk",
@@ -1097,8 +1097,8 @@
           {
             "name": "momentum",
             "ok": true,
-            "score": 0.6694,
-            "detail": "DEXBZUS 21d-endring -0.119 (z=-0.81)"
+            "score": 0.3628,
+            "detail": "DEXBZUS 21d-endring -0.056 (z=-0.38)"
           },
           {
             "name": "cot_spec_net_percentile",
@@ -1113,28 +1113,28 @@
         "ticker": "OIL BRENT",
         "direction": "SHORT",
         "grade": "NONE",
-        "score": -0.0892,
+        "score": -0.0783,
         "published": false,
         "entry": 107.37,
         "sl": 115.246071,
         "tp": 101.26,
         "rr": 0.776,
         "atr": 3.784286,
-        "reject_reason": "ingen grade (for svakt signal); R:R 0.78 < 1.5; base-rate: hit-rate nedre CI 34% < 55%; expectancy -0.09R < 0.30R; expectancy CI inkluderer \u22640 (-0.37R)",
+        "reject_reason": "ingen grade (for svakt signal); R:R 0.78 < 1.5; base-rate: hit-rate nedre CI 34% < 55%; expectancy -0.10R < 0.30R; expectancy CI inkluderer \u22640 (-0.38R)",
         "base_rate": {
-          "n": 65,
-          "hit_rate": 0.4923,
+          "n": 64,
+          "hit_rate": 0.4844,
           "hit_rate_ci": [
-            0.3433,
-            0.6427
+            0.3361,
+            0.6354
           ],
-          "expectancy_r": -0.0916,
+          "expectancy_r": -0.105,
           "expectancy_ci": [
-            -0.3651,
-            0.1818
+            -0.3785,
+            0.1686
           ],
           "passes": false,
-          "reason": "hit-rate nedre CI 34% < 55%; expectancy -0.09R < 0.30R; expectancy CI inkluderer \u22640 (-0.37R)",
+          "reason": "hit-rate nedre CI 34% < 55%; expectancy -0.10R < 0.30R; expectancy CI inkluderer \u22640 (-0.38R)",
           "n_eff": 39
         },
         "scenario": {
@@ -1176,8 +1176,8 @@
           {
             "name": "momentum",
             "ok": true,
-            "score": -0.9644,
-            "detail": "DTWEXBGS 21d-endring +3.52 (z=+2.01)"
+            "score": -0.9102,
+            "detail": "DTWEXBGS 21d-endring +2.69 (z=+1.53)"
           },
           {
             "name": "level_percentile",
