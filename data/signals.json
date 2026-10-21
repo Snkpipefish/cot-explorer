@@ -1,6 +1,6 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-10-21 18:10 UTC",
+  "generated": "2026-10-21 22:10 UTC",
   "cot_date": "2026-10-06",
   "global_state": {
     "geo_active": true,
@@ -17,6 +17,172 @@
     "oil_min_sl_pips": 25
   },
   "signals": [
+    {
+      "key": "Silver",
+      "name": "Sølv",
+      "action": "SELL",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "B",
+      "score": 2.67,
+      "max_score": 5.0,
+      "score_pct": 53,
+      "score_details": [
+        {
+          "kryss": "Trendbildet (SMA/momentum/align)",
+          "id": "group_trend",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.67,
+          "drivers": [
+            "Momentum 20d +",
+            "D1+4H kongruent"
+          ]
+        },
+        {
+          "kryss": "COT-posisjonering",
+          "id": "group_positioning",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.35,
+          "drivers": [
+            "COT momentum +",
+            "OI stigende mot retning (advarsel)"
+          ]
+        },
+        {
+          "kryss": "Makrobilde (DXY/VIX/renter)",
+          "id": "group_macro",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.65,
+          "drivers": [
+            "Real yields høye (2.80%)"
+          ]
+        },
+        {
+          "kryss": "Fundamentalt (asset-spesifikt)",
+          "id": "group_fundamental",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0,
+          "drivers": [
+            "Registered oz +1,120,804"
+          ]
+        },
+        {
+          "kryss": "Event-risiko (kalender/geo)",
+          "id": "group_risk",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        {
+          "kryss": "Teknisk struktur (HTF/SMC)",
+          "id": "group_structure",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        }
+      ],
+      "driver_groups": {
+        "trend": {
+          "score": 0.67,
+          "weight": 1.0,
+          "drivers": [
+            "Momentum 20d +",
+            "D1+4H kongruent"
+          ]
+        },
+        "positioning": {
+          "score": 0.35,
+          "weight": 1.0,
+          "drivers": [
+            "COT momentum +",
+            "OI stigende mot retning (advarsel)"
+          ]
+        },
+        "macro": {
+          "score": 0.65,
+          "weight": 1.0,
+          "drivers": [
+            "Real yields høye (2.80%)"
+          ]
+        },
+        "fundamental": {
+          "score": 1.0,
+          "weight": 1.0,
+          "drivers": [
+            "Registered oz +1,120,804"
+          ]
+        },
+        "risk": {
+          "score": 0.5,
+          "weight": 1.0,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        }
+      },
+      "active_driver_groups": 4,
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "dir_override_reason": null,
+      "current": 58.115,
+      "entry": 60.141,
+      "sl": 60.75803,
+      "t1": 56.74,
+      "t2": 56.74,
+      "rr_t1": 5.51,
+      "rr_t2": 5.51,
+      "sl_type": "struktur",
+      "cot_bias": "LONG",
+      "cot_pct": 7.2,
+      "correlation_group": "precious_metals",
+      "adr_utilization": {
+        "pct": 91.2,
+        "ok_for_scalp": false,
+        "available": true
+      },
+      "atr_d1": 1.23407,
+      "horizon_config": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {
+          "fx": 3.0,
+          "gold": 4.0,
+          "silver": 4.0,
+          "oil": 3.5,
+          "index": 3.0
+        },
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
+      }
+    },
     {
       "key": "Gold",
       "name": "Gull",
@@ -135,23 +301,23 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 4154.7,
-      "entry": 4174.8999,
-      "sl": 4216.03739,
-      "t1": 4091.19995,
+      "current": 4159.5,
+      "entry": 4242.2998,
+      "sl": 4276.63551,
+      "t1": 4095.0,
       "t2": 4091.19995,
-      "rr_t1": 2.03,
-      "rr_t2": 2.03,
+      "rr_t1": 4.29,
+      "rr_t2": 4.4,
       "sl_type": "struktur",
       "cot_bias": "LONG",
       "cot_pct": 28.0,
       "correlation_group": "precious_metals",
       "adr_utilization": {
-        "pct": 30.5,
+        "pct": 55.3,
         "ok_for_scalp": true,
         "available": true
       },
-      "atr_d1": 68.54996,
+      "atr_d1": 68.6714,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -188,7 +354,7 @@
       "timeframe": "SWING",
       "horizon": "SWING",
       "grade": "B",
-      "score": 6.9,
+      "score": 5.4,
       "max_score": 18,
       "current": 312.899994,
       "entry": 312.56,
@@ -237,8 +403,68 @@
       "drivers": [
         "Bedrock A BUY bekrefter (score 8.9)",
         "Værstress i Vietnam – Dak Lak (robusta-belte) (tørt)",
-        "2 risiko-regioner",
-        "COT: spekulanter øker long (net +12% av OI)"
+        "COT: spekulanter øker long (net +12% av OI)",
+        "CONAB Brasil kaffe: +19.6% YoY (↑ vekst)"
+      ]
+    },
+    {
+      "key": "Cocoa",
+      "name": "Kakao",
+      "action": "SELL",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "B",
+      "score": 5.4,
+      "max_score": 18,
+      "current": 5821.0,
+      "entry": 5827.99,
+      "sl": 6153.97,
+      "t1": 5250.0,
+      "t2": 5000.0,
+      "rr_t1": 1.77,
+      "rr_t2": 2.54,
+      "sl_type": "atr_prosent",
+      "cot_bias": "bear",
+      "atr_d1": 162.99,
+      "source": "agri_fundamental",
+      "correlation_group": "softs",
+      "horizon_config": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {
+          "fx": 3.0,
+          "gold": 4.0,
+          "silver": 4.0,
+          "oil": 3.5,
+          "index": 3.0
+        },
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
+      },
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "yield_score": 98,
+      "weather_outlook": "tørt",
+      "drivers": [
+        "COT: spekulanter øker short (net -6% av OI)",
+        "Yield utmerket — god produksjon holder prisene nede",
+        "Bedrock: B SELL makro publisert (score 7.5)",
+        "El Niño: Tørrere enn normalt"
       ]
     },
     {
@@ -303,9 +529,9 @@
     }
   ],
   "_meta": {
-    "generated_at": "2026-10-21T18:10:30Z",
+    "generated_at": "2026-10-21T22:10:40Z",
     "script": "push_signals.py",
-    "macro_date": "2026-10-21 18:06 UTC",
+    "macro_date": "2026-10-21 22:07 UTC",
     "cot_date": "2026-10-06"
   }
 }
