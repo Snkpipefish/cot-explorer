@@ -1,11 +1,11 @@
 {
-  "generated": "2026-10-22T10:06:15+00:00",
+  "generated": "2026-10-22T14:00:12+00:00",
   "source": "Regnbue \u00b7 base-rate-validated setups (Skilling-feed)",
   "as_of": "2026-10-20",
   "rows": 22,
   "raw": {
     "schema_version": 1,
-    "generated": "2026-10-21T23:14:38Z",
+    "generated": "2026-10-22T11:15:03Z",
     "as_of": "2026-10-20",
     "signals": [
       {
@@ -86,7 +86,7 @@
         "ticker": "GOLD",
         "direction": "SHORT",
         "grade": "A",
-        "score": -0.5156,
+        "score": -0.5158,
         "published": false,
         "entry": 4140.84,
         "sl": 4182.46,
@@ -137,8 +137,8 @@
           {
             "name": "series_spread_percentile",
             "ok": true,
-            "score": -0.907,
-            "detail": "DGS10-T10YIE = +2.74 (p95)"
+            "score": -0.9075,
+            "detail": "DGS10-T10YIE = +2.77 (p95)"
           },
           {
             "name": "momentum",
@@ -955,29 +955,29 @@
         "ticker": "EURUSD",
         "direction": "SHORT",
         "grade": "NONE",
-        "score": -0.1283,
+        "score": -0.1558,
         "published": false,
         "entry": 1.12318,
         "sl": 1.12865,
         "tp": 1.1161,
         "rr": 1.294,
         "atr": 0.006841,
-        "reject_reason": "ingen grade (for svakt signal); R:R 1.29 < 1.5; base-rate: hit-rate nedre CI 31% < 55%; expectancy -0.01R < 0.30R; expectancy CI inkluderer \u22640 (-0.33R)",
+        "reject_reason": "ingen grade (for svakt signal); R:R 1.29 < 1.5; base-rate: hit-rate nedre CI 33% < 55%; expectancy +0.05R < 0.30R; expectancy CI inkluderer \u22640 (-0.28R)",
         "base_rate": {
-          "n": 90,
-          "hit_rate": 0.4333,
+          "n": 85,
+          "hit_rate": 0.4588,
           "hit_rate_ci": [
-            0.3068,
-            0.5692
+            0.3262,
+            0.5976
           ],
-          "expectancy_r": -0.0131,
+          "expectancy_r": 0.0459,
           "expectancy_ci": [
-            -0.3267,
-            0.3006
+            -0.2793,
+            0.3711
           ],
           "passes": false,
-          "reason": "hit-rate nedre CI 31% < 55%; expectancy -0.01R < 0.30R; expectancy CI inkluderer \u22640 (-0.33R)",
-          "n_eff": 51
+          "reason": "hit-rate nedre CI 33% < 55%; expectancy +0.05R < 0.30R; expectancy CI inkluderer \u22640 (-0.28R)",
+          "n_eff": 48
         },
         "scenario": {
           "engine": "scenario",
@@ -1006,14 +1006,14 @@
           {
             "name": "series_spread_percentile",
             "ok": true,
-            "score": -0.6279,
-            "detail": "DGS10-IRLTLT01DEM156N = +1.62 (p81)"
+            "score": -0.659,
+            "detail": "DGS10-IRLTLT01DEM156N = +1.65 (p83)"
           },
           {
             "name": "momentum",
             "ok": true,
-            "score": -0.0,
-            "detail": "DGS2 21d-endring +0 (z=+0.00)"
+            "score": -0.0665,
+            "detail": "DGS2 21d-endring +0.03 (z=+0.07)"
           },
           {
             "name": "cot_spec_net_percentile",
@@ -1184,85 +1184,6 @@
             "ok": true,
             "score": 0.6517,
             "detail": "VIXCLS niv\u00e5 15.7 = p17"
-          }
-        ]
-      },
-      {
-        "instrument": "Brent",
-        "ticker": "OIL BRENT",
-        "direction": "SHORT",
-        "grade": "NONE",
-        "score": -0.0736,
-        "published": false,
-        "entry": 105.75,
-        "sl": 107.646786,
-        "tp": 101.26,
-        "rr": 2.367,
-        "atr": 3.793571,
-        "reject_reason": "ingen grade (for svakt signal); base-rate: hit-rate nedre CI 15% < 55%; expectancy -0.14R < 0.30R; expectancy CI inkluderer \u22640 (-0.61R)",
-        "base_rate": {
-          "n": 62,
-          "hit_rate": 0.2581,
-          "hit_rate_ci": [
-            0.1469,
-            0.4126
-          ],
-          "expectancy_r": -0.1422,
-          "expectancy_ci": [
-            -0.6081,
-            0.3236
-          ],
-          "passes": false,
-          "reason": "hit-rate nedre CI 15% < 55%; expectancy -0.14R < 0.30R; expectancy CI inkluderer \u22640 (-0.61R)",
-          "n_eff": 39
-        },
-        "scenario": {
-          "engine": "scenario",
-          "n_paths": 2000,
-          "prob_tp": 0.349,
-          "prob_sl": 0.651,
-          "prob_time": 0.0,
-          "expectancy_r": 0.1579,
-          "expectancy_ci": [
-            0.0877,
-            0.2282
-          ],
-          "horizon": 30,
-          "cone": {
-            "p05": -0.2083,
-            "p25": -0.0951,
-            "median": -0.0062,
-            "p75": 0.0851,
-            "p95": 0.2097,
-            "prob_up": 0.476
-          }
-        },
-        "data_quality": "ok",
-        "history_years": 15.4,
-        "drivers": [
-          {
-            "name": "seasonal_anomaly",
-            "ok": true,
-            "score": 0.7061,
-            "detail": "WCESTUS1 vs sesong z=-0.88"
-          },
-          {
-            "name": "cot_spec_net_percentile",
-            "ok": true,
-            "score": -0.1154,
-            "detail": "Brent spec-net p44"
-          },
-          {
-            "name": "momentum",
-            "ok": true,
-            "score": -0.8882,
-            "detail": "DTWEXBGS 21d-endring +2.48 (z=+1.41)"
-          },
-          {
-            "name": "level_percentile",
-            "ok": true,
-            "score": -0.7229,
-            "detail": "OVX niv\u00e5 75.4 = p86"
           }
         ]
       },
@@ -1494,6 +1415,85 @@
             "ok": true,
             "score": 0.6517,
             "detail": "VIXCLS niv\u00e5 15.7 = p17"
+          }
+        ]
+      },
+      {
+        "instrument": "Brent",
+        "ticker": "OIL BRENT",
+        "direction": "SHORT",
+        "grade": "NONE",
+        "score": -0.0306,
+        "published": false,
+        "entry": 105.75,
+        "sl": 107.646786,
+        "tp": 101.26,
+        "rr": 2.367,
+        "atr": 3.793571,
+        "reject_reason": "ingen grade (for svakt signal); base-rate: hit-rate nedre CI 14% < 55%; expectancy -0.13R < 0.30R; expectancy CI inkluderer \u22640 (-0.66R)",
+        "base_rate": {
+          "n": 42,
+          "hit_rate": 0.2619,
+          "hit_rate_ci": [
+            0.1398,
+            0.4365
+          ],
+          "expectancy_r": -0.1304,
+          "expectancy_ci": [
+            -0.6576,
+            0.3968
+          ],
+          "passes": false,
+          "reason": "hit-rate nedre CI 14% < 55%; expectancy -0.13R < 0.30R; expectancy CI inkluderer \u22640 (-0.66R)",
+          "n_eff": 31
+        },
+        "scenario": {
+          "engine": "scenario",
+          "n_paths": 2000,
+          "prob_tp": 0.349,
+          "prob_sl": 0.651,
+          "prob_time": 0.0,
+          "expectancy_r": 0.1579,
+          "expectancy_ci": [
+            0.0877,
+            0.2282
+          ],
+          "horizon": 30,
+          "cone": {
+            "p05": -0.2083,
+            "p25": -0.0951,
+            "median": -0.0062,
+            "p75": 0.0851,
+            "p95": 0.2097,
+            "prob_up": 0.476
+          }
+        },
+        "data_quality": "ok",
+        "history_years": 15.4,
+        "drivers": [
+          {
+            "name": "seasonal_anomaly",
+            "ok": true,
+            "score": 0.8288,
+            "detail": "WCESTUS1 vs sesong z=-1.18"
+          },
+          {
+            "name": "cot_spec_net_percentile",
+            "ok": true,
+            "score": -0.1154,
+            "detail": "Brent spec-net p44"
+          },
+          {
+            "name": "momentum",
+            "ok": true,
+            "score": -0.8882,
+            "detail": "DTWEXBGS 21d-endring +2.48 (z=+1.41)"
+          },
+          {
+            "name": "level_percentile",
+            "ok": true,
+            "score": -0.7229,
+            "detail": "OVX niv\u00e5 75.4 = p86"
           }
         ]
       },
