@@ -1,7 +1,13 @@
 {
-  "date": "2026-10-29 11:29 UTC",
+  "date": "2026-10-29 11:40 UTC",
   "cot_date": "2026-10-20",
   "prices": {
+    "VIX": {
+      "price": 16.97,
+      "chg1d": 0.35,
+      "chg5d": -10.83,
+      "chg20d": 3.54
+    },
     "SPX": {
       "price": 7757.75,
       "chg1d": -0.039,
@@ -15,6 +21,12 @@
       "chg5d": -0.562,
       "chg20d": 1.747,
       "source": "bedrock"
+    },
+    "DXY": {
+      "price": 102.16,
+      "chg1d": -0.03,
+      "chg5d": 0.54,
+      "chg20d": 0.06
     },
     "EURUSD": {
       "price": 1.114827,
@@ -37,12 +49,24 @@
       "chg20d": -0.39,
       "source": "bedrock"
     },
+    "USDCHF": {
+      "price": 1.2076,
+      "chg1d": 0.09,
+      "chg5d": -0.49,
+      "chg20d": 0.92
+    },
     "AUDUSD": {
       "price": 0.705816,
       "chg1d": 0.395,
       "chg5d": 0.423,
       "chg20d": 0.289,
       "source": "bedrock"
+    },
+    "USDNOK": {
+      "price": 0.1078,
+      "chg1d": 0.6,
+      "chg5d": 0.9,
+      "chg20d": 3.72
     },
     "Brent": {
       "price": 110.639999,
@@ -71,6 +95,18 @@
       "chg5d": -0.486,
       "chg20d": -1.002,
       "source": "bedrock"
+    },
+    "HYG": {
+      "price": 77.59,
+      "chg1d": -0.01,
+      "chg5d": 0.79,
+      "chg20d": 0.49
+    },
+    "TIP": {
+      "price": 106.26,
+      "chg1d": -0.05,
+      "chg5d": 0.67,
+      "chg20d": 2.13
     },
     "BTC": {
       "price": 80496.421875,
@@ -137,7 +173,7 @@
     }
   },
   "vix_regime": {
-    "value": 16.91,
+    "value": 16.97,
     "label": "Normalt – full størrelse",
     "color": "bull",
     "regime": "normal"
@@ -149,16 +185,16 @@
     "desc": "Vekst/inflasjon driver USD",
     "conflicts": [],
     "inputs": {
-      "vix": 16.91,
+      "vix": 16.98,
       "hy_stress": false,
       "hy_chg5d": 0.79,
-      "brent": 110.68,
+      "brent": 110.11,
       "tip_trend_5d": 0.67,
-      "dxy_trend_5d": 0.37,
+      "dxy_trend_5d": 0.52,
       "yield_curve": 1.05,
       "yield_10y": 5.045,
       "yield_3m": 3.995,
-      "copper_5d": 2.09,
+      "copper_5d": 3.65,
       "em_5d": -0.08
     }
   },
@@ -169,58 +205,57 @@
       "klasse": "A",
       "session": "London 08:00–12:00 CET",
       "class": "V",
-      "current": 102.15,
-      "atr14": 0.05136,
-      "atr_15m": 0.05136,
-      "atr_daily": 0.46679,
-      "atr_4h": 0.15171,
-      "at_level_now": true,
-      "status": "aktiv",
-      "pdh": 102.4,
-      "pdl": 101.99,
-      "pdc": 102.32,
-      "pwh": 102.4,
+      "current": 102.14,
+      "atr14": 0.04507,
+      "atr_15m": 0.04507,
+      "atr_daily": 0.4555,
+      "atr_4h": 0.16707,
+      "at_level_now": false,
+      "status": "watchlist",
+      "pdh": 102.49,
+      "pdl": 102.05,
+      "pdc": 102.19,
+      "pwh": 102.49,
       "pwl": 101.45,
-      "ema9_d1": 102.00671,
-      "ema9_4h": 102.25012,
-      "ema9_15m": 102.14278,
+      "ema9_d1": 102.03897,
+      "ema9_4h": 102.21825,
+      "ema9_15m": 102.18073,
       "ema9_above": true,
       "d1_regime": "BULLISH",
-      "m15_regime": "BULLISH",
+      "m15_regime": "BEARISH",
       "regime_align": "mixed",
       "session_now": {
         "active": false,
         "label": "Off-session",
         "cet_hour": 12
       },
-      "sma200": 99.603,
+      "sma200": 99.6183,
       "sma200_pos": "over",
-      "chg5d": 0.37,
-      "chg20d": 0.69,
+      "chg5d": 0.52,
+      "chg20d": 0.04,
       "dir_color": "bull",
-      "grade": "B",
-      "grade_color": "warn",
-      "score": 2.62,
-      "max_score": 5.0,
-      "score_pct": 52,
+      "grade": "C",
+      "grade_color": "bear",
+      "score": 1.91,
+      "max_score": 4.2,
+      "score_pct": 45,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.67,
+          "vekt": 1.2,
+          "poeng": 0.4,
           "drivers": [
-            "SMA200-align",
-            "Momentum 20d +"
+            "SMA200-align"
           ]
         },
         {
           "kryss": "COT-posisjonering",
           "id": "group_positioning",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.75,
+          "vekt": 0.5,
+          "poeng": 0.38,
           "drivers": [
             "COT bias align (+6.4%)",
             "COT momentum +"
@@ -230,51 +265,52 @@
           "kryss": "Makrobilde (DXY/VIX/renter)",
           "id": "group_macro",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.5,
+          "vekt": 0.7,
+          "poeng": 0.35,
           "drivers": [
-            "News risk_off (|s|=0.67) confirms"
+            "News risk_off (|s|=1.00) confirms"
           ]
         },
         {
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
           "verdi": false,
-          "vekt": 1.0,
+          "vekt": 0.5,
           "poeng": 0.0,
           "drivers": []
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
-          "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "verdi": true,
+          "vekt": 0.8,
+          "poeng": 0.4,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.7,
+          "vekt": 1.3,
+          "poeng": 0.78,
           "drivers": [
-            "SMC-bekreftelse"
+            "HTF-nivå w3"
           ]
         }
       ],
       "driver_groups": {
         "trend": {
-          "score": 0.67,
-          "weight": 1.0,
+          "score": 0.33,
+          "weight": 1.2,
           "drivers": [
-            "SMA200-align",
-            "Momentum 20d +"
+            "SMA200-align"
           ]
         },
         "positioning": {
           "score": 0.75,
-          "weight": 1.0,
+          "weight": 0.5,
           "drivers": [
             "COT bias align (+6.4%)",
             "COT momentum +"
@@ -282,312 +318,349 @@
         },
         "macro": {
           "score": 0.5,
-          "weight": 1.0,
+          "weight": 0.7,
           "drivers": [
-            "News risk_off (|s|=0.67) confirms"
+            "News risk_off (|s|=1.00) confirms"
           ]
         },
         "fundamental": {
           "score": 0.0,
-          "weight": 1.0,
+          "weight": 0.5,
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
+          "score": 0.5,
+          "weight": 0.8,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
-          "score": 0.7,
-          "weight": 1.0,
+          "score": 0.6,
+          "weight": 1.3,
           "drivers": [
-            "SMC-bekreftelse"
+            "HTF-nivå w3"
           ]
         }
       },
       "active_driver_groups": 4,
       "group_drivers": [
-        "News risk_off (|s|=0.67) confirms",
+        "News risk_off (|s|=1.00) confirms",
         "COT bias align (+6.4%)",
         "COT momentum +",
         "SMA200-align",
-        "Momentum 20d +",
-        "SMC-bekreftelse"
+        "HTF-nivå w3",
+        "Geo aktiv"
       ],
-      "horizon": "SWING",
+      "horizon": "WATCHLIST",
       "adr_utilization": {
-        "pct": 85.3,
-        "ok_for_scalp": false,
+        "pct": 43.9,
+        "ok_for_scalp": true,
         "available": true
       },
       "correlation_group": null,
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
-      "stable_signal": true,
+      "stable_signal": false,
       "in_session": false,
       "news_headwind": false,
       "news_sentiment_label": "risk_off",
       "open_interest": 49382,
       "resistances": [
         {
-          "name": "4H",
-          "level": 102.21,
-          "weight": 2,
-          "dist_atr": 1.0
+          "name": "PDC",
+          "level": 102.19,
+          "weight": 3,
+          "dist_atr": 1.1
         },
         {
           "name": "15m",
           "level": 102.24,
           "weight": 1,
-          "dist_atr": 1.6
+          "dist_atr": 2.2
         },
         {
           "name": "4H",
           "level": 102.28,
           "weight": 2,
-          "dist_atr": 2.5
-        },
-        {
-          "name": "PDC",
-          "level": 102.32,
-          "weight": 3,
           "dist_atr": 3.2
         },
         {
+          "name": "4H",
+          "level": 102.33,
+          "weight": 2,
+          "dist_atr": 4.3
+        },
+        {
           "name": "PWH",
-          "level": 102.4,
+          "level": 102.49,
           "weight": 5,
-          "dist_atr": 4.8
+          "dist_atr": 7.8
         }
       ],
       "supports": [
         {
-          "name": "15m",
-          "level": 102.14,
-          "weight": 1,
-          "dist_atr": 0.3
-        },
-        {
           "name": "4H",
           "level": 102.1,
           "weight": 2,
-          "dist_atr": 1.1
-        },
-        {
-          "name": "15m",
-          "level": 102.07,
-          "weight": 1,
-          "dist_atr": 1.7
-        },
-        {
-          "name": "PDL",
-          "level": 101.99,
-          "weight": 4,
-          "dist_atr": 3.2
+          "dist_atr": 0.9
         },
         {
           "name": "4H",
-          "level": 101.92,
+          "level": 102.08,
           "weight": 2,
-          "dist_atr": 4.6
+          "dist_atr": 1.4
+        },
+        {
+          "name": "PDL",
+          "level": 102.05,
+          "weight": 4,
+          "dist_atr": 2.0
+        },
+        {
+          "name": "SMC15m",
+          "level": 101.86,
+          "weight": 1,
+          "dist_atr": 6.3
+        },
+        {
+          "name": "PWL",
+          "level": 101.45,
+          "weight": 5,
+          "dist_atr": 15.3
         }
       ],
       "setup_long": {
-        "entry": 101.99,
-        "entry_curr": 102.155,
-        "sl": 101.84996,
-        "sl_type": "struktur+floor",
-        "t1": 102.4,
-        "t2": 102.4843,
-        "rr_t1": 2.93,
-        "rr_t2": 3.53,
-        "min_rr": 1.3,
-        "risk_atr_d": 0.3,
-        "entry_dist_atr": 0.35,
-        "entry_name": "Støtte 101.99 [PDL]",
-        "entry_level": 101.99,
-        "entry_weight": 4,
+        "entry": 102.1,
+        "entry_curr": 102.14,
+        "sl": 102.00668,
+        "sl_type": "struktur",
+        "t1": 102.49,
+        "t2": 102.9348,
+        "rr_t1": 4.18,
+        "rr_t2": 8.95,
+        "min_rr": 1.0,
+        "risk_atr_d": 0.2,
+        "entry_dist_atr": 0.09,
+        "entry_name": "Støtte 102.1 [4H]",
+        "entry_level": 102.1,
+        "entry_weight": 2,
         "t1_source": "PWH",
         "t1_weight": 5,
         "t1_quality": "htf",
         "status": "watchlist",
-        "note": "MAKRO LONG: E=101.99 [PDL w4] SL=101.85 (struktur+floor) → T1=102.4 [PWH w5 htf] R:R=2.93 | Risk=0.14 (0.3×ATRd)",
+        "note": "MAKRO LONG: E=102.1 [4H w2] SL=102.0067 (struktur) → T1=102.49 [PWH w5 htf] R:R=4.18 | Risk=0.0933 (0.2×ATRd)",
         "timeframe": "D1/4H",
         "session": "London 08:00–12:00 CET"
       },
       "setup_short": {
-        "entry": 102.4,
-        "entry_curr": 102.155,
-        "sl": 102.56102,
+        "entry": 102.19,
+        "entry_curr": 102.14,
+        "sl": 102.30632,
         "sl_type": "struktur",
-        "t1": 101.99,
-        "t2": 101.92,
-        "rr_t1": 2.55,
-        "rr_t2": 2.98,
-        "min_rr": 1.3,
-        "risk_atr_d": 0.34,
-        "entry_dist_atr": 0.52,
-        "entry_name": "Motstand 102.4 [PWH]",
-        "entry_level": 102.4,
-        "entry_weight": 5,
-        "t1_source": "PDL",
-        "t1_weight": 4,
+        "t1": 101.45,
+        "t2": 100.89304,
+        "rr_t1": 6.36,
+        "rr_t2": 11.15,
+        "min_rr": 1.0,
+        "risk_atr_d": 0.26,
+        "entry_dist_atr": 0.11,
+        "entry_name": "Motstand 102.19 [PDC]",
+        "entry_level": 102.19,
+        "entry_weight": 3,
+        "t1_source": "PWL",
+        "t1_weight": 5,
         "t1_quality": "htf",
         "status": "watchlist",
-        "note": "MAKRO SHORT: E=102.4 [PWH w5] SL=102.561 (struktur) → T1=101.99 [PDL w4 htf] R:R=2.55 | Risk=0.161 (0.34×ATRd)",
+        "note": "MAKRO SHORT: E=102.19 [PDC w3] SL=102.3063 (struktur) → T1=101.45 [PWL w5 htf] R:R=6.36 | Risk=0.1163 (0.26×ATRd)",
         "timeframe": "D1/4H",
         "session": "London 08:00–12:00 CET"
       },
-      "binary_risk": [],
+      "binary_risk": [
+        {
+          "title": "Advance GDP q/q",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Core PCE Price Index m/m",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        }
+      ],
       "oil_supply_disruption": null,
       "oil_supply_reason": null,
       "dir_override_reason": null,
       "smc": {
-        "structure": "BULLISH_SVAK",
+        "structure": "BULLISH",
         "supply_zones": [
           {
             "top": 102.491,
-            "bottom": 102.47761,
-            "poi": 102.4843,
-            "idx": 280,
+            "bottom": 102.4787,
+            "poi": 102.48485,
+            "idx": 212,
             "type": "supply",
             "status": "intakt"
           }
         ],
         "demand_zones": [
           {
-            "top": 101.59539,
-            "bottom": 101.582,
-            "poi": 101.58869,
-            "idx": 82,
+            "top": 101.86129,
+            "bottom": 101.849,
+            "poi": 101.85515,
+            "idx": 54,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 102.14769,
+            "level": 102.14715,
             "type": "BOS_ned",
-            "idx": 326,
-            "zone_top": 102.15438,
+            "idx": 258,
+            "zone_top": 102.15329,
             "zone_bot": 102.141
           },
           {
-            "level": 102.28769,
+            "level": 102.28715,
             "type": "BOS_ned",
-            "idx": 316,
-            "zone_top": 102.29438,
+            "idx": 248,
+            "zone_top": 102.29329,
             "zone_bot": 102.281
           },
           {
-            "level": 102.32431,
+            "level": 102.32485,
             "type": "BOS_opp",
-            "idx": 242,
+            "idx": 174,
             "zone_top": 102.331,
-            "zone_bot": 102.31762
+            "zone_bot": 102.31871
           }
         ],
         "last_swing_high": {
-          "value": 102.444,
+          "value": 102.327,
           "label": "HH"
         },
         "last_swing_low": {
-          "value": 102.046,
-          "label": "LL"
+          "value": 102.14,
+          "label": "HL"
         }
       },
       "smc_1h": {
-        "structure": "BULLISH_SVAK",
+        "structure": "MIXED",
         "supply_zones": [
           {
             "top": 102.945,
-            "bottom": 102.927,
-            "poi": 102.936,
-            "idx": 935,
+            "bottom": 102.92459,
+            "poi": 102.9348,
+            "idx": 911,
             "type": "supply",
             "status": "intakt"
           }
         ],
-        "demand_zones": [],
+        "demand_zones": [
+          {
+            "top": 101.4664,
+            "bottom": 101.446,
+            "poi": 101.4562,
+            "idx": 1046,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
         "bos_levels": [
           {
-            "level": 102.047,
+            "level": 101.8268,
             "type": "BOS_opp",
-            "idx": 1134,
-            "zone_top": 102.056,
-            "zone_bot": 102.038
-          },
-          {
-            "level": 101.828,
-            "type": "BOS_opp",
-            "idx": 1076,
+            "idx": 1052,
             "zone_top": 101.837,
-            "zone_bot": 101.819
+            "zone_bot": 101.81659
           },
           {
-            "level": 101.515,
+            "level": 101.6782,
             "type": "BOS_ned",
-            "idx": 1068,
-            "zone_top": 101.524,
-            "zone_bot": 101.506
+            "idx": 954,
+            "zone_top": 101.6884,
+            "zone_bot": 101.668
+          },
+          {
+            "level": 101.9302,
+            "type": "BOS_ned",
+            "idx": 922,
+            "zone_top": 101.9404,
+            "zone_bot": 101.92
+          }
+        ],
+        "last_swing_high": {
+          "value": 102.444,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 102.046,
+          "label": "HL"
+        }
+      },
+      "smc_4h": {
+        "structure": "BULLISH_SVAK",
+        "supply_zones": [
+          {
+            "top": 102.945,
+            "bottom": 102.90292,
+            "poi": 102.92396,
+            "idx": 227,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 100.91408,
+            "bottom": 100.872,
+            "poi": 100.89304,
+            "idx": 151,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 100.20708,
+            "bottom": 100.165,
+            "poi": 100.18604,
+            "idx": 122,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 101.68904,
+            "type": "BOS_ned",
+            "idx": 260,
+            "zone_top": 101.71008,
+            "zone_bot": 101.668
+          },
+          {
+            "level": 102.58596,
+            "type": "BOS_opp",
+            "idx": 227,
+            "zone_top": 102.607,
+            "zone_bot": 102.56492
+          },
+          {
+            "level": 102.18596,
+            "type": "BOS_opp",
+            "idx": 182,
+            "zone_top": 102.207,
+            "zone_bot": 102.16492
           }
         ],
         "last_swing_high": {
           "value": 102.491,
           "label": "HH"
-        },
-        "last_swing_low": {
-          "value": 101.582,
-          "label": "LL"
-        }
-      },
-      "smc_4h": {
-        "structure": "BEARISH",
-        "supply_zones": [],
-        "demand_zones": [
-          {
-            "top": 100.91462,
-            "bottom": 100.872,
-            "poi": 100.89331,
-            "idx": 157,
-            "type": "demand",
-            "status": "intakt"
-          },
-          {
-            "top": 100.20762,
-            "bottom": 100.165,
-            "poi": 100.18631,
-            "idx": 128,
-            "type": "demand",
-            "status": "intakt"
-          }
-        ],
-        "bos_levels": [
-          {
-            "level": 101.68931,
-            "type": "BOS_ned",
-            "idx": 266,
-            "zone_top": 101.71062,
-            "zone_bot": 101.668
-          },
-          {
-            "level": 102.58569,
-            "type": "BOS_opp",
-            "idx": 233,
-            "zone_top": 102.607,
-            "zone_bot": 102.56438
-          },
-          {
-            "level": 102.18569,
-            "type": "BOS_opp",
-            "idx": 188,
-            "zone_top": 102.207,
-            "zone_bot": 102.16438
-          }
-        ],
-        "last_swing_high": {
-          "value": 101.883,
-          "label": "LH"
         },
         "last_swing_low": {
           "value": 101.446,
@@ -610,10 +683,10 @@
         "agrees": null
       },
       "combined_bias": "LONG",
-      "timeframe_bias": "SWING",
+      "timeframe_bias": "WATCHLIST",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -772,10 +845,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     },
     "EURUSD": {
       "name": "EUR/USD",
@@ -783,21 +854,21 @@
       "klasse": "A",
       "session": "London 08:00–12:00 CET",
       "class": "V",
-      "current": 1.11557,
-      "atr14": 0.00042,
-      "atr_15m": 0.00042,
-      "atr_daily": 0.00564,
-      "atr_4h": 0.00156,
-      "at_level_now": true,
-      "status": "aktiv",
-      "pdh": 1.11782,
-      "pdl": 1.11361,
-      "pdc": 1.11738,
+      "current": 1.11508,
+      "atr14": 0.00051,
+      "atr_15m": 0.00051,
+      "atr_daily": 0.00578,
+      "atr_4h": 0.00179,
+      "at_level_now": false,
+      "status": "watchlist",
+      "pdh": 1.11408,
+      "pdl": 1.11132,
+      "pdc": 1.11297,
       "pwh": 1.12591,
-      "pwl": 1.11361,
-      "ema9_d1": 1.12015,
-      "ema9_4h": 1.11484,
-      "ema9_15m": 1.11553,
+      "pwl": 1.11132,
+      "ema9_d1": 1.11872,
+      "ema9_4h": 1.11495,
+      "ema9_15m": 1.11479,
       "ema9_above": false,
       "d1_regime": "BEARISH",
       "m15_regime": "BULLISH",
@@ -807,10 +878,10 @@
         "label": "Off-session",
         "cet_hour": 12
       },
-      "sma200": 1.1569,
+      "sma200": 1.1566,
       "sma200_pos": "under",
-      "chg5d": -0.63,
-      "chg20d": -1.63,
+      "chg5d": -0.75,
+      "chg20d": -1.56,
       "dir_color": "bear",
       "grade": "B",
       "grade_color": "warn",
@@ -835,7 +906,7 @@
           "vekt": 1.0,
           "poeng": 1.0,
           "drivers": [
-            "COT bias align (+7.8%)",
+            "COT bias align (-7.8%)",
             "COT momentum +"
           ]
         },
@@ -846,7 +917,7 @@
           "vekt": 1.0,
           "poeng": 0.5,
           "drivers": [
-            "News risk_off (|s|=0.67) confirms"
+            "News risk_off (|s|=1.00) confirms"
           ]
         },
         {
@@ -860,10 +931,12 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -888,7 +961,7 @@
           "score": 1.0,
           "weight": 1.0,
           "drivers": [
-            "COT bias align (+7.8%)",
+            "COT bias align (-7.8%)",
             "COT momentum +"
           ]
         },
@@ -896,7 +969,7 @@
           "score": 0.5,
           "weight": 1.0,
           "drivers": [
-            "News risk_off (|s|=0.67) confirms"
+            "News risk_off (|s|=1.00) confirms"
           ]
         },
         "fundamental": {
@@ -905,9 +978,11 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
           "score": 0.7,
@@ -919,16 +994,17 @@
       },
       "active_driver_groups": 4,
       "group_drivers": [
-        "News risk_off (|s|=0.67) confirms",
-        "COT bias align (+7.8%)",
+        "News risk_off (|s|=1.00) confirms",
+        "COT bias align (-7.8%)",
         "COT momentum +",
         "Momentum 20d +",
-        "SMC-bekreftelse"
+        "SMC-bekreftelse",
+        "Geo aktiv"
       ],
       "horizon": "SWING",
       "adr_utilization": {
-        "pct": 72.7,
-        "ok_for_scalp": false,
+        "pct": 42.9,
+        "ok_for_scalp": true,
         "available": true
       },
       "correlation_group": "usd_pairs",
@@ -942,200 +1018,258 @@
       "resistances": [
         {
           "name": "15m",
+          "level": 1.11532,
+          "weight": 1,
+          "dist_atr": 0.5
+        },
+        {
+          "name": "15m",
           "level": 1.1157,
           "weight": 1,
-          "dist_atr": 0.3
+          "dist_atr": 1.2
         },
         {
           "name": "15m",
-          "level": 1.11632,
+          "level": 1.1162,
           "weight": 1,
-          "dist_atr": 1.8
+          "dist_atr": 2.2
         },
         {
-          "name": "15m",
-          "level": 1.11682,
-          "weight": 1,
-          "dist_atr": 3.0
-        },
-        {
-          "name": "PDC",
-          "level": 1.11738,
+          "name": "SMC1H",
+          "level": 1.11708,
           "weight": 3,
-          "dist_atr": 4.3
+          "dist_atr": 4.0
         },
         {
-          "name": "PDH",
-          "level": 1.11782,
-          "weight": 4,
-          "dist_atr": 5.4
+          "name": "4H",
+          "level": 1.12145,
+          "weight": 2,
+          "dist_atr": 12.6
         }
       ],
       "supports": [
         {
           "name": "15m",
-          "level": 1.11545,
+          "level": 1.11458,
           "weight": 1,
-          "dist_atr": 0.3
-        },
-        {
-          "name": "4H",
-          "level": 1.1152,
-          "weight": 2,
-          "dist_atr": 0.9
+          "dist_atr": 1.0
         },
         {
           "name": "15m",
-          "level": 1.11458,
+          "level": 1.11408,
           "weight": 1,
-          "dist_atr": 2.4
+          "dist_atr": 2.0
         },
         {
-          "name": "PWL",
-          "level": 1.11361,
-          "weight": 5,
-          "dist_atr": 4.7
+          "name": "15m",
+          "level": 1.11371,
+          "weight": 1,
+          "dist_atr": 2.7
+        },
+        {
+          "name": "PDC",
+          "level": 1.11297,
+          "weight": 3,
+          "dist_atr": 4.2
         },
         {
           "name": "SMC1H",
-          "level": 1.11183,
+          "level": 1.11185,
           "weight": 3,
-          "dist_atr": 9.0
+          "dist_atr": 6.4
         }
       ],
       "setup_long": {
-        "entry": 1.11361,
-        "entry_curr": 1.11557,
-        "sl": 1.11088,
-        "sl_type": "struktur",
-        "t1": 1.12145,
+        "entry": 1.11132,
+        "entry_curr": 1.11508,
+        "sl": 1.10959,
+        "sl_type": "struktur+floor",
+        "t1": 1.11708,
         "t2": 1.12145,
-        "rr_t1": 2.87,
-        "rr_t2": 2.87,
+        "rr_t1": 3.33,
+        "rr_t2": 5.85,
         "min_rr": 1.3,
-        "risk_atr_d": 0.48,
-        "entry_dist_atr": 0.35,
-        "entry_name": "Støtte 1.11361 [PWL]",
-        "entry_level": 1.11361,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.65,
+        "entry_name": "Støtte 1.11132 [PWL]",
+        "entry_level": 1.11132,
         "entry_weight": 5,
-        "t1_source": "4H",
-        "t1_weight": 2,
-        "t1_quality": "4h",
-        "status": "watchlist",
-        "note": "MAKRO LONG: E=1.1136 [PWL w5] SL=1.1109 (struktur) → T1=1.1215 [4H w2 4h] R:R=2.87 | Risk=0.0027 (0.48×ATRd)",
-        "timeframe": "D1/4H",
-        "session": "London 08:00–12:00 CET"
-      },
-      "setup_short": {
-        "entry": 1.11782,
-        "entry_curr": 1.11557,
-        "sl": 1.1223,
-        "sl_type": "struktur",
-        "t1": 1.11183,
-        "t2": 1.11141,
-        "rr_t1": 1.34,
-        "rr_t2": 1.43,
-        "min_rr": 1.3,
-        "risk_atr_d": 0.79,
-        "entry_dist_atr": 0.4,
-        "entry_name": "Motstand 1.11782 [PDH]",
-        "entry_level": 1.11782,
-        "entry_weight": 4,
         "t1_source": "SMC1H",
         "t1_weight": 3,
         "t1_quality": "htf",
         "status": "watchlist",
-        "note": "MAKRO SHORT: E=1.1178 [PDH w4] SL=1.1223 (struktur) → T1=1.1118 [SMC1H w3 htf] R:R=1.34 | Risk=0.0045 (0.79×ATRd)",
+        "note": "MAKRO LONG: E=1.1113 [PWL w5] SL=1.1096 (struktur+floor) → T1=1.1171 [SMC1H w3 htf] R:R=3.33 | Risk=0.0017 (0.3×ATRd)",
         "timeframe": "D1/4H",
         "session": "London 08:00–12:00 CET"
       },
-      "binary_risk": [],
+      "setup_short": {
+        "entry": 1.11708,
+        "entry_curr": 1.11508,
+        "sl": 1.11881,
+        "sl_type": "zone+floor",
+        "t1": 1.11132,
+        "t2": 1.11132,
+        "rr_t1": 3.33,
+        "rr_t2": 3.33,
+        "min_rr": 1.3,
+        "risk_atr_d": 0.3,
+        "entry_dist_atr": 0.35,
+        "entry_name": "Motstand 1.11708 [SMC1H]",
+        "entry_level": 1.11708,
+        "entry_weight": 3,
+        "t1_source": "PWL",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO SHORT: E=1.1171 [SMC1H w3] SL=1.1188 (zone+floor) → T1=1.1113 [PWL w5 htf] R:R=3.33 | Risk=0.0017 (0.3×ATRd)",
+        "timeframe": "D1/4H",
+        "session": "London 08:00–12:00 CET"
+      },
+      "binary_risk": [
+        {
+          "title": "Advance GDP q/q",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Core PCE Price Index m/m",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Main Refinancing Rate",
+          "cet": "Thu 29.10 14:15",
+          "country": "EUR",
+          "date": "2026-10-29T13:15:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Monetary Policy Statement",
+          "cet": "Thu 29.10 14:15",
+          "country": "EUR",
+          "date": "2026-10-29T13:15:00+00:00",
+          "is_speech": true,
+          "past": false
+        },
+        {
+          "title": "ECB Press Conference",
+          "cet": "Thu 29.10 14:45",
+          "country": "EUR",
+          "date": "2026-10-29T13:45:00+00:00",
+          "is_speech": true,
+          "past": false
+        }
+      ],
       "oil_supply_disruption": null,
       "oil_supply_reason": null,
       "dir_override_reason": null,
       "smc": {
-        "structure": "BULLISH",
-        "supply_zones": [],
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 1.11719,
+            "bottom": 1.11706,
+            "poi": 1.11713,
+            "idx": 357,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
         "demand_zones": [],
         "bos_levels": [
           {
-            "level": 1.11562,
+            "level": 1.11527,
+            "type": "BOS_ned",
+            "idx": 378,
+            "zone_top": 1.11533,
+            "zone_bot": 1.1152
+          },
+          {
+            "level": 1.11563,
             "type": "BOS_opp",
-            "idx": 452,
+            "idx": 356,
             "zone_top": 1.1157,
-            "zone_bot": 1.11555
+            "zone_bot": 1.11557
           },
           {
-            "level": 1.11413,
+            "level": 1.11414,
             "type": "BOS_opp",
-            "idx": 441,
+            "idx": 345,
             "zone_top": 1.11421,
-            "zone_bot": 1.11406
-          },
-          {
-            "level": 1.11252,
-            "type": "BOS_opp",
-            "idx": 410,
-            "zone_top": 1.11259,
-            "zone_bot": 1.11245
+            "zone_bot": 1.11407
           }
         ],
         "last_swing_high": {
-          "value": 1.11719,
-          "label": "HH"
+          "value": 1.11532,
+          "label": "LH"
         },
         "last_swing_low": {
-          "value": 1.11309,
-          "label": "HL"
+          "value": 1.11297,
+          "label": "LL"
         }
       },
       "smc_1h": {
         "structure": "BEARISH",
         "supply_zones": [
           {
-            "top": 1.12638,
-            "bottom": 1.12617,
-            "poi": 1.12628,
-            "idx": 1276,
+            "top": 1.11719,
+            "bottom": 1.11696,
+            "poi": 1.11708,
+            "idx": 1398,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 1.1288,
+            "bottom": 1.12856,
+            "poi": 1.12868,
+            "idx": 967,
             "type": "supply",
             "status": "intakt"
           }
         ],
         "demand_zones": [
           {
-            "top": 1.11194,
+            "top": 1.11196,
             "bottom": 1.11173,
-            "poi": 1.11183,
-            "idx": 1180,
+            "poi": 1.11185,
+            "idx": 1156,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 1.1245,
+            "level": 1.12449,
             "type": "BOS_opp",
-            "idx": 1223,
+            "idx": 1199,
             "zone_top": 1.12461,
-            "zone_bot": 1.1244
+            "zone_bot": 1.12437
           },
           {
-            "level": 1.11667,
+            "level": 1.11669,
             "type": "BOS_ned",
-            "idx": 1134,
-            "zone_top": 1.11678,
+            "idx": 1110,
+            "zone_top": 1.11681,
             "zone_bot": 1.11657
           },
           {
-            "level": 1.1193,
+            "level": 1.11931,
             "type": "BOS_ned",
-            "idx": 1128,
-            "zone_top": 1.1194,
+            "idx": 1104,
+            "zone_top": 1.11943,
             "zone_bot": 1.11919
           }
         ],
         "last_swing_high": {
-          "value": 1.12296,
+          "value": 1.11719,
           "label": "LH"
         },
         "last_swing_low": {
@@ -1148,27 +1282,27 @@
         "supply_zones": [
           {
             "top": 1.1288,
-            "bottom": 1.1283,
+            "bottom": 1.12831,
             "poi": 1.12855,
-            "idx": 247,
+            "idx": 241,
             "type": "supply",
             "status": "intakt"
           },
           {
             "top": 1.14129,
-            "bottom": 1.14079,
-            "poi": 1.14104,
-            "idx": 218,
+            "bottom": 1.14081,
+            "poi": 1.14105,
+            "idx": 212,
             "type": "supply",
             "status": "intakt"
           }
         ],
         "demand_zones": [
           {
-            "top": 1.11223,
+            "top": 1.11221,
             "bottom": 1.11173,
-            "poi": 1.11198,
-            "idx": 295,
+            "poi": 1.11197,
+            "idx": 289,
             "type": "demand",
             "status": "intakt"
           }
@@ -1177,22 +1311,22 @@
           {
             "level": 1.12436,
             "type": "BOS_opp",
-            "idx": 305,
+            "idx": 299,
             "zone_top": 1.12461,
-            "zone_bot": 1.12411
+            "zone_bot": 1.12412
           },
           {
-            "level": 1.11682,
+            "level": 1.11681,
             "type": "BOS_ned",
-            "idx": 283,
-            "zone_top": 1.11707,
+            "idx": 277,
+            "zone_top": 1.11705,
             "zone_bot": 1.11657
           },
           {
-            "level": 1.12221,
+            "level": 1.1222,
             "type": "BOS_ned",
-            "idx": 250,
-            "zone_top": 1.12246,
+            "idx": 244,
+            "zone_top": 1.12244,
             "zone_bot": 1.12196
           }
         ],
@@ -1201,7 +1335,7 @@
           "label": "LH"
         },
         "last_swing_low": {
-          "value": 1.11894,
+          "value": 1.11173,
           "label": "LL"
         }
       },
@@ -1224,7 +1358,7 @@
       "timeframe_bias": "SWING",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -1383,10 +1517,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     },
     "USDJPY": {
       "name": "USD/JPY",
@@ -1394,40 +1526,40 @@
       "klasse": "A",
       "session": "London 08:00–12:00 CET",
       "class": "V",
-      "current": 157.75,
-      "atr14": 0.07928,
-      "atr_15m": 0.07928,
-      "atr_daily": null,
-      "atr_4h": 0.29771,
+      "current": 157.97,
+      "atr14": 0.06529,
+      "atr_15m": 0.06529,
+      "atr_daily": 0.90757,
+      "atr_4h": 0.314,
       "at_level_now": true,
       "status": "aktiv",
-      "pdh": 157.924,
-      "pdl": 157.924,
-      "pdc": 157.924,
-      "pwh": 157.924,
-      "pwl": 157.924,
-      "ema9_d1": 157.924,
-      "ema9_4h": 157.88071,
-      "ema9_15m": 157.79325,
-      "ema9_above": false,
-      "d1_regime": "BEARISH",
-      "m15_regime": "BEARISH",
-      "regime_align": "bear",
+      "pdh": 158.244,
+      "pdl": 157.657,
+      "pdc": 157.993,
+      "pwh": 158.592,
+      "pwl": 156.09599,
+      "ema9_d1": 157.73927,
+      "ema9_4h": 157.88513,
+      "ema9_15m": 157.96318,
+      "ema9_above": true,
+      "d1_regime": "BULLISH",
+      "m15_regime": "BULLISH",
+      "regime_align": "bull",
       "session_now": {
         "active": false,
         "label": "Off-session",
         "cet_hour": 12
       },
-      "sma200": 157.92,
+      "sma200": 158.54,
       "sma200_pos": "under",
-      "chg5d": -0.11,
-      "chg20d": -0.11,
+      "chg5d": -0.1,
+      "chg20d": 0.26,
       "dir_color": "bear",
       "grade": "C",
       "grade_color": "bear",
-      "score": 1.0,
+      "score": 1.78,
       "max_score": 4.2,
-      "score_pct": 24,
+      "score_pct": 42,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -1446,7 +1578,7 @@
           "vekt": 0.5,
           "poeng": 0.38,
           "drivers": [
-            "COT bias align (+6.0%)",
+            "COT bias align (-6.0%)",
             "MM percentile 94 + still net short (-6%) — covering shorts"
           ]
         },
@@ -1457,7 +1589,7 @@
           "vekt": 0.7,
           "poeng": 0.35,
           "drivers": [
-            "News risk_off (|s|=0.67) confirms"
+            "News risk_off (|s|=1.00) confirms"
           ]
         },
         {
@@ -1471,18 +1603,22 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 0.8,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.4,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.3,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.78,
+          "drivers": [
+            "HTF-nivå w3"
+          ]
         }
       ],
       "driver_groups": {
@@ -1497,7 +1633,7 @@
           "score": 0.75,
           "weight": 0.5,
           "drivers": [
-            "COT bias align (+6.0%)",
+            "COT bias align (-6.0%)",
             "MM percentile 94 + still net short (-6%) — covering shorts"
           ]
         },
@@ -1505,7 +1641,7 @@
           "score": 0.5,
           "weight": 0.7,
           "drivers": [
-            "News risk_off (|s|=0.67) confirms"
+            "News risk_off (|s|=1.00) confirms"
           ]
         },
         "fundamental": {
@@ -1514,32 +1650,38 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 0.8,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
-          "score": 0.0,
+          "score": 0.6,
           "weight": 1.3,
-          "drivers": []
+          "drivers": [
+            "HTF-nivå w3"
+          ]
         }
       },
-      "active_driver_groups": 3,
+      "active_driver_groups": 4,
       "group_drivers": [
-        "News risk_off (|s|=0.67) confirms",
-        "COT bias align (+6.0%)",
+        "News risk_off (|s|=1.00) confirms",
+        "COT bias align (-6.0%)",
         "MM percentile 94 + still net short (-6%) — covering shorts",
-        "D1+4H kongruent"
+        "D1+4H kongruent",
+        "HTF-nivå w3",
+        "Geo aktiv"
       ],
       "horizon": "WATCHLIST",
       "adr_utilization": {
-        "pct": null,
+        "pct": 31.8,
         "ok_for_scalp": true,
-        "available": false
+        "available": true
       },
       "correlation_group": "usd_pairs",
       "dxy_conflict": true,
-      "dxy_momentum_strength": 0.25,
+      "dxy_momentum_strength": 0.26,
       "stable_signal": true,
       "in_session": false,
       "news_headwind": false,
@@ -1547,239 +1689,232 @@
       "open_interest": 379141,
       "resistances": [
         {
-          "name": "15m",
-          "level": 157.77,
-          "weight": 1,
-          "dist_atr": 0.2
-        },
-        {
-          "name": "15m",
-          "level": 157.88,
-          "weight": 1,
-          "dist_atr": 1.6
-        },
-        {
-          "name": "PWH",
-          "level": 157.92,
-          "weight": 5,
-          "dist_atr": 2.2
+          "name": "PDC",
+          "level": 157.99,
+          "weight": 3,
+          "dist_atr": 0.3
         },
         {
           "name": "4H",
           "level": 158.05,
           "weight": 2,
-          "dist_atr": 3.8
+          "dist_atr": 1.3
+        },
+        {
+          "name": "PDH",
+          "level": 158.24,
+          "weight": 4,
+          "dist_atr": 4.2
         },
         {
           "name": "4H",
-          "level": 158.25,
+          "level": 158.3,
           "weight": 2,
-          "dist_atr": 6.3
+          "dist_atr": 5.0
+        },
+        {
+          "name": "PWH",
+          "level": 158.59,
+          "weight": 5,
+          "dist_atr": 9.5
         }
       ],
       "supports": [
         {
-          "name": "15m",
-          "level": 157.75,
-          "weight": 1,
-          "dist_atr": 0.1
+          "name": "D1",
+          "level": 157.89,
+          "weight": 3,
+          "dist_atr": 1.2
         },
         {
           "name": "4H",
-          "level": 157.69,
+          "level": 157.84,
           "weight": 2,
-          "dist_atr": 0.8
+          "dist_atr": 2.0
         },
         {
-          "name": "SMC15m",
-          "level": 157.56,
-          "weight": 1,
-          "dist_atr": 2.4
+          "name": "D1",
+          "level": 157.74,
+          "weight": 3,
+          "dist_atr": 3.6
         },
         {
-          "name": "SMC15m",
-          "level": 157.25,
-          "weight": 1,
-          "dist_atr": 6.3
+          "name": "PDL",
+          "level": 157.66,
+          "weight": 4,
+          "dist_atr": 4.8
         },
         {
-          "name": "SMC15m",
-          "level": 156.93,
-          "weight": 1,
-          "dist_atr": 10.3
+          "name": "D1",
+          "level": 157.61,
+          "weight": 3,
+          "dist_atr": 5.5
         }
       ],
       "setup_long": {
-        "entry": 157.745,
-        "entry_curr": 157.752,
-        "sl": 157.56807,
+        "entry": 157.89301,
+        "entry_curr": 157.972,
+        "sl": 157.70586,
         "sl_type": "struktur",
-        "t1": 158.248,
-        "t2": 158.298,
-        "rr_t1": 2.84,
-        "rr_t2": 3.13,
+        "t1": 158.592,
+        "t2": 158.942,
+        "rr_t1": 3.73,
+        "rr_t2": 5.61,
         "min_rr": 1.0,
-        "risk_atr_d": 0.22,
-        "entry_dist_atr": 0.01,
-        "entry_name": "Støtte 157.745 [15m]",
-        "entry_level": 157.745,
-        "entry_weight": 1,
-        "t1_source": "4H",
-        "t1_weight": 2,
-        "t1_quality": "4h",
-        "status": "aktiv",
-        "note": "MAKRO LONG: E=157.745 [15m w1] SL=157.5681 (struktur) → T1=158.248 [4H w2 4h] R:R=2.84 | Risk=0.1769 (0.22×ATRd)",
+        "risk_atr_d": 0.21,
+        "entry_dist_atr": 0.09,
+        "entry_name": "Støtte 157.89301 [D1]",
+        "entry_level": 157.89301,
+        "entry_weight": 3,
+        "t1_source": "PWH",
+        "t1_weight": 5,
+        "t1_quality": "htf",
+        "status": "watchlist",
+        "note": "MAKRO LONG: E=157.893 [D1 w3] SL=157.7059 (struktur) → T1=158.592 [PWH w5 htf] R:R=3.73 | Risk=0.1872 (0.21×ATRd)",
         "timeframe": "D1/4H",
         "session": "London 08:00–12:00 CET"
       },
       "setup_short": {
-        "entry": 157.767,
-        "entry_curr": 157.752,
-        "sl": 157.99494,
+        "entry": 157.993,
+        "entry_curr": 157.972,
+        "sl": 158.19014,
         "sl_type": "struktur",
-        "t1": 157.25158,
-        "t2": 156.93157,
-        "rr_t1": 2.26,
-        "rr_t2": 3.67,
+        "t1": 157.41616,
+        "t2": 157.41616,
+        "rr_t1": 2.93,
+        "rr_t2": 2.93,
         "min_rr": 1.0,
-        "risk_atr_d": 0.29,
+        "risk_atr_d": 0.22,
         "entry_dist_atr": 0.02,
-        "entry_name": "Motstand 157.767 [15m]",
-        "entry_level": 157.767,
-        "entry_weight": 1,
+        "entry_name": "Motstand 157.993 [PDC]",
+        "entry_level": 157.993,
+        "entry_weight": 3,
         "t1_source": "SMC15m",
         "t1_weight": 1,
         "t1_quality": "weak",
         "status": "aktiv",
-        "note": "MAKRO SHORT: E=157.767 [15m w1] SL=157.9949 (struktur) → T1=157.2516 [SMC15m w1 weak] R:R=2.26 | Risk=0.2279 (0.29×ATRd)",
+        "note": "MAKRO SHORT: E=157.993 [PDC w3] SL=158.1901 (struktur) → T1=157.4162 [SMC15m w1 weak] R:R=2.93 | Risk=0.1971 (0.22×ATRd)",
         "timeframe": "D1/4H",
         "session": "London 08:00–12:00 CET"
       },
-      "binary_risk": [],
+      "binary_risk": [
+        {
+          "title": "Advance GDP q/q",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Core PCE Price Index m/m",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        }
+      ],
       "oil_supply_disruption": null,
       "oil_supply_reason": null,
       "dir_override_reason": null,
       "smc": {
-        "structure": "BEARISH",
+        "structure": "MIXED",
         "supply_zones": [],
         "demand_zones": [
           {
-            "top": 157.57315,
-            "bottom": 157.55,
-            "poi": 157.56158,
-            "idx": 288,
-            "type": "demand",
-            "status": "intakt"
-          },
-          {
-            "top": 157.26316,
-            "bottom": 157.24001,
-            "poi": 157.25158,
-            "idx": 234,
-            "type": "demand",
-            "status": "intakt"
-          },
-          {
-            "top": 156.94315,
-            "bottom": 156.92,
-            "poi": 156.93157,
-            "idx": 212,
-            "type": "demand",
-            "status": "intakt"
-          },
-          {
-            "top": 156.66815,
-            "bottom": 156.645,
-            "poi": 156.65658,
-            "idx": 194,
+            "top": 157.42733,
+            "bottom": 157.405,
+            "poi": 157.41616,
+            "idx": 176,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 158.12858,
+            "level": 157.70317,
             "type": "BOS_ned",
-            "idx": 450,
-            "zone_top": 158.14015,
+            "idx": 384,
+            "zone_top": 157.71433,
+            "zone_bot": 157.692
+          },
+          {
+            "level": 158.12817,
+            "type": "BOS_ned",
+            "idx": 354,
+            "zone_top": 158.13933,
             "zone_bot": 158.117
           },
           {
-            "level": 158.24143,
+            "level": 158.24184,
             "type": "BOS_opp",
-            "idx": 448,
+            "idx": 352,
             "zone_top": 158.25301,
-            "zone_bot": 158.22986
-          },
-          {
-            "level": 157.84757,
-            "type": "BOS_ned",
-            "idx": 378,
-            "zone_top": 157.85915,
-            "zone_bot": 157.836
+            "zone_bot": 158.23068
           }
         ],
         "last_swing_high": {
-          "value": 157.89799,
+          "value": 157.909,
           "label": "LH"
         },
         "last_swing_low": {
-          "value": 157.72,
-          "label": "LL"
+          "value": 157.763,
+          "label": "HL"
         }
       },
       "smc_1h": {
-        "structure": "BULLISH",
+        "structure": "BULLISH_SVAK",
         "supply_zones": [
           {
             "top": 159.036,
-            "bottom": 158.99842,
-            "poi": 159.01721,
-            "idx": 845,
+            "bottom": 158.99814,
+            "poi": 159.01707,
+            "idx": 821,
             "type": "supply",
             "status": "intakt"
           }
         ],
         "demand_zones": [
           {
-            "top": 156.40757,
+            "top": 156.40785,
             "bottom": 156.37,
-            "poi": 156.38878,
-            "idx": 927,
+            "poi": 156.38893,
+            "idx": 903,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 157.14122,
+            "level": 157.14107,
             "type": "BOS_opp",
-            "idx": 1357,
+            "idx": 1333,
             "zone_top": 157.16,
-            "zone_bot": 157.12243
+            "zone_bot": 157.12214
           },
           {
-            "level": 158.08979,
+            "level": 156.69993,
             "type": "BOS_ned",
-            "idx": 1146,
-            "zone_top": 158.10857,
+            "idx": 1303,
+            "zone_top": 156.71886,
+            "zone_bot": 156.681
+          },
+          {
+            "level": 158.08993,
+            "type": "BOS_ned",
+            "idx": 1122,
+            "zone_top": 158.10886,
             "zone_bot": 158.071
-          },
-          {
-            "level": 157.78078,
-            "type": "BOS_ned",
-            "idx": 1085,
-            "zone_top": 157.79957,
-            "zone_bot": 157.76199
           }
         ],
         "last_swing_high": {
-          "value": 158.043,
+          "value": 158.347,
           "label": "HH"
         },
         "last_swing_low": {
-          "value": 157.649,
-          "label": "HL"
+          "value": 157.597,
+          "label": "LL"
         }
       },
       "smc_4h": {
@@ -1787,44 +1922,52 @@
         "supply_zones": [
           {
             "top": 160.394,
-            "bottom": 160.30221,
-            "poi": 160.3481,
-            "idx": 113,
+            "bottom": 160.30382,
+            "poi": 160.34891,
+            "idx": 107,
             "type": "supply",
             "status": "intakt"
           }
         ],
         "demand_zones": [
           {
-            "top": 152.97279,
+            "top": 156.16219,
+            "bottom": 156.07201,
+            "poi": 156.1171,
+            "idx": 326,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 152.97118,
             "bottom": 152.881,
-            "poi": 152.92689,
-            "idx": 136,
+            "poi": 152.92609,
+            "idx": 130,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 157.54989,
+            "level": 157.87009,
             "type": "BOS_ned",
-            "idx": 327,
-            "zone_top": 157.59579,
-            "zone_bot": 157.504
+            "idx": 290,
+            "zone_top": 157.91518,
+            "zone_bot": 157.825
           },
           {
-            "level": 158.00811,
+            "level": 156.86108,
+            "type": "BOS_ned",
+            "idx": 225,
+            "zone_top": 156.90617,
+            "zone_bot": 156.81599
+          },
+          {
+            "level": 158.00891,
             "type": "BOS_opp",
-            "idx": 204,
+            "idx": 198,
             "zone_top": 158.054,
-            "zone_bot": 157.96221
-          },
-          {
-            "level": 156.7061,
-            "type": "BOS_opp",
-            "idx": 184,
-            "zone_top": 156.752,
-            "zone_bot": 156.66021
+            "zone_bot": 157.96382
           }
         ],
         "last_swing_high": {
@@ -1855,7 +1998,7 @@
       "timeframe_bias": "WATCHLIST",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -2014,10 +2157,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     },
     "GBPUSD": {
       "name": "GBP/USD",
@@ -2025,34 +2166,34 @@
       "klasse": "A",
       "session": "London 08:00–12:00 CET",
       "class": "V",
-      "current": 1.33225,
-      "atr14": 0.00053,
-      "atr_15m": 0.00053,
-      "atr_daily": 0.00727,
-      "atr_4h": 0.00208,
-      "at_level_now": false,
-      "status": "watchlist",
-      "pdh": 1.33494,
-      "pdl": 1.33076,
-      "pdc": 1.33451,
+      "current": 1.33285,
+      "atr14": 0.00057,
+      "atr_15m": 0.00057,
+      "atr_daily": 0.00757,
+      "atr_4h": 0.00239,
+      "at_level_now": true,
+      "status": "aktiv",
+      "pdh": 1.33123,
+      "pdl": 1.32732,
+      "pdc": 1.33063,
       "pwh": 1.34174,
-      "pwl": 1.33048,
-      "ema9_d1": 1.33378,
-      "ema9_4h": 1.33115,
-      "ema9_15m": 1.3323,
+      "pwl": 1.32732,
+      "ema9_d1": 1.33334,
+      "ema9_4h": 1.33154,
+      "ema9_15m": 1.33225,
       "ema9_above": false,
       "d1_regime": "BEARISH",
-      "m15_regime": "BEARISH",
+      "m15_regime": "BULLISH",
       "regime_align": "mixed",
       "session_now": {
         "active": false,
         "label": "Off-session",
         "cet_hour": 12
       },
-      "sma200": 1.3432,
+      "sma200": 1.3431,
       "sma200_pos": "under",
-      "chg5d": -0.38,
-      "chg20d": 0.68,
+      "chg5d": -0.5,
+      "chg20d": 0.48,
       "dir_color": "bear",
       "grade": "C",
       "grade_color": "bear",
@@ -2083,7 +2224,7 @@
           "vekt": 1.0,
           "poeng": 0.5,
           "drivers": [
-            "News risk_off (|s|=0.67) confirms"
+            "News risk_off (|s|=1.00) confirms"
           ]
         },
         {
@@ -2097,10 +2238,12 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -2128,7 +2271,7 @@
           "score": 0.5,
           "weight": 1.0,
           "drivers": [
-            "News risk_off (|s|=0.67) confirms"
+            "News risk_off (|s|=1.00) confirms"
           ]
         },
         "fundamental": {
@@ -2137,9 +2280,11 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
           "score": 0.7,
@@ -2151,12 +2296,13 @@
       },
       "active_driver_groups": 2,
       "group_drivers": [
-        "News risk_off (|s|=0.67) confirms",
-        "SMC-bekreftelse"
+        "News risk_off (|s|=1.00) confirms",
+        "SMC-bekreftelse",
+        "Geo aktiv"
       ],
       "horizon": "WATCHLIST",
       "adr_utilization": {
-        "pct": 60.5,
+        "pct": 45.7,
         "ok_for_scalp": true,
         "available": true
       },
@@ -2171,218 +2317,234 @@
       "resistances": [
         {
           "name": "15m",
-          "level": 1.33319,
+          "level": 1.33298,
           "weight": 1,
-          "dist_atr": 1.8
+          "dist_atr": 0.2
         },
         {
           "name": "15m",
-          "level": 1.33353,
+          "level": 1.33339,
           "weight": 1,
-          "dist_atr": 2.4
+          "dist_atr": 0.9
+        },
+        {
+          "name": "4H",
+          "level": 1.33381,
+          "weight": 2,
+          "dist_atr": 1.7
         },
         {
           "name": "4H",
           "level": 1.33415,
           "weight": 2,
-          "dist_atr": 3.6
+          "dist_atr": 2.3
         },
         {
-          "name": "PDC",
-          "level": 1.33451,
-          "weight": 3,
-          "dist_atr": 4.2
-        },
-        {
-          "name": "PDH",
-          "level": 1.33494,
-          "weight": 4,
-          "dist_atr": 5.0
+          "name": "SMC15m",
+          "level": 1.33565,
+          "weight": 1,
+          "dist_atr": 4.9
         }
       ],
       "supports": [
         {
           "name": "15m",
+          "level": 1.33223,
+          "weight": 1,
+          "dist_atr": 1.1
+        },
+        {
+          "name": "15m",
           "level": 1.33191,
           "weight": 1,
-          "dist_atr": 0.6
+          "dist_atr": 1.6
         },
         {
-          "name": "PDL",
-          "level": 1.33076,
-          "weight": 4,
-          "dist_atr": 2.8
-        },
-        {
-          "name": "PWL",
-          "level": 1.33048,
-          "weight": 5,
-          "dist_atr": 3.3
+          "name": "D1",
+          "level": 1.33069,
+          "weight": 3,
+          "dist_atr": 3.8
         },
         {
           "name": "4H",
           "level": 1.32961,
           "weight": 2,
-          "dist_atr": 5.0
+          "dist_atr": 5.7
         },
         {
-          "name": "SMC1H",
-          "level": 1.32754,
-          "weight": 3,
-          "dist_atr": 8.8
+          "name": "SMC4H",
+          "level": 1.32769,
+          "weight": 2,
+          "dist_atr": 9.0
         }
       ],
       "setup_long": {
-        "entry": 1.33191,
-        "entry_curr": 1.33225,
-        "sl": 1.32967,
+        "entry": 1.33223,
+        "entry_curr": 1.33285,
+        "sl": 1.33078,
         "sl_type": "struktur",
-        "t1": 1.33563,
-        "t2": 1.33563,
-        "rr_t1": 1.66,
-        "rr_t2": 1.66,
+        "t1": 1.3371,
+        "t2": 1.3371,
+        "rr_t1": 3.36,
+        "rr_t2": 3.36,
         "min_rr": 1.0,
-        "risk_atr_d": 0.31,
-        "entry_dist_atr": 0.05,
-        "entry_name": "Støtte 1.33191 [15m]",
-        "entry_level": 1.33191,
+        "risk_atr_d": 0.19,
+        "entry_dist_atr": 0.08,
+        "entry_name": "Støtte 1.33223 [15m]",
+        "entry_level": 1.33223,
         "entry_weight": 1,
-        "t1_source": "SMC15m",
-        "t1_weight": 1,
-        "t1_quality": "weak",
+        "t1_source": "4H",
+        "t1_weight": 2,
+        "t1_quality": "4h",
         "status": "watchlist",
-        "note": "MAKRO LONG: E=1.3319 [15m w1] SL=1.3297 (struktur) → T1=1.3356 [SMC15m w1 weak] R:R=1.66 | Risk=0.0022 (0.31×ATRd)",
+        "note": "MAKRO LONG: E=1.3322 [15m w1] SL=1.3308 (struktur) → T1=1.3371 [4H w2 4h] R:R=3.36 | Risk=0.0014 (0.19×ATRd)",
         "timeframe": "D1/4H",
         "session": "London 08:00–12:00 CET"
       },
       "setup_short": {
-        "entry": 1.33319,
-        "entry_curr": 1.33225,
-        "sl": 1.33462,
+        "entry": 1.33298,
+        "entry_curr": 1.33285,
+        "sl": 1.33452,
         "sl_type": "struktur",
-        "t1": 1.32754,
-        "t2": 1.32244,
-        "rr_t1": 3.95,
-        "rr_t2": 7.52,
+        "t1": 1.32732,
+        "t2": 1.32732,
+        "rr_t1": 3.68,
+        "rr_t2": 3.68,
         "min_rr": 1.0,
         "risk_atr_d": 0.2,
-        "entry_dist_atr": 0.13,
-        "entry_name": "Motstand 1.33319 [15m]",
-        "entry_level": 1.33319,
+        "entry_dist_atr": 0.02,
+        "entry_name": "Motstand 1.33298 [15m]",
+        "entry_level": 1.33298,
         "entry_weight": 1,
-        "t1_source": "SMC1H",
-        "t1_weight": 3,
+        "t1_source": "PWL",
+        "t1_weight": 5,
         "t1_quality": "htf",
-        "status": "watchlist",
-        "note": "MAKRO SHORT: E=1.3332 [15m w1] SL=1.3346 (struktur) → T1=1.3275 [SMC1H w3 htf] R:R=3.95 | Risk=0.0014 (0.2×ATRd)",
+        "status": "aktiv",
+        "note": "MAKRO SHORT: E=1.333 [15m w1] SL=1.3345 (struktur) → T1=1.3273 [PWL w5 htf] R:R=3.68 | Risk=0.0015 (0.2×ATRd)",
         "timeframe": "D1/4H",
         "session": "London 08:00–12:00 CET"
       },
-      "binary_risk": [],
+      "binary_risk": [
+        {
+          "title": "Advance GDP q/q",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Core PCE Price Index m/m",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        }
+      ],
       "oil_supply_disruption": null,
       "oil_supply_reason": null,
       "dir_override_reason": null,
       "smc": {
-        "structure": "BULLISH",
+        "structure": "BEARISH",
         "supply_zones": [
           {
             "top": 1.33572,
-            "bottom": 1.33555,
-            "poi": 1.33563,
-            "idx": 237,
+            "bottom": 1.33557,
+            "poi": 1.33565,
+            "idx": 141,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 1.33878,
+            "bottom": 1.33863,
+            "poi": 1.3387,
+            "idx": 64,
             "type": "supply",
             "status": "intakt"
           }
         ],
         "demand_zones": [
           {
-            "top": 1.32758,
+            "top": 1.32755,
             "bottom": 1.3274,
-            "poi": 1.32749,
-            "idx": 407,
+            "poi": 1.32748,
+            "idx": 311,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 1.3333,
+            "level": 1.33331,
             "type": "BOS_opp",
-            "idx": 452,
+            "idx": 356,
             "zone_top": 1.33339,
-            "zone_bot": 1.33321
+            "zone_bot": 1.33324
           },
           {
-            "level": 1.33175,
+            "level": 1.33196,
             "type": "BOS_opp",
-            "idx": 452,
-            "zone_top": 1.33184,
-            "zone_bot": 1.33167
+            "idx": 356,
+            "zone_top": 1.33204,
+            "zone_bot": 1.33189
           },
           {
-            "level": 1.32956,
+            "level": 1.33062,
             "type": "BOS_opp",
-            "idx": 432,
-            "zone_top": 1.32965,
-            "zone_bot": 1.32947
+            "idx": 346,
+            "zone_top": 1.33069,
+            "zone_bot": 1.33054
           }
         ],
         "last_swing_high": {
-          "value": 1.33381,
-          "label": "HH"
+          "value": 1.33298,
+          "label": "LH"
         },
         "last_swing_low": {
-          "value": 1.33181,
-          "label": "HL"
+          "value": 1.3297,
+          "label": "LL"
         }
       },
       "smc_1h": {
         "structure": "BEARISH",
         "supply_zones": [
           {
-            "top": 1.3418,
-            "bottom": 1.34153,
-            "poi": 1.34166,
-            "idx": 1319,
+            "top": 1.34086,
+            "bottom": 1.34056,
+            "poi": 1.34071,
+            "idx": 1253,
             "type": "supply",
             "status": "intakt"
           }
         ],
-        "demand_zones": [
-          {
-            "top": 1.32767,
-            "bottom": 1.3274,
-            "poi": 1.32754,
-            "idx": 1412,
-            "type": "demand",
-            "status": "intakt"
-          }
-        ],
+        "demand_zones": [],
         "bos_levels": [
           {
-            "level": 1.32974,
+            "level": 1.32976,
             "type": "BOS_ned",
-            "idx": 1409,
-            "zone_top": 1.32988,
+            "idx": 1385,
+            "zone_top": 1.32991,
             "zone_bot": 1.32961
           },
           {
-            "level": 1.33671,
+            "level": 1.33673,
             "type": "BOS_ned",
-            "idx": 1325,
-            "zone_top": 1.33684,
+            "idx": 1301,
+            "zone_top": 1.33688,
             "zone_bot": 1.33658
           },
           {
-            "level": 1.33863,
+            "level": 1.33694,
             "type": "BOS_opp",
-            "idx": 1276,
-            "zone_top": 1.33876,
-            "zone_bot": 1.33849
+            "idx": 1252,
+            "zone_top": 1.3371,
+            "zone_bot": 1.33679
           }
         ],
         "last_swing_high": {
-          "value": 1.3388,
+          "value": 1.33381,
           "label": "LH"
         },
         "last_swing_low": {
@@ -2391,14 +2553,22 @@
         }
       },
       "smc_4h": {
-        "structure": "BULLISH",
+        "structure": "BULLISH_SVAK",
         "supply_zones": [],
         "demand_zones": [
           {
-            "top": 1.31447,
+            "top": 1.32798,
+            "bottom": 1.3274,
+            "poi": 1.32769,
+            "idx": 347,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 1.31446,
             "bottom": 1.31389,
             "poi": 1.31418,
-            "idx": 295,
+            "idx": 289,
             "type": "demand",
             "status": "intakt"
           }
@@ -2407,21 +2577,21 @@
           {
             "level": 1.33973,
             "type": "BOS_opp",
-            "idx": 323,
+            "idx": 317,
             "zone_top": 1.34002,
             "zone_bot": 1.33944
           },
           {
-            "level": 1.32088,
+            "level": 1.32087,
             "type": "BOS_ned",
-            "idx": 242,
-            "zone_top": 1.32117,
+            "idx": 236,
+            "zone_top": 1.32116,
             "zone_bot": 1.32059
           },
           {
             "level": 1.32773,
             "type": "BOS_opp",
-            "idx": 234,
+            "idx": 228,
             "zone_top": 1.32802,
             "zone_bot": 1.32744
           }
@@ -2431,8 +2601,8 @@
           "label": "HH"
         },
         "last_swing_low": {
-          "value": 1.33558,
-          "label": "HL"
+          "value": 1.3274,
+          "label": "LL"
         }
       },
       "dxy_conf": "motvind",
@@ -2454,7 +2624,7 @@
       "timeframe_bias": "WATCHLIST",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -2613,10 +2783,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     },
     "AUDUSD": {
       "name": "AUD/USD",
@@ -2624,50 +2792,48 @@
       "klasse": "A",
       "session": "London 08:00–12:00 CET",
       "class": "V",
-      "current": 0.70502,
-      "atr14": 0.00028,
-      "atr_15m": 0.00028,
+      "current": 0.70418,
+      "atr14": 0.00032,
+      "atr_15m": 0.00032,
       "atr_daily": 0.00475,
-      "atr_4h": 0.00144,
-      "at_level_now": false,
-      "status": "watchlist",
-      "pdh": 0.70402,
-      "pdl": 0.70125,
-      "pdc": 0.70194,
-      "pwh": 0.7041,
-      "pwl": 0.69625,
-      "ema9_d1": 0.7014,
-      "ema9_4h": 0.70414,
-      "ema9_15m": 0.70538,
+      "atr_4h": 0.0015,
+      "at_level_now": true,
+      "status": "aktiv",
+      "pdh": 0.70486,
+      "pdl": 0.70239,
+      "pdc": 0.70304,
+      "pwh": 0.70486,
+      "pwl": 0.69718,
+      "ema9_d1": 0.70164,
+      "ema9_4h": 0.70451,
+      "ema9_15m": 0.70396,
       "ema9_above": true,
       "d1_regime": "BULLISH",
-      "m15_regime": "BEARISH",
-      "regime_align": "bull",
+      "m15_regime": "BULLISH",
+      "regime_align": "mixed",
       "session_now": {
         "active": false,
         "label": "Off-session",
         "cet_hour": 12
       },
-      "sma200": 0.7054,
+      "sma200": 0.7056,
       "sma200_pos": "under",
-      "chg5d": 0.62,
-      "chg20d": 0.88,
-      "dir_color": "bear",
+      "chg5d": 0.18,
+      "chg20d": 1.38,
+      "dir_color": "bull",
       "grade": "C",
       "grade_color": "bear",
-      "score": 0.71,
+      "score": 0.57,
       "max_score": 5.0,
-      "score_pct": 14,
+      "score_pct": 11,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
-          "verdi": true,
+          "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.33,
-          "drivers": [
-            "D1+4H kongruent"
-          ]
+          "poeng": 0.0,
+          "drivers": []
         },
         {
           "kryss": "COT-posisjonering",
@@ -2680,12 +2846,10 @@
         {
           "kryss": "Makrobilde (DXY/VIX/renter)",
           "id": "group_macro",
-          "verdi": true,
+          "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.5,
-          "drivers": [
-            "News risk_off (|s|=0.67) confirms"
-          ]
+          "poeng": 0.0,
+          "drivers": []
         },
         {
           "kryss": "Fundamentalt (asset-spesifikt)",
@@ -2698,27 +2862,29 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.7,
+          "drivers": [
+            "SMC-bekreftelse"
+          ]
         }
       ],
       "driver_groups": {
         "trend": {
-          "score": 0.33,
+          "score": 0.0,
           "weight": 1.0,
-          "drivers": [
-            "D1+4H kongruent"
-          ]
+          "drivers": []
         },
         "positioning": {
           "score": 0.0,
@@ -2726,11 +2892,9 @@
           "drivers": []
         },
         "macro": {
-          "score": 0.5,
+          "score": 0.0,
           "weight": 1.0,
-          "drivers": [
-            "News risk_off (|s|=0.67) confirms"
-          ]
+          "drivers": []
         },
         "fundamental": {
           "score": 0.0,
@@ -2738,30 +2902,34 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
-          "score": 0.0,
+          "score": 0.7,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "SMC-bekreftelse"
+          ]
         }
       },
-      "active_driver_groups": 2,
+      "active_driver_groups": 1,
       "group_drivers": [
-        "News risk_off (|s|=0.67) confirms",
-        "D1+4H kongruent"
+        "SMC-bekreftelse",
+        "Geo aktiv"
       ],
       "horizon": "WATCHLIST",
       "adr_utilization": {
-        "pct": 59.6,
+        "pct": 52.3,
         "ok_for_scalp": true,
         "available": true
       },
       "correlation_group": "usd_pairs",
       "dxy_conflict": true,
-      "dxy_momentum_strength": 0.25,
+      "dxy_momentum_strength": 0.26,
       "stable_signal": true,
       "in_session": false,
       "news_headwind": true,
@@ -2769,172 +2937,198 @@
       "open_interest": 1,
       "resistances": [
         {
-          "name": "4H",
-          "level": 0.70542,
-          "weight": 2,
-          "dist_atr": 1.4
+          "name": "15m",
+          "level": 0.70423,
+          "weight": 1,
+          "dist_atr": 0.2
         },
         {
           "name": "15m",
-          "level": 0.70607,
+          "level": 0.70462,
           "weight": 1,
-          "dist_atr": 3.8
+          "dist_atr": 1.4
         },
         {
-          "name": "SMC15m",
-          "level": 0.70632,
-          "weight": 1,
-          "dist_atr": 4.7
+          "name": "PWH",
+          "level": 0.70486,
+          "weight": 5,
+          "dist_atr": 2.1
         },
         {
           "name": "4H",
-          "level": 0.70691,
+          "level": 0.70542,
           "weight": 2,
-          "dist_atr": 6.8
+          "dist_atr": 3.9
         },
         {
-          "name": "4H",
-          "level": 0.70716,
-          "weight": 2,
-          "dist_atr": 7.7
+          "name": "SMC1H",
+          "level": 0.70687,
+          "weight": 3,
+          "dist_atr": 8.4
         }
       ],
       "supports": [
         {
-          "name": "4H",
-          "level": 0.70472,
-          "weight": 2,
-          "dist_atr": 1.1
-        },
-        {
-          "name": "4H",
-          "level": 0.70442,
-          "weight": 2,
-          "dist_atr": 2.2
-        },
-        {
           "name": "15m",
           "level": 0.70363,
           "weight": 1,
-          "dist_atr": 5.0
+          "dist_atr": 1.7
         },
         {
           "name": "15m",
           "level": 0.70343,
           "weight": 1,
-          "dist_atr": 5.7
+          "dist_atr": 2.3
+        },
+        {
+          "name": "PDC",
+          "level": 0.70304,
+          "weight": 3,
+          "dist_atr": 3.5
         },
         {
           "name": "SMC1H",
           "level": 0.70273,
           "weight": 3,
-          "dist_atr": 8.3
+          "dist_atr": 4.5
+        },
+        {
+          "name": "PDL",
+          "level": 0.70239,
+          "weight": 4,
+          "dist_atr": 5.5
         }
       ],
       "setup_long": {
-        "entry": 0.70472,
-        "entry_curr": 0.70502,
-        "sl": 0.70371,
+        "entry": 0.70363,
+        "entry_curr": 0.70418,
+        "sl": 0.70272,
         "sl_type": "struktur",
-        "t1": 0.7089,
-        "t2": 0.7089,
-        "rr_t1": 4.14,
-        "rr_t2": 4.14,
+        "t1": 0.70687,
+        "t2": 0.70716,
+        "rr_t1": 3.56,
+        "rr_t2": 3.88,
         "min_rr": 1.0,
-        "risk_atr_d": 0.21,
-        "entry_dist_atr": 0.06,
-        "entry_name": "Støtte 0.70472 [4H]",
-        "entry_level": 0.70472,
-        "entry_weight": 2,
-        "t1_source": "D1",
+        "risk_atr_d": 0.19,
+        "entry_dist_atr": 0.11,
+        "entry_name": "Støtte 0.70363 [15m]",
+        "entry_level": 0.70363,
+        "entry_weight": 1,
+        "t1_source": "SMC1H",
         "t1_weight": 3,
         "t1_quality": "htf",
         "status": "watchlist",
-        "note": "MAKRO LONG: E=0.7047 [4H w2] SL=0.7037 (struktur) → T1=0.7089 [D1 w3 htf] R:R=4.14 | Risk=0.001 (0.21×ATRd)",
+        "note": "MAKRO LONG: E=0.7036 [15m w1] SL=0.7027 (struktur) → T1=0.7069 [SMC1H w3 htf] R:R=3.56 | Risk=0.0009 (0.19×ATRd)",
         "timeframe": "D1/4H",
         "session": "London 08:00–12:00 CET"
       },
       "setup_short": {
-        "entry": 0.70542,
-        "entry_curr": 0.70502,
-        "sl": 0.70678,
+        "entry": 0.70423,
+        "entry_curr": 0.70418,
+        "sl": 0.70533,
         "sl_type": "struktur",
-        "t1": 0.70254,
-        "t2": 0.70254,
-        "rr_t1": 2.12,
-        "rr_t2": 2.12,
+        "t1": 0.70167,
+        "t2": 0.70167,
+        "rr_t1": 2.33,
+        "rr_t2": 2.33,
         "min_rr": 1.0,
-        "risk_atr_d": 0.29,
-        "entry_dist_atr": 0.08,
-        "entry_name": "Motstand 0.70542 [4H]",
-        "entry_level": 0.70542,
-        "entry_weight": 2,
-        "t1_source": "4H",
-        "t1_weight": 2,
-        "t1_quality": "4h",
-        "status": "watchlist",
-        "note": "MAKRO SHORT: E=0.7054 [4H w2] SL=0.7068 (struktur) → T1=0.7025 [4H w2 4h] R:R=2.12 | Risk=0.0014 (0.29×ATRd)",
+        "risk_atr_d": 0.23,
+        "entry_dist_atr": 0.01,
+        "entry_name": "Motstand 0.70423 [15m]",
+        "entry_level": 0.70423,
+        "entry_weight": 1,
+        "t1_source": "D1",
+        "t1_weight": 3,
+        "t1_quality": "htf",
+        "status": "aktiv",
+        "note": "MAKRO SHORT: E=0.7042 [15m w1] SL=0.7053 (struktur) → T1=0.7017 [D1 w3 htf] R:R=2.33 | Risk=0.0011 (0.23×ATRd)",
         "timeframe": "D1/4H",
         "session": "London 08:00–12:00 CET"
       },
-      "binary_risk": [],
+      "binary_risk": [
+        {
+          "title": "Advance GDP q/q",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Core PCE Price Index m/m",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        }
+      ],
       "oil_supply_disruption": null,
       "oil_supply_reason": null,
       "dir_override_reason": null,
       "smc": {
-        "structure": "BULLISH",
-        "supply_zones": [
+        "structure": "MIXED",
+        "supply_zones": [],
+        "demand_zones": [
           {
-            "top": 0.70636,
-            "bottom": 0.70627,
-            "poi": 0.70632,
-            "idx": 458,
-            "type": "supply",
+            "top": 0.70135,
+            "bottom": 0.70126,
+            "poi": 0.70131,
+            "idx": 182,
+            "type": "demand",
             "status": "intakt"
           }
         ],
-        "demand_zones": [],
         "bos_levels": [
           {
-            "level": 0.70537,
-            "type": "BOS_opp",
-            "idx": 452,
-            "zone_top": 0.70542,
-            "zone_bot": 0.70532
+            "level": 0.70358,
+            "type": "BOS_ned",
+            "idx": 415,
+            "zone_top": 0.70362,
+            "zone_bot": 0.70353
           },
           {
-            "level": 0.70458,
-            "type": "BOS_opp",
-            "idx": 452,
-            "zone_top": 0.70462,
-            "zone_bot": 0.70453
+            "level": 0.70506,
+            "type": "BOS_ned",
+            "idx": 402,
+            "zone_top": 0.70511,
+            "zone_bot": 0.70502
           },
           {
-            "level": 0.70353,
+            "level": 0.70632,
             "type": "BOS_opp",
-            "idx": 325,
-            "zone_top": 0.70358,
-            "zone_bot": 0.70349
+            "idx": 383,
+            "zone_top": 0.70636,
+            "zone_bot": 0.70628
           }
         ],
         "last_swing_high": {
-          "value": 0.70636,
-          "label": "HH"
+          "value": 0.70487,
+          "label": "LH"
         },
         "last_swing_low": {
-          "value": 0.70353,
+          "value": 0.70333,
           "label": "HL"
         }
       },
       "smc_1h": {
         "structure": "BULLISH",
-        "supply_zones": [],
+        "supply_zones": [
+          {
+            "top": 0.70696,
+            "bottom": 0.70678,
+            "poi": 0.70687,
+            "idx": 1405,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
         "demand_zones": [
           {
-            "top": 0.70282,
+            "top": 0.70283,
             "bottom": 0.70264,
             "poi": 0.70273,
-            "idx": 1400,
+            "idx": 1376,
             "type": "demand",
             "status": "intakt"
           }
@@ -2943,27 +3137,27 @@
           {
             "level": 0.70533,
             "type": "BOS_opp",
-            "idx": 1423,
+            "idx": 1399,
             "zone_top": 0.70542,
-            "zone_bot": 0.70524
+            "zone_bot": 0.70523
           },
           {
             "level": 0.70369,
             "type": "BOS_opp",
-            "idx": 1353,
+            "idx": 1329,
             "zone_top": 0.70378,
-            "zone_bot": 0.7036
+            "zone_bot": 0.70359
           },
           {
             "level": 0.70142,
             "type": "BOS_opp",
-            "idx": 1287,
+            "idx": 1263,
             "zone_top": 0.70151,
-            "zone_bot": 0.70133
+            "zone_bot": 0.70132
           }
         ],
         "last_swing_high": {
-          "value": 0.70542,
+          "value": 0.70696,
           "label": "HH"
         },
         "last_swing_low": {
@@ -2976,10 +3170,10 @@
         "supply_zones": [],
         "demand_zones": [
           {
-            "top": 0.69106,
+            "top": 0.69105,
             "bottom": 0.6907,
             "poi": 0.69088,
-            "idx": 242,
+            "idx": 236,
             "type": "demand",
             "status": "intakt"
           }
@@ -2988,23 +3182,23 @@
           {
             "level": 0.70415,
             "type": "BOS_opp",
-            "idx": 355,
+            "idx": 349,
             "zone_top": 0.70432,
             "zone_bot": 0.70397
           },
           {
-            "level": 0.69376,
-            "type": "BOS_ned",
-            "idx": 299,
-            "zone_top": 0.69393,
-            "zone_bot": 0.69358
+            "level": 0.70133,
+            "type": "BOS_opp",
+            "idx": 315,
+            "zone_top": 0.70151,
+            "zone_bot": 0.70116
           },
           {
-            "level": 0.69741,
-            "type": "BOS_opp",
-            "idx": 257,
-            "zone_top": 0.69759,
-            "zone_bot": 0.69724
+            "level": 0.69375,
+            "type": "BOS_ned",
+            "idx": 293,
+            "zone_top": 0.69393,
+            "zone_bot": 0.69358
           }
         ],
         "last_swing_high": {
@@ -3035,7 +3229,7 @@
       "timeframe_bias": "WATCHLIST",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -3194,10 +3388,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     },
     "Gold": {
       "name": "Gull",
@@ -3205,49 +3397,50 @@
       "klasse": "B",
       "session": "London Fix 10:30 / NY Fix 15:00 CET",
       "class": "R",
-      "current": 4066.1,
-      "atr14": 12.45,
-      "atr_15m": 12.45,
-      "atr_daily": 66.00708,
-      "atr_4h": 30.21429,
-      "at_level_now": false,
-      "status": "watchlist",
-      "pdh": 4079.3999,
-      "pdl": 4001.6001,
-      "pdc": 4074.6001,
-      "pwh": 4211.2002,
+      "current": 4047.1,
+      "atr14": 7.21427,
+      "atr_15m": 7.21427,
+      "atr_daily": 67.42139,
+      "atr_4h": 27.97859,
+      "at_level_now": true,
+      "status": "aktiv",
+      "pdh": 4097.2002,
+      "pdl": 4036.8999,
+      "pdc": 4051.6001,
+      "pwh": 4174.8999,
       "pwl": 3989.1001,
-      "ema9_d1": 4089.27339,
-      "ema9_4h": 4053.05266,
-      "ema9_15m": 4069.94546,
+      "ema9_d1": 4078.51873,
+      "ema9_4h": 4051.89369,
+      "ema9_15m": 4043.84918,
       "ema9_above": false,
       "d1_regime": "BEARISH",
-      "m15_regime": "BEARISH",
-      "regime_align": "mixed",
+      "m15_regime": "BULLISH",
+      "regime_align": "bear",
       "session_now": {
         "active": false,
         "label": "Off-session",
         "cet_hour": 12
       },
-      "sma200": 4525.91,
+      "sma200": 4523.08,
       "sma200_pos": "under",
-      "chg5d": -2.02,
-      "chg20d": -2.88,
+      "chg5d": -0.33,
+      "chg20d": -3.69,
       "dir_color": "bear",
-      "grade": "B",
-      "grade_color": "warn",
-      "score": 2.7,
+      "grade": "A",
+      "grade_color": "bull",
+      "score": 2.84,
       "max_score": 5.0,
-      "score_pct": 54,
+      "score_pct": 57,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.33,
+          "poeng": 0.67,
           "drivers": [
-            "Momentum 20d +"
+            "Momentum 20d +",
+            "D1+4H kongruent"
           ]
         },
         {
@@ -3281,28 +3474,31 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.8,
+          "poeng": 0.6,
           "drivers": [
-            "HTF-nivå w4"
+            "HTF-nivå w3"
           ]
         }
       ],
       "driver_groups": {
         "trend": {
-          "score": 0.33,
+          "score": 0.67,
           "weight": 1.0,
           "drivers": [
-            "Momentum 20d +"
+            "Momentum 20d +",
+            "D1+4H kongruent"
           ]
         },
         "positioning": {
@@ -3325,15 +3521,17 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "structure": {
-          "score": 0.8,
+          "score": 0.5,
           "weight": 1.0,
           "drivers": [
-            "HTF-nivå w4"
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
+          "score": 0.6,
+          "weight": 1.0,
+          "drivers": [
+            "HTF-nivå w3"
           ]
         }
       },
@@ -3342,12 +3540,14 @@
         "Real yields høye (2.64%)",
         "COT momentum +",
         "Momentum 20d +",
-        "HTF-nivå w4"
+        "D1+4H kongruent",
+        "HTF-nivå w3",
+        "Geo aktiv"
       ],
       "horizon": "SWING",
       "adr_utilization": {
-        "pct": 91.4,
-        "ok_for_scalp": false,
+        "pct": 46.0,
+        "ok_for_scalp": true,
         "available": true
       },
       "correlation_group": "precious_metals",
@@ -3360,74 +3560,80 @@
       "open_interest": 402279,
       "resistances": [
         {
-          "name": "PDH",
-          "level": 4079.4,
-          "weight": 4,
-          "dist_atr": 1.1
+          "name": "PDC",
+          "level": 4051.6,
+          "weight": 3,
+          "dist_atr": 0.6
         },
         {
-          "name": "SMC15m",
-          "level": 4096.18,
+          "name": "15m",
+          "level": 4058.0,
           "weight": 1,
-          "dist_atr": 2.4
+          "dist_atr": 1.5
         },
         {
           "name": "4H",
-          "level": 4164.3,
+          "level": 4084.1,
           "weight": 2,
-          "dist_atr": 7.9
+          "dist_atr": 5.1
         },
         {
-          "name": "D1",
-          "level": 4171.4,
-          "weight": 3,
-          "dist_atr": 8.5
+          "name": "PDH",
+          "level": 4097.2,
+          "weight": 4,
+          "dist_atr": 6.9
         },
         {
           "name": "PWH",
-          "level": 4211.2,
+          "level": 4174.9,
           "weight": 5,
-          "dist_atr": 11.7
+          "dist_atr": 17.7
         }
       ],
       "supports": [
         {
-          "name": "15m",
-          "level": 4058.2,
-          "weight": 1,
-          "dist_atr": 0.6
-        },
-        {
           "name": "D1",
           "level": 4046.2,
           "weight": 3,
-          "dist_atr": 1.6
+          "dist_atr": 0.1
         },
         {
           "name": "PDL",
-          "level": 4001.6,
+          "level": 4036.9,
           "weight": 4,
-          "dist_atr": 5.2
+          "dist_atr": 1.4
+        },
+        {
+          "name": "4H",
+          "level": 4001.6,
+          "weight": 2,
+          "dist_atr": 6.3
+        },
+        {
+          "name": "D1",
+          "level": 3997.4,
+          "weight": 3,
+          "dist_atr": 6.9
         },
         {
           "name": "PWL",
           "level": 3989.1,
           "weight": 5,
-          "dist_atr": 6.2
+          "dist_atr": 8.0
         }
       ],
       "setup_long": {
         "entry": 3989.1001,
-        "entry_curr": 4066.1001,
-        "sl": 3956.09656,
+        "entry_curr": 4047.1001,
+        "sl": 3955.3894,
         "sl_type": "struktur",
-        "t1": 4211.2002,
-        "t2": 4242.2998,
-        "rr_t1": 6.73,
-        "rr_t2": 7.67,
+        "t1": 4174.8999,
+        "t2": 4215.5,
+        "rr_t1": 5.51,
+        "rr_t2": 6.72,
         "min_rr": 1.3,
         "risk_atr_d": 0.5,
-        "entry_dist_atr": 1.17,
+        "entry_dist_atr": 0.86,
         "entry_name": "Støtte 3989.1001 [PWL]",
         "entry_level": 3989.1001,
         "entry_weight": 5,
@@ -3435,34 +3641,51 @@
         "t1_weight": 5,
         "t1_quality": "htf",
         "status": "watchlist",
-        "note": "MAKRO LONG: E=3989.1001 [PWL w5] SL=3956.0966 (struktur) → T1=4211.2002 [PWH w5 htf] R:R=6.73 | Risk=33.0035 (0.5×ATRd)",
+        "note": "MAKRO LONG: E=3989.1001 [PWL w5] SL=3955.3894 (struktur) → T1=4174.8999 [PWH w5 htf] R:R=5.51 | Risk=33.7107 (0.5×ATRd)",
         "timeframe": "D1/4H",
         "session": "London Fix 10:30 / NY Fix 15:00 CET"
       },
       "setup_short": {
-        "entry": 4211.2002,
-        "entry_curr": 4066.1001,
-        "sl": 4258.80157,
+        "entry": 4174.8999,
+        "entry_curr": 4047.1001,
+        "sl": 4232.35535,
         "sl_type": "struktur",
         "t1": 3989.1001,
         "t2": 3989.1001,
-        "rr_t1": 4.67,
-        "rr_t2": 4.67,
+        "rr_t1": 3.23,
+        "rr_t2": 3.23,
         "min_rr": 1.3,
-        "risk_atr_d": 0.72,
-        "entry_dist_atr": 2.2,
-        "entry_name": "Motstand 4211.2002 [PWH]",
-        "entry_level": 4211.2002,
+        "risk_atr_d": 0.85,
+        "entry_dist_atr": 1.9,
+        "entry_name": "Motstand 4174.8999 [PWH]",
+        "entry_level": 4174.8999,
         "entry_weight": 5,
         "t1_source": "PWL",
         "t1_weight": 5,
         "t1_quality": "htf",
         "status": "watchlist",
-        "note": "MAKRO SHORT: E=4211.2002 [PWH w5] SL=4258.8016 (struktur) → T1=3989.1001 [PWL w5 htf] R:R=4.67 | Risk=47.6014 (0.72×ATRd)",
+        "note": "MAKRO SHORT: E=4174.8999 [PWH w5] SL=4232.3553 (struktur) → T1=3989.1001 [PWL w5 htf] R:R=3.23 | Risk=57.4554 (0.85×ATRd)",
         "timeframe": "D1/4H",
         "session": "London Fix 10:30 / NY Fix 15:00 CET"
       },
-      "binary_risk": [],
+      "binary_risk": [
+        {
+          "title": "Advance GDP q/q",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Core PCE Price Index m/m",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        }
+      ],
       "oil_supply_disruption": null,
       "oil_supply_reason": null,
       "dir_override_reason": null,
@@ -3471,52 +3694,52 @@
         "supply_zones": [
           {
             "top": 4097.2002,
-            "bottom": 4095.15719,
-            "poi": 4096.17869,
-            "idx": 340,
+            "bottom": 4095.2412,
+            "poi": 4096.2207,
+            "idx": 272,
             "type": "supply",
             "status": "intakt"
           }
         ],
         "demand_zones": [
           {
-            "top": 3991.1431,
-            "bottom": 3989.1001,
-            "poi": 3990.1216,
-            "idx": 42,
+            "top": 4004.25905,
+            "bottom": 4002.30005,
+            "poi": 4003.27955,
+            "idx": 63,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 4060.27855,
-            "type": "BOS_opp",
-            "idx": 334,
-            "zone_top": 4061.30005,
-            "zone_bot": 4059.25705
-          },
-          {
-            "level": 4068.72145,
+            "level": 4041.4795,
             "type": "BOS_ned",
-            "idx": 266,
-            "zone_top": 4069.74295,
-            "zone_bot": 4067.69995
+            "idx": 307,
+            "zone_top": 4042.459,
+            "zone_bot": 4040.5
           },
           {
-            "level": 4077.8784,
+            "level": 4060.32055,
             "type": "BOS_opp",
-            "idx": 260,
-            "zone_top": 4078.8999,
-            "zone_bot": 4076.8569
+            "idx": 266,
+            "zone_top": 4061.30005,
+            "zone_bot": 4059.34105
+          },
+          {
+            "level": 4068.67945,
+            "type": "BOS_ned",
+            "idx": 198,
+            "zone_top": 4069.65895,
+            "zone_bot": 4067.69995
           }
         ],
         "last_swing_high": {
-          "value": 4097.2002,
+          "value": 4049.5,
           "label": "HH"
         },
         "last_swing_low": {
-          "value": 4036.8999,
+          "value": 4027.0,
           "label": "LL"
         }
       },
@@ -3525,48 +3748,39 @@
         "supply_zones": [
           {
             "top": 4251.1001,
-            "bottom": 4247.8596,
-            "poi": 4249.47985,
-            "idx": 671,
+            "bottom": 4247.5971,
+            "poi": 4249.3486,
+            "idx": 648,
             "type": "supply",
             "status": "intakt"
           }
         ],
-        "demand_zones": [
-          {
-            "top": 4043.7405,
-            "bottom": 4040.5,
-            "poi": 4042.12025,
-            "idx": 1128,
-            "type": "demand",
-            "status": "intakt"
-          }
-        ],
+        "demand_zones": [],
         "bos_levels": [
           {
-            "level": 4082.47985,
-            "type": "BOS_opp",
-            "idx": 1140,
-            "zone_top": 4084.1001,
-            "zone_bot": 4080.8596
-          },
-          {
-            "level": 4048.5797,
-            "type": "BOS_opp",
-            "idx": 1112,
-            "zone_top": 4050.19995,
-            "zone_bot": 4046.95945
-          },
-          {
-            "level": 4002.52015,
+            "level": 4042.2515,
             "type": "BOS_ned",
-            "idx": 1075,
-            "zone_top": 4004.1404,
-            "zone_bot": 4000.8999
+            "idx": 1126,
+            "zone_top": 4044.003,
+            "zone_bot": 4040.5
+          },
+          {
+            "level": 4082.3486,
+            "type": "BOS_opp",
+            "idx": 1117,
+            "zone_top": 4084.1001,
+            "zone_bot": 4080.5971
+          },
+          {
+            "level": 4048.44845,
+            "type": "BOS_opp",
+            "idx": 1089,
+            "zone_top": 4050.19995,
+            "zone_bot": 4046.69695
           }
         ],
         "last_swing_high": {
-          "value": 4084.1001,
+          "value": 4097.2002,
           "label": "HH"
         },
         "last_swing_low": {
@@ -3579,68 +3793,60 @@
         "supply_zones": [
           {
             "top": 4174.8999,
-            "bottom": 4167.83341,
-            "poi": 4171.36666,
-            "idx": 249,
+            "bottom": 4167.98641,
+            "poi": 4171.44315,
+            "idx": 243,
             "type": "supply",
             "status": "intakt"
           },
           {
             "top": 4251.1001,
-            "bottom": 4244.0336,
-            "poi": 4247.56685,
-            "idx": 167,
+            "bottom": 4244.1866,
+            "poi": 4247.64335,
+            "idx": 162,
             "type": "supply",
             "status": "intakt"
           },
           {
             "top": 4351.6001,
-            "bottom": 4344.5336,
-            "poi": 4348.06685,
-            "idx": 150,
-            "type": "supply",
-            "status": "intakt"
-          },
-          {
-            "top": 4414.1001,
-            "bottom": 4407.0336,
-            "poi": 4410.56685,
-            "idx": 130,
+            "bottom": 4344.6866,
+            "poi": 4348.14335,
+            "idx": 144,
             "type": "supply",
             "status": "intakt"
           }
         ],
         "demand_zones": [
           {
-            "top": 3996.16659,
+            "top": 3996.01359,
             "bottom": 3989.1001,
-            "poi": 3992.63334,
-            "idx": 266,
+            "poi": 3992.55685,
+            "idx": 260,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 4146.63334,
+            "level": 4146.55685,
             "type": "BOS_ned",
-            "idx": 196,
-            "zone_top": 4150.16659,
+            "idx": 191,
+            "zone_top": 4150.01359,
             "zone_bot": 4143.1001
           },
           {
-            "level": 4332.73344,
+            "level": 4276.75655,
             "type": "BOS_ned",
-            "idx": 97,
-            "zone_top": 4336.26669,
-            "zone_bot": 4329.2002
+            "idx": 147,
+            "zone_top": 4280.2133,
+            "zone_bot": 4273.2998
           },
           {
-            "level": 4449.13334,
+            "level": 4332.65694,
             "type": "BOS_ned",
-            "idx": 52,
-            "zone_top": 4452.66659,
-            "zone_bot": 4445.6001
+            "idx": 92,
+            "zone_top": 4336.11369,
+            "zone_bot": 4329.2002
           }
         ],
         "last_swing_high": {
@@ -3671,7 +3877,7 @@
       "timeframe_bias": "SWING",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -3830,10 +4036,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     },
     "Silver": {
       "name": "Sølv",
@@ -3841,47 +4045,47 @@
       "klasse": "B",
       "session": "London Fix 10:30 / NY Fix 15:00 CET",
       "class": "R",
-      "current": 53.89,
-      "atr14": 0.28893,
-      "atr_15m": 0.28893,
-      "atr_daily": 1.11514,
-      "atr_4h": 0.77107,
+      "current": 52.99,
+      "atr14": 0.18607,
+      "atr_15m": 0.18607,
+      "atr_daily": 1.16079,
+      "atr_4h": 0.845,
       "at_level_now": true,
       "status": "aktiv",
-      "pdh": 54.293,
-      "pdl": 53.655,
-      "pdc": 54.293,
+      "pdh": 53.925,
+      "pdl": 53.405,
+      "pdc": 53.457,
       "pwh": 57.706,
-      "pwl": 53.655,
-      "ema9_d1": 55.37023,
-      "ema9_4h": 54.04058,
-      "ema9_15m": 53.93571,
+      "pwl": 53.405,
+      "ema9_d1": 54.8249,
+      "ema9_4h": 53.44292,
+      "ema9_15m": 52.91585,
       "ema9_above": false,
       "d1_regime": "BEARISH",
-      "m15_regime": "BEARISH",
+      "m15_regime": "BULLISH",
       "regime_align": "bear",
       "session_now": {
         "active": false,
         "label": "Off-session",
         "cet_hour": 12
       },
-      "sma200": 71.2613,
+      "sma200": 71.0947,
       "sma200_pos": "under",
-      "chg5d": -6.15,
-      "chg20d": -10.33,
+      "chg5d": -3.24,
+      "chg20d": -12.74,
       "dir_color": "bear",
-      "grade": "B",
-      "grade_color": "warn",
-      "score": 2.59,
-      "max_score": 5.0,
-      "score_pct": 52,
+      "grade": "C",
+      "grade_color": "bear",
+      "score": 2.15,
+      "max_score": 4.2,
+      "score_pct": 51,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.67,
+          "vekt": 1.2,
+          "poeng": 0.8,
           "drivers": [
             "Momentum 20d +",
             "D1+4H kongruent"
@@ -3891,8 +4095,8 @@
           "kryss": "COT-posisjonering",
           "id": "group_positioning",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.35,
+          "vekt": 0.5,
+          "poeng": 0.17,
           "drivers": [
             "COT momentum +",
             "OI stigende mot retning (advarsel)"
@@ -3902,8 +4106,8 @@
           "kryss": "Makrobilde (DXY/VIX/renter)",
           "id": "group_macro",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 0.57,
+          "vekt": 0.7,
+          "poeng": 0.4,
           "drivers": [
             "Real yields høye (2.64%)"
           ]
@@ -3912,33 +4116,35 @@
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
           "verdi": false,
-          "vekt": 1.0,
+          "vekt": 0.5,
           "poeng": 0.0,
           "drivers": []
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
-          "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "verdi": true,
+          "vekt": 0.8,
+          "poeng": 0.4,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
           "verdi": true,
-          "vekt": 1.0,
-          "poeng": 1.0,
+          "vekt": 1.3,
+          "poeng": 0.78,
           "drivers": [
-            "HTF-nivå w5"
+            "HTF-nivå w3"
           ]
         }
       ],
       "driver_groups": {
         "trend": {
           "score": 0.67,
-          "weight": 1.0,
+          "weight": 1.2,
           "drivers": [
             "Momentum 20d +",
             "D1+4H kongruent"
@@ -3946,7 +4152,7 @@
         },
         "positioning": {
           "score": 0.35,
-          "weight": 1.0,
+          "weight": 0.5,
           "drivers": [
             "COT momentum +",
             "OI stigende mot retning (advarsel)"
@@ -3954,26 +4160,28 @@
         },
         "macro": {
           "score": 0.57,
-          "weight": 1.0,
+          "weight": 0.7,
           "drivers": [
             "Real yields høye (2.64%)"
           ]
         },
         "fundamental": {
           "score": 0.0,
-          "weight": 1.0,
+          "weight": 0.5,
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
+          "score": 0.5,
+          "weight": 0.8,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
-          "score": 1.0,
-          "weight": 1.0,
+          "score": 0.6,
+          "weight": 1.3,
           "drivers": [
-            "HTF-nivå w5"
+            "HTF-nivå w3"
           ]
         }
       },
@@ -3984,11 +4192,12 @@
         "OI stigende mot retning (advarsel)",
         "Momentum 20d +",
         "D1+4H kongruent",
-        "HTF-nivå w5"
+        "HTF-nivå w3",
+        "Geo aktiv"
       ],
-      "horizon": "SWING",
+      "horizon": "WATCHLIST",
       "adr_utilization": {
-        "pct": 122.0,
+        "pct": 88.3,
         "ok_for_scalp": false,
         "available": true
       },
@@ -4003,150 +4212,131 @@
       "resistances": [
         {
           "name": "15m",
-          "level": 53.96,
+          "level": 53.035,
           "weight": 1,
           "dist_atr": 0.2
         },
         {
+          "name": "PDC",
+          "level": 53.457,
+          "weight": 3,
+          "dist_atr": 2.5
+        },
+        {
+          "name": "15m",
+          "level": 53.56,
+          "weight": 1,
+          "dist_atr": 3.1
+        },
+        {
           "name": "PDH",
-          "level": 54.293,
+          "level": 53.925,
           "weight": 4,
-          "dist_atr": 1.4
+          "dist_atr": 5.0
         },
         {
-          "name": "4H",
-          "level": 54.475,
-          "weight": 2,
-          "dist_atr": 2.0
-        },
-        {
-          "name": "4H",
-          "level": 54.64,
-          "weight": 2,
-          "dist_atr": 2.6
-        },
-        {
-          "name": "PWH",
-          "level": 57.706,
-          "weight": 5,
-          "dist_atr": 13.2
+          "name": "D1",
+          "level": 54.2,
+          "weight": 3,
+          "dist_atr": 6.5
         }
       ],
       "supports": [
         {
-          "name": "15m",
-          "level": 53.855,
-          "weight": 1,
-          "dist_atr": 0.1
-        },
-        {
-          "name": "PWL",
-          "level": 53.655,
-          "weight": 5,
-          "dist_atr": 0.8
-        },
-        {
-          "name": "4H",
-          "level": 53.075,
-          "weight": 2,
-          "dist_atr": 2.8
-        },
-        {
           "name": "SMC1H",
-          "level": 52.75269,
+          "level": 52.75796,
           "weight": 3,
-          "dist_atr": 3.9
+          "dist_atr": 1.2
+        },
+        {
+          "name": "15m",
+          "level": 52.655,
+          "weight": 1,
+          "dist_atr": 1.8
+        },
+        {
+          "name": "15m",
+          "level": 52.555,
+          "weight": 1,
+          "dist_atr": 2.3
         },
         {
           "name": "D1",
           "level": 48.125,
           "weight": 3,
-          "dist_atr": 20.0
+          "dist_atr": 26.1
         }
       ],
       "setup_long": {
-        "entry": 53.855,
-        "entry_curr": 53.89,
-        "sl": 53.37621,
-        "sl_type": "struktur",
-        "t1": 54.64,
-        "t2": 54.64,
-        "rr_t1": 1.64,
-        "rr_t2": 1.64,
+        "entry": 52.75796,
+        "entry_curr": 52.99,
+        "sl": 52.4198,
+        "sl_type": "zone",
+        "t1": 53.925,
+        "t2": 54.2,
+        "rr_t1": 3.45,
+        "rr_t2": 4.26,
         "min_rr": 1.0,
-        "risk_atr_d": 0.43,
-        "entry_dist_atr": 0.03,
-        "entry_name": "Støtte 53.855 [15m]",
-        "entry_level": 53.855,
-        "entry_weight": 1,
-        "t1_source": "4H",
-        "t1_weight": 2,
-        "t1_quality": "4h",
-        "status": "aktiv",
-        "note": "MAKRO LONG: E=53.855 [15m w1] SL=53.3762 (struktur) → T1=54.64 [4H w2 4h] R:R=1.64 | Risk=0.4788 (0.43×ATRd)",
-        "timeframe": "D1/4H",
-        "session": "London Fix 10:30 / NY Fix 15:00 CET"
-      },
-      "setup_short": {
-        "entry": 53.96,
-        "entry_curr": 53.89,
-        "sl": 54.57179,
-        "sl_type": "struktur",
-        "t1": 52.75269,
-        "t2": 52.75269,
-        "rr_t1": 1.97,
-        "rr_t2": 1.97,
-        "min_rr": 1.0,
-        "risk_atr_d": 0.55,
-        "entry_dist_atr": 0.06,
-        "entry_name": "Motstand 53.96 [15m]",
-        "entry_level": 53.96,
-        "entry_weight": 1,
-        "t1_source": "SMC1H",
-        "t1_weight": 3,
+        "risk_atr_d": 0.29,
+        "entry_dist_atr": 0.2,
+        "entry_name": "Støtte 52.75796 [SMC1H]",
+        "entry_level": 52.75796,
+        "entry_weight": 3,
+        "t1_source": "PDH",
+        "t1_weight": 4,
         "t1_quality": "htf",
-        "status": "aktiv",
-        "note": "MAKRO SHORT: E=53.96 [15m w1] SL=54.5718 (struktur) → T1=52.7527 [SMC1H w3 htf] R:R=1.97 | Risk=0.6118 (0.55×ATRd)",
+        "status": "watchlist",
+        "note": "MAKRO LONG: E=52.758 [SMC1H w3] SL=52.4198 (zone) → T1=53.925 [PDH w4 htf] R:R=3.45 | Risk=0.3382 (0.29×ATRd)",
         "timeframe": "D1/4H",
         "session": "London Fix 10:30 / NY Fix 15:00 CET"
       },
+      "setup_short": null,
       "binary_risk": [],
       "oil_supply_disruption": null,
       "oil_supply_reason": null,
       "dir_override_reason": null,
       "smc": {
-        "structure": "BULLISH_SVAK",
-        "supply_zones": [],
+        "structure": "BEARISH",
+        "supply_zones": [
+          {
+            "top": 53.085,
+            "bottom": 53.02755,
+            "poi": 53.05627,
+            "idx": 316,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
         "demand_zones": [],
         "bos_levels": [
           {
-            "level": 54.4418,
+            "level": 52.73872,
             "type": "BOS_ned",
-            "idx": 239,
-            "zone_top": 54.4686,
-            "zone_bot": 54.415
+            "idx": 321,
+            "zone_top": 52.76745,
+            "zone_bot": 52.71
           },
           {
-            "level": 53.6532,
+            "level": 53.65128,
             "type": "BOS_opp",
-            "idx": 219,
+            "idx": 151,
             "zone_top": 53.68,
-            "zone_bot": 53.6264
+            "zone_bot": 53.62255
           },
           {
-            "level": 53.0568,
+            "level": 53.57372,
             "type": "BOS_ned",
-            "idx": 193,
-            "zone_top": 53.0836,
-            "zone_bot": 53.03
+            "idx": 119,
+            "zone_top": 53.60245,
+            "zone_bot": 53.545
           }
         ],
         "last_swing_high": {
-          "value": 54.685,
-          "label": "HH"
+          "value": 53.085,
+          "label": "LH"
         },
         "last_swing_low": {
-          "value": 53.325,
+          "value": 52.535,
           "label": "LL"
         }
       },
@@ -4155,39 +4345,39 @@
         "supply_zones": [],
         "demand_zones": [
           {
-            "top": 52.79537,
+            "top": 52.80592,
             "bottom": 52.71,
-            "poi": 52.75269,
-            "idx": 1103,
+            "poi": 52.75796,
+            "idx": 1080,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 54.43231,
+            "level": 54.42704,
             "type": "BOS_opp",
-            "idx": 1111,
+            "idx": 1088,
             "zone_top": 54.475,
-            "zone_bot": 54.38962
+            "zone_bot": 54.37907
           },
           {
-            "level": 53.56269,
+            "level": 53.56796,
             "type": "BOS_ned",
-            "idx": 1087,
-            "zone_top": 53.60538,
+            "idx": 1064,
+            "zone_top": 53.61593,
             "zone_bot": 53.52
           },
           {
-            "level": 55.60269,
+            "level": 55.60796,
             "type": "BOS_ned",
-            "idx": 1041,
-            "zone_top": 55.64538,
+            "idx": 1018,
+            "zone_top": 55.65593,
             "zone_bot": 55.56
           }
         ],
         "last_swing_high": {
-          "value": 54.64,
+          "value": 54.685,
           "label": "HH"
         },
         "last_swing_low": {
@@ -4200,51 +4390,50 @@
         "supply_zones": [
           {
             "top": 54.64,
-            "bottom": 54.46315,
-            "poi": 54.55158,
-            "idx": 278,
+            "bottom": 54.4541,
+            "poi": 54.54705,
+            "idx": 272,
             "type": "supply",
             "status": "intakt"
           },
           {
             "top": 58.14,
-            "bottom": 57.96315,
-            "poi": 58.05158,
-            "idx": 236,
+            "bottom": 57.9541,
+            "poi": 58.04705,
+            "idx": 230,
+            "type": "supply",
+            "status": "intakt"
+          },
+          {
+            "top": 62.11,
+            "bottom": 61.9241,
+            "poi": 62.01705,
+            "idx": 158,
             "type": "supply",
             "status": "intakt"
           }
         ],
-        "demand_zones": [
-          {
-            "top": 52.88684,
-            "bottom": 52.71,
-            "poi": 52.79842,
-            "idx": 275,
-            "type": "demand",
-            "status": "intakt"
-          }
-        ],
+        "demand_zones": [],
         "bos_levels": [
           {
-            "level": 55.64842,
+            "level": 53.16795,
             "type": "BOS_ned",
-            "idx": 260,
-            "zone_top": 55.73685,
+            "idx": 281,
+            "zone_top": 53.2609,
+            "zone_bot": 53.075
+          },
+          {
+            "level": 55.65295,
+            "type": "BOS_ned",
+            "idx": 254,
+            "zone_top": 55.7459,
             "zone_bot": 55.56
           },
           {
-            "level": 57.12342,
+            "level": 58.82295,
             "type": "BOS_ned",
-            "idx": 257,
-            "zone_top": 57.21184,
-            "zone_bot": 57.035
-          },
-          {
-            "level": 58.81842,
-            "type": "BOS_ned",
-            "idx": 225,
-            "zone_top": 58.90684,
+            "idx": 219,
+            "zone_top": 58.9159,
             "zone_bot": 58.73
           }
         ],
@@ -4276,7 +4465,7 @@
       "timeframe_bias": "WATCHLIST",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -4435,10 +4624,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     },
     "Brent": {
       "name": "Brent",
@@ -4446,21 +4633,21 @@
       "klasse": "B",
       "session": "London Fix 10:30 / NY Fix 15:00 CET",
       "class": "R",
-      "current": 110.68,
-      "atr14": 0.4,
-      "atr_15m": 0.4,
-      "atr_daily": 3.81214,
-      "atr_4h": 1.49786,
+      "current": 110.11,
+      "atr14": 0.39071,
+      "atr_15m": 0.39071,
+      "atr_daily": 4.01071,
+      "atr_4h": 1.40571,
       "at_level_now": true,
       "status": "aktiv",
-      "pdh": 116.93,
-      "pdl": 113.36,
-      "pdc": 113.88,
+      "pdh": 116.5,
+      "pdl": 113.28,
+      "pdc": 115.32,
       "pwh": 117.42,
       "pwl": 105.95,
-      "ema9_d1": 111.57113,
-      "ema9_4h": 110.82713,
-      "ema9_15m": 110.68854,
+      "ema9_d1": 112.02131,
+      "ema9_4h": 110.66988,
+      "ema9_15m": 110.19518,
       "ema9_above": false,
       "d1_regime": "BEARISH",
       "m15_regime": "BEARISH",
@@ -4470,16 +4657,16 @@
         "label": "Off-session",
         "cet_hour": 12
       },
-      "sma200": 91.9297,
+      "sma200": 92.1761,
       "sma200_pos": "over",
-      "chg5d": 1.71,
-      "chg20d": 6.91,
+      "chg5d": -2.7,
+      "chg20d": 7.62,
       "dir_color": "bull",
-      "grade": "B",
-      "grade_color": "warn",
-      "score": 2.73,
+      "grade": "A",
+      "grade_color": "bull",
+      "score": 3.38,
       "max_score": 5.0,
-      "score_pct": 55,
+      "score_pct": 68,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -4500,7 +4687,6 @@
           "vekt": 1.0,
           "poeng": 1.0,
           "drivers": [
-            "COT bias align (+6.4%)",
             "COT momentum +"
           ]
         },
@@ -4521,24 +4707,29 @@
           "drivers": [
             "Supply disruption aktiv",
             "Shipping risiko HIGH",
-            "Oilgas: STERKT BULLISH"
+            "Oilgas: BULLISH"
           ]
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.65,
+          "drivers": [
+            "HTF-nivå w3",
+            "SMC-bekreftelse"
+          ]
         }
       ],
       "driver_groups": {
@@ -4555,7 +4746,6 @@
           "score": 1.0,
           "weight": 1.0,
           "drivers": [
-            "COT bias align (+6.4%)",
             "COT momentum +"
           ]
         },
@@ -4570,35 +4760,40 @@
           "drivers": [
             "Supply disruption aktiv",
             "Shipping risiko HIGH",
-            "Oilgas: STERKT BULLISH"
+            "Oilgas: BULLISH"
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
-          "score": 0.0,
+          "score": 0.65,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "HTF-nivå w3",
+            "SMC-bekreftelse"
+          ]
         }
       },
-      "active_driver_groups": 3,
+      "active_driver_groups": 4,
       "group_drivers": [
         "Supply disruption aktiv",
         "Shipping risiko HIGH",
-        "Oilgas: STERKT BULLISH",
-        "COT bias align (+6.4%)",
+        "Oilgas: BULLISH",
         "COT momentum +",
         "SMA200-align",
         "Momentum 20d +",
-        "D1+4H kongruent"
+        "D1+4H kongruent",
+        "HTF-nivå w3"
       ],
       "horizon": "SWING",
       "adr_utilization": {
-        "pct": 78.7,
-        "ok_for_scalp": false,
+        "pct": 35.2,
+        "ok_for_scalp": true,
         "available": true
       },
       "correlation_group": "energy",
@@ -4611,115 +4806,132 @@
       "open_interest": 3363524,
       "resistances": [
         {
+          "name": "D1",
+          "level": 110.19,
+          "weight": 3,
+          "dist_atr": 0.2
+        },
+        {
           "name": "15m",
           "level": 110.83,
           "weight": 1,
-          "dist_atr": 0.4
+          "dist_atr": 1.8
         },
         {
           "name": "4H",
           "level": 111.31,
           "weight": 2,
-          "dist_atr": 1.6
+          "dist_atr": 3.1
         },
         {
           "name": "4H",
           "level": 111.92,
           "weight": 2,
-          "dist_atr": 3.1
+          "dist_atr": 4.6
         },
         {
           "name": "D1",
           "level": 112.69,
           "weight": 3,
-          "dist_atr": 5.0
-        },
-        {
-          "name": "PDC",
-          "level": 113.88,
-          "weight": 3,
-          "dist_atr": 8.0
+          "dist_atr": 6.6
         }
       ],
       "supports": [
         {
           "name": "15m",
-          "level": 110.65,
+          "level": 109.85,
           "weight": 1,
-          "dist_atr": 0.1
+          "dist_atr": 0.7
         },
         {
           "name": "15m",
-          "level": 110.14,
+          "level": 109.63,
           "weight": 1,
-          "dist_atr": 1.3
+          "dist_atr": 1.2
         },
         {
           "name": "4H",
           "level": 109.25,
           "weight": 2,
-          "dist_atr": 3.6
+          "dist_atr": 2.2
         },
         {
           "name": "SMC1H",
           "level": 108.93,
           "weight": 3,
-          "dist_atr": 4.4
+          "dist_atr": 3.0
         },
         {
           "name": "PWL",
           "level": 105.95,
           "weight": 5,
-          "dist_atr": 11.8
+          "dist_atr": 10.6
         }
       ],
       "setup_long": {
         "entry": 105.95,
-        "entry_curr": 110.68,
-        "sl": 101.43696,
+        "entry_curr": 110.11,
+        "sl": 101.38732,
         "sl_type": "struktur",
-        "t1": 113.88,
-        "t2": 114.5849,
-        "rr_t1": 1.76,
-        "rr_t2": 1.91,
+        "t1": 114.58352,
+        "t2": 114.58352,
+        "rr_t1": 1.89,
+        "rr_t2": 1.89,
         "min_rr": 1.3,
-        "risk_atr_d": 1.18,
-        "entry_dist_atr": 1.24,
+        "risk_atr_d": 1.14,
+        "entry_dist_atr": 1.04,
         "entry_name": "Støtte 105.95 [PWL]",
         "entry_level": 105.95,
         "entry_weight": 5,
-        "t1_source": "PDC",
+        "t1_source": "SMC1H",
         "t1_weight": 3,
         "t1_quality": "htf",
         "status": "watchlist",
-        "note": "MAKRO LONG: E=105.95 [PWL w5] SL=101.437 (struktur) → T1=113.88 [PDC w3 htf] R:R=1.76 | Risk=4.513 (1.18×ATRd)",
+        "note": "MAKRO LONG: E=105.95 [PWL w5] SL=101.3873 (struktur) → T1=114.5835 [SMC1H w3 htf] R:R=1.89 | Risk=4.5627 (1.14×ATRd)",
         "timeframe": "D1/4H",
         "session": "London Fix 10:30 / NY Fix 15:00 CET"
       },
       "setup_short": {
-        "entry": 112.69,
-        "entry_curr": 110.68,
-        "sl": 114.83303,
+        "entry": 110.19,
+        "entry_curr": 110.11,
+        "sl": 111.83268,
         "sl_type": "struktur",
         "t1": 105.95,
-        "t2": 102.4751,
-        "rr_t1": 3.15,
-        "rr_t2": 4.77,
+        "t2": 102.47647,
+        "rr_t1": 2.58,
+        "rr_t2": 4.7,
         "min_rr": 1.3,
-        "risk_atr_d": 0.56,
-        "entry_dist_atr": 0.53,
-        "entry_name": "Motstand 112.69 [D1]",
-        "entry_level": 112.69,
+        "risk_atr_d": 0.41,
+        "entry_dist_atr": 0.02,
+        "entry_name": "Motstand 110.19 [D1]",
+        "entry_level": 110.19,
         "entry_weight": 3,
         "t1_source": "PWL",
         "t1_weight": 5,
         "t1_quality": "htf",
-        "status": "watchlist",
-        "note": "MAKRO SHORT: E=112.69 [D1 w3] SL=114.833 (struktur) → T1=105.95 [PWL w5 htf] R:R=3.15 | Risk=2.143 (0.56×ATRd)",
+        "status": "aktiv",
+        "note": "MAKRO SHORT: E=110.19 [D1 w3] SL=111.8327 (struktur) → T1=105.95 [PWL w5 htf] R:R=2.58 | Risk=1.6427 (0.41×ATRd)",
         "timeframe": "D1/4H",
         "session": "London Fix 10:30 / NY Fix 15:00 CET"
       },
-      "binary_risk": [],
+      "binary_risk": [
+        {
+          "title": "Advance GDP q/q",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Core PCE Price Index m/m",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        }
+      ],
       "oil_supply_disruption": true,
       "oil_supply_reason": [
         "Hormuz HIGH (score 22)",
@@ -4728,38 +4940,91 @@
       "dir_override_reason": null,
       "smc": {
         "structure": "BULLISH_SVAK",
+        "supply_zones": [],
+        "demand_zones": [],
+        "bos_levels": [
+          {
+            "level": 111.3661,
+            "type": "BOS_ned",
+            "idx": 266,
+            "zone_top": 111.4022,
+            "zone_bot": 111.33
+          },
+          {
+            "level": 112.1639,
+            "type": "BOS_opp",
+            "idx": 253,
+            "zone_top": 112.2,
+            "zone_bot": 112.1278
+          },
+          {
+            "level": 109.7939,
+            "type": "BOS_opp",
+            "idx": 178,
+            "zone_top": 109.83,
+            "zone_bot": 109.7578
+          }
+        ],
+        "last_swing_high": {
+          "value": 110.97,
+          "label": "HH"
+        },
+        "last_swing_low": {
+          "value": 109.56,
+          "label": "LL"
+        }
+      },
+      "smc_1h": {
+        "structure": "BULLISH",
         "supply_zones": [
           {
-            "top": 114.66,
-            "bottom": 114.5647,
-            "poi": 114.61235,
-            "idx": 10,
+            "top": 114.67,
+            "bottom": 114.49705,
+            "poi": 114.58352,
+            "idx": 1026,
             "type": "supply",
             "status": "intakt"
           }
         ],
-        "demand_zones": [],
+        "demand_zones": [
+          {
+            "top": 109.01295,
+            "bottom": 108.84,
+            "poi": 108.92647,
+            "idx": 1032,
+            "type": "demand",
+            "status": "intakt"
+          },
+          {
+            "top": 102.56295,
+            "bottom": 102.39,
+            "poi": 102.47647,
+            "idx": 802,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
         "bos_levels": [
           {
-            "level": 111.37765,
+            "level": 110.92647,
             "type": "BOS_ned",
-            "idx": 334,
-            "zone_top": 111.4253,
-            "zone_bot": 111.33
+            "idx": 1031,
+            "zone_top": 111.01295,
+            "zone_bot": 110.84
           },
           {
-            "level": 112.36235,
+            "level": 111.88353,
             "type": "BOS_opp",
-            "idx": 321,
-            "zone_top": 112.41,
-            "zone_bot": 112.3147
+            "idx": 1008,
+            "zone_top": 111.97,
+            "zone_bot": 111.79705
           },
           {
-            "level": 109.39765,
+            "level": 106.90647,
             "type": "BOS_ned",
-            "idx": 227,
-            "zone_top": 109.4453,
-            "zone_bot": 109.35
+            "idx": 969,
+            "zone_top": 106.99295,
+            "zone_bot": 106.82
           }
         ],
         "last_swing_high": {
@@ -4768,69 +5033,7 @@
         },
         "last_swing_low": {
           "value": 109.63,
-          "label": "LL"
-        }
-      },
-      "smc_1h": {
-        "structure": "BEARISH",
-        "supply_zones": [
-          {
-            "top": 114.67,
-            "bottom": 114.4998,
-            "poi": 114.5849,
-            "idx": 1049,
-            "type": "supply",
-            "status": "intakt"
-          }
-        ],
-        "demand_zones": [
-          {
-            "top": 109.0102,
-            "bottom": 108.84,
-            "poi": 108.9251,
-            "idx": 1055,
-            "type": "demand",
-            "status": "intakt"
-          },
-          {
-            "top": 102.5602,
-            "bottom": 102.39,
-            "poi": 102.4751,
-            "idx": 825,
-            "type": "demand",
-            "status": "intakt"
-          }
-        ],
-        "bos_levels": [
-          {
-            "level": 110.9251,
-            "type": "BOS_ned",
-            "idx": 1054,
-            "zone_top": 111.0102,
-            "zone_bot": 110.84
-          },
-          {
-            "level": 111.8849,
-            "type": "BOS_opp",
-            "idx": 1031,
-            "zone_top": 111.97,
-            "zone_bot": 111.7998
-          },
-          {
-            "level": 106.9051,
-            "type": "BOS_ned",
-            "idx": 992,
-            "zone_top": 106.9902,
-            "zone_bot": 106.82
-          }
-        ],
-        "last_swing_high": {
-          "value": 111.92,
-          "label": "LH"
-        },
-        "last_swing_low": {
-          "value": 109.0,
-          "label": "LL"
+          "label": "HL"
         }
       },
       "smc_4h": {
@@ -4838,60 +5041,52 @@
         "supply_zones": [
           {
             "top": 114.67,
-            "bottom": 114.219,
-            "poi": 114.4445,
-            "idx": 262,
+            "bottom": 114.26045,
+            "poi": 114.46522,
+            "idx": 256,
             "type": "supply",
             "status": "intakt"
           }
         ],
         "demand_zones": [
           {
-            "top": 109.291,
+            "top": 109.24955,
             "bottom": 108.84,
-            "poi": 109.0655,
-            "idx": 263,
+            "poi": 109.04477,
+            "idx": 258,
             "type": "demand",
             "status": "intakt"
           },
           {
-            "top": 93.621,
+            "top": 93.57955,
             "bottom": 93.17,
-            "poi": 93.3955,
-            "idx": 71,
-            "type": "demand",
-            "status": "intakt"
-          },
-          {
-            "top": 85.041,
-            "bottom": 84.59,
-            "poi": 84.8155,
-            "idx": 29,
+            "poi": 93.37477,
+            "idx": 65,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 109.9645,
+            "level": 109.98523,
             "type": "BOS_opp",
-            "idx": 245,
+            "idx": 240,
             "zone_top": 110.19,
-            "zone_bot": 109.739
+            "zone_bot": 109.78045
           },
           {
-            "level": 104.5855,
-            "type": "BOS_ned",
-            "idx": 227,
-            "zone_top": 104.811,
-            "zone_bot": 104.36
-          },
-          {
-            "level": 105.6845,
+            "level": 105.70523,
             "type": "BOS_opp",
-            "idx": 212,
+            "idx": 207,
             "zone_top": 105.91,
-            "zone_bot": 105.459
+            "zone_bot": 105.50045
+          },
+          {
+            "level": 98.63478,
+            "type": "BOS_ned",
+            "idx": 183,
+            "zone_top": 98.83955,
+            "zone_bot": 98.43
           }
         ],
         "last_swing_high": {
@@ -4922,7 +5117,7 @@
       "timeframe_bias": "SWING",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -5081,10 +5276,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     },
     "WTI": {
       "name": "WTI",
@@ -5092,59 +5285,58 @@
       "klasse": "B",
       "session": "London Fix 10:30 / NY Fix 15:00 CET",
       "class": "R",
-      "current": 102.06,
-      "atr14": 0.38786,
-      "atr_15m": 0.38786,
-      "atr_daily": 4.19786,
-      "atr_4h": 1.55072,
+      "current": 101.32,
+      "atr14": 0.41929,
+      "atr_15m": 0.41929,
+      "atr_daily": 4.31357,
+      "atr_4h": 1.40572,
       "at_level_now": true,
       "status": "aktiv",
-      "pdh": 102.82,
-      "pdl": 99.44,
-      "pdc": 99.9,
+      "pdh": 103.55,
+      "pdl": 99.75,
+      "pdc": 102.78,
       "pwh": 110.48,
       "pwl": 96.26,
-      "ema9_d1": 100.18862,
-      "ema9_4h": 101.63191,
-      "ema9_15m": 102.04932,
+      "ema9_d1": 100.5321,
+      "ema9_4h": 101.58981,
+      "ema9_15m": 101.3836,
       "ema9_above": true,
       "d1_regime": "BULLISH",
-      "m15_regime": "BULLISH",
-      "regime_align": "bull",
+      "m15_regime": "BEARISH",
+      "regime_align": "mixed",
       "session_now": {
         "active": false,
         "label": "Off-session",
         "cet_hour": 12
       },
-      "sma200": 85.9236,
+      "sma200": 86.1281,
       "sma200_pos": "over",
-      "chg5d": 5.05,
-      "chg20d": 12.87,
+      "chg5d": 1.86,
+      "chg20d": 9.1,
       "dir_color": "bull",
       "grade": "A",
       "grade_color": "bull",
-      "score": 3.44,
-      "max_score": 5.2,
-      "score_pct": 66,
+      "score": 3.09,
+      "max_score": 5.0,
+      "score_pct": 62,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
           "id": "group_trend",
           "verdi": true,
-          "vekt": 0.8,
-          "poeng": 0.8,
+          "vekt": 1.0,
+          "poeng": 0.67,
           "drivers": [
             "SMA200-align",
-            "Momentum 20d +",
-            "D1+4H kongruent"
+            "Momentum 20d +"
           ]
         },
         {
           "kryss": "COT-posisjonering",
           "id": "group_positioning",
           "verdi": true,
-          "vekt": 1.3,
-          "poeng": 1.3,
+          "vekt": 1.0,
+          "poeng": 1.0,
           "drivers": [
             "COT momentum +"
           ]
@@ -5153,7 +5345,7 @@
           "kryss": "Makrobilde (DXY/VIX/renter)",
           "id": "group_macro",
           "verdi": false,
-          "vekt": 1.3,
+          "vekt": 1.0,
           "poeng": 0.0,
           "drivers": []
         },
@@ -5161,74 +5353,77 @@
           "kryss": "Fundamentalt (asset-spesifikt)",
           "id": "group_fundamental",
           "verdi": true,
-          "vekt": 1.3,
-          "poeng": 0.94,
+          "vekt": 1.0,
+          "poeng": 0.72,
           "drivers": [
             "Supply disruption aktiv",
             "Shipping risiko HIGH",
-            "Oilgas: STERKT BULLISH"
+            "Oilgas: BULLISH"
           ]
         },
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
-          "vekt": 0.8,
-          "poeng": 0.0,
-          "drivers": []
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
           "verdi": true,
-          "vekt": 0.5,
-          "poeng": 0.4,
+          "vekt": 1.0,
+          "poeng": 0.7,
           "drivers": [
-            "HTF-nivå w4"
+            "SMC-bekreftelse"
           ]
         }
       ],
       "driver_groups": {
         "trend": {
-          "score": 1.0,
-          "weight": 0.8,
+          "score": 0.67,
+          "weight": 1.0,
           "drivers": [
             "SMA200-align",
-            "Momentum 20d +",
-            "D1+4H kongruent"
+            "Momentum 20d +"
           ]
         },
         "positioning": {
           "score": 1.0,
-          "weight": 1.3,
+          "weight": 1.0,
           "drivers": [
             "COT momentum +"
           ]
         },
         "macro": {
           "score": 0.0,
-          "weight": 1.3,
+          "weight": 1.0,
           "drivers": []
         },
         "fundamental": {
           "score": 0.72,
-          "weight": 1.3,
+          "weight": 1.0,
           "drivers": [
             "Supply disruption aktiv",
             "Shipping risiko HIGH",
-            "Oilgas: STERKT BULLISH"
+            "Oilgas: BULLISH"
           ]
         },
         "risk": {
-          "score": 0.0,
-          "weight": 0.8,
-          "drivers": []
+          "score": 0.5,
+          "weight": 1.0,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
-          "score": 0.8,
-          "weight": 0.5,
+          "score": 0.7,
+          "weight": 1.0,
           "drivers": [
-            "HTF-nivå w4"
+            "SMC-bekreftelse"
           ]
         }
       },
@@ -5236,16 +5431,16 @@
       "group_drivers": [
         "Supply disruption aktiv",
         "Shipping risiko HIGH",
-        "Oilgas: STERKT BULLISH",
+        "Oilgas: BULLISH",
         "COT momentum +",
         "SMA200-align",
         "Momentum 20d +",
-        "D1+4H kongruent",
-        "HTF-nivå w4"
+        "SMC-bekreftelse",
+        "Geo aktiv"
       ],
-      "horizon": "MAKRO",
+      "horizon": "SWING",
       "adr_utilization": {
-        "pct": 62.7,
+        "pct": 34.5,
         "ok_for_scalp": true,
         "available": true
       },
@@ -5260,114 +5455,131 @@
       "resistances": [
         {
           "name": "15m",
-          "level": 102.14,
+          "level": 101.43,
           "weight": 1,
-          "dist_atr": 0.2
+          "dist_atr": 0.3
         },
-        {
-          "name": "PDH",
-          "level": 102.82,
-          "weight": 4,
-          "dist_atr": 2.0
-        },
-        {
-          "name": "4H",
-          "level": 103.13,
-          "weight": 2,
-          "dist_atr": 2.8
-        },
-        {
-          "name": "SMC1H",
-          "level": 103.83,
-          "weight": 3,
-          "dist_atr": 4.6
-        },
-        {
-          "name": "4H",
-          "level": 104.46,
-          "weight": 2,
-          "dist_atr": 6.2
-        }
-      ],
-      "supports": [
         {
           "name": "15m",
-          "level": 101.5,
+          "level": 101.92,
           "weight": 1,
           "dist_atr": 1.4
         },
         {
           "name": "4H",
+          "level": 102.41,
+          "weight": 2,
+          "dist_atr": 2.6
+        },
+        {
+          "name": "PDC",
+          "level": 102.78,
+          "weight": 3,
+          "dist_atr": 3.5
+        },
+        {
+          "name": "4H",
+          "level": 103.13,
+          "weight": 2,
+          "dist_atr": 4.3
+        }
+      ],
+      "supports": [
+        {
+          "name": "4H",
           "level": 101.21,
           "weight": 2,
-          "dist_atr": 2.2
+          "dist_atr": 0.3
         },
         {
           "name": "4H",
           "level": 100.97,
           "weight": 2,
-          "dist_atr": 2.8
+          "dist_atr": 0.8
         },
         {
           "name": "4H",
           "level": 100.53,
           "weight": 2,
-          "dist_atr": 3.9
+          "dist_atr": 1.9
         },
         {
-          "name": "PDC",
-          "level": 99.9,
-          "weight": 3,
-          "dist_atr": 5.6
+          "name": "PDL",
+          "level": 99.75,
+          "weight": 4,
+          "dist_atr": 3.7
+        },
+        {
+          "name": "PWL",
+          "level": 96.26,
+          "weight": 5,
+          "dist_atr": 12.1
         }
       ],
       "setup_long": {
-        "entry": 99.44,
-        "entry_curr": 102.06,
-        "sl": 97.34107,
+        "entry": 96.26,
+        "entry_curr": 101.32,
+        "sl": 92.23161,
         "sl_type": "struktur",
-        "t1": 103.83357,
-        "t2": 104.46,
-        "rr_t1": 2.09,
-        "rr_t2": 2.39,
+        "t1": 103.55,
+        "t2": 103.55,
+        "rr_t1": 1.81,
+        "rr_t2": 1.81,
         "min_rr": 1.3,
-        "risk_atr_d": 0.5,
-        "entry_dist_atr": 0.62,
-        "entry_name": "Støtte 99.44 [PDL]",
-        "entry_level": 99.44,
-        "entry_weight": 4,
-        "t1_source": "SMC1H",
-        "t1_weight": 3,
+        "risk_atr_d": 0.93,
+        "entry_dist_atr": 1.17,
+        "entry_name": "Støtte 96.26 [PWL]",
+        "entry_level": 96.26,
+        "entry_weight": 5,
+        "t1_source": "PDH",
+        "t1_weight": 4,
         "t1_quality": "htf",
         "status": "watchlist",
-        "note": "MAKRO LONG: E=99.44 [PDL w4] SL=97.3411 (struktur) → T1=103.8336 [SMC1H w3 htf] R:R=2.09 | Risk=2.0989 (0.5×ATRd)",
+        "note": "MAKRO LONG: E=96.26 [PWL w5] SL=92.2316 (struktur) → T1=103.55 [PDH w4 htf] R:R=1.81 | Risk=4.0284 (0.93×ATRd)",
         "timeframe": "D1/4H",
         "session": "London Fix 10:30 / NY Fix 15:00 CET"
       },
       "setup_short": {
-        "entry": 102.82,
-        "entry_curr": 102.06,
-        "sl": 104.17946,
+        "entry": 103.55,
+        "entry_curr": 101.32,
+        "sl": 105.70679,
         "sl_type": "struktur",
-        "t1": 99.44,
-        "t2": 99.44,
-        "rr_t1": 2.49,
-        "rr_t2": 2.49,
+        "t1": 96.26,
+        "t2": 93.50842,
+        "rr_t1": 3.38,
+        "rr_t2": 4.66,
         "min_rr": 1.3,
-        "risk_atr_d": 0.32,
-        "entry_dist_atr": 0.18,
-        "entry_name": "Motstand 102.82 [PDH]",
-        "entry_level": 102.82,
+        "risk_atr_d": 0.5,
+        "entry_dist_atr": 0.52,
+        "entry_name": "Motstand 103.55 [PDH]",
+        "entry_level": 103.55,
         "entry_weight": 4,
-        "t1_source": "PDL",
-        "t1_weight": 4,
+        "t1_source": "PWL",
+        "t1_weight": 5,
         "t1_quality": "htf",
         "status": "watchlist",
-        "note": "MAKRO SHORT: E=102.82 [PDH w4] SL=104.1795 (struktur) → T1=99.44 [PDL w4 htf] R:R=2.49 | Risk=1.3595 (0.32×ATRd)",
+        "note": "MAKRO SHORT: E=103.55 [PDH w4] SL=105.7068 (struktur) → T1=96.26 [PWL w5 htf] R:R=3.38 | Risk=2.1568 (0.5×ATRd)",
         "timeframe": "D1/4H",
         "session": "London Fix 10:30 / NY Fix 15:00 CET"
       },
-      "binary_risk": [],
+      "binary_risk": [
+        {
+          "title": "Advance GDP q/q",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Core PCE Price Index m/m",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        }
+      ],
       "oil_supply_disruption": true,
       "oil_supply_reason": [
         "Hormuz HIGH (score 22)",
@@ -5375,48 +5587,93 @@
       ],
       "dir_override_reason": null,
       "smc": {
-        "structure": "BULLISH_SVAK",
-        "supply_zones": [
-          {
-            "top": 103.92,
-            "bottom": 103.8182,
-            "poi": 103.8691,
-            "idx": 62,
-            "type": "supply",
-            "status": "intakt"
-          }
-        ],
+        "structure": "BEARISH",
+        "supply_zones": [],
         "demand_zones": [
           {
-            "top": 99.6118,
+            "top": 99.58695,
             "bottom": 99.51,
-            "poi": 99.5609,
-            "idx": 238,
+            "poi": 99.54848,
+            "idx": 170,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 102.3909,
+            "level": 102.37847,
             "type": "BOS_ned",
-            "idx": 339,
-            "zone_top": 102.4418,
+            "idx": 271,
+            "zone_top": 102.41695,
             "zone_bot": 102.34
           },
           {
-            "level": 100.6509,
-            "type": "BOS_ned",
-            "idx": 225,
-            "zone_top": 100.7018,
-            "zone_bot": 100.6
+            "level": 103.09152,
+            "type": "BOS_opp",
+            "idx": 255,
+            "zone_top": 103.13,
+            "zone_bot": 103.05305
           },
           {
-            "level": 101.5509,
+            "level": 100.63847,
             "type": "BOS_ned",
             "idx": 157,
-            "zone_top": 101.6018,
-            "zone_bot": 101.5
+            "zone_top": 100.67695,
+            "zone_bot": 100.6
+          }
+        ],
+        "last_swing_high": {
+          "value": 101.95,
+          "label": "LH"
+        },
+        "last_swing_low": {
+          "value": 100.56,
+          "label": "LL"
+        }
+      },
+      "smc_1h": {
+        "structure": "BULLISH",
+        "supply_zones": [
+          {
+            "top": 103.92,
+            "bottom": 103.7434,
+            "poi": 103.8317,
+            "idx": 1045,
+            "type": "supply",
+            "status": "intakt"
+          }
+        ],
+        "demand_zones": [
+          {
+            "top": 91.8766,
+            "bottom": 91.7,
+            "poi": 91.7883,
+            "idx": 853,
+            "type": "demand",
+            "status": "intakt"
+          }
+        ],
+        "bos_levels": [
+          {
+            "level": 100.4183,
+            "type": "BOS_ned",
+            "idx": 1086,
+            "zone_top": 100.5066,
+            "zone_bot": 100.33
+          },
+          {
+            "level": 101.2817,
+            "type": "BOS_opp",
+            "idx": 1039,
+            "zone_top": 101.37,
+            "zone_bot": 101.1934
+          },
+          {
+            "level": 96.8083,
+            "type": "BOS_ned",
+            "idx": 971,
+            "zone_top": 96.8966,
+            "zone_bot": 96.72
           }
         ],
         "last_swing_high": {
@@ -5425,52 +5682,7 @@
         },
         "last_swing_low": {
           "value": 100.92,
-          "label": "LL"
-        }
-      },
-      "smc_1h": {
-        "structure": "BEARISH",
-        "supply_zones": [
-          {
-            "top": 103.92,
-            "bottom": 103.74715,
-            "poi": 103.83357,
-            "idx": 1068,
-            "type": "supply",
-            "status": "intakt"
-          }
-        ],
-        "demand_zones": [],
-        "bos_levels": [
-          {
-            "level": 100.41643,
-            "type": "BOS_ned",
-            "idx": 1109,
-            "zone_top": 100.50285,
-            "zone_bot": 100.33
-          },
-          {
-            "level": 101.28358,
-            "type": "BOS_opp",
-            "idx": 1062,
-            "zone_top": 101.37,
-            "zone_bot": 101.19715
-          },
-          {
-            "level": 96.80643,
-            "type": "BOS_ned",
-            "idx": 994,
-            "zone_top": 96.89285,
-            "zone_bot": 96.72
-          }
-        ],
-        "last_swing_high": {
-          "value": 102.82,
-          "label": "LH"
-        },
-        "last_swing_low": {
-          "value": 99.44,
-          "label": "LL"
+          "label": "HL"
         }
       },
       "smc_4h": {
@@ -5478,42 +5690,42 @@
         "supply_zones": [],
         "demand_zones": [
           {
-            "top": 93.70645,
+            "top": 93.70685,
             "bottom": 93.31,
-            "poi": 93.50822,
-            "idx": 230,
+            "poi": 93.50842,
+            "idx": 224,
             "type": "demand",
             "status": "intakt"
           },
           {
-            "top": 80.01645,
+            "top": 80.01685,
             "bottom": 79.62,
-            "poi": 79.81823,
-            "idx": 30,
+            "poi": 79.81843,
+            "idx": 24,
             "type": "demand",
             "status": "intakt"
           }
         ],
         "bos_levels": [
           {
-            "level": 96.58177,
+            "level": 96.58157,
             "type": "BOS_opp",
-            "idx": 237,
+            "idx": 231,
             "zone_top": 96.78,
-            "zone_bot": 96.38355
+            "zone_bot": 96.38315
           },
           {
-            "level": 89.16823,
+            "level": 88.91843,
             "type": "BOS_ned",
-            "idx": 189,
-            "zone_top": 89.36645,
-            "zone_bot": 88.97
+            "idx": 183,
+            "zone_top": 89.11685,
+            "zone_bot": 88.72
           },
           {
-            "level": 98.67823,
+            "level": 98.67843,
             "type": "BOS_ned",
-            "idx": 120,
-            "zone_top": 98.87645,
+            "idx": 114,
+            "zone_top": 98.87685,
             "zone_bot": 98.48
           }
         ],
@@ -5545,7 +5757,7 @@
       "timeframe_bias": "SWING",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -5704,10 +5916,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     },
     "SPX": {
       "name": "S&P 500",
@@ -5746,9 +5956,9 @@
       "dir_color": "bull",
       "grade": "B",
       "grade_color": "warn",
-      "score": 2.73,
+      "score": 2.58,
       "max_score": 5.0,
-      "score_pct": 55,
+      "score_pct": 52,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -5792,19 +6002,20 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.85,
+          "poeng": 0.7,
           "drivers": [
-            "HTF-nivå w5",
             "SMC-bekreftelse"
           ]
         }
@@ -5838,15 +6049,16 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "structure": {
-          "score": 0.85,
+          "score": 0.5,
           "weight": 1.0,
           "drivers": [
-            "HTF-nivå w5",
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
+          "score": 0.7,
+          "weight": 1.0,
+          "drivers": [
             "SMC-bekreftelse"
           ]
         }
@@ -5858,8 +6070,8 @@
         "SMA200-align",
         "Momentum 20d +",
         "D1+4H kongruent",
-        "HTF-nivå w5",
-        "SMC-bekreftelse"
+        "SMC-bekreftelse",
+        "Geo aktiv"
       ],
       "horizon": "SWING",
       "adr_utilization": {
@@ -5985,7 +6197,24 @@
         "timeframe": "D1/4H",
         "session": "NY Open 14:30–17:00 CET"
       },
-      "binary_risk": [],
+      "binary_risk": [
+        {
+          "title": "Advance GDP q/q",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Core PCE Price Index m/m",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        }
+      ],
       "oil_supply_disruption": null,
       "oil_supply_reason": null,
       "dir_override_reason": null,
@@ -6170,7 +6399,7 @@
       "timeframe_bias": "SWING",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -6329,10 +6558,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     },
     "NAS100": {
       "name": "Nasdaq",
@@ -6343,7 +6570,7 @@
       "current": 29813.16,
       "atr14": 74.70131,
       "atr_15m": 74.70131,
-      "atr_daily": 492.41964,
+      "atr_daily": 492.41978,
       "atr_4h": 335.10589,
       "at_level_now": false,
       "status": "watchlist",
@@ -6352,7 +6579,7 @@
       "pdc": 29651.43945,
       "pwh": 29928.31055,
       "pwl": 28825.7207,
-      "ema9_d1": 29595.78477,
+      "ema9_d1": 29595.78555,
       "ema9_4h": 29572.97335,
       "ema9_15m": 29761.65377,
       "ema9_above": true,
@@ -6371,9 +6598,9 @@
       "dir_color": "bull",
       "grade": "C",
       "grade_color": "bear",
-      "score": 2.35,
+      "score": 1.83,
       "max_score": 4.2,
-      "score_pct": 56,
+      "score_pct": 44,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -6415,19 +6642,21 @@
         {
           "kryss": "Event-risiko (kalender/geo)",
           "id": "group_risk",
-          "verdi": false,
+          "verdi": true,
           "vekt": 0.8,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.4,
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
           "id": "group_structure",
           "verdi": true,
           "vekt": 1.3,
-          "poeng": 1.3,
+          "poeng": 0.78,
           "drivers": [
-            "HTF-nivå w5"
+            "HTF-nivå w3"
           ]
         }
       ],
@@ -6458,15 +6687,17 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 0.8,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
-          "score": 1.0,
+          "score": 0.6,
           "weight": 1.3,
           "drivers": [
-            "HTF-nivå w5"
+            "HTF-nivå w3"
           ]
         }
       },
@@ -6475,7 +6706,8 @@
         "COT momentum +",
         "SMA200-align",
         "D1+4H kongruent",
-        "HTF-nivå w5"
+        "HTF-nivå w3",
+        "Geo aktiv"
       ],
       "horizon": "WATCHLIST",
       "adr_utilization": {
@@ -6558,7 +6790,7 @@
       "setup_long": {
         "entry": 29651.43945,
         "entry_curr": 29813.15625,
-        "sl": 29508.73873,
+        "sl": 29508.7387,
         "sl_type": "struktur",
         "t1": 30195.7207,
         "t2": 30328.78906,
@@ -6574,14 +6806,14 @@
         "t1_weight": 3,
         "t1_quality": "htf",
         "status": "watchlist",
-        "note": "MAKRO LONG: E=29651.4395 [PDC w3] SL=29508.7387 (struktur) → T1=30195.7207 [D1 w3 htf] R:R=3.81 | Risk=142.7007 (0.29×ATRd)",
+        "note": "MAKRO LONG: E=29651.4395 [PDC w3] SL=29508.7387 (struktur) → T1=30195.7207 [D1 w3 htf] R:R=3.81 | Risk=142.7008 (0.29×ATRd)",
         "timeframe": "D1/4H",
         "session": "NY Open 14:30–17:00 CET"
       },
       "setup_short": {
         "entry": 29841.30424,
         "entry_curr": 29813.15625,
-        "sl": 29946.53666,
+        "sl": 29946.53669,
         "sl_type": "zone",
         "t1": 29340.53906,
         "t2": 29245.72115,
@@ -6601,7 +6833,24 @@
         "timeframe": "D1/4H",
         "session": "NY Open 14:30–17:00 CET"
       },
-      "binary_risk": [],
+      "binary_risk": [
+        {
+          "title": "Advance GDP q/q",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        },
+        {
+          "title": "Core PCE Price Index m/m",
+          "cet": "Thu 29.10 13:30",
+          "country": "USD",
+          "date": "2026-10-29T12:30:00+00:00",
+          "is_speech": false,
+          "past": false
+        }
+      ],
       "oil_supply_disruption": null,
       "oil_supply_reason": null,
       "dir_override_reason": null,
@@ -6778,7 +7027,7 @@
       "timeframe_bias": "WATCHLIST",
       "sentiment": {
         "fear_greed": {
-          "score": 35.9,
+          "score": 36.5,
           "rating": "fear"
         }
       },
@@ -6937,10 +7186,8 @@
           }
         },
         "usd_bias": "bullish",
-        "updated": "2026-10-28T20:37:37.425864+00:00"
-      },
-      "data_quality": "fresh",
-      "quality_notes": []
+        "updated": "2026-10-29T11:29:44.576489+00:00"
+      }
     }
   },
   "calendar": [
@@ -6964,7 +7211,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": -33.0
+      "hours_away": -45.5
     },
     {
       "date": "2026-10-28T00:15:00+00:00",
@@ -6977,7 +7224,7 @@
       "berorte": [
         "AUDUSD"
       ],
-      "hours_away": -22.8
+      "hours_away": -35.2
     },
     {
       "date": "2026-10-28T00:30:00+00:00",
@@ -6990,7 +7237,7 @@
       "berorte": [
         "AUDUSD"
       ],
-      "hours_away": -22.5
+      "hours_away": -35.0
     },
     {
       "date": "2026-10-28T00:30:00+00:00",
@@ -7003,7 +7250,7 @@
       "berorte": [
         "AUDUSD"
       ],
-      "hours_away": -22.5
+      "hours_away": -35.0
     },
     {
       "date": "2026-10-28T00:30:00+00:00",
@@ -7016,7 +7263,7 @@
       "berorte": [
         "AUDUSD"
       ],
-      "hours_away": -22.5
+      "hours_away": -35.0
     },
     {
       "date": "2026-10-28T01:00:00+00:00",
@@ -7029,7 +7276,7 @@
       "berorte": [
         "NZDUSD"
       ],
-      "hours_away": -22.0
+      "hours_away": -34.5
     },
     {
       "date": "2026-10-28T01:00:00+00:00",
@@ -7042,7 +7289,7 @@
       "berorte": [
         "NZDUSD"
       ],
-      "hours_away": -22.0
+      "hours_away": -34.5
     },
     {
       "date": "2026-10-28T02:00:00+00:00",
@@ -7055,7 +7302,7 @@
       "berorte": [
         "NZDUSD"
       ],
-      "hours_away": -21.0
+      "hours_away": -33.5
     },
     {
       "date": "2026-10-28T12:30:00+00:00",
@@ -7068,7 +7315,7 @@
       "berorte": [
         "GBPUSD"
       ],
-      "hours_away": -10.5
+      "hours_away": -23.0
     },
     {
       "date": "2026-10-28T12:30:00+00:00",
@@ -7081,7 +7328,7 @@
       "berorte": [
         "GBPUSD"
       ],
-      "hours_away": -10.5
+      "hours_away": -23.0
     },
     {
       "date": "2026-10-28T13:45:00+00:00",
@@ -7094,7 +7341,7 @@
       "berorte": [
         "USDCAD"
       ],
-      "hours_away": -9.3
+      "hours_away": -21.7
     },
     {
       "date": "2026-10-28T13:45:00+00:00",
@@ -7107,7 +7354,7 @@
       "berorte": [
         "USDCAD"
       ],
-      "hours_away": -9.3
+      "hours_away": -21.7
     },
     {
       "date": "2026-10-28T13:45:00+00:00",
@@ -7120,7 +7367,7 @@
       "berorte": [
         "USDCAD"
       ],
-      "hours_away": -9.3
+      "hours_away": -21.7
     },
     {
       "date": "2026-10-28T14:30:00+00:00",
@@ -7133,7 +7380,7 @@
       "berorte": [
         "USDCAD"
       ],
-      "hours_away": -8.5
+      "hours_away": -21.0
     },
     {
       "date": "2026-10-28T18:00:00+00:00",
@@ -7155,7 +7402,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": -5.0
+      "hours_away": -17.5
     },
     {
       "date": "2026-10-28T18:00:00+00:00",
@@ -7177,7 +7424,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": -5.0
+      "hours_away": -17.5
     },
     {
       "date": "2026-10-28T18:30:00+00:00",
@@ -7199,7 +7446,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": -4.5
+      "hours_away": -17.0
     },
     {
       "date": "2026-10-29T12:30:00+00:00",
@@ -7221,7 +7468,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": 13.5
+      "hours_away": 1.0
     },
     {
       "date": "2026-10-29T12:30:00+00:00",
@@ -7243,7 +7490,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": 13.5
+      "hours_away": 1.0
     },
     {
       "date": "2026-10-29T12:30:00+00:00",
@@ -7265,7 +7512,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": 13.5
+      "hours_away": 1.0
     },
     {
       "date": "2026-10-29T12:30:00+00:00",
@@ -7287,7 +7534,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": 13.5
+      "hours_away": 1.0
     },
     {
       "date": "2026-10-29T13:15:00+00:00",
@@ -7300,7 +7547,7 @@
       "berorte": [
         "EURUSD"
       ],
-      "hours_away": 14.2
+      "hours_away": 1.8
     },
     {
       "date": "2026-10-29T13:15:00+00:00",
@@ -7313,7 +7560,7 @@
       "berorte": [
         "EURUSD"
       ],
-      "hours_away": 14.2
+      "hours_away": 1.8
     },
     {
       "date": "2026-10-29T13:45:00+00:00",
@@ -7326,7 +7573,7 @@
       "berorte": [
         "EURUSD"
       ],
-      "hours_away": 14.7
+      "hours_away": 2.3
     },
     {
       "date": "2026-10-29T23:30:00+00:00",
@@ -7339,7 +7586,7 @@
       "berorte": [
         "USDJPY"
       ],
-      "hours_away": 24.5
+      "hours_away": 12.0
     },
     {
       "date": "2026-10-30T02:30:00+00:00",
@@ -7352,7 +7599,7 @@
       "berorte": [
         "USDJPY"
       ],
-      "hours_away": 27.5
+      "hours_away": 15.0
     },
     {
       "date": "2026-10-30T02:30:00+00:00",
@@ -7365,7 +7612,7 @@
       "berorte": [
         "USDJPY"
       ],
-      "hours_away": 27.5
+      "hours_away": 15.0
     },
     {
       "date": "2026-10-30T02:31:00+00:00",
@@ -7378,7 +7625,7 @@
       "berorte": [
         "USDJPY"
       ],
-      "hours_away": 27.5
+      "hours_away": 15.0
     },
     {
       "date": "2026-10-30T05:30:00+00:00",
@@ -7391,7 +7638,7 @@
       "berorte": [
         "USDJPY"
       ],
-      "hours_away": 30.5
+      "hours_away": 18.0
     },
     {
       "date": "2026-10-30T07:29:00+00:00",
@@ -7404,7 +7651,7 @@
       "berorte": [
         "EURUSD"
       ],
-      "hours_away": 32.5
+      "hours_away": 20.0
     },
     {
       "date": "2026-10-30T09:00:00+00:00",
@@ -7417,7 +7664,7 @@
       "berorte": [
         "EURUSD"
       ],
-      "hours_away": 34.0
+      "hours_away": 21.5
     },
     {
       "date": "2026-10-30T12:30:00+00:00",
@@ -7430,7 +7677,7 @@
       "berorte": [
         "USDCAD"
       ],
-      "hours_away": 37.5
+      "hours_away": 25.0
     },
     {
       "date": "2026-10-30T12:30:00+00:00",
@@ -7452,7 +7699,7 @@
         "WTI",
         "Brent"
       ],
-      "hours_away": 37.5
+      "hours_away": 25.0
     }
   ],
   "macro_indicators": {
@@ -7479,10 +7726,10 @@
       "chg20d": 2.13
     },
     "Copper": {
-      "price": 6.68,
-      "chg1d": 0.88,
-      "chg5d": 2.09,
-      "chg20d": 1.84
+      "price": 6.5945,
+      "chg1d": -0.71,
+      "chg5d": 3.65,
+      "chg20d": 1.74
     },
     "EEM": {
       "price": 63.52,
@@ -7492,11 +7739,11 @@
     }
   },
   "vix_term_structure": {
-    "spot": 16.91,
+    "spot": 16.98,
     "vix9d": 15.6,
     "vix3m": 19.22,
-    "spot_to_9d_pct": -7.7,
-    "spot_to_3m_pct": 13.7,
+    "spot_to_9d_pct": -8.1,
+    "spot_to_3m_pct": 13.2,
     "regime": "backwardation"
   },
   "correlations": {
@@ -7515,26 +7762,26 @@
     "matrix": [
       [
         1.0,
-        -0.23,
-        -0.31,
-        0.06
+        -0.34,
+        -0.13,
+        -0.15
       ],
       [
-        -0.23,
+        -0.34,
         1.0,
-        0.45,
-        -0.27
+        -0.12,
+        -0.28
       ],
       [
-        -0.31,
-        0.45,
+        -0.13,
+        -0.12,
         1.0,
-        -0.72
+        -0.16
       ],
       [
-        0.06,
-        -0.27,
-        -0.72,
+        -0.15,
+        -0.28,
+        -0.16,
         1.0
       ]
     ],
@@ -7543,27 +7790,27 @@
   "session_ranges": {
     "DXY": {
       "name": "DXY",
-      "adr_20d": 0.48525,
-      "adr_pct": 0.48,
-      "atr14": 0.46679
+      "adr_20d": 0.46085,
+      "adr_pct": 0.45,
+      "atr14": 0.4555
     },
     "EURUSD": {
       "name": "EUR/USD",
-      "adr_20d": 0.00602,
-      "adr_pct": 0.54,
-      "atr14": 0.00564
+      "adr_20d": 0.00569,
+      "adr_pct": 0.51,
+      "atr14": 0.00578
     },
     "USDJPY": {
       "name": "USD/JPY",
-      "adr_20d": 0.0,
-      "adr_pct": 0.0,
-      "atr14": null
+      "adr_20d": 0.75005,
+      "adr_pct": 0.47,
+      "atr14": 0.90757
     },
     "GBPUSD": {
       "name": "GBP/USD",
-      "adr_20d": 0.00633,
-      "adr_pct": 0.48,
-      "atr14": 0.00727
+      "adr_20d": 0.00623,
+      "adr_pct": 0.47,
+      "atr14": 0.00757
     },
     "AUDUSD": {
       "name": "AUD/USD",
@@ -7573,27 +7820,27 @@
     },
     "Gold": {
       "name": "Gull",
-      "adr_20d": 66.94,
-      "adr_pct": 1.65,
-      "atr14": 66.00708
+      "adr_20d": 69.14,
+      "adr_pct": 1.71,
+      "atr14": 67.42139
     },
     "Silver": {
       "name": "Sølv",
-      "adr_20d": 0.5485,
-      "adr_pct": 1.02,
-      "atr14": 1.11514
+      "adr_20d": 0.636,
+      "adr_pct": 1.2,
+      "atr14": 1.16079
     },
     "Brent": {
       "name": "Brent",
-      "adr_20d": 3.83,
-      "adr_pct": 3.46,
-      "atr14": 3.81214
+      "adr_20d": 3.72,
+      "adr_pct": 3.38,
+      "atr14": 4.01071
     },
     "WTI": {
       "name": "WTI",
-      "adr_20d": 3.94,
-      "adr_pct": 3.86,
-      "atr14": 4.19786
+      "adr_20d": 3.96,
+      "adr_pct": 3.91,
+      "atr14": 4.31357
     },
     "SPX": {
       "name": "S&P 500",
@@ -7605,23 +7852,23 @@
       "name": "Nasdaq",
       "adr_20d": 374.25,
       "adr_pct": 1.26,
-      "atr14": 492.41964
+      "atr14": 492.41978
     }
   },
   "sentiment": {
     "fear_greed": {
-      "score": 35.9,
+      "score": 36.5,
       "rating": "fear"
     },
     "news": {
-      "score": -0.67,
+      "score": -1.0,
       "label": "risk_off",
       "top_headlines": [
         "Google News",
         "Geopolitics and fiscal policy weigh on financial markets - CaixaBank Research",
         "How Wars and Geopolitical Conflicts Can Affect Stock Market Performance: What History Shows | Chase - Chase Bank",
-        "How constraints are creating value for long-term investors - World Economic Forum",
-        "Geopolitical Risk Brief: September 2026 - S&amp;P Global"
+        "Could Geopolitical Tensions Reshape Global Financial Markets? RBA Warns of Emerging Stability Risks - Kalkine",
+        "How constraints are creating value for long-term investors - World Economic Forum"
       ],
       "key_drivers": [
         {
@@ -7629,28 +7876,28 @@
           "type": "risk_off"
         },
         {
+          "headline": "Could Geopolitical Tensions Reshape Global Financial Markets? RBA Warns of Emerging Stabil",
+          "type": "risk_off"
+        },
+        {
           "headline": "Geopolitical Risk and Gold: Why Sanctions Are Reshaping Central Bank Reserves - https://ec",
           "type": "risk_off"
         },
         {
-          "headline": "High-speed train crash kills at least 68 people in Spain",
+          "headline": "Audio reveals exchanges between control centre and drivers before deadly Spain train crash",
+          "type": "risk_off"
+        },
+        {
+          "headline": "Ethiopia acquires Russian fighter jets and air defence systems amid war in Tigray",
           "type": "risk_off"
         },
         {
           "headline": "Girl seriously injured in wolf attack at German wildlife park",
           "type": "risk_off"
-        },
-        {
-          "headline": "Serbian shot dead after attacking officer outside Israeli embassy, minister says",
-          "type": "risk_off"
-        },
-        {
-          "headline": "Ceasefire extended across Ukraine's Kherson region, officials say",
-          "type": "risk_on"
         }
       ],
-      "ro_count": 1,
-      "roff_count": 5,
+      "ro_count": 0,
+      "roff_count": 6,
       "headlines_n": 30
     },
     "conflicts": []
