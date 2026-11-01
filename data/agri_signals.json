@@ -1,10 +1,10 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-10-30 23:02 UTC",
+  "generated": "2026-11-01 23:12 UTC",
   "cot_date": "2026-10-28",
   "enso_phase": "El Niño",
   "global_state": {
-    "geo_active": false,
+    "geo_active": true,
     "vix_regime": "normal",
     "usda_blackout": null
   },
@@ -17,22 +17,108 @@
   },
   "signals": [
     {
+      "key": "Sugar",
+      "name": "Sukker",
+      "action": "BUY",
+      "timeframe": "SWING",
+      "grade": "B",
+      "score": 6.5,
+      "current": 19.370001,
+      "entry": 19.35,
+      "sl": 18.32,
+      "t1": 21.5,
+      "t2": 22.0,
+      "rr_t1": 2.09,
+      "rr_t2": 2.57,
+      "sl_type": "atr_prosent",
+      "t1_source": "rn21.5",
+      "atr_est": 0.52,
+      "driver_groups": {
+        "trend": {
+          "score": 1.0,
+          "weight": 0.8,
+          "drivers": []
+        },
+        "positioning": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": [
+            "COT bull 19.7%"
+          ]
+        },
+        "macro": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "fundamental": {
+          "score": 0.5,
+          "weight": 1.3,
+          "drivers": [
+            "UNICA: mix sukker 46.6% (-6.2pp) → tight supply",
+            "Analog: bullish +7.5% 90d (n=3, range -11.5..+21.5%, år: 2011(+7.5%), 2019(+21.5%), 2017(-11.5%))",
+            "Bedrock A+ BUY bekrefter (score 13.6)"
+          ]
+        },
+        "risk": {
+          "score": 0.5,
+          "weight": 1.0,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
+          "score": 0.0,
+          "weight": 0.5,
+          "drivers": []
+        }
+      },
+      "active_driver_groups": 3,
+      "group_drivers": [
+        "UNICA: mix sukker 46.6% (-6.2pp) → tight supply",
+        "Analog: bullish +7.5% 90d (n=3, range -11.5..+21.5%, år: 2011(+7.5%), 2019(+21.5%), 2017(-11.5%))",
+        "Bedrock A+ BUY bekrefter (score 13.6)",
+        "COT: bull FALLER (net +20%)",
+        "UNICA: mix shifter mot etanol (52.8% → 46.6%) — mindre sukker-tilbud",
+        "Bedrock: A+ BUY makro publisert (score 13.6)",
+        "El Niño: Tørkerisiko"
+      ],
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "atr_source": "estimated",
+      "cot_bias": "bull",
+      "cot_pct": 19.7,
+      "cot_zscore": 0.85,
+      "source": "agri_fundamental",
+      "yield_score": 70,
+      "yield_quality": "God",
+      "weather_outlook": "normalt",
+      "growth_stage": "Høsting",
+      "season_pct": 83,
+      "drivers": [
+        "UNICA: mix sukker 46.6% (-6.2pp) → tight supply",
+        "Analog: bullish +7.5% 90d (n=3, range -11.5..+21.5%, år: 2011(+7.5%), 2019(+21.5%), 2017(-11.5%))",
+        "Bedrock A+ BUY bekrefter (score 13.6)",
+        "COT: bull FALLER (net +20%)"
+      ]
+    },
+    {
       "key": "Wheat",
       "name": "Hvete",
       "action": "SELL",
       "timeframe": "SWING",
       "grade": "B",
-      "score": 5.6,
-      "current": 606.0,
-      "entry": 606.47,
-      "sl": 628.53,
-      "t1": 560.0,
-      "t2": 550.0,
-      "rr_t1": 2.11,
-      "rr_t2": 2.56,
+      "score": 5.4,
+      "current": 603.25,
+      "entry": 603.72,
+      "sl": 625.68,
+      "t1": 550.0,
+      "t2": 540.0,
+      "rr_t1": 2.45,
+      "rr_t2": 2.9,
       "sl_type": "atr_prosent",
-      "t1_source": "rn560",
-      "atr_est": 11.03,
+      "t1_source": "rn550",
+      "atr_est": 10.98,
       "driver_groups": {
         "trend": {
           "score": 0.0,
@@ -55,15 +141,17 @@
           "score": 0.375,
           "weight": 1.3,
           "drivers": [
-            "Værstress i Australia – Hvetebeltet (tørt)",
-            "2 risiko-regioner",
+            "Værstress i Australia – Hvetebeltet (tørke)",
+            "3 risiko-regioner",
             "COT: bull BLANDET (net +1%)"
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "Geo aktiv"
+          ]
         },
         "structure": {
           "score": 0.0,
@@ -71,10 +159,10 @@
           "drivers": []
         }
       },
-      "active_driver_groups": 1,
+      "active_driver_groups": 2,
       "group_drivers": [
-        "Værstress i Australia – Hvetebeltet (tørt)",
-        "2 risiko-regioner",
+        "Værstress i Australia – Hvetebeltet (tørke)",
+        "3 risiko-regioner",
         "COT: bull BLANDET (net +1%)",
         "Yield utmerket — god produksjon holder prisene nede",
         "Bedrock: A BUY makro publisert (score 8.6)",
@@ -87,97 +175,16 @@
       "cot_pct": 0.9,
       "cot_zscore": 1.43,
       "source": "agri_fundamental",
-      "yield_score": 95,
+      "yield_score": 96,
       "yield_quality": "Utmerket",
-      "weather_outlook": "tørt",
+      "weather_outlook": "tørke",
       "growth_stage": "Høsting",
-      "season_pct": 86,
+      "season_pct": 75,
       "drivers": [
-        "Værstress i Australia – Hvetebeltet (tørt)",
-        "2 risiko-regioner",
+        "Værstress i Australia – Hvetebeltet (tørke)",
+        "3 risiko-regioner",
         "COT: bull BLANDET (net +1%)",
         "Yield utmerket — god produksjon holder prisene nede"
-      ]
-    },
-    {
-      "key": "Cocoa",
-      "name": "Kakao",
-      "action": "SELL",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 5.4,
-      "current": 5377.0,
-      "entry": 5383.45,
-      "sl": 5684.56,
-      "t1": 4750.0,
-      "t2": 4856.5,
-      "rr_t1": 2.1,
-      "rr_t2": 1.75,
-      "sl_type": "atr_prosent",
-      "t1_source": "rn4750",
-      "atr_est": 150.56,
-      "driver_groups": {
-        "trend": {
-          "score": 0.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bear -6.0%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.375,
-          "weight": 1.3,
-          "drivers": [
-            "COT: spekulanter øker short (net -6% av OI)",
-            "Yield utmerket — god produksjon holder prisene nede",
-            "Bedrock: B BUY makro publisert (score 7.5)"
-          ]
-        },
-        "risk": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 1,
-      "group_drivers": [
-        "COT: spekulanter øker short (net -6% av OI)",
-        "Yield utmerket — god produksjon holder prisene nede",
-        "Bedrock: B BUY makro publisert (score 7.5)",
-        "El Niño: Tørrere enn normalt"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bear",
-      "cot_pct": -6.0,
-      "cot_zscore": -1.29,
-      "source": "agri_fundamental",
-      "yield_score": 100,
-      "yield_quality": "Utmerket",
-      "weather_outlook": "normalt",
-      "growth_stage": "Vegetativ vekst",
-      "season_pct": 45,
-      "drivers": [
-        "COT: spekulanter øker short (net -6% av OI)",
-        "Yield utmerket — god produksjon holder prisene nede",
-        "Bedrock: B BUY makro publisert (score 7.5)",
-        "El Niño: Tørrere enn normalt"
       ]
     }
   ]
