@@ -1,12 +1,33 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-11-02 15:10 UTC",
+  "generated": "2026-11-02 19:10 UTC",
   "cot_date": "2026-10-28",
   "enso_phase": "El Niño",
   "global_state": {
     "geo_active": true,
-    "vix_regime": "normal",
-    "usda_blackout": null
+    "vix_regime": "elevated",
+    "usda_blackout": {
+      "Corn": {
+        "report": "Crop Progress",
+        "time_utc": "2026-11-02 20:00 UTC",
+        "hours_away": 0.8
+      },
+      "Wheat": {
+        "report": "Crop Progress",
+        "time_utc": "2026-11-02 20:00 UTC",
+        "hours_away": 0.8
+      },
+      "Soybean": {
+        "report": "Crop Progress",
+        "time_utc": "2026-11-02 20:00 UTC",
+        "hours_away": 0.8
+      },
+      "Cotton": {
+        "report": "Crop Progress",
+        "time_utc": "2026-11-02 20:00 UTC",
+        "hours_away": 0.8
+      }
+    }
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -23,13 +44,13 @@
       "timeframe": "SWING",
       "grade": "B",
       "score": 6.5,
-      "current": 19.309999,
-      "entry": 19.29,
-      "sl": 18.26,
+      "current": 19.16,
+      "entry": 19.14,
+      "sl": 18.12,
       "t1": 21.5,
       "t2": 22.0,
-      "rr_t1": 2.15,
-      "rr_t2": 2.63,
+      "rr_t1": 2.31,
+      "rr_t2": 2.8,
       "sl_type": "atr_prosent",
       "t1_source": "rn21.5",
       "atr_est": 0.51,
@@ -61,10 +82,11 @@
           ]
         },
         "risk": {
-          "score": 0.5,
+          "score": 0.75,
           "weight": 1.0,
           "drivers": [
-            "Geo aktiv"
+            "Geo aktiv",
+            "VIX elevert"
           ]
         },
         "structure": {
@@ -103,107 +125,22 @@
       ]
     },
     {
-      "key": "Wheat",
-      "name": "Hvete",
-      "action": "SELL",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 5.6,
-      "current": 605.5,
-      "entry": 605.97,
-      "sl": 628.01,
-      "t1": 560.0,
-      "t2": 550.0,
-      "rr_t1": 2.09,
-      "rr_t2": 2.54,
-      "sl_type": "atr_prosent",
-      "t1_source": "rn560",
-      "atr_est": 11.02,
-      "driver_groups": {
-        "trend": {
-          "score": 0.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bull 0.9%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.375,
-          "weight": 1.3,
-          "drivers": [
-            "Værstress i Australia – Hvetebeltet (tørt)",
-            "2 risiko-regioner",
-            "COT: bull BLANDET (net +1%)"
-          ]
-        },
-        "risk": {
-          "score": 0.5,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv"
-          ]
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 2,
-      "group_drivers": [
-        "Værstress i Australia – Hvetebeltet (tørt)",
-        "2 risiko-regioner",
-        "COT: bull BLANDET (net +1%)",
-        "Yield utmerket — god produksjon holder prisene nede",
-        "Bedrock: A BUY makro publisert (score 9.1)",
-        "El Niño: Gunstig regn"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bull",
-      "cot_pct": 0.9,
-      "cot_zscore": 1.43,
-      "source": "agri_fundamental",
-      "yield_score": 97,
-      "yield_quality": "Utmerket",
-      "weather_outlook": "tørt",
-      "growth_stage": "Høsting",
-      "season_pct": 75,
-      "drivers": [
-        "Værstress i Australia – Hvetebeltet (tørt)",
-        "2 risiko-regioner",
-        "COT: bull BLANDET (net +1%)",
-        "Yield utmerket — god produksjon holder prisene nede"
-      ]
-    },
-    {
       "key": "Cocoa",
       "name": "Kakao",
       "action": "SELL",
       "timeframe": "SWING",
       "grade": "B",
       "score": 5.4,
-      "current": 5399.0,
-      "entry": 5405.48,
-      "sl": 5707.82,
+      "current": 5469.0,
+      "entry": 5475.56,
+      "sl": 5781.82,
       "t1": 4750.0,
-      "t2": 4876.38,
-      "rr_t1": 2.17,
+      "t2": 4939.6,
+      "rr_t1": 2.37,
       "rr_t2": 1.75,
       "sl_type": "atr_prosent",
       "t1_source": "rn4750",
-      "atr_est": 151.17,
+      "atr_est": 153.13,
       "driver_groups": {
         "trend": {
           "score": 0.0,
@@ -232,10 +169,11 @@
           ]
         },
         "risk": {
-          "score": 0.5,
+          "score": 0.75,
           "weight": 1.0,
           "drivers": [
-            "Geo aktiv"
+            "Geo aktiv",
+            "VIX elevert"
           ]
         },
         "structure": {
@@ -277,16 +215,16 @@
       "timeframe": "SWING",
       "grade": "B",
       "score": 5.1,
-      "current": 295.0,
-      "entry": 295.32,
-      "sl": 310.19,
+      "current": 294.5,
+      "entry": 294.82,
+      "sl": 309.66,
       "t1": 260.0,
-      "t2": 269.3,
-      "rr_t1": 2.38,
+      "t2": 268.85,
+      "rr_t1": 2.35,
       "rr_t2": 1.75,
       "sl_type": "atr_prosent",
       "t1_source": "rn260",
-      "atr_est": 7.43,
+      "atr_est": 7.42,
       "driver_groups": {
         "trend": {
           "score": 0.0,
@@ -315,10 +253,11 @@
           ]
         },
         "risk": {
-          "score": 0.5,
+          "score": 0.75,
           "weight": 1.0,
           "drivers": [
-            "Geo aktiv"
+            "Geo aktiv",
+            "VIX elevert"
           ]
         },
         "structure": {

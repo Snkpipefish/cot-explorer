@@ -1,11 +1,11 @@
 {
-  "generated": "2026-11-02T15:00:12+00:00",
+  "generated": "2026-11-02T19:00:12+00:00",
   "source": "Regnbue \u00b7 base-rate-validated setups (Skilling-feed)",
   "as_of": "2026-10-29",
   "rows": 22,
   "raw": {
     "schema_version": 1,
-    "generated": "2026-11-02T12:16:29Z",
+    "generated": "2026-11-02T18:15:44Z",
     "as_of": "2026-10-29",
     "signals": [
       {
@@ -402,28 +402,28 @@
         "ticker": "Corn",
         "direction": "LONG",
         "grade": "B",
-        "score": 0.391,
+        "score": 0.3898,
         "published": false,
         "entry": 462.62,
         "sl": 457.651786,
         "tp": 471.58,
         "rr": 1.803,
         "atr": 9.936429,
-        "reject_reason": "base-rate: for f\u00e5 uavhengige analoger (n_eff=2 < 30; n=4); hit-rate nedre CI 3% < 55%; expectancy -0.31R < 0.30R; expectancy CI inkluderer \u22640 (-2.26R)",
+        "reject_reason": "base-rate: for f\u00e5 uavhengige analoger (n_eff=2 < 30; n=5); hit-rate nedre CI 2% < 55%; expectancy -0.45R < 0.30R; expectancy CI inkluderer \u22640 (-2.19R)",
         "base_rate": {
-          "n": 4,
-          "hit_rate": 0.25,
+          "n": 5,
+          "hit_rate": 0.2,
           "hit_rate_ci": [
-            0.0267,
-            0.8021
+            0.0176,
+            0.777
           ],
-          "expectancy_r": -0.315,
+          "expectancy_r": -0.455,
           "expectancy_ci": [
-            -2.2555,
-            1.6256
+            -2.1907,
+            1.2807
           ],
           "passes": false,
-          "reason": "for f\u00e5 uavhengige analoger (n_eff=2 < 30; n=4); hit-rate nedre CI 3% < 55%; expectancy -0.31R < 0.30R; expectancy CI inkluderer \u22640 (-2.26R)",
+          "reason": "for f\u00e5 uavhengige analoger (n_eff=2 < 30; n=5); hit-rate nedre CI 2% < 55%; expectancy -0.45R < 0.30R; expectancy CI inkluderer \u22640 (-2.19R)",
           "n_eff": 2
         },
         "scenario": {
@@ -453,8 +453,8 @@
           {
             "name": "rainfall_anomaly",
             "ok": true,
-            "score": -0.0036,
-            "detail": "us_cornbelt 30d-nedb\u00f8r t\u00f8rt z=-1.00"
+            "score": -0.0078,
+            "detail": "us_cornbelt 30d-nedb\u00f8r t\u00f8rt z=-0.99"
           },
           {
             "name": "level_percentile",
@@ -538,7 +538,7 @@
           {
             "name": "rainfall_anomaly",
             "ok": true,
-            "score": -0.287,
+            "score": -0.2868,
             "detail": "brazil_cs_cane 30d-nedb\u00f8r t\u00f8rt z=-0.70"
           },
           {
@@ -861,7 +861,7 @@
             "name": "rainfall_anomaly",
             "ok": true,
             "score": 0.0,
-            "detail": "us_cornbelt 30d-nedb\u00f8r t\u00f8rt z=-1.00"
+            "detail": "us_cornbelt 30d-nedb\u00f8r t\u00f8rt z=-0.99"
           },
           {
             "name": "momentum",
@@ -951,85 +951,6 @@
         ]
       },
       {
-        "instrument": "Coffee",
-        "ticker": "Coffee",
-        "direction": "LONG",
-        "grade": "NONE",
-        "score": 0.1513,
-        "published": false,
-        "entry": 294.34,
-        "sl": 289.055357,
-        "tp": 307.37,
-        "rr": 2.466,
-        "atr": 10.569286,
-        "reject_reason": "ingen grade (for svakt signal); base-rate: for f\u00e5 uavhengige analoger (n_eff=21 < 30; n=36); hit-rate nedre CI 15% < 55%; expectancy +0.04R < 0.30R; expectancy CI inkluderer \u22640 (-0.65R)",
-        "base_rate": {
-          "n": 36,
-          "hit_rate": 0.3056,
-          "hit_rate_ci": [
-            0.152,
-            0.5193
-          ],
-          "expectancy_r": 0.0373,
-          "expectancy_ci": [
-            -0.6544,
-            0.7291
-          ],
-          "passes": false,
-          "reason": "for f\u00e5 uavhengige analoger (n_eff=21 < 30; n=36); hit-rate nedre CI 15% < 55%; expectancy +0.04R < 0.30R; expectancy CI inkluderer \u22640 (-0.65R)",
-          "n_eff": 21
-        },
-        "scenario": {
-          "engine": "scenario",
-          "n_paths": 2000,
-          "prob_tp": 0.363,
-          "prob_sl": 0.636,
-          "prob_time": 0.001,
-          "expectancy_r": 0.2203,
-          "expectancy_ci": [
-            0.1475,
-            0.293
-          ],
-          "horizon": 30,
-          "cone": {
-            "p05": -0.1443,
-            "p25": -0.0587,
-            "median": 0.01,
-            "p75": 0.0867,
-            "p95": 0.2122,
-            "prob_up": 0.532
-          }
-        },
-        "data_quality": "kort_historikk",
-        "history_years": 5.4,
-        "drivers": [
-          {
-            "name": "frost_anomaly",
-            "ok": true,
-            "score": 0.0,
-            "detail": "brazil_sul_minas kaldeste natt 16.4\u00b0C (z=+1.17)"
-          },
-          {
-            "name": "rainfall_anomaly",
-            "ok": true,
-            "score": 0.8124,
-            "detail": "brazil_sul_minas 30d-nedb\u00f8r v\u00e5tt z=+2.13"
-          },
-          {
-            "name": "momentum",
-            "ok": true,
-            "score": 0.6221,
-            "detail": "DEXBZUS 21d-endring -0.107 (z=-0.73)"
-          },
-          {
-            "name": "cot_spec_net_percentile",
-            "ok": true,
-            "score": -0.6667,
-            "detail": "Coffee spec-net p17"
-          }
-        ]
-      },
-      {
         "instrument": "EURUSD",
         "ticker": "EURUSD",
         "direction": "LONG",
@@ -1105,6 +1026,85 @@
             "ok": true,
             "score": 0.587,
             "detail": "VIXCLS niv\u00e5 15.7 = p21"
+          }
+        ]
+      },
+      {
+        "instrument": "Coffee",
+        "ticker": "Coffee",
+        "direction": "LONG",
+        "grade": "NONE",
+        "score": 0.1085,
+        "published": false,
+        "entry": 294.34,
+        "sl": 289.055357,
+        "tp": 307.37,
+        "rr": 2.466,
+        "atr": 10.569286,
+        "reject_reason": "ingen grade (for svakt signal); base-rate: for f\u00e5 uavhengige analoger (n_eff=21 < 30; n=36); hit-rate nedre CI 15% < 55%; expectancy +0.04R < 0.30R; expectancy CI inkluderer \u22640 (-0.65R)",
+        "base_rate": {
+          "n": 36,
+          "hit_rate": 0.3056,
+          "hit_rate_ci": [
+            0.152,
+            0.5193
+          ],
+          "expectancy_r": 0.0362,
+          "expectancy_ci": [
+            -0.6533,
+            0.7257
+          ],
+          "passes": false,
+          "reason": "for f\u00e5 uavhengige analoger (n_eff=21 < 30; n=36); hit-rate nedre CI 15% < 55%; expectancy +0.04R < 0.30R; expectancy CI inkluderer \u22640 (-0.65R)",
+          "n_eff": 21
+        },
+        "scenario": {
+          "engine": "scenario",
+          "n_paths": 2000,
+          "prob_tp": 0.363,
+          "prob_sl": 0.636,
+          "prob_time": 0.001,
+          "expectancy_r": 0.2203,
+          "expectancy_ci": [
+            0.1475,
+            0.293
+          ],
+          "horizon": 30,
+          "cone": {
+            "p05": -0.1443,
+            "p25": -0.0587,
+            "median": 0.01,
+            "p75": 0.0867,
+            "p95": 0.2122,
+            "prob_up": 0.532
+          }
+        },
+        "data_quality": "kort_historikk",
+        "history_years": 5.4,
+        "drivers": [
+          {
+            "name": "frost_anomaly",
+            "ok": true,
+            "score": 0.0,
+            "detail": "brazil_sul_minas kaldeste natt 13.1\u00b0C (z=-0.75)"
+          },
+          {
+            "name": "rainfall_anomaly",
+            "ok": true,
+            "score": 0.5981,
+            "detail": "brazil_sul_minas 30d-nedb\u00f8r v\u00e5tt z=+1.69"
+          },
+          {
+            "name": "momentum",
+            "ok": true,
+            "score": 0.6221,
+            "detail": "DEXBZUS 21d-endring -0.107 (z=-0.73)"
+          },
+          {
+            "name": "cot_spec_net_percentile",
+            "ok": true,
+            "score": -0.6667,
+            "detail": "Coffee spec-net p17"
           }
         ]
       },
@@ -1271,29 +1271,29 @@
         "ticker": "Wheat",
         "direction": "SHORT",
         "grade": "NONE",
-        "score": -0.0542,
+        "score": -0.0493,
         "published": false,
         "entry": 616.41,
         "sl": 626.848571,
         "tp": 606.18,
         "rr": 0.98,
         "atr": 20.877143,
-        "reject_reason": "ingen grade (for svakt signal); R:R 0.98 < 1.5; base-rate: for f\u00e5 uavhengige analoger (n_eff=11 < 30; n=15); hit-rate nedre CI 38% < 55%; expectancy CI inkluderer \u22640 (-0.26R)",
+        "reject_reason": "ingen grade (for svakt signal); R:R 0.98 < 1.5; base-rate: for f\u00e5 uavhengige analoger (n_eff=10 < 30; n=14); hit-rate nedre CI 35% < 55%; expectancy +0.27R < 0.30R; expectancy CI inkluderer \u22640 (-0.34R)",
         "base_rate": {
-          "n": 15,
-          "hit_rate": 0.6667,
+          "n": 14,
+          "hit_rate": 0.6429,
           "hit_rate_ci": [
-            0.3798,
-            0.8672
+            0.3477,
+            0.8587
           ],
-          "expectancy_r": 0.3138,
+          "expectancy_r": 0.2667,
           "expectancy_ci": [
-            -0.2575,
-            0.8852
+            -0.344,
+            0.8774
           ],
           "passes": false,
-          "reason": "for f\u00e5 uavhengige analoger (n_eff=11 < 30; n=15); hit-rate nedre CI 38% < 55%; expectancy CI inkluderer \u22640 (-0.26R)",
-          "n_eff": 11
+          "reason": "for f\u00e5 uavhengige analoger (n_eff=10 < 30; n=14); hit-rate nedre CI 35% < 55%; expectancy +0.27R < 0.30R; expectancy CI inkluderer \u22640 (-0.34R)",
+          "n_eff": 10
         },
         "scenario": {
           "engine": "scenario",
@@ -1322,8 +1322,8 @@
           {
             "name": "rainfall_anomaly",
             "ok": true,
-            "score": -0.7464,
-            "detail": "us_wheat_plains 30d-nedb\u00f8r t\u00f8rt z=-0.04"
+            "score": -0.7342,
+            "detail": "us_wheat_plains 30d-nedb\u00f8r t\u00f8rt z=-0.06"
           },
           {
             "name": "momentum",
@@ -1581,7 +1581,7 @@
         "ticker": "Cocoa",
         "direction": "SHORT",
         "grade": "NONE",
-        "score": -0.0068,
+        "score": -0.0061,
         "published": false,
         "entry": 3948.0,
         "sl": 4478.464286,
@@ -1632,7 +1632,7 @@
           {
             "name": "rainfall_anomaly",
             "ok": true,
-            "score": 0.4217,
+            "score": 0.4235,
             "detail": "west_africa_cocoa 30d-nedb\u00f8r v\u00e5tt z=+1.45"
           },
           {
