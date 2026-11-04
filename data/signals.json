@@ -1,10 +1,10 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-11-03 23:03 UTC",
+  "generated": "2026-11-04 11:37 UTC",
   "cot_date": "2026-10-27",
   "global_state": {
     "geo_active": true,
-    "vix_regime": "elevated",
+    "vix_regime": "normal",
     "oil_geo_warning": true,
     "oil_warning_reason": "krig/angrep i nyheter"
   },
@@ -17,6 +17,176 @@
     "oil_min_sl_pips": 25
   },
   "signals": [
+    {
+      "key": "WTI",
+      "name": "WTI",
+      "action": "BUY",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "A",
+      "score": 2.9,
+      "max_score": 5.0,
+      "score_pct": 58,
+      "score_details": [
+        {
+          "kryss": "Trendbildet (SMA/momentum/align)",
+          "id": "group_trend",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 1.0,
+          "drivers": [
+            "SMA200-align",
+            "Momentum 20d +",
+            "D1+4H kongruent"
+          ]
+        },
+        {
+          "kryss": "COT-posisjonering",
+          "id": "group_positioning",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.5,
+          "drivers": [
+            "OI stigende (bekrefter)"
+          ]
+        },
+        {
+          "kryss": "Makrobilde (DXY/VIX/renter)",
+          "id": "group_macro",
+          "verdi": false,
+          "vekt": 1.0,
+          "poeng": 0.0,
+          "drivers": []
+        },
+        {
+          "kryss": "Fundamentalt (asset-spesifikt)",
+          "id": "group_fundamental",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.8,
+          "drivers": [
+            "Supply disruption aktiv",
+            "Shipping risiko HIGH",
+            "Brent-WTI spread +7.8 (tight)"
+          ]
+        },
+        {
+          "kryss": "Event-risiko (kalender/geo)",
+          "id": "group_risk",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.5,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        {
+          "kryss": "Teknisk struktur (HTF/SMC)",
+          "id": "group_structure",
+          "verdi": true,
+          "vekt": 1.0,
+          "poeng": 0.6,
+          "drivers": [
+            "HTF-nivå w3"
+          ]
+        }
+      ],
+      "driver_groups": {
+        "trend": {
+          "score": 1.0,
+          "weight": 1.0,
+          "drivers": [
+            "SMA200-align",
+            "Momentum 20d +",
+            "D1+4H kongruent"
+          ]
+        },
+        "positioning": {
+          "score": 0.5,
+          "weight": 1.0,
+          "drivers": [
+            "OI stigende (bekrefter)"
+          ]
+        },
+        "macro": {
+          "score": 0.0,
+          "weight": 1.0,
+          "drivers": []
+        },
+        "fundamental": {
+          "score": 0.8,
+          "weight": 1.0,
+          "drivers": [
+            "Supply disruption aktiv",
+            "Shipping risiko HIGH",
+            "Brent-WTI spread +7.8 (tight)"
+          ]
+        },
+        "risk": {
+          "score": 0.5,
+          "weight": 1.0,
+          "drivers": [
+            "Geo aktiv"
+          ]
+        },
+        "structure": {
+          "score": 0.6,
+          "weight": 1.0,
+          "drivers": [
+            "HTF-nivå w3"
+          ]
+        }
+      },
+      "active_driver_groups": 4,
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "dir_override_reason": null,
+      "current": 95.33,
+      "entry": 93.59,
+      "sl": 90.51911,
+      "t1": 99.92153,
+      "t2": 101.00152,
+      "rr_t1": 2.06,
+      "rr_t2": 2.41,
+      "sl_type": "struktur",
+      "cot_bias": "NØYTRAL",
+      "cot_pct": 1.2,
+      "correlation_group": "energy",
+      "adr_utilization": {
+        "pct": 48.1,
+        "ok_for_scalp": true,
+        "available": true
+      },
+      "atr_d1": 4.72357,
+      "horizon_config": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {
+          "fx": 3.0,
+          "gold": 4.0,
+          "silver": 4.0,
+          "oil": 3.5,
+          "index": 3.0
+        },
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
+      }
+    },
     {
       "key": "SPX",
       "name": "S&P 500",
@@ -58,7 +228,7 @@
           "vekt": 1.0,
           "poeng": 0.5,
           "drivers": [
-            "News risk_off (|s|=0.78) confirms"
+            "News risk_off (|s|=1.00) confirms"
           ]
         },
         {
@@ -113,7 +283,7 @@
           "score": 0.5,
           "weight": 1.0,
           "drivers": [
-            "News risk_off (|s|=0.78) confirms"
+            "News risk_off (|s|=1.00) confirms"
           ]
         },
         "fundamental": {
@@ -188,66 +358,6 @@
       }
     },
     {
-      "key": "Wheat",
-      "name": "Hvete",
-      "action": "SELL",
-      "timeframe": "SWING",
-      "horizon": "SWING",
-      "grade": "B",
-      "score": 6.6,
-      "max_score": 18,
-      "current": 602.75,
-      "entry": 603.22,
-      "sl": 625.16,
-      "t1": 550.0,
-      "t2": 540.0,
-      "rr_t1": 2.43,
-      "rr_t2": 2.88,
-      "sl_type": "atr_prosent",
-      "cot_bias": "bull",
-      "atr_d1": 10.97,
-      "source": "agri_fundamental",
-      "correlation_group": "grains",
-      "horizon_config": {
-        "confirmation_tf": "15min",
-        "confirmation_max_candles": 8,
-        "confirmation_escape_atr_factor": 0.7,
-        "confirmation_min_score": 2,
-        "confirmation_strict_score": 3,
-        "entry_zone_margin": 0.0025,
-        "entry_zone_margin_atr": 0.7,
-        "exit_t1_close_pct": 0.33,
-        "exit_t2_close_pct": 0.33,
-        "exit_trail_tf": "1H",
-        "exit_trail_atr_mult": {
-          "fx": 3.0,
-          "gold": 4.0,
-          "silver": 4.0,
-          "oil": 3.5,
-          "index": 3.0
-        },
-        "exit_ema_tf": "1H",
-        "exit_ema_period": 9,
-        "exit_timeout_partial_candles": 96,
-        "exit_timeout_partial_pct": 0.5,
-        "exit_timeout_full_hours": 120,
-        "exit_be_timeout_hours": 48,
-        "exit_event_close_hours": 2,
-        "exit_geo_spike_atr_mult": 3.0,
-        "sizing_base_risk_usd": 40
-      },
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "yield_score": 97,
-      "weather_outlook": "tørt",
-      "drivers": [
-        "Værstress i Australia – Hvetebeltet (tørt)",
-        "2 risiko-regioner",
-        "COT: bull BLANDET (net +1%)",
-        "Yield utmerket — god produksjon holder prisene nede"
-      ]
-    },
-    {
       "key": "Sugar",
       "name": "Sukker",
       "action": "BUY",
@@ -256,13 +366,13 @@
       "grade": "B",
       "score": 6.5,
       "max_score": 18,
-      "current": 18.43,
-      "entry": 18.41,
-      "sl": 17.43,
+      "current": 18.35,
+      "entry": 18.33,
+      "sl": 17.35,
       "t1": 20.5,
       "t2": 21.0,
-      "rr_t1": 2.13,
-      "rr_t2": 2.64,
+      "rr_t1": 2.21,
+      "rr_t2": 2.72,
       "sl_type": "atr_prosent",
       "cot_bias": "bull",
       "atr_d1": 0.49,
@@ -308,6 +418,66 @@
       ]
     },
     {
+      "key": "Wheat",
+      "name": "Hvete",
+      "action": "SELL",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "B",
+      "score": 6.5,
+      "max_score": 18,
+      "current": 596.25,
+      "entry": 596.72,
+      "sl": 618.42,
+      "t1": 550.0,
+      "t2": 540.0,
+      "rr_t1": 2.15,
+      "rr_t2": 2.61,
+      "sl_type": "atr_prosent",
+      "cot_bias": "bull",
+      "atr_d1": 10.85,
+      "source": "agri_fundamental",
+      "correlation_group": "grains",
+      "horizon_config": {
+        "confirmation_tf": "15min",
+        "confirmation_max_candles": 8,
+        "confirmation_escape_atr_factor": 0.7,
+        "confirmation_min_score": 2,
+        "confirmation_strict_score": 3,
+        "entry_zone_margin": 0.0025,
+        "entry_zone_margin_atr": 0.7,
+        "exit_t1_close_pct": 0.33,
+        "exit_t2_close_pct": 0.33,
+        "exit_trail_tf": "1H",
+        "exit_trail_atr_mult": {
+          "fx": 3.0,
+          "gold": 4.0,
+          "silver": 4.0,
+          "oil": 3.5,
+          "index": 3.0
+        },
+        "exit_ema_tf": "1H",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 96,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 120,
+        "exit_be_timeout_hours": 48,
+        "exit_event_close_hours": 2,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 40
+      },
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "yield_score": 97,
+      "weather_outlook": "tørt",
+      "drivers": [
+        "Værstress i Australia – Hvetebeltet (tørt)",
+        "2 risiko-regioner",
+        "COT: bull BLANDET (net +1%)",
+        "Yield utmerket — god produksjon holder prisene nede"
+      ]
+    },
+    {
       "key": "Corn",
       "name": "Mais",
       "action": "SELL",
@@ -316,16 +486,16 @@
       "grade": "B",
       "score": 5.1,
       "max_score": 18,
-      "current": 444.75,
-      "entry": 445.03,
-      "sl": 458.11,
+      "current": 441.25,
+      "entry": 441.53,
+      "sl": 454.5,
       "t1": 413.0,
       "t2": 410.0,
-      "rr_t1": 2.45,
-      "rr_t2": 2.68,
+      "rr_t1": 2.2,
+      "rr_t2": 2.43,
       "sl_type": "atr_prosent",
       "cot_bias": "bull",
-      "atr_d1": 6.54,
+      "atr_d1": 6.49,
       "source": "agri_fundamental",
       "correlation_group": "grains",
       "horizon_config": {
@@ -369,9 +539,9 @@
     }
   ],
   "_meta": {
-    "generated_at": "2026-11-03T23:03:19Z",
+    "generated_at": "2026-11-04T11:37:40Z",
     "script": "push_signals.py",
-    "macro_date": "2026-11-03 23:01 UTC",
+    "macro_date": "2026-11-04 11:35 UTC",
     "cot_date": "2026-10-27"
   }
 }
