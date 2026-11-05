@@ -1,6 +1,6 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-11-05 11:51 UTC",
+  "generated": "2026-11-05 15:11 UTC",
   "cot_date": "2026-10-27",
   "global_state": {
     "geo_active": true,
@@ -24,9 +24,9 @@
       "timeframe": "SWING",
       "horizon": "SWING",
       "grade": "A",
-      "score": 2.8,
+      "score": 2.75,
       "max_score": 5.0,
-      "score_pct": 56,
+      "score_pct": 55,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -84,8 +84,9 @@
           "id": "group_structure",
           "verdi": true,
           "vekt": 1.0,
-          "poeng": 0.7,
+          "poeng": 0.65,
           "drivers": [
+            "HTF-nivå w3",
             "SMC-bekreftelse"
           ]
         }
@@ -128,9 +129,10 @@
           ]
         },
         "structure": {
-          "score": 0.7,
+          "score": 0.65,
           "weight": 1.0,
           "drivers": [
+            "HTF-nivå w3",
             "SMC-bekreftelse"
           ]
         }
@@ -139,23 +141,23 @@
       "data_quality": "fresh",
       "quality_notes": [],
       "dir_override_reason": null,
-      "current": 7688.62,
-      "entry": 7758.43018,
-      "sl": 7794.31563,
-      "t1": 7638.16992,
-      "t2": 7631.77002,
-      "rr_t1": 3.35,
-      "rr_t2": 3.53,
+      "current": 7548.3,
+      "entry": 7715.56982,
+      "sl": 7751.91699,
+      "t1": 7527.56006,
+      "t2": 7511.69722,
+      "rr_t1": 5.17,
+      "rr_t2": 5.61,
       "sl_type": "struktur",
       "cot_bias": "SHORT",
       "cot_pct": 20.2,
       "correlation_group": "us_indices",
       "adr_utilization": {
-        "pct": 64.9,
-        "ok_for_scalp": true,
+        "pct": 184.1,
+        "ok_for_scalp": false,
         "available": true
       },
-      "atr_d1": 89.71362,
+      "atr_d1": 90.86792,
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -189,23 +191,83 @@
       "key": "Sugar",
       "name": "Sukker",
       "action": "BUY",
-      "timeframe": "SWING",
-      "horizon": "SWING",
-      "grade": "B",
-      "score": 6.9,
+      "timeframe": "MAKRO",
+      "horizon": "MAKRO",
+      "grade": "A",
+      "score": 7.1,
       "max_score": 18,
       "current": 18.469999,
       "entry": 18.45,
-      "sl": 17.47,
-      "t1": 20.5,
-      "t2": 21.0,
-      "rr_t1": 2.09,
-      "rr_t2": 2.6,
+      "sl": 16.98,
+      "t1": 19.68,
+      "t2": 20.0,
+      "rr_t1": 0.84,
+      "rr_t2": 1.05,
       "sl_type": "atr_prosent",
       "cot_bias": "bull",
       "atr_d1": 0.49,
       "source": "agri_fundamental",
       "correlation_group": "softs",
+      "horizon_config": {
+        "confirmation_tf": "1H",
+        "confirmation_max_candles": 6,
+        "confirmation_escape_atr_factor": 1.0,
+        "confirmation_min_score": 1,
+        "confirmation_strict_score": 2,
+        "entry_zone_margin": 0.004,
+        "entry_zone_margin_atr": 1.2,
+        "exit_t1_close_pct": 0.25,
+        "exit_t2_close_pct": 0.25,
+        "exit_trail_tf": "D1",
+        "exit_trail_atr_mult": {
+          "fx": 5.0,
+          "gold": 6.0,
+          "silver": 6.0,
+          "oil": 5.5,
+          "index": 5.0
+        },
+        "exit_ema_tf": "D1",
+        "exit_ema_period": 9,
+        "exit_timeout_partial_candles": 288,
+        "exit_timeout_partial_pct": 0.5,
+        "exit_timeout_full_hours": 360,
+        "exit_timeout_days": 15,
+        "exit_score_deterioration": 6.0,
+        "exit_geo_spike_atr_mult": 3.0,
+        "sizing_base_risk_usd": 60
+      },
+      "data_quality": "fresh",
+      "quality_notes": [],
+      "yield_score": 70,
+      "weather_outlook": "vått",
+      "drivers": [
+        "UNICA: mix sukker 46.6% (-6.2pp) → tight supply",
+        "Analog: bullish +7.5% 90d (n=3, range -11.5..+21.5%, år: 2011(+7.5%), 2019(+21.5%), 2017(-11.5%))",
+        "Bedrock A+ BUY bekrefter (score 12.4)",
+        "Værstress i Brasil – São Paulo (Center-South sukker) (vått)"
+      ]
+    },
+    {
+      "key": "Wheat",
+      "name": "Hvete",
+      "action": "SELL",
+      "timeframe": "SWING",
+      "horizon": "SWING",
+      "grade": "B",
+      "score": 6.4,
+      "max_score": 18,
+      "current": 601.0,
+      "entry": 601.47,
+      "sl": 623.35,
+      "t1": 550.0,
+      "t2": 540.0,
+      "rr_t1": 2.35,
+      "rr_t2": 2.81,
+      "sl_type": "atr_prosent",
+      "cot_bias": "bear",
+      "atr_d1": 10.94,
+      "source": "agri_fundamental",
+      "correlation_group": "grains",
       "horizon_config": {
         "confirmation_tf": "15min",
         "confirmation_max_candles": 8,
@@ -236,20 +298,20 @@
       },
       "data_quality": "fresh",
       "quality_notes": [],
-      "yield_score": 70,
-      "weather_outlook": "vått",
+      "yield_score": 97,
+      "weather_outlook": "tørt",
       "drivers": [
-        "UNICA: mix sukker 46.6% (-6.2pp) → tight supply",
-        "Analog: bullish +7.5% 90d (n=3, range -11.5..+21.5%, år: 2011(+7.5%), 2019(+21.5%), 2017(-11.5%))",
-        "Bedrock A+ BUY bekrefter (score 12.4)",
-        "COT: bull FALLER (net +20%)"
+        "Værstress i Australia – Hvetebeltet (tørt)",
+        "3 risiko-regioner",
+        "COT: bear BLANDET (net -3%)",
+        "Yield utmerket — god produksjon holder prisene nede"
       ]
     }
   ],
   "_meta": {
-    "generated_at": "2026-11-05T11:51:41Z",
+    "generated_at": "2026-11-05T15:11:47Z",
     "script": "push_signals.py",
-    "macro_date": "2026-11-05 11:50 UTC",
+    "macro_date": "2026-11-05 15:07 UTC",
     "cot_date": "2026-10-27"
   }
 }
