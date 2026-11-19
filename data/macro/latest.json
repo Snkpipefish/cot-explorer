@@ -1,12 +1,12 @@
 {
-  "date": "2026-11-19 15:40 UTC",
+  "date": "2026-11-19 16:40 UTC",
   "cot_date": "2026-11-03",
   "prices": {
     "VIX": {
-      "price": 24.28,
-      "chg1d": -1.14,
-      "chg5d": 29.84,
-      "chg20d": 27.59
+      "price": 25.24,
+      "chg1d": 2.77,
+      "chg5d": 34.97,
+      "chg20d": 32.63
     },
     "SPX": {
       "price": 7425.0,
@@ -23,10 +23,10 @@
       "source": "bedrock"
     },
     "DXY": {
-      "price": 103.829,
-      "chg1d": -0.03,
-      "chg5d": 0.64,
-      "chg20d": 2.18
+      "price": 103.88,
+      "chg1d": 0.02,
+      "chg5d": 0.69,
+      "chg20d": 2.23
     },
     "EURUSD": {
       "price": 1.101079,
@@ -50,10 +50,10 @@
       "source": "bedrock"
     },
     "USDCHF": {
-      "price": 1.1858,
-      "chg1d": -0.24,
-      "chg5d": -1.31,
-      "chg20d": -2.29
+      "price": 1.1856,
+      "chg1d": -0.25,
+      "chg5d": -1.32,
+      "chg20d": -2.3
     },
     "AUDUSD": {
       "price": 0.671321,
@@ -63,10 +63,10 @@
       "source": "bedrock"
     },
     "USDNOK": {
-      "price": 0.1027,
-      "chg1d": -1.16,
-      "chg5d": -1.89,
-      "chg20d": -3.85
+      "price": 0.1025,
+      "chg1d": -1.35,
+      "chg5d": -2.07,
+      "chg20d": -4.03
     },
     "Brent": {
       "price": 89.769997,
@@ -97,16 +97,16 @@
       "source": "bedrock"
     },
     "HYG": {
-      "price": 76.715,
-      "chg1d": 0.08,
-      "chg5d": -0.34,
-      "chg20d": -0.5
+      "price": 76.68,
+      "chg1d": 0.04,
+      "chg5d": -0.39,
+      "chg20d": -0.54
     },
     "TIP": {
-      "price": 104.98,
-      "chg1d": 0.08,
-      "chg5d": 0.2,
-      "chg20d": -1.27
+      "price": 104.875,
+      "chg1d": -0.02,
+      "chg5d": 0.1,
+      "chg20d": -1.37
     },
     "BTC": {
       "price": 63807.210938,
@@ -173,7 +173,7 @@
     }
   },
   "vix_regime": {
-    "value": 24.28,
+    "value": 25.24,
     "label": "Forhøyet – halv størrelse",
     "color": "warn",
     "regime": "elevated"
@@ -225,9 +225,9 @@
       "m15_regime": "BULLISH",
       "regime_align": "bull",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 99.9778,
       "sma200_pos": "over",
@@ -286,8 +286,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.25,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -331,9 +333,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 0.7,
@@ -351,7 +355,8 @@
         "SMA200-align",
         "Momentum 20d +",
         "D1+4H kongruent",
-        "SMC-bekreftelse"
+        "SMC-bekreftelse",
+        "VIX elevert"
       ],
       "horizon": "SWING",
       "adr_utilization": {
@@ -813,9 +818,9 @@
       "m15_regime": "BEARISH",
       "regime_align": "mixed",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 1.1511,
       "sma200_pos": "under",
@@ -873,8 +878,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 0.8,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.2,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -917,9 +924,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 0.8,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 0.8,
@@ -936,7 +945,8 @@
         "COT momentum +",
         "OI stigende mot retning (advarsel)",
         "Momentum 20d +",
-        "HTF-nivå w4"
+        "HTF-nivå w4",
+        "VIX elevert"
       ],
       "horizon": "WATCHLIST",
       "adr_utilization": {
@@ -1461,9 +1471,9 @@
       "m15_regime": "BULLISH",
       "regime_align": "bull",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 158.8,
       "sma200_pos": "over",
@@ -1521,8 +1531,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.25,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -1565,9 +1577,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 0.6,
@@ -1584,7 +1598,8 @@
         "SMA200-align",
         "Momentum 20d +",
         "D1+4H kongruent",
-        "HTF-nivå w3"
+        "HTF-nivå w3",
+        "VIX elevert"
       ],
       "horizon": "SWING",
       "adr_utilization": {
@@ -2058,9 +2073,9 @@
       "m15_regime": "BEARISH",
       "regime_align": "bear",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 1.3406,
       "sma200_pos": "under",
@@ -2115,8 +2130,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 0.8,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.2,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -2156,9 +2173,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 0.8,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 1.0,
@@ -2173,7 +2192,8 @@
         "FRED fund -1.56",
         "Momentum 20d +",
         "D1+4H kongruent",
-        "HTF-nivå w5"
+        "HTF-nivå w5",
+        "VIX elevert"
       ],
       "horizon": "WATCHLIST",
       "adr_utilization": {
@@ -2645,9 +2665,9 @@
       "m15_regime": "BEARISH",
       "regime_align": "bear",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 0.7048,
       "sma200_pos": "under",
@@ -2704,8 +2724,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 0.8,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.2,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -2747,9 +2769,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 0.8,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 0.7,
@@ -2765,7 +2789,8 @@
         "OI stigende mot retning (advarsel)",
         "Momentum 20d +",
         "D1+4H kongruent",
-        "SMC-bekreftelse"
+        "SMC-bekreftelse",
+        "VIX elevert"
       ],
       "horizon": "WATCHLIST",
       "adr_utilization": {
@@ -3242,9 +3267,9 @@
       "m15_regime": "BEARISH",
       "regime_align": "bear",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 4451.67,
       "sma200_pos": "under",
@@ -3301,8 +3326,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.25,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -3344,9 +3371,11 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 0.6,
@@ -3362,7 +3391,8 @@
         "COT momentum +",
         "Momentum 20d +",
         "D1+4H kongruent",
-        "HTF-nivå w3"
+        "HTF-nivå w3",
+        "VIX elevert"
       ],
       "horizon": "SWING",
       "adr_utilization": {
@@ -3374,7 +3404,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": false,
-      "in_session": true,
+      "in_session": false,
       "news_headwind": false,
       "news_sentiment_label": "neutral",
       "open_interest": 399169,
@@ -3860,17 +3890,17 @@
       "m15_regime": "BULLISH",
       "regime_align": "bear",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 67.6919,
       "sma200_pos": "under",
       "chg5d": -9.47,
       "chg20d": -17.39,
       "dir_color": "bear",
-      "grade": "B",
-      "grade_color": "warn",
+      "grade": "C",
+      "grade_color": "bear",
       "score": 2.13,
       "max_score": 4.2,
       "score_pct": 51,
@@ -3919,8 +3949,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 0.8,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.2,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -3963,9 +3995,11 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 0.8,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 0.65,
@@ -3983,9 +4017,10 @@
         "Momentum 20d +",
         "D1+4H kongruent",
         "HTF-nivå w3",
-        "SMC-bekreftelse"
+        "SMC-bekreftelse",
+        "VIX elevert"
       ],
-      "horizon": "SCALP",
+      "horizon": "WATCHLIST",
       "adr_utilization": {
         "pct": 38.7,
         "ok_for_scalp": true,
@@ -3995,7 +4030,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": true,
-      "in_session": true,
+      "in_session": false,
       "news_headwind": false,
       "news_sentiment_label": "neutral",
       "open_interest": 115583,
@@ -4493,9 +4528,9 @@
       "m15_regime": "BULLISH",
       "regime_align": "mixed",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 94.4668,
       "sma200_pos": "under",
@@ -4552,8 +4587,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.25,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -4596,9 +4633,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 0.75,
@@ -4616,7 +4655,8 @@
         "OI stigende mot retning (advarsel)",
         "Momentum 20d +",
         "HTF-nivå w4",
-        "SMC-bekreftelse"
+        "SMC-bekreftelse",
+        "VIX elevert"
       ],
       "horizon": "WATCHLIST",
       "adr_utilization": {
@@ -4628,7 +4668,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": true,
-      "in_session": true,
+      "in_session": false,
       "news_headwind": false,
       "news_sentiment_label": "neutral",
       "open_interest": 769009,
@@ -5119,9 +5159,9 @@
       "m15_regime": "BULLISH",
       "regime_align": "mixed",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 88.1927,
       "sma200_pos": "under",
@@ -5178,8 +5218,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.25,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -5222,9 +5264,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 0.65,
@@ -5242,7 +5286,8 @@
         "OI stigende mot retning (advarsel)",
         "Momentum 20d +",
         "HTF-nivå w3",
-        "SMC-bekreftelse"
+        "SMC-bekreftelse",
+        "VIX elevert"
       ],
       "horizon": "WATCHLIST",
       "adr_utilization": {
@@ -5254,7 +5299,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": true,
-      "in_session": true,
+      "in_session": false,
       "news_headwind": false,
       "news_sentiment_label": "neutral",
       "open_interest": 769009,
@@ -5744,9 +5789,9 @@
       "m15_regime": "BULLISH",
       "regime_align": "bear",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 7349.04,
       "sma200_pos": "over",
@@ -5804,8 +5849,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 1.0,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.25,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -5848,9 +5895,11 @@
           ]
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 1.0,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 0.6,
@@ -5867,7 +5916,8 @@
         "COT sterk (18% net)",
         "SMA200-align",
         "D1+4H kongruent",
-        "HTF-nivå w3"
+        "HTF-nivå w3",
+        "VIX elevert"
       ],
       "horizon": "SCALP",
       "adr_utilization": {
@@ -5879,7 +5929,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": true,
-      "in_session": true,
+      "in_session": false,
       "news_headwind": false,
       "news_sentiment_label": "neutral",
       "open_interest": 2013852,
@@ -6332,20 +6382,20 @@
       "m15_regime": "BULLISH",
       "regime_align": "bull",
       "session_now": {
-        "active": true,
-        "label": "NY Overlap",
-        "cet_hour": 16
+        "active": false,
+        "label": "Off-session",
+        "cet_hour": 17
       },
       "sma200": 28076.54,
       "sma200_pos": "under",
       "chg5d": -2.27,
       "chg20d": -4.53,
       "dir_color": "bear",
-      "grade": "B",
-      "grade_color": "warn",
-      "score": 1.78,
+      "grade": "C",
+      "grade_color": "bear",
+      "score": 2.13,
       "max_score": 4.2,
-      "score_pct": 42,
+      "score_pct": 51,
       "score_details": [
         {
           "kryss": "Trendbildet (SMA/momentum/align)",
@@ -6369,10 +6419,12 @@
         {
           "kryss": "Makrobilde (DXY/VIX/renter)",
           "id": "group_macro",
-          "verdi": false,
+          "verdi": true,
           "vekt": 0.7,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.35,
+          "drivers": [
+            "VIX elevert — risk-off"
+          ]
         },
         {
           "kryss": "Fundamentalt (asset-spesifikt)",
@@ -6387,8 +6439,10 @@
           "id": "group_risk",
           "verdi": false,
           "vekt": 0.8,
-          "poeng": 0.0,
-          "drivers": []
+          "poeng": 0.2,
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         {
           "kryss": "Teknisk struktur (HTF/SMC)",
@@ -6416,9 +6470,11 @@
           "drivers": []
         },
         "macro": {
-          "score": 0.0,
+          "score": 0.5,
           "weight": 0.7,
-          "drivers": []
+          "drivers": [
+            "VIX elevert — risk-off"
+          ]
         },
         "fundamental": {
           "score": 0.0,
@@ -6426,9 +6482,11 @@
           "drivers": []
         },
         "risk": {
-          "score": 0.0,
+          "score": 0.25,
           "weight": 0.8,
-          "drivers": []
+          "drivers": [
+            "VIX elevert"
+          ]
         },
         "structure": {
           "score": 0.7,
@@ -6438,13 +6496,15 @@
           ]
         }
       },
-      "active_driver_groups": 2,
+      "active_driver_groups": 3,
       "group_drivers": [
+        "VIX elevert — risk-off",
         "Momentum 20d +",
         "D1+4H kongruent",
-        "SMC-bekreftelse"
+        "SMC-bekreftelse",
+        "VIX elevert"
       ],
-      "horizon": "SCALP",
+      "horizon": "WATCHLIST",
       "adr_utilization": {
         "pct": 119.3,
         "ok_for_scalp": false,
@@ -6454,7 +6514,7 @@
       "dxy_conflict": false,
       "dxy_momentum_strength": null,
       "stable_signal": true,
-      "in_session": true,
+      "in_session": false,
       "news_headwind": false,
       "news_sentiment_label": "neutral",
       "open_interest": 292587,
