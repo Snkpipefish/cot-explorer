@@ -1,12 +1,33 @@
 {
   "schema_version": "2.2",
-  "generated": "2026-11-23 16:10 UTC",
+  "generated": "2026-11-23 19:06 UTC",
   "cot_date": "2026-11-18",
   "enso_phase": "El Niño",
   "global_state": {
     "geo_active": true,
     "vix_regime": "elevated",
-    "usda_blackout": null
+    "usda_blackout": {
+      "Corn": {
+        "report": "Crop Progress",
+        "time_utc": "2026-11-23 20:00 UTC",
+        "hours_away": 0.9
+      },
+      "Wheat": {
+        "report": "Crop Progress",
+        "time_utc": "2026-11-23 20:00 UTC",
+        "hours_away": 0.9
+      },
+      "Soybean": {
+        "report": "Crop Progress",
+        "time_utc": "2026-11-23 20:00 UTC",
+        "hours_away": 0.9
+      },
+      "Cotton": {
+        "report": "Crop Progress",
+        "time_utc": "2026-11-23 20:00 UTC",
+        "hours_away": 0.9
+      }
+    }
   },
   "rules": {
     "risk_pct_full": 1.0,
@@ -23,16 +44,16 @@
       "timeframe": "MAKRO",
       "grade": "A",
       "score": 8.4,
-      "current": 17.07,
-      "entry": 17.05,
-      "sl": 15.69,
-      "t1": 18.19,
-      "t2": 18.5,
-      "rr_t1": 0.84,
-      "rr_t2": 1.07,
+      "current": 17.690001,
+      "entry": 17.67,
+      "sl": 16.26,
+      "t1": 20.0,
+      "t2": 19.32,
+      "rr_t1": 1.65,
+      "rr_t2": 1.17,
       "sl_type": "atr_prosent",
-      "t1_source": "atr_fallback",
-      "atr_est": 0.45,
+      "t1_source": "rn20",
+      "atr_est": 0.47,
       "driver_groups": {
         "trend": {
           "score": 1.0,
@@ -111,16 +132,16 @@
       "timeframe": "SWING",
       "grade": "B",
       "score": 6.4,
-      "current": 273.350006,
-      "entry": 273.65,
-      "sl": 287.43,
+      "current": 267.200012,
+      "entry": 267.49,
+      "sl": 280.96,
       "t1": 240.0,
-      "t2": 249.54,
-      "rr_t1": 2.44,
-      "rr_t2": 1.75,
+      "t2": 230.0,
+      "rr_t1": 2.04,
+      "rr_t2": 2.78,
       "sl_type": "atr_prosent",
       "t1_source": "rn240",
-      "atr_est": 6.89,
+      "atr_est": 6.73,
       "driver_groups": {
         "trend": {
           "score": 0.0,
@@ -145,7 +166,7 @@
           "drivers": [
             "Struktur: Conab YoY +19.6% (cafe_total) → overflod vs forrige safra",
             "Bedrock A SELL bekrefter (score 8.9)",
-            "Værstress i Brasil – Kafferegionen (vått)"
+            "Værstress i Brasil – Kafferegionen (flom)"
           ]
         },
         "risk": {
@@ -166,7 +187,7 @@
       "group_drivers": [
         "Struktur: Conab YoY +19.6% (cafe_total) → overflod vs forrige safra",
         "Bedrock A SELL bekrefter (score 8.9)",
-        "Værstress i Brasil – Kafferegionen (vått)",
+        "Værstress i Brasil – Kafferegionen (flom)",
         "COT: spekulanter øker long (net +6% av OI)",
         "CONAB Brasil kaffe: +19.6% YoY (↑ vekst)",
         "Bedrock: A SELL makro publisert (score 8.9)",
@@ -179,103 +200,16 @@
       "cot_pct": 6.4,
       "cot_zscore": -0.78,
       "source": "agri_fundamental",
-      "yield_score": 82,
+      "yield_score": 76,
       "yield_quality": "God",
-      "weather_outlook": "vått",
+      "weather_outlook": "flom",
       "growth_stage": "Main Harvest",
       "season_pct": 83,
       "drivers": [
         "Struktur: Conab YoY +19.6% (cafe_total) → overflod vs forrige safra",
         "Bedrock A SELL bekrefter (score 8.9)",
-        "Værstress i Brasil – Kafferegionen (vått)",
+        "Værstress i Brasil – Kafferegionen (flom)",
         "COT: spekulanter øker long (net +6% av OI)"
-      ]
-    },
-    {
-      "key": "Wheat",
-      "name": "Hvete",
-      "action": "SELL",
-      "timeframe": "SWING",
-      "grade": "B",
-      "score": 5.4,
-      "current": 593.25,
-      "entry": 593.71,
-      "sl": 615.3,
-      "t1": 550.0,
-      "t2": 540.0,
-      "rr_t1": 2.02,
-      "rr_t2": 2.49,
-      "sl_type": "atr_prosent",
-      "t1_source": "rn550",
-      "atr_est": 10.8,
-      "driver_groups": {
-        "trend": {
-          "score": 0.0,
-          "weight": 0.8,
-          "drivers": []
-        },
-        "positioning": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": [
-            "COT bear -4.4%"
-          ]
-        },
-        "macro": {
-          "score": 0.0,
-          "weight": 1.0,
-          "drivers": []
-        },
-        "fundamental": {
-          "score": 0.375,
-          "weight": 1.3,
-          "drivers": [
-            "Bedrock A SELL bekrefter (score 8.1)",
-            "Værstress i Argentina – Pampas (tørke)",
-            "2 risiko-regioner"
-          ]
-        },
-        "risk": {
-          "score": 0.75,
-          "weight": 1.0,
-          "drivers": [
-            "Geo aktiv",
-            "VIX elevert"
-          ]
-        },
-        "structure": {
-          "score": 0.0,
-          "weight": 0.5,
-          "drivers": []
-        }
-      },
-      "active_driver_groups": 2,
-      "group_drivers": [
-        "Bedrock A SELL bekrefter (score 8.1)",
-        "Værstress i Argentina – Pampas (tørke)",
-        "2 risiko-regioner",
-        "COT: bear BLANDET (net -4%)",
-        "Yield utmerket — god produksjon holder prisene nede",
-        "Bedrock: A SELL makro publisert (score 8.1)",
-        "El Niño: Gunstig regn"
-      ],
-      "data_quality": "fresh",
-      "quality_notes": [],
-      "atr_source": "estimated",
-      "cot_bias": "bear",
-      "cot_pct": -4.4,
-      "cot_zscore": 0.87,
-      "source": "agri_fundamental",
-      "yield_score": 96,
-      "yield_quality": "Utmerket",
-      "weather_outlook": "tørke",
-      "growth_stage": "Høsting",
-      "season_pct": 75,
-      "drivers": [
-        "Bedrock A SELL bekrefter (score 8.1)",
-        "Værstress i Argentina – Pampas (tørke)",
-        "2 risiko-regioner",
-        "COT: bear BLANDET (net -4%)"
       ]
     }
   ]
